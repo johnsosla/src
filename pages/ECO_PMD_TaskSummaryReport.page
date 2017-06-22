@@ -1,0 +1,30 @@
+<apex:page standardcontroller="pse__Proj__c" extensions="ECO_PMD_EarnedValueDetail_Controller,nttdcore.DLabelParentController" >
+  
+  <div ng-app="ecopmd" >
+    <apex:composition template="ECO_PMD_Chrome2" >
+      
+      <apex:define name="head" >
+        <c:ECO_PMD_ag_grid_js />
+      </apex:define>
+
+      <apex:define name="mainContent" >
+        <div class="ecopmd-ag-wrap" > <!-- bs outside -->
+          <task-summary-report project-id="{!pse__Proj__c.Id}" project-name="{!pse__Proj__c.ProjectNumber__c} - {!pse__Proj__c.name}" >
+          </task-summary-report>
+        </div>
+      </apex:define>
+
+      <apex:define name="belowFooter" >
+        <c:ECO_PMD_NavigationBar_ng projectid="{!Id}" pagetitle="Task Summary" />
+      </apex:define>
+    </apex:composition>
+
+  </div>
+  
+  <script>
+    $("document").ready(function(){
+      $(".ag-tool-panel-container").children().eq(1).hide();
+      $(".ag-tool-panel-container").children().eq(0).css("height","100%");
+    })
+  </script>
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

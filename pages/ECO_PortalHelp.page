@@ -1,0 +1,152 @@
+<apex:page controller="ECO_ApplicationCustomizerController" showheader="false" sidebar="false" standardStylesheets="false" action="{!onLoad}">
+ 
+ 	<style>
+ 	.panel-body{
+ 		background-color:#00729d;
+ 	}
+ 	#sortable a{
+ 		float:left;
+ 		width:100px;
+ 		text-align:center;
+ 		height:105px;
+ 		cursor:move;
+ 	}
+ 	#sortable a div{
+ 		display:block;
+ 		height:55px;
+ 	}
+ 	#sortable a span{
+ 		color:#CBCBCB !important;
+ 	}
+ 	#sortable a:hover span{
+ 		color:#fff !important;
+ 	}
+ 	.ui-state-default, .ui-widget-content .ui-state-default, .ui-widget-header .ui-state-default{
+ 		border:none !important;
+ 		background:transparent !important;
+ 		color:#fff !important;
+ 	}
+ 	.panel-default .panel-heading{
+ 		background-color: #00B0E2 !important;
+		border-color: #18C3F3 !important;
+ 	}
+ 	.panel-heading h4{
+ 		padding:17px;
+ 	}
+ 	#sortable a span.fa{
+ 		position:absolute;
+ 	}
+ 	.saving{
+ 		color:#CBCBCB !important;
+ 	}
+ 	.hoverHand{
+ 		cursor:pointer;
+ 	}
+ 	.buttonsBottom input, .buttonsBottom button{
+ 		border: none !important;
+ 	}
+ 	.buttonsBottom{
+ 		padding-top:20px;
+ 	}
+
+
+ 	</style>
+	
+	<apex:composition template="ECO_Temp_Portalv2">
+	    
+	    <apex:define name="head">
+	    	
+	    </apex:define>
+
+
+	    
+		<apex:define name="content">
+
+				<!--NAVBAR-->
+		<!--===================================================-->
+		<header id="navbar">
+			<div id="navbar-container" class="boxed">
+
+				<!--Brand logo & name-->
+				<!--================================-->
+				<div class="navbar-header">
+					<a href="#" class="navbar-brand">
+						<div class="brand-title">
+							<span class="brand-text">ECOSYSTEM</span>
+						</div>
+					</a>
+				</div>
+				<!--================================-->
+				<!--End brand logo & name-->
+
+				<!--Navbar Dropdown-->
+				<!--================================-->
+				<div class="navbar-content clearfix">
+					<ul class="nav navbar-top-links pull-left">
+
+						<li class="dropdown hidden-xs">
+							<h3 style="margin:10px 0 0 8px;">Portal Help</h3>
+						</li>
+
+					</ul>
+					<ul class="nav navbar-top-links pull-right">
+						<!--User dropdown-->
+						<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+						<li id="dropdown-user" class="dropdown">
+							<a href="#" data-toggle="dropdown" class="dropdown-toggle text-right">
+								<span class="pull-right">
+									<apex:image value="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/img/av1.png')}" styleClass="img-circle img-user media-object"/>
+								</span>
+								<div class="username hidden-xs"><strong><apex:outputText value="{!theUser.Name}'s" /></strong> Ecosystem</div>
+							</a>
+
+						
+						</li>
+						<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+						<!--End user dropdown-->
+
+						<li class="logo" style="padding:12px 15px 0 8px;">
+							<apex:image url="{!URLFOR($Resource.ECO_CustomGraphicAssets, 'AECOMLogo.jpg')}" height="25px" />
+						</li>
+
+					</ul>
+				</div>
+				<!--================================-->
+				<!--End Navbar Dropdown-->
+
+			</div>
+		</header>
+
+
+		<div class="portalPageWrapper">	
+			<div class="container appManager">
+		    	<div class="row">
+		    		<div class="col-sm-12" style="margin-top:90px;">
+						<div class="panel panel-default appPanel">
+							<div class="panel-heading">
+								<h4>AECOM Ecosystem Portal Help</h4>
+							</div>
+							
+							<div class="panel-body" style="color:#fff;">
+							
+								<apex:pageMessages id="pageMessages" />
+								<h3>This will be a clickable FAQ page, with show/hide.</h3>
+								<br />
+								Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+								<br />
+								<br />
+								<a class="btn btn-primary btn-large" href="../apex/ECO_Portalv2">Return to Portal</a>
+
+								<br />
+								<br />
+								<br />
+								
+							</div><!-- .panel-body -->
+						</div><!-- .panel -->
+					</div><!-- col-sm-6 -->
+				</div><!-- .row -->
+			</div><!-- .container -->
+		</div><!-- .portalPageWrapper -->
+		</apex:define>
+	</apex:composition>
+</apex:page>

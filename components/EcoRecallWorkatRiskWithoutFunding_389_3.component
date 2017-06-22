@@ -1,0 +1,2 @@
+<apex:component language="{!theLanguage}" controller="nttdcore.DLabelChildController" access="global" ><apex:attribute name="theLanguage" type="String" required="true" description="language" access="global" /><apex:attribute name="theRecipient" type="User" required="true" description="recipient" access="global" /><apex:attribute name="theRelatedTo" type="ChangeManager__c" required="true" description="related to" access="global" />
+    <nttdcore:DLabelInit language="{!theLanguage}" labelParentInit="{!this}" /></apex:component>

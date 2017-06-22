@@ -1,0 +1,84 @@
+<apex:page standardController="DOAApprovalRequest__c" extensions="ECO_DOA_ApprovalRequestRecordCtrl" showHeader="true" sidebar="true" tabStyle="DOAApprovalRequest__c" action="{!redirect}" >
+    <style>
+        .table{
+			border-collapse:collapse;
+		}
+
+		.table th, .table td {
+		  padding: 8px 2px 8px 5px;
+		  border: 1px solid #dbdbdb;;
+		  border-collapse: collapse;
+		}
+		
+		.table tr {
+		  border: 1px solid #dbdbdb;;
+		  border-collapse: collapse;
+		}
+		
+		.table td {
+			background-color: white;
+		}
+		
+		td:nth-child(1){
+     		font-weight: bold;
+		}
+    	.customHelpIcon
+		{
+			display:inline-block;
+			margin:0 5px 0 0;
+			width:24px;
+			height:24px;
+			vertical-align:top !important;
+		}
+        /* CUSTOM HELP / GUIDANCE TEXT BOX */
+        .customHelpText{
+            padding: 7px;
+            border: 1px solid #85B3CE;
+            min-height: 30px;
+            display: block;
+            width: auto;
+            margin: 0 0 5px 0;
+            background-repeat: no-repeat;
+            border-radius: 4px;
+            background-color: #A2D3F1;
+            
+        }
+        .customHelpBody{
+            display:inline-block;
+            color:#;
+            max-width:95%;
+        } 	
+    </style>
+    <apex:form >
+        <apex:sectionHeader title="New DOA Approval Request" subtitle="Select DOA Approval Request Record Type" />
+        <apex:pageMessages id="messages" />
+    	<apex:pageBlock >
+    
+        <div class="customHelpText">
+			<div class="customHelpBody">
+				Select a record type for the new doa approval request. &nbsp;To skip this page in the future, change your record type settings on your personal setup page.
+			</div>
+		</div>
+        <apex:actionFunction name="recordTypeSelected2" action="{!recordTypeSelected}" rerender="rtypeid">
+            <apex:param id="test" assignto="{!selectedRecordType}" name="selectedRecordType" value=""/>
+        </apex:actionFunction>
+        <apex:outputPanel >
+            <apex:inputHidden value="{!selectedRecordType}" id="rtypeid"/>
+            <table class="table" style="width:100%;">
+                <tr>
+                    <th>Record Type Name</th>
+                    <th>Record Type Description</th>
+                    <th></th>
+                </tr>
+                <apex:repeat value="{!DoaApprovalRecordTypes}" var="doaApprovalRecordType">
+                    <tr>	
+                        <td><apex:outputField value="{!doaApprovalRecordType.Name}"/></td>
+                        <td><apex:outputField value="{!doaApprovalRecordType.Description}"/></td>
+                        <td><apex:commandButton value="Select" onclick="recordTypeSelected2('{!doaApprovalRecordType.Id}'); return false;"/></td>
+                    </tr>		
+                </apex:repeat>
+            </table>
+		</apex:outputPanel>
+       </apex:pageBlock>
+    </apex:form>
+</apex:page>

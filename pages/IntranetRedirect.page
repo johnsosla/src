@@ -1,0 +1,5 @@
+<apex:page showHeader="false">
+    <head>    
+        <META http-equiv="refresh" content="0;URL=https://myecosystem.aecom.com/" />        
+    </head>
+</apex:page>

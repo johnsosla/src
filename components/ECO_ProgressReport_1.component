@@ -1,0 +1,17 @@
+<apex:component language="{!theLanguage}" controller="nttdcore.DLabelChildController" access="global" ><nttdcore:DLabel name="DL1" default="Dear ,
+
+Please find below our weekly update on {{1}} - {{2}}
+
+Key items we worked on this week:
+·
+Ongoing key items that we are working on:
+·
+Outstanding Items/Issues:
+·
+Safety Update:
+·
+
+Regards," labelParent="{!this}" componentContext="ECO_ProgressReport_1" p1="{!theRelatedTo.Name}" p2="{!theRelatedTo.ProjectNumber__c}" /><apex:attribute name="theLanguage" type="String" required="true" description="language" access="global" /><apex:attribute name="theRecipient" type="Contact" required="true" description="recipient" access="global" /><apex:attribute name="theRelatedTo" type="pse__Proj__c" required="true" description="related to" access="global" />
+{!dlRoot.dLabel['DL1']}
+
+<nttdcore:DLabelInit language="{!theLanguage}" labelParentInit="{!this}" /></apex:component>

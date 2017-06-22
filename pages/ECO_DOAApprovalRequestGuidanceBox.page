@@ -1,0 +1,28 @@
+<apex:page standardController="DOAApprovalRequest__c">
+   <style>
+    /* CUSTOM HELP / GUIDANCE TEXT BOX */
+		.customHelpText{
+			padding:10px 15px;
+			border:1px solid #85B3CE;
+			min-height:30px;
+			display:block;
+			width:auto;
+			margin:0;
+			background-color:#A2D3F1;
+       // background-image: url('../img/icon/forecasts24.png');
+			background-position:.05% 10%;
+			background-repeat:no-repeat;
+			border-radius:4px;
+			margin-bottom:15px;
+        }
+    </style>
+    <div class="customHelpText" >
+			<div class="customHelpBody" >
+                <apex:outputPanel >
+                    <apex:outputText value="{!$Label.ECOdoaApprovalRequestGuidance}" escape="false" />
+                <br/><br/>
+                </apex:outputPanel> 
+			
+             </div>
+		</div>	
+</apex:page>

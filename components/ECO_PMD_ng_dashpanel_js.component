@@ -1,0 +1,2749 @@
+<apex:component layout="none">
+
+<script id="kendo-extensions.js">
+    if (kendo) {
+        kendo.formatDebug = function (dataItem,  series, value, category){
+            console.log(dataItem);
+            console.log(series);
+            console.log(value);
+            console.log(category);
+            return value.toString();
+        };
+        kendo.formatNum = function(value,places,isThousands) {
+              var pow =  places||2,
+                  group = isThousands?1000:1, 
+                  ret = Math.round(Math.pow(10,pow)*(value/group))/Math.pow(10,pow);
+              return ret.toLocaleString()+(isThousands?"k":"");
+        };
+        kendo.formatK = function(value,places){
+            var pow =  places||0;
+            return kendo.formatNum(value,pow,true);
+        };
+        kendo.formatDate = function(asOf) {
+              var asOfDate = new Date(asOf),
+                  hasAsOf = (!isNaN(asOfDate.getTime())),
+                  asOfDisplay = (!hasAsOf)?"":asOfDate.toLocaleDateString(asOf);
+              return asOfDisplay;
+        };
+        kendo.formatGetFiscalMonthAsDate = function(str) {
+            // like FY2015-12, which is September 2015, js months are 0-11
+            var fy = parseInt(str.substring(2,6)),
+                fm = parseInt(str.substring(7,9)),
+                cy = fy + ((fm < 4 ) ? -1 : 0 ),
+                cm = fm + ((fm < 4 ) ? 9 : -3 ), 
+                dt = new Date( cy , cm-1 );
+            return dt;
+        }
+        kendo.formatFiscalMonthAsDate = function(str) {
+            var dt = kendo.formatGetFiscalMonthAsDate(str),
+                dts = kendo.toString(dt,'MMM yyyy');
+            return dts;
+        };
+        kendo.formatSnapshotDate = function(str){
+            //like FY2015-09|43243242314 first is the fiscal month label, second is actual snapshotdate
+            
+            var parsed = str.split("|"),
+                fiscalMonth = parsed[0];
+            if (parsed.length < 2) return { month: str, date: "NA"}; // not in the right format, return unaltered
+            var asOfDate = parsed[1],
+                ret = { month: kendo.formatFiscalMonthAsDate(fiscalMonth)
+                       ,date: asOfDate=="NA"?'':kendo.formatDate(parseInt(asOfDate)) };
+            return ret;
+        };
+    } else {
+        console.log('kendo not loaded -- cannot create formatK');
+    }
+</script>
+
+<script id="app.js">
+    (function () {
+        "use strict";
+
+        /**
+         * @ngdoc module
+         * @name ecopmd
+         *
+         * @requires components
+         * @requires services
+         * @requires agGrid
+         * @requires ui.bootstrap
+         * @requires pikaday
+         *
+         * @description
+         * Main application module
+         */
+        angular
+            .module('ecopmd', [
+                // custom modules
+                'components',
+                'services',
+
+                // 3rd Party modules
+                'ui.bootstrap',
+                'pikaday'
+             ]);
+
+        /**
+         * @ngdoc overview
+         *
+         * @name components
+         *
+         * @description
+         * base components module
+         */
+        angular
+            .module('components', []);
+
+        /**
+         * @ngdoc overview
+         *
+         * @name services
+         *
+         * @description
+         * base service module
+         */
+        angular
+            .module('services', []);
+    })();
+</script>
+
+<script id="services/PubSub/pub-sub-service.js">
+    (function() {
+        'use strict';
+
+        /**
+         * @ngdoc service
+         *
+         * @name services.service:PubSub
+         *
+         * @requires https://docs.angularjs.org/api/ng/service/$timeout
+         * @requires https://docs.angularjs.org/api/ng/service/$log
+         *
+         * @description
+         * service that handles pub/sub event emitting/subscribing
+         */
+        angular
+            .module('services')
+            .factory('PubSub', PubSub);
+
+        PubSub.$inject = ['$timeout', '$log'];
+
+        function PubSub($timeout, $log) {
+            /**
+             * @ngdoc property
+             *
+             * @name service
+             *
+             * @propertyOf services.service:PubSub
+             *
+             * @description
+             * public service interface
+             *
+             * <pre>{
+             *      topics          : Object,
+             *      subUid          : Number,
+             *      subscribe       : PubSub.subscribe,
+             *      subscribeOnce   : PubSub.subscribeOnce,
+             *      publish         : PubSub.publish,
+             *      unsubscribe     : PubSub.unsubscribe
+             * } </pre>
+             */
+            var service = {
+                topics          : {},                   // storage for topics that can be broadcast or listened to
+                subUid          : -1,                   // a topic identifier
+                subscribe       : subscribe,
+                subscribeOnce   : subscribeOnce,
+                publish         : publish,
+                unsubscribe     : unsubscribe
+            };
+
+            return service;
+
+            /**
+             * @ngdoc method
+             *
+             * @name subscribe
+             *
+             * @methodOf services.service:PubSub
+             *
+             * @param {String} topic topic name.
+             * @param {Function} callback callback function to execute on event.
+             * @param {Boolean} once checks if event will be triggered only one time (optional).
+             *
+             * @description
+             * subscribe to events of interest with a specific topic name and a
+             * callback function, to be executed when the topic/event is observed
+             *
+             * @returns {number} identifier for subscription
+             */
+            function subscribe(topic, callback, once) {
+                var token   = service.subUid += 1,
+                    obj     = {};
+
+                if(!service.topics[topic]) {
+                    service.topics[topic] = [];
+                }
+
+                obj.token       = token;
+                obj.callback    = callback;
+                obj.once        = !!once;
+
+                service.topics[topic].push(obj);
+
+                return token;
+            }
+
+            /**
+             * @ngdoc method
+             *
+             * @name subscribeOnce
+             *
+             * @methodOf services.service:PubSub
+             *
+             * @param {String} topic topic name
+             * @param {Function} callback callback function to execute on event
+             *
+             * @description
+             * subscribe to events of interest setting a flag indicating the event will be published only one time
+             */
+
+            function subscribeOnce(topic, callback) {
+                service.subscribe(topic, callback, true);
+            }
+
+            /**
+             * @ngdoc method
+             *
+             * @name publish
+             *
+             * @methodOf services.service:PubSub
+             *
+             * @param {String} topic topic name.
+             * @param {Object || Array} args the data to be passed.
+             *
+             * @description
+             * publish or broadcast events of interest with a specific topic name and arguments such as the data to pass along.
+             *
+             * @returns {Boolean} true if topic exists and event is published.
+             */
+            function publish(topic, args) {
+                var subscribers,
+                    len;
+
+                if(!service.topics[topic]) {
+                    return false;
+                }
+
+                $timeout(function() {
+                    subscribers = service.topics[topic];
+                    len         = subscribers ? subscribers.length : 0;
+
+                    while(len) {
+                        len -= 1;
+
+                        subscribers[len].callback(topic, args);
+
+                        // unsubscribe from event based on tokenized reference,
+                        // if subscriber's property once is set to true.
+                        if(subscribers[len].once) {
+                            service.unsubscribe(subscribers[len].token);
+                        }
+                    }
+                }, 0);
+
+                return true;
+            }
+
+            /**
+             * @ngdoc method
+             *
+             * @name unsubscribe
+             *
+             * @methodOf services.service:PubSub
+             *
+             * @param {Number} t topic name or token reference
+             *
+             * @description
+             * unsubscribe from a specific topic based on the topic name or based on a tokenized reference to the subscription.
+             */
+            function unsubscribe(t) {
+                var prop,
+                    len,
+                    tf = false;
+
+                for(prop in service.topics) {
+                    if(service.topics.hasOwnProperty(prop)) {
+                        if(service.topics[prop]) {
+                            len = service.topics[prop].length;
+
+                            while(len) {
+                                len -= 1;
+
+                                // if t is a tokenized reference to the subscription.
+                                // removes one subscription from the array.
+                                if(service.topics[prop][len].token === t) {
+                                    service.topics[prop].splice(len, 1);
+                                    return t;
+                                }
+
+                                // if t is the event type.
+                                // removes all the subscriptions that match the event type.
+                                if(prop === t) {
+                                    service.topics[prop].splice(len, 1);
+                                    tf = true;
+                                }
+                            }
+
+                            if(tf) {
+                                return t;
+                            }
+                        }
+                    }
+                }
+
+                return false;
+            }
+        }
+    })();
+</script>
+
+<script id="services/DashpanelService/dash-panel-service.service.js">
+    (function() {
+        'use strict';
+
+        /**
+         * @ngdoc service
+         *
+         * @name services.service:DashPanelService
+         *
+         * @requires https://docs.angularjs.org/api/ng/service/$timeout
+         * @requires https://docs.angularjs.org/api/ng/service/$q
+         *
+         * @description
+         * service that handles communication with salesforce ECO_PMD_Top10DashPanelService_Controller 
+         */
+        angular
+            .module('services')
+            .factory('DashPanelService', DashPanelService);
+
+        DashPanelService.$inject = ['$q', 'PubSub'];
+
+        function DashPanelService($q, PubSub) {
+
+            /**
+             * @ngdoc property
+             *
+             * @name service
+             *
+             * @propertyOf services.service:PubSub
+             *
+             * @description
+             * public service interface
+             *
+             * <pre>{
+             *      topEmployees            : Object,
+             *      getEmployeesByCost     : EmployeesByCost.employeesByCost
+             * } </pre>
+             */
+            var service = {
+                employeesByCost         : [], 
+                employeesByHour         : [], 
+                scheduleList            : [], 
+                tasksByCost             : [], 
+                getTasksByCost          : getTasksByCost,
+                getEmployeesByCost      : getEmployeesByCost,
+                getEmployeesByHours     : getEmployeesByHours,
+                getScheduleList         : getScheduleList
+            };
+
+            /**
+             * @ngdoc method
+             *
+             * @name subscribeOnce
+             *
+             * @methodOf services.service:DashPanelService
+             *
+             * @param {String} projectId Salesforce Project ID
+             *
+             * @description
+             * Retrieves all data necessary to populate the TasksByCost Dashboard panel
+             */
+            function getTasksByCost(projectId) {
+                var listDeferred = $q.defer();
+
+                ECO_PMD_Top10TasksByCost_Controller.getTop10TasksByCost(
+                  projectId,
+                  function(result, event){
+                    if(event.status) {
+                        // set data
+                        service.tasksByCost = result;
+                        PubSub.publish('tasks-by-cost', service.tasksByCost);
+                    }
+                  });
+
+                return listDeferred.promise;
+            }
+
+            return service;
+
+            /**
+             * @ngdoc method
+             *
+             * @name subscribeOnce
+             *
+             * @methodOf services.service:DashPanelService
+             *
+             * @param {String} projectId Salesforce Project ID
+             *
+             * @description
+             * Retrieves all data necessary to populate the EmployeesByHours Dashboard panel
+             */
+            function getEmployeesByHours(projectId, type, startDate, endDate) {
+                var listDeferred = $q.defer();
+
+                ECO_PMD_Top10EmployeesByHours_Controller.getTop10EmployeesByHours(
+                  projectId, type, startDate, endDate,
+                  function(result, event){
+                    if(event.status) {
+                        // set data
+                        service.employeesByHour = result;
+                        PubSub.publish('employees-by-hours', service.employeesByHour);
+                    }
+                  });
+
+                return listDeferred.promise;
+            }
+
+            /**
+             * @ngdoc method
+             *
+             * @name subscribeOnce
+             *
+             * @methodOf services.service:DashPanelService
+             *
+             * @param {String} projectId Salesforce Project ID
+             *
+             * @description
+             * Retrieves all data necessary to populate the EmployeesByCost Dashboard panel
+             */
+            function getEmployeesByCost(projectId, type, startDate, endDate) {
+                var listDeferred = $q.defer();
+
+                ECO_PMD_Top10EmployeesByCost_Controller.getTop10EmployeesByCost(
+                  projectId, type, startDate, endDate,
+                  function(result, event){
+                    if(event.status) {
+                        // set data
+                        service.employeesByCost = result;
+                        PubSub.publish('employees-by-cost', service.employeesByCost);
+                    }
+                  });
+
+                return listDeferred.promise;
+            }
+
+            /**
+             * @ngdoc method
+             *
+             * @name subscribeOnce
+             *
+             * @methodOf services.service:DashPanelService
+             *
+             * @param {String} projectId Salesforce Project ID
+             *
+             * @description
+             * Retrieves all data necessary to populate the ScheduleList Dashboard panel
+             */
+            function getScheduleList(projectId) {
+                var listDeferred = $q.defer();
+
+                ECO_PMD_Project_Schedule_Controller.ProjectScheduleTasks(
+                  projectId,
+                  function(result, event){
+                    if(event.status) {
+                        // set data
+                        service.scheduleList = result;
+                        PubSub.publish('schedule-list', service.scheduleList);
+                    }
+                  });
+
+                return listDeferred.promise;
+            }
+
+        }
+    })();
+</script>
+
+<script id="services/EmployeesByCost/employees-by-cost.service.js">
+    (function() {
+        'use strict';
+
+        /**
+         * @ngdoc service
+         *
+         * @name services.service:EmployeesByCost
+         *
+         * @requires https://docs.angularjs.org/api/ng/service/$timeout
+         * @requires https://docs.angularjs.org/api/ng/service/$q
+         *
+         * @description
+         * service that handles communication with salesforce ECO_PMD_Top10EmployeesByCost_Controller 
+         */
+        angular
+            .module('services')
+            .factory('EmployeesByCost', EmployeesByCost);
+
+        EmployeesByCost.$inject = ['$q', 'PubSub'];
+
+        function EmployeesByCost($q, PubSub) {
+
+            /**
+             * @ngdoc property
+             *
+             * @name service
+             *
+             * @propertyOf services.service:PubSub
+             *
+             * @description
+             * public service interface
+             *
+             * <pre>{
+             *      topEmployees            : Object,
+             *      getEmployeesByCost     : EmployeesByCost.employeesByCost
+             * } </pre>
+             */
+            var service = {
+                employeesByCost        : [], 
+                getEmployeesByCost     : getEmployeesByCost
+            };
+
+            return service;
+
+            /**
+             * @ngdoc method
+             *
+             * @name subscribeOnce
+             *
+             * @methodOf services.service:PubSub
+             *
+             * @param {String} projectId Salesforce Project ID
+             *
+             * @description
+             * Retrieves all data necessary to populate the EmployeesByCost Dashboard panel
+             */
+            function getEmployeesByCost(projectId, type, startDate, endDate) {
+                var listDeferred = $q.defer();
+
+                ECO_PMD_Top10EmployeesByCost_Controller.getTop10EmployeesByCost(
+                  projectId, type, startDate, endDate,
+                  function(result, event){
+                    if(event.status) {
+                        // set data
+                        service.employeesByCost = result;
+                        PubSub.publish('employees-by-cost', service.employeesByCost);
+                    }
+                  });
+
+                return listDeferred.promise;
+            }
+
+        }
+    })();
+</script>
+
+<script id="services/EmployeesByHours/employees-by-hours.service.js">
+    (function() {
+        'use strict';
+
+        /**
+         * @ngdoc service
+         *
+         * @name services.service:EmployeesByHours
+         *
+         * @requires https://docs.angularjs.org/api/ng/service/$timeout
+         * @requires https://docs.angularjs.org/api/ng/service/$q
+         *
+         * @description
+         * service that handles communication with salesforce ECO_PMD_Top10EmployeesByHours_Controller 
+         */
+        angular
+            .module('services')
+            .factory('EmployeesByHours', EmployeesByHours);
+
+        EmployeesByHours.$inject = ['$q', 'PubSub'];
+
+        function EmployeesByHours($q, PubSub) {
+
+            /**
+             * @ngdoc property
+             *
+             * @name service
+             *
+             * @propertyOf services.service:PubSub
+             *
+             * @description
+             * public service interface
+             *
+             * <pre>{
+             *      topEmployees            : Object,
+             *      getEmployeesByHours     : EmployeesByHours.employeesByHour
+             * } </pre>
+             */
+            var service = {
+                employeesByHour         : [], 
+                getEmployeesByHours     : getEmployeesByHours
+            };
+
+            return service;
+
+            /**
+             * @ngdoc method
+             *
+             * @name subscribeOnce
+             *
+             * @methodOf services.service:PubSub
+             *
+             * @param {String} projectId Salesforce Project ID
+             *
+             * @description
+             * Retrieves all data necessary to populate the EmployeesByHours Dashboard panel
+             */
+            function getEmployeesByHours(projectId, type, startDate, endDate) {
+                var listDeferred = $q.defer();
+
+                ECO_PMD_Top10EmployeesByHours_Controller.getTop10EmployeesByHours(
+                  projectId, type, startDate, endDate,
+                  function(result, event){
+                    if(event.status) {
+                        // set data
+                        service.employeesByHour = result;
+                        PubSub.publish('employees-by-hours', service.employeesByHour);
+                    }
+                  });
+
+                return listDeferred.promise;
+            }
+
+        }
+    })();
+</script>
+
+<script id="services/TasksByCost/tasks-by-cost.service.js">
+    (function() {
+        'use strict';
+
+        /**
+         * @ngdoc service
+         *
+         * @name services.service:TasksByCost
+         *
+         * @requires https://docs.angularjs.org/api/ng/service/$timeout
+         * @requires https://docs.angularjs.org/api/ng/service/$q
+         *
+         * @description
+         * service that handles communication with salesforce ECO_PMD_Top10TasksByCost_Controller 
+         */
+        angular
+            .module('services')
+            .factory('TasksByCost', TasksByCost);
+
+        TasksByCost.$inject = ['$timeout', '$q', 'PubSub'];
+
+        function TasksByCost($timeout, $q, PubSub) {
+
+            /**
+             * @ngdoc property
+             *
+             * @name service
+             *
+             * @propertyOf services.service:PubSub
+             *
+             * @description
+             * public service interface
+             *
+             * <pre>{
+             *      topEmployees            : Object,
+             *      getTasksByCost     : TasksByCost.tasksByCost
+             * } </pre>
+             */
+            var service = {
+                tasksByCost        : [], 
+                getTasksByCost     : getTasksByCost
+            };
+
+            return service;
+
+            /**
+             * @ngdoc method
+             *
+             * @name subscribeOnce
+             *
+             * @methodOf services.service:PubSub
+             *
+             * @param {String} projectId Salesforce Project ID
+             *
+             * @description
+             * Retrieves all data necessary to populate the TasksByCost Dashboard panel
+             */
+            function getTasksByCost(projectId) {
+                var listDeferred = $q.defer();
+
+                ECO_PMD_Top10TasksByCost_Controller.getTop10TasksByCost(
+                  projectId,
+                  function(result, event){
+                    if(event.status) {
+                        // set data
+                        service.tasksByCost = result;
+                        PubSub.publish('tasks-by-cost', service.tasksByCost);
+                    }
+                  });
+
+                return listDeferred.promise;
+            }
+
+        }
+    })();
+</script>
+
+<script id="services/ScheduleList/schedule-list.service.js">
+    // AS OF MARCH 8, 2016, SCHEDULE PANEL IS IN ECO_PMD_Project_Schedule.component, not Top10 service - jow
+    (function() {
+        'use strict';
+
+        /**
+         * @ngdoc service
+         *
+         * @name services.service:ScheduleList
+         *
+         * @requires https://docs.angularjs.org/api/ng/service/$timeout
+         * @requires https://docs.angularjs.org/api/ng/service/$q
+         *
+         * @description
+         * service that handles communication with salesforce ECO_PMD_Top10ScheduleList_Controller 
+         */
+        angular
+            .module('services')
+            .factory('ScheduleList', ScheduleList);
+
+        ScheduleList.$inject = ['$q', 'PubSub'];
+
+        function ScheduleList($q, PubSub) {
+
+            /**
+             * @ngdoc property
+             *
+             * @name service
+             *
+             * @propertyOf services.service:PubSub
+             *
+             * @description
+             * public service interface
+             *
+             * <pre>{
+             *      topEmployees            : Object,
+             *      getScheduleList     : ScheduleList.scheduleList
+             * } </pre>
+             */
+            var service = {
+                scheduleList        : [], 
+                getScheduleList     : getScheduleList
+            };
+
+            return service;
+
+            /**
+             * @ngdoc method
+             *
+             * @name subscribeOnce
+             *
+             * @methodOf services.service:PubSub
+             *
+             * @param {String} projectId Salesforce Project ID
+             *
+             * @description
+             * Retrieves all data necessary to populate the ScheduleList Dashboard panel
+             */
+            function getScheduleList(projectId) {
+                var listDeferred = $q.defer();
+
+                ECO_PMD_Project_Schedule_Controller.ProjectScheduleTasks(
+                  projectId,
+                  function(result, event){
+                    if(event.status) {
+                        // set data
+                        service.scheduleList = result;
+                        PubSub.publish('schedule-list', service.scheduleList);
+                    }
+                  });
+
+                return listDeferred.promise;
+            }
+
+        }
+    })();
+</script>
+
+<script type="text/ng-template" id="date-picker.directive.html">
+    <style>
+        .DatePicker .form-control[readonly]{
+            background-color: #fff;
+        }
+        .DatePicker {
+            margin-top: 5px;
+        }
+        .DatePicker input {
+            height: 28px !important;
+        }
+    </style>
+    <div class="DatePicker">
+        <p class="input-group">
+            <input type="text"
+                   class="form-control"
+                   pikaday="ctrl.date"
+                   ng-model="ctrl.date"
+                   min-date="ctrl.minDate"
+                   max-date="ctrl.maxDate"
+                   placeholder="mm/dd/yyyy"
+                   ng-readonly="true"
+                   format="MM/DD/YYYY" />
+            
+            <span class="input-group-btn">
+                <button type="button" class="btn btn-default">
+                    <i class="glyphicon glyphicon-calendar"></i>
+                </button>
+            </span>
+        </p>
+    </div>
+</script>
+
+<script id="components/DatePicker/date-picker.directive.js">
+    (function() {
+        'use strict';
+
+        /**
+         * @ngdoc directive
+         *
+         * @name components.directive:datePicker
+         *
+         * @scope
+         *
+         * @restrict E
+         *
+         * @param {Object} date prepopulate the datepicker with a date using this value
+         * @param {String} fieldName label for the datepicker to help identify it better from consuming components
+         *
+         * @description
+         * Implementation of datePicker component. Used for start/end date selection for snapshots. Uses Pikaday
+         * for date selection functionality.
+         */
+        angular
+            .module('components')
+            .directive('datePicker', datePicker);
+
+        datePicker.$inject = [];
+
+        function datePicker() {
+            var directive =  {
+                restrict            : 'E',
+                scope               : {
+                    date        : '=ngModel',
+                    fieldName   : '@'
+                },
+                controller          : DatePickerController,
+                controllerAs        : 'ctrl',
+                bindToController    : true,
+                templateUrl         : 'date-picker.directive.html',
+                link                : linkFunc
+            };
+
+            return directive;
+
+            /**
+             * @ngdoc method
+             *
+             * @name linkFunc
+             *
+             * @methodOf components.directive:datePicker
+             *
+             * @param {Object} scope component scope
+             * @param {Object} el DOM element reference for component template
+             * @param {Object} attr DOM attribute reference
+             * @param {Object} ctrl component controller reference
+             *
+             * @description
+             * Link Function declaration/implementation for datePicker component. Wires up datepicker
+             * to open when calendar icon is clicked.
+             */
+            function linkFunc(scope, el, attr, ctrl) {
+                // el.bind('click', function(e) {
+                //     console.log(e);
+                //     console.log(el);
+                //     if(!el[0].children[0].children[0].children[0]) {
+                //         e.target.parentElement.previousElementSibling.click();
+                //     }
+                //     else {
+                //         el[0].children[0].children[0].children[0].click();
+                //     }
+                // });
+            }
+        }
+
+        /**
+         * @ngdoc controller
+         *
+         * @name components.controller:DatePickerController
+         *
+         * @requires $log
+         * @requires PubSub
+         *
+         * @description
+         * Controller declaration/implementation for components.datePicker directive
+         */
+        angular
+            .module('components')
+            .controller('DatePickerController', DatePickerController);
+
+        DatePickerController.$inject = ['$log', 'PubSub'];
+
+        function DatePickerController($log, PubSub) {
+            var vm = this;
+
+            /**
+             * @ngdoc property
+             *
+             * @name minDate
+             *
+             * @propertyOf components.controller:DatePickerController
+             *
+             * @description
+             * set minimum date available to select from datepicker with this value
+             */
+            vm.minDate = null;
+
+            /**
+             * @ngdoc property
+             *
+             * @name maxDate
+             *
+             * @propertyOf components.controller:DatePickerController
+             *
+             * @description
+             * set maximum date available to select from datepicker with this value
+             */
+            vm.maxDate = null;
+
+            /**
+             * @ngdoc method
+             *
+             * @name selectADate
+             *
+             * @methodOf components.controller:DatePickerController
+             *
+             * @param {Object} dateObj date config info
+             * @param {Date} d date selected
+             *
+             * @description
+             * handler for Pikaday date selection event
+             */
+            // vm.selectADate = function(dateObj, d) {
+            //     PubSub.publish('date-select', {
+            //         fieldName : vm.fieldName,
+            //         value     : moment(d).format('MM/DD/YYYY')
+            //     });
+            // };
+
+            /**
+             * @ngdoc method
+             *
+             * @name hasDateType
+             *
+             * @methodOf components.controller:DatePickerController
+             *
+             * @returns {Boolean} true/false value
+             *
+             * @description
+             * Determines whether the browser supports input type=date or not
+             */
+            var hasDateType = function() {
+                var elem = document.createElement('input'),
+                    result;
+
+                elem.setAttribute('type', 'date');
+
+                if(elem.type === 'text') {
+                    result = false;
+                }
+                else {
+                    result = true;
+                }
+
+                return result;
+            };
+
+            /**
+             * @ngdoc method
+             *
+             * @name isTouchEnabled
+             *
+             * @methodOf components.controller:DatePickerController
+             *
+             * @returns {Boolean} true/false value
+             *
+             * @description
+             * Determines whether the browser is touch enabled or not
+             */
+            var isTouchEnabled = function() {
+                return 'ontouchstart' in window || navigator.MaxTouchPoints > 0 || navigator.msMaxTouchPoints > 0;
+            };
+
+            /**
+             * @ngdoc method
+             *
+             * @name activate
+             *
+             * @methodOf components.controller:DatePickerController
+             *
+             * @description
+             * initialization method for the component
+             */
+            var activate = function() {
+                // set min date to one year ago today
+                vm.minDate = moment().subtract(1, 'years').toDate();
+
+                // set max date to one year from today
+                vm.maxDate = moment().add(1, 'years').toDate();
+
+                // $log.info('type=DATE::', hasDateType());
+                // $log.info('isTouch::', isTouchEnabled());
+                // $log.info('vm.date::', vm.date);
+            };
+
+            activate();
+        }
+    })();
+</script>
+
+<script type="text/ng-template" id="top-ten-panel.directive.html">
+    <style>
+        .TopTenPanel .no-overflow {
+            display:inline-block;
+            white-space:nowrap;
+            position:relative; /* must be relative */
+            width:100%; /* fit to table cell width */
+            margin-right:-1000px; /* technically this is a less than zero width object */
+            overflow:hidden;
+            text-overflow:ellipsis;
+        }
+        .TopTenPanel {
+            font-size: 11px;
+            width: 100%;
+            height: auto;
+            border: 1px solid #000;
+            margin: 3px 5px;
+            float: left;
+        }
+        .PanelBox {
+            font-size: 11px;
+            width: 100%;
+            height: auto;
+            border: 1px solid #BFBFBF;
+            margin: 3px 5px;
+            float: left;
+            border-radius: 5px;
+        }
+        .PanelBox .bs .panel{
+            margin-bottom:0px;
+        }
+        .PanelBox.Double{
+            width: 748px;
+        }
+        .TopTenPanel .bs input[type=radio] {
+            margin: 0;
+        }
+        .TopTenPanel table {
+            width: 100%;
+        }
+        .TopTenPanel input[type="radio"] {
+            color: #333333;
+            cursor: pointer;
+            display: inline-block;
+            vertical-align: top;
+        }
+        .TopTenPanel label {
+            margin: 0;
+        }
+        .TopTenPanel .Table__Header {
+            font-weight: bold;
+        }
+        .TopTenPanel tr {
+            border: 1px solid #C8C8C8;
+        }
+        .TopTenPanel .MoreInfo {
+            background-color: #BFBFBF;
+            position: relative;
+            font-size: 14px;
+            margin: 15px 0 0;
+            padding: 2px;
+            color: #fff;
+        }
+        .TopTenPanel .red {
+            color: red;
+        }
+        .TopTenPanel .title {
+            padding: 3px;
+            color: #43C2F0;
+            font-size: 16px;
+            font-weight: bold;
+            background-color: #f8f8f8;
+        }
+        .TopTenPanel .dates{
+            width: 36%;
+            float: left;
+            margin-right: 6%;
+        }
+        .TopTenPanel td.col-md-1, .TopTenPanel td.col-md-2, .TopTenPanel td.col-md-3 {
+            margin: 0px;
+            padding: 0 5px;
+        }
+        .TopTenPanel .col-md-1 {
+            width: 10.333333%;
+        }
+        .TopTenPanel .Cost tr:nth-child(even) {
+            /*background: #f8f8f8;*/
+        }
+        .TopTenPanel .Cost tr:nth-child(odd) {
+            /*font-weight: bold;*/
+        }
+        .TopTenPanel .Table__Row.Total {
+            font-weight: bold;
+        }
+        .TopTenPanel .SearchButton{
+            width: 50%;
+            float: left;
+            z-index: 3;
+            position: relative;
+        }
+        /*BACKGROUND FIX*/
+        .col-md-4.nopadding {
+            background-color: #f7f7f7;
+        }
+    </style>
+    <div class="TopTenPanel panel panel-default">
+        <div class="panel-heading">
+            <span ng-bind="ctrl.panelTitle"></span>
+        </div>
+
+        <!-- panel-body -->
+        <div class="panel-body">
+            <div class="options" ng-hide="ctrl.panelName === 'Schedule' || ctrl.panelName === 'Cost' ">
+                <!-- startDate -->
+                <div class="dates">
+                    <date-picker
+                        id="startDate"
+                        name="startDate"
+                        class="startDate"
+                        field-name="start"
+                        ng-model="ctrl.snapshot.startDate">
+                    </date-picker>
+                </div>
+
+                <!-- endDate -->
+                <div class="dates">
+                    <date-picker
+                        id="endDate"
+                        name="endDate"
+                        class="endDate"
+                        field-name="end"
+                        ng-model="ctrl.snapshot.endDate">
+                    </date-picker>
+                </div>
+
+                <!-- endDate -->
+                <div class="SearchButton">
+                    <input type="button" value="Search" ng-click="ctrl.doSearch()">
+                </div>
+
+                <!-- radioSelections -->
+                <div class="radio">
+                    <label><input type="radio" ng-model="ctrl.radio.name" value="ITD" ng-click="ctrl.showResults('ITD')"/> ITD</label><br/>
+                    <label><input type="radio" ng-model="ctrl.radio.name" value="YTD" ng-click="ctrl.showResults('YTD')"/> YTD</label><br/>
+                    <label><input type="radio" ng-model="ctrl.radio.name" value="MTD" ng-click="ctrl.showResults('MTD')"/> MTD</label><br/>
+                </div> 
+                
+            </div>    
+
+            <!-- Cost grid -->
+            <table ng-if="ctrl.panelName === 'Cost'" class="Cost">
+                <thead>
+                    <tr class="Table__Header">
+                        <td class="col-md-1">#</td>
+                        <td class="col-md-2">{!$Label.ECOPMDTaskNo}</td>
+                        <td class="col-md-3">{!$Label.ECOPMDTaskName}</td>
+                        <td class="col-md-2 text-right">{!$Label.ECOPMDActK}</td>                 
+                        <td class="col-md-2 text-right">{!$Label.ECOPMDPlanK}</td>
+                        <td class="col-md-2 text-right">{!$Label.ECOPMDVarK}</td>
+                        <!-- <td class="col-md-2 text-right">Act-<span ng-bind="ctrl.data[0].currencyCode" />(k)</td>
+                        <td class="col-md-2 text-right">Plan-<span ng-bind="ctrl.data[0].currencyCode" />(k)</td>
+                        <td class="col-md-2 text-right">Var-<span ng-bind="ctrl.data[0].currencyCode" />(k)</td> -->
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="Table__Row" ng-repeat="row in ctrl.data track by $index">
+                        <td class="col-md-1" ng-bind="row.order"></td>
+                        <td class="col-md-2" ng-bind="row.taskNo"></td>
+                        <td class="col-md-3"><div class="no-overflow" ng-bind="row.taskName" /></td>
+                        <td class="col-md-2 text-right" ng-bind="row.actual | currency : '' : 0"></td>
+                        <td class="col-md-2 text-right" ng-bind="row.plan | currency : '' : 0"></td>
+                        <td class="col-md-2 text-right" ng-bind="row.variance | currency : '' : 0" ng-class="{ red: row.Var < 0 }"></td>
+                    </tr>
+                    <tr class="Table__Row">
+                        <td class="col-md-1">{!$Label.ECOPMDOthers}</td>
+                        <td class="col-md-2" ng-bind=""></td>
+                        <td class="col-md-3" ng-bind=""></td>
+                        <td class="col-md-2 text-right" ng-bind="ctrl.others['Act'] | currency : '' : 0"></td>
+                        <td class="col-md-2 text-right" ng-bind="ctrl.others['Plan'] | currency : '' : 0"></td>
+                        <td class="col-md-2 text-right" ng-bind="ctrl.others['Var'] | currency : '' : 0" ng-class="{ red: ctrl.others['Var'] < 0 }"></td>
+                    </tr>
+                    <tr class="Table__Row Total">
+                        <td class="col-md-1">{!$Label.ECOPMDTotal}</td>
+                        <td class="col-md-2" ng-bind=""></td>
+                        <td class="col-md-3" ng-bind=""></td>
+                        <td class="col-md-2 text-right" ng-bind="ctrl.total['Act'] | currency : '' : 0"></td>
+                        <td class="col-md-2 text-right" ng-bind="ctrl.total['Plan'] | currency : '' : 0"></td>
+                        <td class="col-md-2 text-right" ng-bind="ctrl.total['Var'] | currency : '' : 0" ng-class="{ red: ctrl.total['Var'] < 0 }"></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- Hours grid -->
+            <table ng-if="ctrl.panelName === 'Hours'" class="Hours">
+                <thead>
+                    <tr class="Table__Header">
+                        <td class="col-md-1">#</td>
+                        <td class="col-md-3">{!$Label.ECOPMDEmpName}</td>
+                        <td class="col-md-3">{!$Label.ECOPMDDepartment}</td>
+                        <td class="col-md-1 text-right">{!$Label.ECOPMDActHrs}</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="Table__Row" ng-repeat="row in ctrl.data track by $index">
+                        <td class="col-md-1" ng-bind="row.employeeNo"></td>
+                        <td class="col-md-3"><div class="no-overflow" ng-bind="row.employeeName"></td>
+                        <td class="col-md-3"><div class="no-overflow" ng-bind="row.employeeDept"></td>
+                        <td class="col-md-1 text-right" ng-bind="row.hours"></td>
+                    </tr>
+                    <tr class="Table__Row">
+                        <td class="col-md-1">{!$Label.ECOPMDOthers}</td>
+                        <td class="col-md-3" ng-bind=""></td>
+                        <td class="col-md-3" ng-bind=""></td>
+                        <td class="col-md-1 text-right" ng-bind="ctrl.others | currency : '' : 0"></td>
+                    </tr>
+                    <tr class="Table__Row Total">
+                        <td class="col-md-1">{!$Label.ECOPMDTotal}</td>
+                        <td class="col-md-3" ng-bind=""></td>
+                        <td class="col-md-3" ng-bind=""></td>
+                        <td class="col-md-1 text-right" ng-bind="ctrl.total | currency : '' : 0"></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- Labor grid --><!-- <span ng-bind="ctrl.data[0].currencyCode" />(k)</td> -->
+            <table ng-if="ctrl.panelName === 'Labor'" class="Labor">
+                <thead>
+                    <tr class="Table__Header">
+                        <td class="col-md-2">#</td>
+                        <td class="col-md-2">{!$Label.ECOPMDEmpName}</td>
+                        <td class="col-md-3">{!$Label.ECOPMDDepartment}</td>
+                        <td class="col-md-1 text-right">{!$Label.ECOPMDActK}</td>
+                </thead>
+                <tbody>
+                    <tr class="Table__Row" ng-repeat="row in ctrl.data track by $index">
+                        <td class="col-md-1" ng-bind="row.employeeNo"></td>
+                        <td class="col-md-3"><div class="no-overflow" ng-bind="row.employeeName"></td>
+                        <td class="col-md-3"><div class="no-overflow" ng-bind="row.employeeDept"></td>
+                        <td class="col-md-1 text-right" ng-bind="row.cost | currency : '' : 0"></td>
+                    </tr>
+                    <tr class="Table__Row">
+                        <td class="col-md-1">{!$Label.ECOPMDOthers}</td>
+                        <td class="col-md-23" ng-bind=""></td>
+                        <td class="col-md-3" ng-bind=""></td>
+                        <td class="col-md-1 text-right" ng-bind="ctrl.others | currency : '' : 0"></td>
+                    </tr>
+                    <tr class="Table__Row Total">
+                        <td class="col-md-1">{!$Label.ECOPMDTotal}</td>
+                        <td class="col-md-3" ng-bind=""></td>
+                        <td class="col-md-3" ng-bind=""></td>
+                        <td class="col-md-1 text-right" ng-bind="ctrl.total | currency : '' : 0"></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- Margin grid -->
+            <table ng-if="ctrl.panelName === 'Margin'" class="Margin">
+                <thead>
+                    <tr class="Table__Header">
+                        <td class="col-md-1">#</td>
+                        <td class="col-md-3">{!$Label.ECOPMDEmpName}</td>
+                        <td class="col-md-2">{!$Label.ECOPMDBillRate}</td>
+                        <td class="col-md-2">{!$Label.ECOPMDFBRL}</td>
+                        <td class="col-md-2">{!$Label.ECOPMDMargin}</td>
+                        <td class="col-md-2">{!$Label.ECOPMDMarginPercentage}</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="Table__Row" ng-repeat="row in ctrl.data track by $index">
+                        <td class="col-md-1" ng-bind="$index + 1"></td>
+                        <td class="col-md-3" ng-bind="row.LastName + ', ' + row.FirstName"></td>
+                        <td class="col-md-1" ng-bind="row.BillRate.toFixed(2)"></td>
+                        <td class="col-md-1" ng-bind="row.FBLR.toFixed(2) | currency : '' : 0"></td>
+                        <td class="col-md-1" ng-bind="row.MarginCost.toFixed(2) | currency : '' : 0" ng-class="{ red: row.MarginCost < 0 }"></td>
+                        <td class="col-md-1" ng-bind="row.Percent.toFixed(2)" ng-class="{ red: row.Percent < 0 }"></td>
+                    </tr>
+                    <!-- 
+                    <tr class="Table__Row">
+                        <td class="col-md-1">{!$Label.ECOPMDOthers}</td>
+                        <td class="col-md-3" ng-bind=""></td>
+                        <td class="col-md-1" ng-bind="ctrl.others['BillRate'].toFixed(2)"></td>
+                        <td class="col-md-1" ng-bind="ctrl.others['Flbr'].toFixed(2)"></td>
+                        <td class="col-md-1" ng-bind="ctrl.others['MarginCost'].toFixed(2)" ng-class="{ red: ctrl.total['MarginCost'] < 0 }"></td>
+                        <td class="col-md-1" ng-bind="ctrl.others['MarginPer'].toFixed(2) + '%'" ng-class="{ red: ctrl.total['MarginPer'] < 0 }"></td>
+                    </tr>
+                    <tr class="Table__Row Total">
+                        <td class="col-md-1">{!$Label.ECOPMDTotal}</td>
+                        <td class="col-md-3" ng-bind=""></td>
+                        <td class="col-md-1" ng-bind="ctrl.total['BillRate'].toFixed(2)"></td>
+                        <td class="col-md-1" ng-bind="ctrl.total['Flbr'].toFixed(2)"></td>
+                        <td class="col-md-1" ng-bind="ctrl.total['MarginCost'].toFixed(2)" ng-class="{ red: ctrl.total['MarginCost'] < 0 }"></td>
+                        <td class="col-md-1" ng-bind="ctrl.total['MarginPer'].toFixed(2) + '%'" ng-class="{ red: ctrl.total['MarginPer'] < 0 }"></td>
+                    </tr>
+                    -->
+                </tbody>
+            </table>
+
+            <!-- Schedule grid -->
+            <table ng-if="ctrl.panelName === 'Schedule'" class="Schedule">
+                <thead>
+                    <tr class="Table__Header">
+                        <td class="col-md-1">#</td>
+                        <td class="col-md-3">{!$Label.ECOPMDTaskName}</td>
+                        <td class="col-md-3">{!$Label.ECOPMDAppvdEnd}</td>
+                        <td class="col-md-3">{!$Label.ECOPMDFcastEnd}</td>
+                        <td class="col-md-1">{!$Label.ECOPMDVar}</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="Table__Row" ng-repeat="row in ctrl.data track by $index">
+                        <td class="col-md-1" ng-bind="$index + 1"></td>
+                        <td class="col-md-3" ng-bind="row.Name"></td>
+                        <td class="col-md-3" ng-bind="row.BlineEnd | currency : '' : 0"></td>
+                        <td class="col-md-3" ng-bind="row.FcastEnd | currency : '' : 0"></td>
+                        <td class="col-md-1" ng-bind="row.Var | currency : '' : 0"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div ng-if="ctrl.panelName === 'Cost'">
+            <div class="panel-footer">
+                <a name="Cost" href="#Cost" ng-model="collapsed" ng-click="collapsed=!collapsed" class="btn btn-xs btn-link"><span class="caret"></span>{!$Label.ECO_PMD_MORE_INFO}</a>
+                <div style="padding-left:3px">
+                    <div ng-show="collapsed">
+                        <apex:outputText value="{!$Label.ECO_PMD_TOP10TASKSBYCOST_MOREINFO}" escape="false" />
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div ng-if="ctrl.panelName === 'Hours'">
+            <div class="panel-footer">
+                <a name="Hours" href="#Hours" ng-model="collapsed" ng-click="collapsed=!collapsed" class="btn btn-xs btn-link"><span class="caret"></span>{!$Label.ECO_PMD_MORE_INFO}</a>
+                <div style="padding-left:3px">
+                    <div ng-show="collapsed">
+                        <apex:outputText value="{!$Label.ECO_PMD_TOP10EMPHOURS_MOREINFO}" escape="false" />
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div ng-if="ctrl.panelName === 'Labor'">
+            <div class="panel-footer">
+                <a name="Labor" href="#Labor" ng-model="collapsed" ng-click="collapsed=!collapsed" class="btn btn-xs btn-link"><span class="caret"></span>{!$Label.ECO_PMD_MORE_INFO}</a>
+                <div style="padding-left:3px">
+                    <div ng-show="collapsed">
+                        <apex:outputText value="{!$Label.ECO_PMD_TOP10EMPLABOR_MOREINFO}" escape="false" />
+                    </div>
+                </div>
+            </div>
+        </div>
+                         
+            <!-- </div> 
+
+        </div> -->
+    </div>      
+</script>
+
+<script id="components/ProfitLoss/top-ten-panel.directive.js">
+    (function() {
+        'use strict';
+
+        /**
+         * @ngdoc directive
+         *
+         * @name ecopmd.directive:topTenPanel
+         *
+         * @scope
+         *
+         * @restrict E
+         *
+         * @description
+         * Implementation of Top Ten Panel
+         */    
+         angular
+             .module('components')
+             .directive('topTenPanel', topTenPanel);
+
+         topTenPanel.$inject = [];
+
+         function topTenPanel() {
+            var directive = {
+                restrict            : 'E',
+                controller          : TopTenPanelController,
+                controllerAs        : 'ctrl',
+                bindToController    : true,
+                templateUrl         : 'top-ten-panel.directive.html',
+                link                : linkFunc,
+                scope               : {
+                    data        : '=',
+                    panelName  : '@title',
+                    projectId  : '@'
+                }
+            };
+
+            return directive;
+
+            /**
+             * @ngdoc method
+             *
+             * @name linkFunc
+             *
+             * @methodOf ecopmd.directive:topTenPanel
+             *
+             * @param {Object} scope component scope
+             * @param {Object} el DOM element reference for component template
+             * @param {Object} attr DOM attribute reference
+             * @param {Object} ctrl component controller reference
+             *
+             * @description
+             * Link Function declaration/implementation for topTenPanel component
+             */
+             function linkFunc(scope, el, attr, ctrl) {
+
+             }
+         }
+
+        /**
+         * @ngdoc controller
+         *
+         * @name ecopmd.controller:TopTenPanelController
+         *
+         * @requires https://docs.angularjs.org/api/ng/service/$timeout
+         * @requires services.service:PubSub
+         * @requires services.service:EmployeesByHours
+         *
+         * @description
+         *     Controller declaration/implementation for ecopmd.topTenPanel directive
+         */
+         angular
+             .module('ecopmd')
+             .controller('TopTenPanelController', TopTenPanelController);
+
+         TopTenPanelController.$inject = ['$timeout', 'DashPanelService', 'PubSub'];
+
+         function TopTenPanelController($timeout, DashPanelService, PubSub) {
+            var vm = this;
+
+            // temp moc data
+            var mockMarginbyEmployee = [
+                {FirstName: 'Billy', LastName: 'Bob', BillRate: 62.4, FBLR: 52.4, MarginCost: -8.4, Percent: -19.4},
+                {FirstName: 'Tommy', LastName: 'John', BillRate: 60.5, FBLR: 50.5, MarginCost: -6.5, Percent: -15.5},
+                {FirstName: 'Jeff', LastName: 'Mark', BillRate: 57.6, FBLR: 47.6, MarginCost: -5.6, Percent: -13.6},
+                {FirstName: 'Billy', LastName: 'Teddy', BillRate: 50.4, FBLR: 40.4, MarginCost: -5.4, Percent: -12.4},
+                {FirstName: 'Marco', LastName: 'Pollo', BillRate: 49.3, FBLR: 39.3, MarginCost: -4.3, Percent: -11.3},
+                {FirstName: 'Gin', LastName: 'Sang', BillRate: 45.9, FBLR: 35.9, MarginCost: -4.9, Percent: -9.9},
+                {FirstName: 'Brett', LastName: 'Jovey', BillRate: 40.0, FBLR: 20.0, MarginCost: -4.0, Percent: -7.0},
+                {FirstName: 'Mady', LastName: 'Smats', BillRate: 31.5, FBLR: 21.5, MarginCost: -3.5, Percent: -6.5},
+                {FirstName: 'Holly', LastName: 'Fern', BillRate: 21.3, FBLR: 11.3, MarginCost: -2.3, Percent: -5.3},
+                {FirstName: 'Jane', LastName: 'Road', BillRate: 11.0, FBLR: 1.0, MarginCost: -1.0, Percent: -4.0},
+                {FirstName: 'Ted', LastName: 'Teddy', BillRate: 11.4, FBLR: 1.4, MarginCost: -1.4, Percent: -3.4},
+                {FirstName: 'Ven', LastName: 'Pen', BillRate: 9.4, FBLR: 9.4, MarginCost: -0.4, Percent: -2.4},
+                {FirstName: 'Dave', LastName: 'Flash', BillRate: 8.4, FBLR: 8.4, MarginCost: -0.3, Percent: -1.4},
+                {FirstName: 'Hope', LastName: 'So', BillRate: 5.4, FBLR: 5.4, MarginCost: -0.1, Percent: -0.4}
+            ];
+
+            /**
+             * @ngdoc property
+             *
+             * @name startDate
+             *
+             * @propertyOf ecopmd.controller:TopTenPanelController
+             *
+             * @description
+             * Mement Start Date.
+             */
+            vm.startDate = moment();
+
+            /**
+             * @ngdoc property
+             *
+             * @name endDate
+             *
+             * @propertyOf ecopmd.controller:TopTenPanelController
+             *
+             * @description
+             * Mement End Date.
+             */
+            vm.endDate = moment();
+
+            /**
+             * @ngdoc property
+             *
+             * @name radio
+             *
+             * @propertyOf ecopmd.controller:TopTenPanelController
+             *
+             * @description
+             * Used in the UI to identify toggled radio selection.
+             */
+             vm.radio = {
+                name: 'ITD'
+            };
+
+            /**
+             * @ngdoc property
+             *
+             * @name panelName
+             *
+             * @propertyOf ecopmd.controller:TopTenPanelController
+             *
+             * @description
+             * Used in the UI to toggle views.
+             */
+             vm.panelName = '';
+
+            /**
+             * @ngdoc property
+             *
+             * @name projectId
+             *
+             * @propertyOf ecopmd.controller:TopTenPanelController
+             *
+             * @description
+             * Id for project.
+             */
+             vm.projectId = '';
+
+            /**
+             * @ngdoc property
+             *
+             * @name panelTitle
+             *
+             * @propertyOf ecopmd.controller:TopTenPanelController
+             *
+             * @description
+             * Used as the title of the panel.
+             */
+             vm.panelTitle = '';
+
+            /**
+             * @ngdoc property
+             *
+             * @name others
+             *
+             * @propertyOf ecopmd.controller:TopTenPanelController
+             *
+             * @description
+             * Stores other snapshot related info as an array.
+             */
+             vm.others = [];
+
+            /**
+             * @ngdoc property
+             *
+             * @name total
+             *
+             * @propertyOf ecopmd.controller:TopTenPanelController
+             *
+             * @description
+             * Stores snapshot totals info as an array.
+             */
+             vm.total = [];
+
+            /**
+             * @ngdoc property
+             *
+             * @name snapshot
+             *
+             * @propertyOf ecopmd.controller:TopTenPanelController
+             *
+             * @description
+             * Stores snapshot related info as an array.
+             */
+             vm.snapshot = {};
+
+            /**
+             * @ngdoc method
+             *
+             * @name formatDate
+             *
+             * @methodOf ecopmd.controller:TopTenPanelController
+             *
+             * @param {Date} value Date/Time
+             *
+             * @description
+             * Formates date values with momentSet to standard MM/DD/YYYY format
+             */
+             var formatDate = function(value) {            
+                var formatedDate = new Date(value).toUTCString();
+                return formatedDate;
+            };
+
+            /**
+             * @ngdoc method
+             *
+             * @name mockMarginbyEmployee
+             *
+             * @methodOf ecopmd.controller:TopTenPanelController
+             *
+             * @param {Array} data Data list
+             *
+             * @description
+             * Formates the data for use in the UI
+             */
+             var formatMarginbyEmployee = function(type) {
+                // BillRate: 62.4, FBLR: 52.4, MarginCost: -8.4, Percent: -19.4
+                var i = 0, 
+                    tLength = 0;
+
+                // set vars
+                var others      = [],
+                    total       = [],
+                    BillRate    = 'BillRate',
+                    Flbr        = 'Flbr',
+                    MarginCost  = 'MarginCost',
+                    MarginPer   = 'MarginPer',
+                    tempList    = [],
+                    data        = angular.copy(mockMarginbyEmployee);
+
+                // set totals
+                total[BillRate]     = 0;
+                total[Flbr]         = 0;
+                total[MarginCost]   = 0;
+                total[MarginPer]    = 0;
+
+                // set other data
+                others[BillRate]    = 0;
+                others[Flbr]        = 0;
+                others[MarginCost]  = 0;
+                others[MarginPer]   = 0;
+
+                // change mock data for ITD
+                if (type === 'YTD'){
+                    for(i = 0, tLength = data.length; i < tLength; i++) {
+                        data[i].BillRate = data[i].BillRate * 0.6;
+                        data[i].FBLR = data[i].FBLR * 0.6;
+                        data[i].MarginCost = data[i].MarginCost * 0.6;
+                        data[i].Percent = data[i].Percent * 0.6;
+                    }
+                }
+
+                // change mock data for ITD
+                if (type === 'MTD'){
+                    for(i = 0, tLength = data.length; i < tLength; i++) {
+                        data[i].BillRate = data[i].BillRate * 0.12;
+                        data[i].FBLR = data[i].FBLR * 0.12;
+                        data[i].MarginCost = data[i].MarginCost * 0.12;
+                        data[i].Percent = data[i].Percent * 0.12;
+                    }
+                }
+
+                // run loop and add
+                for(i = 0, tLength = data.length; i < tLength; i++) {
+                    // add all info
+                    total[BillRate] += data[i].BillRate;
+                    total[Flbr] += data[i].FBLR;
+                    total[MarginCost] += data[i].MarginCost;
+                    total[MarginPer] += data[i].Percent;
+
+                    // create a top 10 list
+                    if(i <= 9) {
+                        tempList.push(data[i]);
+                    }
+                    // results over 10
+                    else {
+                        // add other related info
+                        others[BillRate] += data[i].BillRate;
+                        others[Flbr] += data[i].FBLR;
+                        others[MarginCost] += data[i].MarginCost;
+                        others[MarginPer] += data[i].Percent;
+                    }
+                }
+
+                // set the title and data fields
+                vm.panelTitle = '{!JSENCODE($Label.ECOPMDMarginByEmployee)}';//'Margin by Employee (T&M Contracts)';
+                vm.total = total;
+                vm.others = others;
+                vm.data = tempList;
+            };
+
+            /**
+             * @ngdoc method
+             *
+             * @name formatEmployeesByCost
+             *
+             * @methodOf ecopmd.controller:TopTenPanelController
+             *
+             * @param {String} message Message received as result of a PUBLISH command issued by another client
+             * @param {String} answer Passed back from PUBLISH command.
+             *
+             * @description
+             * Formates the data for use in the UI
+             */
+             var formatEmployeesByCost = function(message, data) {
+                // set the title and data fields
+                vm.panelTitle   = '{!JSENCODE($Label.ECOPMDTop10EmployeesByLaborCost)}';//'Top 10 Employees By Labor Cost';
+                vm.total        = data.total;
+                vm.others       = data.other;
+                vm.data         = data.employeeCosts;
+            };
+
+            /**
+             * @ngdoc method
+             *
+             * @name formatEmployeesbyHours
+             *
+             * @methodOf ecopmd.controller:TopTenPanelController
+             *
+             * @param {String} message Message received as result of a PUBLISH command issued by another client
+             * @param {String} answer Passed back from PUBLISH command.
+             *
+             * @description
+             * Formates the data for use in the UI
+             */
+             var formatEmployeesbyHours = function(message, data) {
+                // set the title and data fields
+                vm.panelTitle   = '{!JSENCODE($Label.ECOPMDTop10EmployeesByHour)}';//'Top 10 Employees By Hour';
+                vm.total        = data.total;
+                vm.others       = data.other;
+                vm.data         = data.employeeHours;
+            };
+
+            /**
+             * @ngdoc method
+             *
+             * @name formatTasksbyTotalCost
+             *
+             * @methodOf ecopmd.controller:TopTenPanelController
+             *
+             * @param {String} message Message received as result of a PUBLISH command issued by another client
+             * @param {String} answer Passed back from PUBLISH command.
+             *
+             * @description
+             * Formates the data for use in the UI
+             */
+             var formatTasksbyTotalCost = function(message, data) {
+                // set vars
+                var others      = [],
+                    total       = [],
+                    Act         = 'Act',
+                    Plan        = 'Plan',
+                    Var         = 'Var';
+
+                // set totals
+                total[Act]  = data.actualTotal;
+                total[Plan] = data.planTotal;
+                total[Var]  = data.varianceTotal;
+
+                // set other data
+                others[Act]  = data.actualOther;
+                others[Plan] = data.planOther;
+                others[Var]  = data.varianceOther;
+
+                // set the title and data fields
+                vm.panelTitle   = '{!JSENCODE($Label.ECOPMDTop10TasksbyTotalCost)}';//'Top 10 Tasks by Total Cost';
+                vm.total        = total;
+                vm.others       = others;
+                vm.data         = data.taskCosts;
+            };
+
+            /**
+             * @ngdoc method
+             *
+             * @name formatSchedule
+             *
+             * @methodOf ecopmd.controller:TopTenPanelController
+             *
+             * @param {String} message Message received as result of a PUBLISH command issued by another client
+             * @param {String} answer Passed back from PUBLISH command.
+             *
+             * @description
+             * Formates the data for use in the UI
+             */
+             var formatSchedule = function(message, data) {
+                // set the title and data
+                vm.panelTitle = '{!JSENCODE($Label.ECOPMDSchedule)}';//'Schedule';
+                vm.data = data;
+            };
+
+            /**
+             * @ngdoc method
+             *
+             * @name dateSearch
+             *
+             * @methodOf ecopmd.controller:TopTenPanelController
+             *
+             * @description
+             * Runs custom date search when endDate is changed
+             */
+             vm.doSearch = function() {
+                vm.radio.name = '';
+
+                if(vm.snapshot.startDate && vm.snapshot.endDate){
+                    vm.showResults('CUSTOM');
+                }
+            };
+
+            /**
+             * @ngdoc method
+             *
+             * @name showResults
+             *
+             * @methodOf ecopmd.controller:TopTenPanelController
+             *
+             * @param {String} type type of view to display
+             *
+             * @description
+             * Used to switch mock displays
+             */
+             vm.showResults = function(type) {
+                if(type === 'CUSTOM'){
+                    vm.startDate = formatDate(vm.snapshot.startDate);
+                    vm.endDate   = formatDate(vm.snapshot.endDate);
+                }
+
+                $timeout(function() {
+                    switch(vm.panelName) {
+                        case 'Cost':
+                            DashPanelService.getTasksByCost(vm.projectId, type, vm.startDate, vm.endDate); 
+                        break;
+                        case 'Hours':        
+                            DashPanelService.getEmployeesByHours(vm.projectId, type, vm.startDate, vm.endDate); 
+                        break;
+                        case 'Labor':
+                            DashPanelService.getEmployeesByCost(vm.projectId, type, vm.startDate, vm.endDate); 
+                        break;
+                        case 'Margin':
+                            formatMarginbyEmployee();
+                        break;
+                        case 'Schedule':
+                            DashPanelService.getScheduleList(vm.projectId); 
+                        break;
+                    }
+                }, 0);
+            };
+
+            /**
+             * @ngdoc method
+             *
+             * @name activate
+             *
+             * @methodOf ecopmd.controller:TopTenPanelController
+             *
+             * @description
+             * Method used to Resolve start-up logic for controller:TopTenPanelController
+             */
+             var activate = function() {     
+                vm.startDate = formatDate(vm.startDate);
+                vm.endDate   = formatDate(vm.endDate);
+
+                $timeout(function() {
+                    switch(vm.panelName) {
+                        case 'Cost':
+                            PubSub.subscribe('tasks-by-cost', formatTasksbyTotalCost); 
+                            DashPanelService.getTasksByCost(vm.projectId, 'ITD', vm.startDate, vm.endDate); 
+                        break;
+                        case 'Hours':        
+                            PubSub.subscribe('employees-by-hours', formatEmployeesbyHours); 
+                            DashPanelService.getEmployeesByHours(vm.projectId, 'ITD', vm.startDate, vm.endDate); 
+                        break;
+                        case 'Labor':
+                            PubSub.subscribe('employees-by-cost', formatEmployeesByCost); 
+                            DashPanelService.getEmployeesByCost(vm.projectId, 'ITD', vm.startDate, vm.endDate); 
+                        break;
+                        case 'Margin':
+                            formatMarginbyEmployee();
+                        break;
+                        case 'Schedule':
+                            PubSub.subscribe('schedule-list', formatSchedule); 
+                            DashPanelService.getScheduleList(vm.projectId); 
+                        break;
+                    }
+                }, 0);
+            };
+
+            // run initialization
+            activate();
+        }
+    })();
+</script>
+
+<script type="text/ng-template" id="profit-loss-panel.directive.html">
+    <style>
+        .pmd-table-pl {
+            width:100%;
+        }
+        .pmd-table-pl th {
+            text-align:center;
+            background-color:#CCCCCC;
+        }
+        .pmd-table-pl thead th {
+            text-align:center;
+            background-color:#CCCCCC; 
+            min-width: 55px;
+            word-wrap: break-word; 
+            white-space: normal !important; 
+            padding: 0px 7px;
+        }
+        .pmd-table-pl tbody th {
+            text-align:right;
+            background-color:#FFFFFF; 
+            border-top: thin double #000000;  
+        }
+        .pmd-table-pl tbody td {
+            text-align:right}
+        .pmd-table-pl-firstcol {
+            text-align:left !important; 
+            border-top: none !important;
+            width:20%;
+        }
+        .pmd-table-pl-kpihead {
+            text-align:left !important; 
+            font-weight: bold; 
+            color: #1797c0; 
+            line-height: 30px; 
+            vertical-align: bottom; 
+            border-top: none !important;
+        }
+
+        .negative {
+            color: red;
+        }
+        /* 
+          Allow angular.js to be loaded in body, hiding cloaked elements until 
+          templates compile.  The !important is important given that there may be 
+          other selectors that are more specific or come later and might alter display.  
+         */
+        [ng\:cloak], [ng-cloak], .ng-cloak {
+          display: none !important;
+        }
+    </style>
+    <div ng-controller="dashPLController" class="panel panel-default dashbox" >
+
+        <div class="panel-heading" ng->
+             <span ng-bind="'{!$Label.ECO_PMD_PL_PANELNAME} - 'SFDCDATA.current.SnapshotDate__c | date:'longDate'"></span> <span ng-Show="SFDCDATA.nodata" ng-bind="'{!$Label.ECO_PMD_NO_DATA}'"></span>
+        </div>
+
+        <div class="panel-body">
+            <table class="pmd-table-pl">
+                <thead>
+                    <tr>
+                        <td>(k)</td>
+                        <th>{!$Label.ECO_PMD_PL_MTD}</th>
+                        <th>{!$Label.ECO_PMD_PL_YTD}</th>
+                        <th>{!$Label.ECO_PMD_PL_ITD}</th>
+                        <th>{!$Label.ECO_PMD_PL_ETC}</th>
+                        <th>{!$Label.ECO_PMD_PL_FCST_EAC}</th>
+                        <th style="width:20px; min-width: 20px !important"></th>
+                        <th>{!$Label.ECO_PMD_PL_ORIGINAL_BUDGET}</th>
+                        <th>{!$Label.ECO_PMD_PL_CURRENT_BUDGET}</th>
+                        <th>{!$Label.ECO_PMD_PL_PREVIOUS_FORECAST_EAC}</th>
+                        <th>{!$Label.ECO_PMD_PL_FORECAST_DELTA}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <th class='pmd-table-pl-firstcol'>{!$Label.ECO_PMD_PL_GROSS_REV}</th>
+                        <th ng-class="{'negative':SFDCDATA.current.GrossRevenueMonthToDate__c < 0}">{{SFDCDATA.current.GrossRevenueMonthToDate__c/1000 | number:1}}</th>
+                        <th ng-class="{'negative':SFDCDATA.current.GrossRevenueYearToDate__c < 0}">{{SFDCDATA.current.GrossRevenueYearToDate__c/1000 | number:1}}</th>
+                        <th ng-class="{'negative':SFDCDATA.current.GrossRevenueITD__c < 0}">{{SFDCDATA.current.GrossRevenueITD__c/1000 | number:1}}</th>
+                        <th ng-class="{'negative':SFDCDATA.current.GrossRevenueETC__c < 0}">{{SFDCDATA.current.GrossRevenueETC__c/1000| number:1}}</th>
+                        <th ng-class="{'negative':SFDCDATA.current.GrossRevenueForecast__c < 0}">{{SFDCDATA.current.GrossRevenueForecast__c/1000 | number:1}}</th>
+                        <th></th>
+                        <th ng-class="{'negative':SFDCDATA.current.GrossRevenueBudgetOriginal__c < 0}">{{SFDCDATA.current.GrossRevenueBudgetOriginal__c/1000 | number:1}}</th>
+                        <th ng-class="{'negative':SFDCDATA.current.GrossRevenueBudget__c < 0}">{{SFDCDATA.current.GrossRevenueBudget__c/1000 | number:1}}</th>
+                        <th ng-class="{'negative':SFDCDATA.current.GrossRevenueForecastPrevME__c < 0}">{{SFDCDATA.current.GrossRevenueForecastPrevME__c/1000 | number:1}}</th>
+                        <th ng-class="{'negative':SFDCDATA.current.GrossRevenueForecastDelta__c  < 0}">{{SFDCDATA.current.GrossRevenueForecastDelta__c /1000 | number:1}}</th>
+                    </tr>
+                    <tr>
+                        <td class='pmd-table-pl-firstcol'>{!$Label.ECO_PMD_PL_ODC_EXP}</td>
+                        <td ng-class="{'negative':SFDCDATA.current.CostsODCEXPSMonthtoDate__c < 0}">{{SFDCDATA.current.CostsODCEXPSMonthtoDate__c/1000 | number:1}}</td>
+                        <td ng-class="{'negative':SFDCDATA.current.CostsODCEXPSYearToDate__c < 0}">{{SFDCDATA.current.CostsODCEXPSYearToDate__c/1000 | number:1}}</td>
+                        <td ng-class="{'negative':SFDCDATA.current.CostsODCEXPSITD__c < 0}">{{SFDCDATA.current.CostsODCEXPSITD__c/1000 | number:1}}</td>
+                        <td ng-class="{'negative':SFDCDATA.current.CostsODCEXPSETC__c < 0}">{{SFDCDATA.current.CostsODCEXPSETC__c/1000| number:1}}</td>
+                        <td ng-class="{'negative':SFDCDATA.current.CostsODCEXPSForecast__c < 0}">{{SFDCDATA.current.CostsODCEXPSForecast__c/1000 | number:1}}</td>
+                        <td></td>
+                        <td ng-class="{'negative':SFDCDATA.current.CostsODCEXPSBudgetOriginal__c < 0}">{{SFDCDATA.current.CostsODCEXPSBudgetOriginal__c/1000 | number:1}}</td>
+                        <td ng-class="{'negative':SFDCDATA.current.CostsODCEXPSBudget__c < 0}">{{SFDCDATA.current.CostsODCEXPSBudget__c/1000 | number:1}}</td>
+                        <td ng-class="{'negative':SFDCDATA.current.CostsODCEXPSForecastPrevME__c < 0}">{{SFDCDATA.current.CostsODCEXPSForecastPrevME__c/1000 | number:1}}</td>
+                        <td ng-class="{'negative':SFDCDATA.current.CostsODCEXPSForecastDelta__c  < 0}">{{SFDCDATA.current.CostsODCEXPSForecastDelta__c /1000 | number:1}}</td>  
+                    </tr>
+                    <tr>
+                        <td class='pmd-table-pl-firstcol'>{!$Label.ECO_PMD_PL_ODC_SUBS}</td>
+                        <td ng-class="{'negative':SFDCDATA.current.CostsODCSUBSMonthtoDate__c < 0}">{{SFDCDATA.current.CostsODCSUBSMonthtoDate__c/1000 | number:1}}</td>
+                        <td ng-class="{'negative':SFDCDATA.current.CostsODCSUBSYearToDate__c < 0}">{{SFDCDATA.current.CostsODCSUBSYearToDate__c/1000 | number:1}}</td>
+                        <td ng-class="{'negative':SFDCDATA.current.CostsODCSUBSITD__c < 0}">{{SFDCDATA.current.CostsODCSUBSITD__c/1000 | number:1}}</td>
+                        <td ng-class="{'negative':SFDCDATA.current.CostsODCSUBSETC__c < 0}">{{SFDCDATA.current.CostsODCSUBSETC__c/1000| number:1}}</td>
+                        <td ng-class="{'negative':SFDCDATA.current.CostsODCSUBSForecast__c < 0}">{{SFDCDATA.current.CostsODCSUBSForecast__c/1000 | number:1}}</td>
+                        <td></td>
+                        <td ng-class="{'negative':SFDCDATA.current.CostsODCSUBSBudgetOriginal__c < 0}">{{SFDCDATA.current.CostsODCSUBSBudgetOriginal__c/1000 | number:1}}</td>
+                        <td ng-class="{'negative':SFDCDATA.current.CostsODCSUBSBudget__c < 0}">{{SFDCDATA.current.CostsODCSUBSBudget__c/1000 | number:1}}</td>
+                        <td ng-class="{'negative':SFDCDATA.current.CostsODCSUBSForecastPrevME__c < 0}">{{SFDCDATA.current.CostsODCSUBSForecastPrevME__c/1000 | number:1}}</td>
+                        <td ng-class="{'negative':SFDCDATA.current.CostsODCSUBSForecastDelta__c  < 0}">{{SFDCDATA.current.CostsODCSUBSForecastDelta__c /1000 | number:1}}</td>
+                    </tr>
+                    <tr>
+                        <td class='pmd-table-pl-firstcol'>{!$Label.ECO_PMD_PL_ODC_CONTINGENCY}</td>
+                        <td ></td>
+                        <td ></td>
+                        <td ></td>
+                        <td ></td>
+                        <td ng-class="{'negative':SFDCDATA.current.ContingencyForecast__c < 0}">{{SFDCDATA.current.ContingencyForecast__c/1000 | number:1}}</td>
+                        <td></td>
+                        <td ng-class="{'negative':SFDCDATA.current.ContingencyBudgetOriginal__c < 0}">{{SFDCDATA.current.ContingencyBudgetOriginal__c/1000 | number:1}}</td>
+                        <td ng-class="{'negative':SFDCDATA.current.ContingencyBudget__c < 0}">{{SFDCDATA.current.ContingencyBudget__c/1000 | number:1}}</td>
+                        <td ng-class="{'negative':SFDCDATA.current.ContingencyForecastPrevME__c < 0}">{{SFDCDATA.current.ContingencyForecastPrevME__c/1000 | number:1}}</td>
+                        <td ng-class="{'negative':SFDCDATA.current.ContingencyForecastDelta__c  < 0}">{{SFDCDATA.current.ContingencyForecastDelta__c/1000 | number:1}}</td>
+                    </tr>
+                    <tr>
+                        <th class='pmd-table-pl-firstcol'>{!$Label.ECO_PMD_PL_NSR}</th>
+                        <th ng-class="{'negative':SFDCDATA.current.NetServiceMonthToDate__c < 0}">{{SFDCDATA.current.NetServiceMonthToDate__c/1000 | number:1}}</th>
+                        <th ng-class="{'negative':SFDCDATA.current.NetServiceYearToDate__c < 0}">{{SFDCDATA.current.NetServiceYearToDate__c/1000 | number:1}}</th>
+                        <th ng-class="{'negative':SFDCDATA.current.NetServiceITD__c < 0}">{{SFDCDATA.current.NetServiceITD__c/1000 | number:1}}</th>
+                        <th ng-class="{'negative':SFDCDATA.current.NetServiceETC__c < 0}">{{SFDCDATA.current.NetServiceETC__c/1000| number:1}}</th>
+                        <th ng-class="{'negative':SFDCDATA.current.NetServiceForecast__c < 0}">{{SFDCDATA.current.NetServiceForecast__c/1000 | number:1}}</th>
+                        <th></th>
+                        <th ng-class="{'negative':SFDCDATA.current.NetServiceBudgetOriginal__c < 0}">{{SFDCDATA.current.NetServiceBudgetOriginal__c/1000 | number:1}}</th>
+                        <th ng-class="{'negative':SFDCDATA.current.NetServiceBudget__c < 0}">{{SFDCDATA.current.NetServiceBudget__c/1000 | number:1}}</th>
+                        <th ng-class="{'negative':SFDCDATA.current.NetServiceForecastPrevME__c < 0}">{{SFDCDATA.current.NetServiceForecastPrevME__c/1000 | number:1}}</th>
+                        <th ng-class="{'negative':SFDCDATA.current.NetServiceForecastDelta__c  < 0}">{{SFDCDATA.current.NetServiceForecastDelta__c /1000 | number:1}}</th>
+                    </tr>
+                    
+                    <tr>
+                        <td class='pmd-table-pl-firstcol'>{!$Label.ECO_PMD_PL_LABOUR}</td>
+                        <td ng-class="{'negative':SFDCDATA.current.LaborMonthToDate__c < 0}">{{SFDCDATA.current.LaborMonthToDate__c/1000 | number:1}}</td>
+                        <td ng-class="{'negative':SFDCDATA.current.LaborYearToDate__c < 0}">{{SFDCDATA.current.LaborYearToDate__c/1000 | number:1}}</td>
+                        <td ng-class="{'negative':SFDCDATA.current.LaborITD__c < 0}">{{SFDCDATA.current.LaborITD__c/1000 | number:1}}</td>
+                        <td ng-class="{'negative':SFDCDATA.current.LaborETC__c < 0}">{{SFDCDATA.current.LaborETC__c/1000| number:1}}</td>
+                        <td ng-class="{'negative':SFDCDATA.current.LaborForecast__c < 0}">{{SFDCDATA.current.LaborForecast__c/1000 | number:1}}</td>
+                        <td></td>
+                        <td ng-class="{'negative':SFDCDATA.current.LaborBudgetOriginal__c < 0}">{{SFDCDATA.current.LaborBudgetOriginal__c/1000 | number:1}}</td>
+                        <td ng-class="{'negative':SFDCDATA.current.LaborBudget__c < 0}">{{SFDCDATA.current.LaborBudget__c/1000 | number:1}}</td>
+                        <td ng-class="{'negative':SFDCDATA.current.LaborForecastPrevME__c < 0}">{{SFDCDATA.current.LaborForecastPrevME__c/1000 | number:1}}</td>
+                        <td ng-class="{'negative':SFDCDATA.current.LaborForecastDelta__c  < 0}">{{SFDCDATA.current.LaborForecastDelta__c /1000 | number:1}}</td>
+                    </tr>
+                    <tr>
+                        <td class='pmd-table-pl-firstcol'>{!$Label.ECO_PMD_PL_FRINGE}</td>
+                        <td ng-class="{'negative':SFDCDATA.current.FringeMonthToDate__c < 0}">{{SFDCDATA.current.FringeMonthToDate__c/1000 | number:1}}</td>
+                        <td ng-class="{'negative':SFDCDATA.current.FringeYearToDate__c < 0}">{{SFDCDATA.current.FringeYearToDate__c/1000 | number:1}}</td>
+                        <td ng-class="{'negative':SFDCDATA.current.FringeITD__c < 0}">{{SFDCDATA.current.FringeITD__c/1000 | number:1}}</td>
+                        <td ng-class="{'negative':SFDCDATA.current.FringeETC__c < 0}">{{SFDCDATA.current.FringeETC__c/1000| number:1}}</td>
+                        <td ng-class="{'negative':SFDCDATA.current.FringeForecast__c < 0}">{{SFDCDATA.current.FringeForecast__c/1000 | number:1}}</td>
+                        <td></td>
+                        <td ng-class="{'negative':SFDCDATA.current.FringeBudgetOriginal__c < 0}">{{SFDCDATA.current.FringeBudgetOriginal__c/1000 | number:1}}</td>
+                        <td ng-class="{'negative':SFDCDATA.current.FringeBudget__c < 0}">{{SFDCDATA.current.FringeBudget__c/1000 | number:1}}</td>
+                        <td ng-class="{'negative':SFDCDATA.current.FringeForecastPrevME__c < 0}">{{SFDCDATA.current.FringeForecastPrevME__c/1000 | number:1}}</td>
+                        <td ng-class="{'negative':SFDCDATA.current.FringeForecastDelta__c  < 0}">{{SFDCDATA.current.FringeForecastDelta__c /1000 | number:1}}</td>
+                    </tr>
+                    <tr>
+                        <th class='pmd-table-pl-firstcol'>{!$Label.ECO_PMD_PL_GROSS_MARGIN}</th>
+                        <th ng-class="{'negative':SFDCDATA.current.GrossMarginMonthToDate__c < 0}">{{SFDCDATA.current.GrossMarginMonthToDate__c/1000 | number:1}}</th>
+                        <th ng-class="{'negative':SFDCDATA.current.GrossMarginYearToDate__c < 0}">{{SFDCDATA.current.GrossMarginYearToDate__c/1000 | number:1}}</th>
+                        <th ng-class="{'negative':SFDCDATA.current.GrossMarginITD__c < 0}">{{SFDCDATA.current.GrossMarginITD__c/1000 | number:1}}</th>
+                        <th ng-class="{'negative':SFDCDATA.current.GrossMarginETC__c < 0}">{{SFDCDATA.current.GrossMarginETC__c/1000| number:1}}</th>
+                        <th ng-class="{'negative':SFDCDATA.current.GrossMarginForecast__c < 0}">{{SFDCDATA.current.GrossMarginForecast__c/1000 | number:1}}</th>
+                        <th></th>
+                        <th ng-class="{'negative':SFDCDATA.current.GrossMarginBudgetOriginal__c < 0}">{{SFDCDATA.current.GrossMarginBudgetOriginal__c/1000 | number:1}}</th>
+                        <th ng-class="{'negative':SFDCDATA.current.GrossMarginBudget__c < 0}">{{SFDCDATA.current.GrossMarginBudget__c/1000 | number:1}}</th>
+                        <th ng-class="{'negative':SFDCDATA.current.GrossMarginForecastPrevME__c < 0}">{{SFDCDATA.current.GrossMarginForecastPrevME__c/1000 | number:1}}</th>
+                        <th ng-class="{'negative':SFDCDATA.current.GrossMarginForecastDelta__c  < 0}">{{SFDCDATA.current.GrossMarginForecastDelta__c /1000 | number:1}}</th>
+                    </tr>
+                    <tr>
+                        <td class='pmd-table-pl-firstcol'>{!$Label.ECO_PMD_PL_OVERHEAD}</td>
+                        <td ng-class="{'negative':SFDCDATA.current.OverheadMonthToDate__c < 0}">{{SFDCDATA.current.OverheadMonthToDate__c/1000 | number:1}}</td>
+                        <td ng-class="{'negative':SFDCDATA.current.OverheadYearToDate__c < 0}">{{SFDCDATA.current.OverheadYearToDate__c/1000 | number:1}}</td>
+                        <td ng-class="{'negative':SFDCDATA.current.OverheadITD__c < 0}">{{SFDCDATA.current.OverheadITD__c/1000 | number:1}}</td>
+                        <td ng-class="{'negative':SFDCDATA.current.OverheadETC__c < 0}">{{SFDCDATA.current.OverheadETC__c/1000| number:1}}</td>
+                        <td ng-class="{'negative':SFDCDATA.current.OverheadForecast__c < 0}">{{SFDCDATA.current.OverheadForecast__c/1000 | number:1}}</td>
+                        <td></td>
+                        <td ng-class="{'negative':SFDCDATA.current.OverheadBudgetOriginal__c < 0}">{{SFDCDATA.current.OverheadBudgetOriginal__c/1000 | number:1}}</td>
+                        <td ng-class="{'negative':SFDCDATA.current.OverheadBudget__c < 0}">{{SFDCDATA.current.OverheadBudget__c/1000 | number:1}}</td>
+                        <td ng-class="{'negative':SFDCDATA.current.OverheadForecastPrevME__c < 0}">{{SFDCDATA.current.OverheadForecastPrevME__c/1000 | number:1}}</td>
+                        <td ng-class="{'negative':SFDCDATA.current.OverheadForecastDelta__c  < 0}">{{SFDCDATA.current.OverheadForecastDelta__c /1000 | number:1}}</td>
+                    </tr>
+                    <tr>
+                        <th class='pmd-table-pl-firstcol'>{!$Label.ECO_PMD_PL_NET_MARGIN}</th>
+                        <th ng-class="{'negative':SFDCDATA.current.NetMarginMonthToDate__c < 0}">{{SFDCDATA.current.NetMarginMonthToDate__c/1000 | number:1}}</th>
+                        <th ng-class="{'negative':SFDCDATA.current.NetMarginYearToDate__c < 0}">{{SFDCDATA.current.NetMarginYearToDate__c/1000 | number:1}}</th>
+                        <th ng-class="{'negative':SFDCDATA.current.NetMarginITD__c < 0}">{{SFDCDATA.current.NetMarginITD__c/1000 | number:1}}</th>
+                        <th ng-class="{'negative':SFDCDATA.current.NetMarginETC__c < 0}">{{SFDCDATA.current.NetMarginETC__c/1000| number:1}}</th>
+                        <th ng-class="{'negative':SFDCDATA.current.NetMarginForecast__c < 0}">{{SFDCDATA.current.NetMarginForecast__c/1000 | number:1}}</th>
+                        <th></th>
+                        <th ng-class="{'negative':SFDCDATA.current.NetMarginBudgetOriginal__c < 0}">{{SFDCDATA.current.NetMarginBudgetOriginal__c/1000 | number:1}}</th>
+                        <th ng-class="{'negative':SFDCDATA.current.NetMarginBudget__c < 0}">{{SFDCDATA.current.NetMarginBudget__c/1000 | number:1}}</th>
+                        <th ng-class="{'negative':SFDCDATA.current.NetMarginForecastPrevME__c < 0}">{{SFDCDATA.current.NetMarginForecastPrevME__c/1000 | number:1}}</th>
+                        <th ng-class="{'negative':SFDCDATA.current.NetMarginForecastDelta__c  < 0}">{{SFDCDATA.current.NetMarginForecastDelta__c /1000 | number:1}}</th>
+                    </tr>
+                    <tr>
+                        <th class='pmd-table-pl-kpihead'>{!$Label.ECO_PMD_PL_KPI}</th>
+                    </tr>
+                    <tr>
+                        <td class='pmd-table-pl-firstcol'>{!$Label.ECO_PMD_PL_GMNSR}</td>
+                        <td ng-class="{'negative':SFDCDATA.current.GMNSRMonthToDate__c < 0}">{{SFDCDATA.current.GMNSRMonthToDate__c | number:1}}%</td>
+                        <td ng-class="{'negative':SFDCDATA.current.GMNSRYearToDate__c < 0}">{{SFDCDATA.current.GMNSRYearToDate__c | number:1}}%</td>
+                        <td ng-class="{'negative':SFDCDATA.current.GMNSRITD__c < 0}">{{SFDCDATA.current.GMNSRITD__c | number:1}}%</td>
+                        <td ng-class="{'negative':SFDCDATA.current.GMNSRETC__c < 0}">{{SFDCDATA.current.GMNSRETC__c| number:1}}%</td>
+                        <td ng-class="{'negative':SFDCDATA.current.GMNSRForecast__c < 0}">{{SFDCDATA.current.GMNSRForecast__c | number:1}}%</td>
+                        <td></td>
+                        <td ng-class="{'negative':SFDCDATA.current.GMNSRBudgetOriginal__c < 0}">{{SFDCDATA.current.GMNSRBudgetOriginal__c | number:1}}%</td>
+                        <td ng-class="{'negative':SFDCDATA.current.GMNSRBudget__c < 0}">{{SFDCDATA.current.GMNSRBudget__c | number:1}}%</td>
+                        <td ng-class="{'negative':SFDCDATA.current.GMNSRForecastPrevME__c < 0}">{{SFDCDATA.current.GMNSRForecastPrevME__c | number:1}}%</td>
+                        <td ng-class="{'negative':SFDCDATA.current.GMNSRForecastDelta__c  < 0}">{{SFDCDATA.current.GMNSRForecastDelta__c  | number:1}}%</td>
+                    </tr>
+                    <tr>
+                        <td class='pmd-table-pl-firstcol'>{!$Label.ECO_PMD_PL_NM_NSR}</td>
+                        <td ng-class="{'negative':SFDCDATA.current.NMNSRMonthToDate__c < 0}">{{SFDCDATA.current.NMNSRMonthToDate__c | number:1}}%</td>
+                        <td ng-class="{'negative':SFDCDATA.current.NMNSRYearToDate__c < 0}">{{SFDCDATA.current.NMNSRYearToDate__c | number:1}}%</td>
+                        <td ng-class="{'negative':SFDCDATA.current.NMNSRITD__c < 0}">{{SFDCDATA.current.NMNSRITD__c | number:1}}%</td>
+                        <td ng-class="{'negative':SFDCDATA.current.NMNSRETC__c < 0}">{{SFDCDATA.current.NMNSRETC__c| number:1}}%</td>
+                        <td ng-class="{'negative':SFDCDATA.current.NMNSRForecast__c < 0}">{{SFDCDATA.current.NMNSRForecast__c | number:1}}%</td>
+                        <td></td>
+                        <td ng-class="{'negative':SFDCDATA.current.NMNSRBudgetOriginal__c < 0}">{{SFDCDATA.current.NMNSRBudgetOriginal__c | number:1}}%</td>
+                        <td ng-class="{'negative':SFDCDATA.current.NMNSRBudget__c < 0}">{{SFDCDATA.current.NMNSRBudget__c | number:1}}%</td>
+                        <td ng-class="{'negative':SFDCDATA.current.NMNSRForecastPrevME__c < 0}">{{SFDCDATA.current.NMNSRForecastPrevME__c | number:1}}%</td>
+                        <td ng-class="{'negative':SFDCDATA.current.NMNSRForecastDelta__c  < 0}">{{SFDCDATA.current.NMNSRForecastDelta__c  | number:1}}%</td>
+                    </tr>
+                    <tr>
+                        <td class='pmd-table-pl-firstcol'>{!$Label.ECO_PMD_PL_HOURS}</td>
+                        <td ng-class="{'negative':SFDCDATA.current.HoursMonthToDate__c < 0}">{{SFDCDATA.current.HoursMonthToDate__c | number:0}}</td>
+                        <td ng-class="{'negative':SFDCDATA.current.HoursYearToDate__c < 0}">{{SFDCDATA.current.HoursYearToDate__c | number:0}}</td>
+                        <td ng-class="{'negative':SFDCDATA.current.HoursITD__c < 0}">{{SFDCDATA.current.HoursITD__c | number:0}}</td>
+                        <td ng-class="{'negative':SFDCDATA.current.HoursETC__c < 0}">{{SFDCDATA.current.HoursETC__c| number:0}}</td>
+                        <td ng-class="{'negative':SFDCDATA.current.HoursForecast__c < 0}">{{SFDCDATA.current.HoursForecast__c | number:0}}</td>
+                        <td></td>
+                        <td ng-class="{'negative':SFDCDATA.current.HoursBudgetOriginal__c < 0}">{{SFDCDATA.current.HoursBudgetOriginal__c | number:0}}</td>
+                        <td ng-class="{'negative':SFDCDATA.current.HoursBudget__c < 0}">{{SFDCDATA.current.HoursBudget__c | number:0}}</td>
+                        <td ng-class="{'negative':SFDCDATA.current.HoursForecastPrevME__c < 0}">{{SFDCDATA.current.HoursForecastPrevME__c | number:0}}</td>
+                        <td ng-class="{'negative':SFDCDATA.current.HoursForecastDelta__c  < 0}">{{SFDCDATA.current.HoursForecastDelta__c  | number:0}}</td>
+                    </tr>
+                    <tr>
+                        <td class='pmd-table-pl-firstcol'>{!$Label.ECO_PMD_PL_LABOUR_RATE}</td>
+                        <td ng-class="{'negative':SFDCDATA.current.AvgLaborHourMonthToDate__c < 0}">{{SFDCDATA.current.AvgLaborHourMonthToDate__c | number:1}}</td>
+                        <td ng-class="{'negative':SFDCDATA.current.AvgLaborHourYearToDate__c < 0}">{{SFDCDATA.current.AvgLaborHourYearToDate__c | number:1}}</td>
+                        <td ng-class="{'negative':SFDCDATA.current.AvgLaborHourITD__c < 0}">{{SFDCDATA.current.AvgLaborHourITD__c | number:1}}</td>
+                        <td ng-class="{'negative':SFDCDATA.current.AvgLaborHourETC__c < 0}">{{SFDCDATA.current.AvgLaborHourETC__c| number:1}}</td>
+                        <td ng-class="{'negative':SFDCDATA.current.AvgLaborHourForecast__c < 0}">{{SFDCDATA.current.AvgLaborHourForecast__c | number:1}}</td>
+                        <td></td>
+                        <td ng-class="{'negative':SFDCDATA.current.AvgLaborHourBudgetOriginal__c < 0}">{{SFDCDATA.current.AvgLaborHourBudgetOriginal__c | number:1}}</td>
+                        <td ng-class="{'negative':SFDCDATA.current.AvgLaborHourBudget__c < 0}">{{SFDCDATA.current.AvgLaborHourBudget__c | number:1}}</td>
+                        <td ng-class="{'negative':SFDCDATA.current.AvgLaborHourForecastPrevME__c < 0}">{{SFDCDATA.current.AvgLaborHourForecastPrevME__c | number:1}}</td>
+                        <td ng-class="{'negative':SFDCDATA.current.AvgLaborHourForecastDelta__c  < 0}">{{SFDCDATA.current.AvgLaborHourForecastDelta__c  | number:1}}</td>
+                    </tr>
+                    <tr>
+                        <td class='pmd-table-pl-firstcol'>{!$Label.ECO_PMD_PL_SCM}</td>
+                        <td ng-class="{'negative':SFDCDATA.current.SCMMonthToDate__c < 0}">{{SFDCDATA.current.SCMMonthToDate__c | number:2}}</td>
+                        <td ng-class="{'negative':SFDCDATA.current.SCMYearToDate__c < 0}">{{SFDCDATA.current.SCMYearToDate__c | number:2}}</td>
+                        <td ng-class="{'negative':SFDCDATA.current.SCMITD__c < 0}">{{SFDCDATA.current.SCMITD__c | number:2}}</td>
+                        <td ng-class="{'negative':SFDCDATA.current.SCMETC__c < 0}">{{SFDCDATA.current.SCMETC__c| number:2}}</td>
+                        <td ng-class="{'negative':SFDCDATA.current.SCMForecast__c < 0}">{{SFDCDATA.current.SCMForecast__c | number:2}}</td>
+                        <td></td>
+                        <td ng-class="{'negative':SFDCDATA.current.SCMBudgetOriginal__c < 0}">{{SFDCDATA.current.SCMBudgetOriginal__c | number:2}}</td>
+                        <td ng-class="{'negative':SFDCDATA.current.SCMBudget__c < 0}">{{SFDCDATA.current.SCMBudget__c | number:2}}</td>
+                        <td ng-class="{'negative':SFDCDATA.current.SCMForecastPrevME__c < 0}">{{SFDCDATA.current.SCMForecastPrevME__c | number:2}}</td>
+                        <td ng-class="{'negative':SFDCDATA.current.SCMForecastDelta__c  < 0}">{{SFDCDATA.current.SCMForecastDelta__c  | number:2}}</td>
+                    </tr>
+                    <tr>
+                        <td class='pmd-table-pl-firstcol'>{!$Label.ECO_PMD_PL_LOST_MARGIN}</td>
+                        <td ng-class="{'negative':SFDCDATA.current.LostMarginMonthToDate__c < 0}">{{SFDCDATA.current.LostMarginMonthToDate__c/1000 | number:2}}</td>
+                        <td ng-class="{'negative':SFDCDATA.current.LostMarginYearToDate__c < 0}">{{SFDCDATA.current.LostMarginYearToDate__c/1000 | number:2}}</td>
+                        <td ng-class="{'negative':SFDCDATA.current.LostMarginITD__c < 0}">{{SFDCDATA.current.LostMarginITD__c/1000 | number:2}}</td>
+                        <td ng-class="{'negative':SFDCDATA.current.LostMarginForecast__c < 0}">{{(SFDCDATA.current.LostMarginETC__c)/1000| number:2}}</td>
+                        <td ng-class="{'negative':SFDCDATA.current.LostMarginForecast__c < 0}">{{SFDCDATA.current.LostMarginForecast__c/1000 | number:2}}</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td class='pmd-table-pl-firstcol'>{!$Label.ECO_PMD_PL_END_DATE}</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td ng-class="{'negative':SFDCDATA.current.ProjectEndDate__c < 0}">{{SFDCDATA.current.ProjectEndDate__c | date:'shortDate'}}</td>
+                        <td></td>
+                        <td ng-class="{'negative':SFDCDATA.current.OriginalBudgetAsOfDate__c < 0}">{{SFDCDATA.current.OriginalBudgetAsOfDate__c | date:'shortDate'}}</td>
+                        <td ng-class="{'negative':SFDCDATA.current.CurrentBudgetAsOfDate__c < 0}">{{SFDCDATA.current.CurrentBudgetAsOfDate__c | date:'shortDate'}}</td>
+                        <td ng-class="{'negative':SFDCDATA.current.ProjectEndDatePrevME__c < 0}">{{SFDCDATA.current.ProjectEndDatePrevME__c | date:'shortDate'}}</td>
+                        <td></td>
+                    </tr>
+                </tbody>    
+            </table>
+            
+        </div>
+        <c:ECO_PMD_PanelFooter panelId="KPI"><ul><li><em>Nothing at this time</em></li></ul></c:ECO_PMD_PanelFooter>
+    </div>
+</script>
+
+<script id="components/ProfitLoss/profit-loss-panel.directive.js">
+    (function() {
+        'use strict';
+
+        /**
+         * @ngdoc directive
+         *
+         * @name ecopmd.directive:profitLoss
+         *
+         * @scope
+         *
+         * @restrict E
+         *
+         * @description
+         * Implementation of Top Ten Panel
+         */    
+         angular
+            .module('components')
+            .directive('profitLoss', profitLoss);
+
+         profitLoss.$inject = [];
+
+         function profitLoss() {
+            var directive = {
+                restrict            : 'E',
+                controller          : ProfitLossController,
+                controllerAs        : 'ctrl',
+                bindToController    : true,
+                templateUrl         : 'profit-loss-panel.directive.html',
+                link                : linkFunc,
+                scope               : {
+                    data        : '=',
+                    panelName  : '@title',
+                    projectId  : '@'
+                }
+            };
+
+            return directive;
+
+            /**
+             * @ngdoc method
+             *
+             * @name linkFunc
+             *
+             * @methodOf ecopmd.directive:profitLoss
+             *
+             * @param {Object} scope component scope
+             * @param {Object} el DOM element reference for component template
+             * @param {Object} attr DOM attribute reference
+             * @param {Object} ctrl component controller reference
+             *
+             * @description
+             * Link Function declaration/implementation for profitLoss component
+             */
+             function linkFunc(scope, el, attr, ctrl) {
+
+             }
+         }
+
+        /**
+         * @ngdoc controller
+         *
+         * @name ecopmd.controller:ProfitLossController
+         *
+         * @requires https://docs.angularjs.org/api/ng/service/$timeout
+         * @requires services.service:PubSub
+         * @requires services.service:EmployeesByHours
+         *
+         * @description
+         *     Controller declaration/implementation for ecopmd.profitLoss directive
+         */
+         angular
+            .module('ecopmd')
+            .controller('ProfitLossController', ProfitLossController);
+
+         ProfitLossController.$inject = ['$timeout', 'DashPanelService', 'PubSub'];
+
+         function ProfitLossController($timeout, DashPanelService, PubSub) {
+            var vm = this;
+
+            /**
+             * @ngdoc property
+             *
+             * @name exportedVariable
+             *
+             * @propertyOf ecopmd.controller:ProfitLossController
+             *
+             * @description
+             * Used in the UI to toggle views.
+             */
+             vm.exportedVariable = [];
+
+            /**
+             * @ngdoc property
+             *
+             * @name exportedVariable
+             *
+             * @propertyOf ecopmd.controller:ProfitLossController
+             *
+             * @description
+             * Label used when there is NO_DATA.
+             */
+             vm.nO_DATA = "{!$Label.ECO_PMD_NO_DATA}";
+
+            /**
+             * @ngdoc property
+             *
+             * @name exportedVariable
+             *
+             * @propertyOf ecopmd.controller:ProfitLossController
+             *
+             * @description
+             * Label used when there is NO_DATA.
+             */
+             vm.pl_PanelName = "{!$Label.ECO_PMD_PL_PANELNAME}";
+
+            /**
+             * @ngdoc property
+             *
+             * @name exportedVariable
+             *
+             * @propertyOf ecopmd.controller:ProfitLossController
+             *
+             * @description
+             * Label used when there is NO_DATA.
+             */
+             vm.pl_mtd = "{!$Label.ECO_PMD_PL_MTD}";
+
+            /**
+             * @ngdoc property
+             *
+             * @name exportedVariable
+             *
+             * @propertyOf ecopmd.controller:ProfitLossController
+             *
+             * @description
+             * Label used when there is NO_DATA.
+             */
+             vm.pl_ytd = "{!$Label.ECO_PMD_PL_YTD}";
+
+            /**
+             * @ngdoc property
+             *
+             * @name exportedVariable
+             *
+             * @propertyOf ecopmd.controller:ProfitLossController
+             *
+             * @description
+             * Label used when there is NO_DATA.
+             */
+             vm.pl_itd = "{!$Label.ECO_PMD_PL_ITD}";
+
+            /**
+             * @ngdoc property
+             *
+             * @name exportedVariable
+             *
+             * @propertyOf ecopmd.controller:ProfitLossController
+             *
+             * @description
+             * Label used when there is NO_DATA.
+             */
+             vm.pl_etc = "{!$Label.ECO_PMD_PL_ETC}";
+
+            /**
+             * @ngdoc property
+             *
+             * @name exportedVariable
+             *
+             * @propertyOf ecopmd.controller:ProfitLossController
+             *
+             * @description
+             * Label used when there is NO_DATA.
+             */
+             vm.pl_eac = "{!$Label.ECO_PMD_PL_FCST_EAC}";
+
+            /**
+             * @ngdoc property
+             *
+             * @name exportedVariable
+             *
+             * @propertyOf ecopmd.controller:ProfitLossController
+             *
+             * @description
+             * Label used when there is NO_DATA.
+             */
+             vm.pl_OrigBudget = "{!$Label.ECO_PMD_PL_ORIGINAL_BUDGET}";
+
+            /**
+             * @ngdoc property
+             *
+             * @name exportedVariable
+             *
+             * @propertyOf ecopmd.controller:ProfitLossController
+             *
+             * @description
+             * Label used when there is NO_DATA.
+             */
+             vm.pl_CurrBudget = "{!$Label.ECO_PMD_PL_CURRENT_BUDGET}";
+
+            /**
+             * @ngdoc property
+             *
+             * @name exportedVariable
+             *
+             * @propertyOf ecopmd.controller:ProfitLossController
+             *
+             * @description
+             * Label used when there is NO_DATA.
+             */
+             vm.pl_PrevForcastEac = "{!$Label.ECO_PMD_PL_PREVIOUS_FORECAST_EAC}";
+
+            /**
+             * @ngdoc property
+             *
+             * @name exportedVariable
+             *
+             * @propertyOf ecopmd.controller:ProfitLossController
+             *
+             * @description
+             * Label used when there is NO_DATA.
+             */
+             vm.pl_PrevForcastDelta = "{!$Label.ECO_PMD_PL_FORECAST_DELTA}";
+
+            /**
+             * @ngdoc property
+             *
+             * @name exportedVariable
+             *
+             * @propertyOf ecopmd.controller:ProfitLossController
+             *
+             * @description
+             * Label used when there is NO_DATA.
+             */
+             vm.pl_GrossRev = "{!$Label.ECO_PMD_PL_GROSS_REV}";
+
+            /**
+             * @ngdoc property
+             *
+             * @name exportedVariable
+             *
+             * @propertyOf ecopmd.controller:ProfitLossController
+             *
+             * @description
+             * Label used when there is NO_DATA.
+             */
+             vm.pl_odc_exp = "{!$Label.ECO_PMD_PL_ODC_EXP}";
+
+            /**
+             * @ngdoc property
+             *
+             * @name exportedVariable
+             *
+             * @propertyOf ecopmd.controller:ProfitLossController
+             *
+             * @description
+             * Label used when there is NO_DATA.
+             */
+             vm.pl_odc_subs = "{!$Label.ECO_PMD_PL_ODC_SUBS}";
+
+            /**
+             * @ngdoc property
+             *
+             * @name exportedVariable
+             *
+             * @propertyOf ecopmd.controller:ProfitLossController
+             *
+             * @description
+             * Label used when there is NO_DATA.
+             */
+             vm.pl_odc_Contingency = "{!$Label.ECO_PMD_PL_ODC_CONTINGENCY}";
+
+            /**
+             * @ngdoc property
+             *
+             * @name exportedVariable
+             *
+             * @propertyOf ecopmd.controller:ProfitLossController
+             *
+             * @description
+             * Label used when there is NO_DATA.
+             */
+             vm.pl_nsr = "{!$Label.ECO_PMD_PL_NSR}";
+
+            /**
+             * @ngdoc property
+             *
+             * @name exportedVariable
+             *
+             * @propertyOf ecopmd.controller:ProfitLossController
+             *
+             * @description
+             * Label used when there is NO_DATA.
+             */
+             vm.pl_Labour = "{!$Label.ECO_PMD_PL_LABOUR}";
+
+            /**
+             * @ngdoc property
+             *
+             * @name exportedVariable
+             *
+             * @propertyOf ecopmd.controller:ProfitLossController
+             *
+             * @description
+             * Label used when there is NO_DATA.
+             */
+             vm.pl_Fringe = "{!$Label.ECO_PMD_PL_FRINGE}";
+
+            /**
+             * @ngdoc property
+             *
+             * @name exportedVariable
+             *
+             * @propertyOf ecopmd.controller:ProfitLossController
+             *
+             * @description
+             * Label used when there is NO_DATA.
+             */
+             vm.pl_GrossMargin = "{!$Label.ECO_PMD_PL_GROSS_MARGIN}";
+
+            /**
+             * @ngdoc property
+             *
+             * @name exportedVariable
+             *
+             * @propertyOf ecopmd.controller:ProfitLossController
+             *
+             * @description
+             * Label used when there is NO_DATA.
+             */
+             vm.pl_OverHead = "{!$Label.ECO_PMD_PL_OVERHEAD}";
+
+            /**
+             * @ngdoc property
+             *
+             * @name exportedVariable
+             *
+             * @propertyOf ecopmd.controller:ProfitLossController
+             *
+             * @description
+             * Label used when there is NO_DATA.
+             */
+             vm.pl_NetMargin = "{!$Label.ECO_PMD_PL_NET_MARGIN}";
+
+            /**
+             * @ngdoc property
+             *
+             * @name exportedVariable
+             *
+             * @propertyOf ecopmd.controller:ProfitLossController
+             *
+             * @description
+             * Label used when there is NO_DATA.
+             */
+             vm.pl_kpi = "{!$Label.ECO_PMD_PL_KPI}";
+
+            /**
+             * @ngdoc property
+             *
+             * @name exportedVariable
+             *
+             * @propertyOf ecopmd.controller:ProfitLossController
+             *
+             * @description
+             * Label used when there is NO_DATA.
+             */
+             vm.pl_gmnsr = "{!$Label.ECO_PMD_PL_GMNSR}";
+
+            /**
+             * @ngdoc property
+             *
+             * @name exportedVariable
+             *
+             * @propertyOf ecopmd.controller:ProfitLossController
+             *
+             * @description
+             * Label used when there is NO_DATA.
+             */
+             vm.pl_nm_nsr = "{!$Label.ECO_PMD_PL_NM_NSR}";
+
+            /**
+             * @ngdoc property
+             *
+             * @name exportedVariable
+             *
+             * @propertyOf ecopmd.controller:ProfitLossController
+             *
+             * @description
+             * Label used when there is NO_DATA.
+             */
+             vm.pl_hours = "{!$Label.ECO_PMD_PL_HOURS}";
+
+            /**
+             * @ngdoc property
+             *
+             * @name exportedVariable
+             *
+             * @propertyOf ecopmd.controller:ProfitLossController
+             *
+             * @description
+             * Label used when there is NO_DATA.
+             */
+             vm.pl_LabourRate = "{!$Label.ECO_PMD_PL_LABOUR_RATE}";
+
+            /**
+             * @ngdoc property
+             *
+             * @name exportedVariable
+             *
+             * @propertyOf ecopmd.controller:ProfitLossController
+             *
+             * @description
+             * Label used when there is NO_DATA.
+             */
+             vm.pl_scm = "{!$Label.ECO_PMD_PL_SCM}";
+
+            /**
+             * @ngdoc property
+             *
+             * @name exportedVariable
+             *
+             * @propertyOf ecopmd.controller:ProfitLossController
+             *
+             * @description
+             * Label used when there is NO_DATA.
+             */
+             vm.pl_LostMargin = "{!$Label.ECO_PMD_PL_LOST_MARGIN}";
+
+            /**
+             * @ngdoc property
+             *
+             * @name exportedVariable
+             *
+             * @propertyOf ecopmd.controller:ProfitLossController
+             *
+             * @description
+             * Label used when there is NO_DATA.
+             */
+             vm.pl_EndDate = "{!$Label.ECO_PMD_PL_END_DATE}";
+
+            /**
+             * @ngdoc property
+             *
+             * @name exportedVariable
+             *
+             * @propertyOf ecopmd.controller:ProfitLossController
+             *
+             * @description
+             * Label used when there is NO_DATA.
+             */
+             vm.pl_PanelName = "{!$Label.ECO_PMD_PL_PANELNAME}";
+
+            /**
+             * @ngdoc property
+             *
+             * @name exportedVariable
+             *
+             * @propertyOf ecopmd.controller:ProfitLossController
+             *
+             * @description
+             * Label used when there is NO_DATA.
+             */
+             vm.pl_PanelName = "{!$Label.ECO_PMD_PL_PANELNAME}";
+
+            /**
+             * @ngdoc method
+             *
+             * @name formatDate
+             *
+             * @methodOf ecopmd.controller:ProfitLossController
+             *
+             * @param {Date} value Date/Time
+             *
+             * @description
+             * Formates date values with momentSet to standard MM/DD/YYYY format
+             */
+             var internalFunction = function(param) {
+                return param;
+            };
+
+            /**
+             * @ngdoc method
+             *
+             * @name formatDate
+             *
+             * @methodOf ecopmd.controller:ProfitLossController
+             *
+             * @param {Date} value Date/Time
+             *
+             * @description
+             * Formates date values with momentSet to standard MM/DD/YYYY format
+             */
+             var loadData = function() {
+                vm.exportedVariable.push(internalFunction("value"));
+
+                ECO_PMD_PL_Controller.ProjectSnapshot(
+                  vm.projectId,
+                  function(result, event){
+
+                    if(event.status) {
+                        $timeout(function() {
+                            var tmp = result;
+                            vm.SFDCDATA = result;
+                        }, 0);
+                    }
+                  });
+                };
+
+            /**
+             * @ngdoc method
+             *
+             * @name showResults
+             *
+             * @methodOf ecopmd.controller:ProfitLossController
+             *
+             * @param {String} type type of view to display
+             *
+             * @description
+             * Used to switch mock displays
+             */
+             vm.exportedFunction = function() {
+                  vm.SFDCDATA=[];
+                  loadData(this); // this = $scope
+             };
+
+            /**
+             * @ngdoc method
+             *
+             * @name activate
+             *
+             * @methodOf ecopmd.controller:ProfitLossController
+             *
+             * @description
+             * Method used to Resolve start-up logic for controller:ProfitLossController
+             */
+             var activate = function() {  
+
+             };
+
+            // run initialization
+            activate();
+        }
+    })();
+</script>
+
+</apex:component>

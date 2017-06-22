@@ -1,0 +1,11 @@
+<apex:page showheader="true" sidebar="true" controller="nttdcore.DLabelParentController" >
+	<nttdcore:DLabel name="DL5" default="MyHeaderTitle" labelParent="{!this}" /><nttdcore:DLabel name="DL6" default="MyHeaderSubTitle" labelParent="{!this}" /><apex:sectionHeader title="{!dLabel['DL5']}" subtitle="{!dLabel['DL6']}" />
+	<nttdcore:DLabel name="DL7" default="MyPageBlockTitle" labelParent="{!this}" /><apex:pageBlock title="{!dLabel['DL7']}" ><nttdcore:DLabel name="DL8" default="MyPageBlockSectionTitle" labelParent="{!this}" />
+		<apex:pageBlockButtons location="top" >
+			
+		</apex:pageBlockButtons>
+		<apex:pageBlockSection title="{!dLabel['DL8']}" >
+
+		</apex:pageBlockSection>
+	</apex:pageBlock>
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

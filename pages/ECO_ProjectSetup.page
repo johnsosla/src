@@ -1,0 +1,1065 @@
+<apex:page extensions="ECO_ProjectSetupController,nttdcore.DLabelParentController" standardcontroller="pse__Proj__c" tabstyle="pse__Proj__c" showheader="true" sidebar="false" id="thepage" doctype="html-5.0" >
+    
+    <apex:includescript value="{!$Resource.ECO_jQuery_1_11_2_min_js}" />
+    <apex:includescript value="{!URLFOR($Resource.ECO_jQueryUI_1_11_2, 'jquery-ui.min.js')}" />
+
+    <style>
+        
+    a:hover {
+        background:#ffffff; /*BG color is a must for IE6*/
+        text-decoration:none;
+    } 
+    a.tooltip span {
+        display:none; 
+        padding:2px 3px; 
+        margin-left:8px; 
+        width:250px;
+    }
+    a.tooltip:hover span{
+        display:inline; 
+        position:absolute; 
+        background:#FFC; 
+        border:1px solid #cccccc; 
+        color:#000000;
+        z-index: 3000;
+    }
+
+        .colA {
+            text-align:right;
+            vertical-align:middle !important;
+        }
+
+        .colB {
+            vertical-align:middle !important;
+        }
+
+        .colC {
+            text-align:left;
+            vertical-align:middle !important;
+        }       
+
+
+        .searchText{
+            text-align:center;
+            font-weight:bold;
+            font-size:20px;
+        }
+
+        .pbSubExtra{
+            visibility: hidden !important;
+        }
+
+        /* CUSTOM HELP / GUIDANCE TEXT BOX */
+        .customHelpText{
+            padding: 7px;
+            border: 1px solid #85B3CE;
+            min-height: 30px;
+            display: block;
+            width: auto;
+            margin: 0 0 5px 0;
+            background-repeat: no-repeat;
+            border-radius: 4px;
+            background-color: #A2D3F1;
+            
+        }
+        .customHelpBody{
+            display:inline-block;
+            color:#;
+            max-width:95%;
+        }
+
+
+        .fixedPickList{
+            width: 350px;
+        }
+        .fixedName{
+            width: 345px;
+        }
+        /*
+        .activeTab {
+            background-color:#236FBD; 
+            color:white; 
+            tab-color:yellow;
+            background-image:none
+          }
+        .inactiveTab {
+            background-color:white; 
+            color:black; 
+            background-image:none
+        }
+
+        .disabledTab {
+            background-color:grey; 
+            color:grey; 
+            background-image:none
+        }
+        */
+        .rich-tabpanel{
+            margin:10px 10px 0 10px;
+            width:98.5%;
+        }
+        .pbBody .rich-tabpanel .rich-tab-header{
+            border: 1px solid #d3d3d3 !important;
+            background: ;
+            color: #555 !important;
+            border-top-right-radius: 4px !important;
+            border-top-left-radius: 4px !important;
+            padding: 7px 12px;
+            text-decoration:none;
+            font-size:13px;
+            background: #999999; /* Old browsers */
+            /* IE9 SVG, needs conditional override of 'filter' to 'none' */
+            background: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/Pgo8c3ZnIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgdmlld0JveD0iMCAwIDEgMSIgcHJlc2VydmVBc3BlY3RSYXRpbz0ibm9uZSI+CiAgPGxpbmVhckdyYWRpZW50IGlkPSJncmFkLXVjZ2ctZ2VuZXJhdGVkIiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgeDE9IjAlIiB5MT0iMCUiIHgyPSIwJSIgeTI9IjEwMCUiPgogICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzk5OTk5OSIgc3RvcC1vcGFjaXR5PSIxIi8+CiAgICA8c3RvcCBvZmZzZXQ9IjUxJSIgc3RvcC1jb2xvcj0iI2Q2ZDZkNiIgc3RvcC1vcGFjaXR5PSIxIi8+CiAgICA8c3RvcCBvZmZzZXQ9IjUxJSIgc3RvcC1jb2xvcj0iIzIwN2NjYSIgc3RvcC1vcGFjaXR5PSIxIi8+CiAgICA8c3RvcCBvZmZzZXQ9IjUxJSIgc3RvcC1jb2xvcj0iI2Q2ZDZkNiIgc3RvcC1vcGFjaXR5PSIxIi8+CiAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNlNWU1ZTUiIHN0b3Atb3BhY2l0eT0iMSIvPgogIDwvbGluZWFyR3JhZGllbnQ+CiAgPHJlY3QgeD0iMCIgeT0iMCIgd2lkdGg9IjEiIGhlaWdodD0iMSIgZmlsbD0idXJsKCNncmFkLXVjZ2ctZ2VuZXJhdGVkKSIgLz4KPC9zdmc+);
+            background: -moz-linear-gradient(top,  #999999 0%, #d6d6d6 51%, #207cca 51%, #d6d6d6 51%, #e5e5e5 100%); /* FF3.6+ */
+            background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#999999), color-stop(51%,#d6d6d6), color-stop(51%,#207cca), color-stop(51%,#d6d6d6), color-stop(100%,#e5e5e5)); /* Chrome,Safari4+ */
+            background: -webkit-linear-gradient(top,  #999999 0%,#d6d6d6 51%,#207cca 51%,#d6d6d6 51%,#e5e5e5 100%); /* Chrome10+,Safari5.1+ */
+            background: -o-linear-gradient(top,  #999999 0%,#d6d6d6 51%,#207cca 51%,#d6d6d6 51%,#e5e5e5 100%); /* Opera 11.10+ */
+            background: -ms-linear-gradient(top,  #999999 0%,#d6d6d6 51%,#207cca 51%,#d6d6d6 51%,#e5e5e5 100%); /* IE10+ */
+            background: linear-gradient(to bottom,  #999999 0%,#d6d6d6 51%,#207cca 51%,#d6d6d6 51%,#e5e5e5 100%); /* W3C */
+            filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#999999', endColorstr='#e5e5e5',GradientType=0 ); /* IE6-8 */
+        }
+        .rich-tab-active{
+            background: #f1f1f1 !important;
+            font-weight:bold !important;
+        }
+        .pbBody .rich-tabpanel .rich-tab-header.activeTab{
+            border-bottom:none !important;
+        }
+        .pbBody .rich-tabpanel .disabledTab{
+            opacity:0.45 !important;
+        }
+        .rich-tabhdr-side-border, .rich-tabhdr-side-border{
+            background:none !important;
+            display:none;
+        }
+        .rich-tabhdr-side-cell{
+            border-top:none;
+        }
+        
+        .infoTable {
+            background: #f5f5f5;
+            border-collapse: separate;
+            font-size: 12px;
+            line-height: 24px;
+            text-align: left;
+            margin:5px 14px 0 14px;
+        }   
+        .infoTable table{
+            width:100%;
+        }
+        .infoTable th {
+            background-color: #a6afa2 !important;
+            color: #fff;
+            font-weight: bold;
+            padding: 3px 9px;
+            position: relative;
+            border:none !important;
+        }
+        .infoTable th:first-child{
+            border-right:1px solid #fff !important;
+        }
+
+        .infoTable th:after {
+            content: '';
+            display: block;
+            height: 25%;
+            left: 0;
+            margin: 1px 0 0 0;
+            position: absolute;
+            top: 25%;
+            width: 100%;
+        }
+        .infoTable td {
+            border-right: 1px solid #fff;
+            border-left: 1px solid #e8e8e8;
+            border-top: 1px solid #fff;
+            border-bottom: 1px solid #e8e8e8;
+            padding: 3px 9px;
+            position: relative;
+            transition: all 300ms;
+            min-width: 90px;
+        }
+        .rich-tab-header:hover{
+            cursor:pointer !important;
+        }
+        .rich-tab-disabled:hover{
+            cursor:auto !important;
+        }
+        .infoTable td:first-child {
+            box-shadow: inset 1px 0 0 #fff;
+        }   
+
+        .infoTable td:last-child {
+            border-right: 1px solid #e8e8e8;
+            box-shadow: inset -1px 0 0 #fff;
+        }   
+
+        .infoTable tr {
+        }
+
+        .infoTable tr:nth-child(odd) td {
+            background: #f1f1f1;    
+        }
+
+        .infoTable tr:last-of-type td {
+            box-shadow: inset 0 -1px 0 #fff; 
+        }
+
+        .infoTable tr:last-of-type td:first-child {
+            box-shadow: inset 1px -1px 0 #fff;
+        }   
+
+        .infoTable tr:last-of-type td:last-child {
+            box-shadow: inset -1px -1px 0 #fff;
+        }   
+
+        .infoTable tbody:hover td {
+        }
+
+        .infoTable tbody:hover tr:hover td {
+            color: #444;
+            text-shadow: 0 1px 0 #fff;
+        }
+        body .bEditBlock .pbBody .pbSubheader, body .bWizardBlock .pbBody .pbSubheader{
+            background-image:none !important;
+            color:#27282e;
+        }
+        .hideDropdown select{
+            display:none !important;
+        }
+
+    </style>
+    <!--[if gte IE 9]>
+      <style type="text/css">
+        .pbBody .rich-tabpanel .inactiveTab {
+           filter: none;
+        }
+      </style>
+    <![endif]-->
+
+    <script type="text/javascript" >
+        var j$ = jQuery.noConflict();
+
+        j$(function(){
+            /*j$(document.getElementById('{!$Component.thepage.WholeForm}')).bind('keypress', function(e){
+                    if (e.keyCode == 13) {
+                        SearchSites();
+                    }
+            });
+
+            j$("#ProjectInput input").bind('keypress', function(e){
+                    if (e.keyCode == 13) {
+                        CreateProject();
+                    }
+            });
+
+            j$("#ProjectInput2 input").bind('keypress', function(e){
+                    if (e.keyCode == 13) {
+                        CreateProject();
+                    }
+            });*/
+        
+            j$(document.getElementById('{!$Component.thepage.WholeForm}')).keypress(function (e) {
+                if (e.keyCode == 13) { 
+                    e.preventDefault();
+                }
+            });
+
+
+
+            j$('#AddressInput').bind('keydown', function(event) {
+                if (event.keyCode == 13) {
+                    event.preventDefault();
+                    SearchSites();
+                }
+            });
+        });
+
+
+
+    </script>
+
+
+    <nttdcore:DLabel name="DL144" default="Project Edit" labelParent="{!this}" /><nttdcore:DLabel name="DL145" default="New Project" labelParent="{!this}" /><apex:sectionheader title="{!dLabel['DL144']}" subtitle="{!dLabel['DL145']}" />
+
+    <apex:outputpanel id="WholeForm" >
+
+        <apex:pagemessages id="messages" />
+            <c:ECO_CollapsibleSection sectiontitle="Project Setup Instructions" uniqueid="cc_step1" ><nttdcore:DLabel name="DL146" default="Complete the following steps to provide the minimum information required to create an ePM project record.  Additional project information can be added once the initial setup is complete." labelParent="{!this}" />           
+                {!dLabel['DL146']}   
+                <br/><br/>
+                <ul>
+                    <li><nttdcore:DLabel name="DL148" default="Search and select the client account(s) associated with the project.  Identify the role of each client (e.g., primary billing, end client), billing contact and percent contribution.  If the account does not exist, create a new client account record using the &lsquo;Request New Client Record&rsquo; button." labelParent="{!this}" /><b><nttdcore:DLabel name="DL147" default="Step 1:" labelParent="{!this}" />{!dLabel['DL147']}</b> {!dLabel['DL148']} 
+                    </li><br/>
+                    <li><nttdcore:DLabel name="DL150" default="Select the relevant project opportunity associated with the client account(s). This will link the new project record to the existing Salesforce CRM opportunity record.  Skip the selection if the opportunity records listed are not relevant to the project.  If no opportunities exist for the client account(s), select the type of opportunity to be created from the drop down list and click &lsquo;Create New Opportunity&rsquo;." labelParent="{!this}" /><b><nttdcore:DLabel name="DL149" default="Step 2:" labelParent="{!this}" />{!dLabel['DL149']}</b> {!dLabel['DL150']} 
+                    </li><br/>
+                    <li><nttdcore:DLabel name="DL152" default="Enter a project name, estimated start date and estimated fee." labelParent="{!this}" /><b><nttdcore:DLabel name="DL151" default="Step 3:" labelParent="{!this}" />{!dLabel['DL151']}</b> {!dLabel['DL152']} 
+                    </li><br/>
+                    <li><nttdcore:DLabel name="DL154" default="Select the AECOM organization(s) that will support delivery of the project, the role (primary or secondary) and percent contribution." labelParent="{!this}" /><b><nttdcore:DLabel name="DL153" default="Step 4:" labelParent="{!this}" />{!dLabel['DL153']}</b> {!dLabel['DL154']} 
+                    </li>
+                </ul>
+            </c:ECO_CollapsibleSection>
+
+        <apex:include pagename="ECO_ProjectStatusOnCreateProject" id="Bar" />
+        
+        <br/>
+        <br/>
+        <br/>
+        <apex:form id="theform" >
+            
+            <apex:outputpanel id="SelectAddressPanel" >
+                <nttdcore:DLabel name="DL155" default="Create Project" labelParent="{!this}" /><apex:pageblock mode="edit" title="{!dLabel['DL155']}" id="thepageblock" > 
+                    
+                    <apex:pageblockbuttons location="top" >
+                        <apex:outputpanel id="buttons" >
+                            <nttdcore:DLabel name="DL156" default="Cancel" labelParent="{!this}" /><apex:commandbutton value="{!dLabel['DL156']}" action="{!Cancel}" immediate="true" />
+                            <nttdcore:DLabel name="DL157" default="Request New Client Record" labelParent="{!this}" /><apex:commandbutton value="{!dLabel['DL157']}" onclick="window.open('{!URLFOR($Action.SharedServicesRequest__c.New, null)}');" />
+                            <nttdcore:DLabel name="DL158" default="Create Project" labelParent="{!this}" /><apex:commandbutton value="{!dLabel['DL158']}" action="{!CreateProject}" disabled="{!OR(IF(oPrimaryOrganization == null, true, false),IF(oPrimaryOrganization =='', true, false))}" rendered="{!NOT(boolNameAttempted)}" />
+                            <nttdcore:DLabel name="DL159" default="Confirm" labelParent="{!this}" /><apex:commandbutton value="{!dLabel['DL159']}" action="{!CreateProject}" rendered="{!AND(IF(oPrimaryOrganization != null, true, false), boolNameAttempted)}" />
+                        </apex:outputpanel>
+                    </apex:pageblockbuttons>
+                    
+                    <apex:outputpanel id="dupeFound" rendered="{!boolNameAttempted}" >
+                        <apex:outputpanel ><nttdcore:DLabel name="DL161" default="Possible Project Matches" labelParent="{!this}" />
+
+                            <div id="ProjectInput2" ><nttdcore:DLabel name="DL160" default="General Project Information" labelParent="{!this}" />
+                            <apex:pageblocksection title="{!dLabel['DL160']}" columns="2" collapsible="false" >
+                                <apex:repeat value="{!$ObjectType.pse__Proj__c.FieldSets.pse_ProjectFieldsforCustomProjectSetup}" var="Field1" >
+                                    <apex:inputfield value="{!oProject[Field1]}" required="true" rendered="{!Field1.required}" />
+                                    <apex:inputfield value="{!oProject[Field1]}" rendered="{!AND(NOT(Field1.required), IF(Field1.Label=="Opportunity Name", false, true))}" />
+                                    <apex:outputfield value="{!oProject[Field1]}" rendered="{!AND(NOT(Field1.required), IF(Field1.Label=="Opportunity Name", true, false))}" />
+                                </apex:repeat>
+
+                            </apex:pageblocksection>
+                            </div>
+
+                            <!--<script type="text/javascript">
+                                var q$ = jQuery.noConflict();
+                                q$(function(){
+                                    q$("[id$='mlktp']").hide();
+                                });
+
+                            </script>-->
+
+                            <apex:pageblocksection title="{!dLabel['DL161']}" columns="1" collapsible="false" />
+                            <div style="padding:0 12px;margin-top:7px" >
+                            <apex:pageblocktable value="{!listSimilarProjects}" var="matchProject" rendered="{!IF(listSimilarProjects.size > 0, true, false)}" >
+                                <apex:repeat value="{!$ObjectType.pse__Proj__c.FieldSets.pse_ProjectFieldsforCustomProjectSetup}" var="MatchProjectField" >
+                                    <apex:column >
+                                        <apex:facet name="header" >{!MatchProjectField.label}</apex:facet>
+                                        <apex:outputfield value="{!matchProject[MatchProjectField]}" rendered="{!IF(MatchProjectField.Label=='Project Name', false, true)}" />
+                                        <apex:outputlink value="/{!matchProject.id}" target="_blank" rendered="{!IF(MatchProjectField.Label=='Project Name', true, false)}" >{!matchProject[MatchProjectField]}</apex:outputlink>&nbsp;&nbsp;
+                                    </apex:column>
+                                </apex:repeat>                                              
+                            </apex:pageblocktable>
+                            </div>
+
+                            
+                        </apex:outputpanel> 
+                    </apex:outputpanel>
+
+
+                    <apex:outputpanel id="tabPanel" rendered="{!not(boolNameAttempted)}" ><nttdcore:DLabel name="DL162" default="Step 1 &ndash; Select Client Account(s)" labelParent="{!this}" /><nttdcore:DLabel name="DL163" default="Selected Accounts" labelParent="{!this}" /><nttdcore:DLabel name="DL164" default="Updating..." labelParent="{!this}" /><nttdcore:DLabel name="DL165" default="No Sites Were Selected." labelParent="{!this}" /><nttdcore:DLabel name="DL166" default="Action" labelParent="{!this}" /><nttdcore:DLabel name="DL167" default="Remove" labelParent="{!this}" /><nttdcore:DLabel name="DL168" default="Remove" labelParent="{!this}" /><nttdcore:DLabel name="DL169" default="Billing Client" labelParent="{!this}" /><nttdcore:DLabel name="DL170" default="Primary Billing" labelParent="{!this}" /><nttdcore:DLabel name="DL171" default="End Client" labelParent="{!this}" /><nttdcore:DLabel name="DL172" default="Primary End" labelParent="{!this}" /><nttdcore:DLabel name="DL173" default="Billing Contact" labelParent="{!this}" /><nttdcore:DLabel name="DL174" default="Contributions" labelParent="{!this}" /><nttdcore:DLabel name="DL175" default="Next" labelParent="{!this}" /><nttdcore:DLabel name="DL176" default="Attribute" labelParent="{!this}" /><nttdcore:DLabel name="DL177" default="Definitition" labelParent="{!this}" /><nttdcore:DLabel name="DL178" default="Billing Client" labelParent="{!this}" /><nttdcore:DLabel name="DL179" default="Billing clients to whom invoices will be sent.  These clients will be available to be selected for assignment to particular tasks during project setup." labelParent="{!this}" /><nttdcore:DLabel name="DL180" default="Primary Billing" labelParent="{!this}" /><nttdcore:DLabel name="DL181" default="The client to whom invoices will be sent (typically the client on the Prime Contract).  Where multiple billing clients exists, this client will be the default client on all tasks but can be changed to one of the Other Billing clients." labelParent="{!this}" /><nttdcore:DLabel name="DL182" default="End Client" labelParent="{!this}" /><nttdcore:DLabel name="DL183" default="End Clients associated with the project (or may be intermediate clients between the contracted/billing client and the ultimate end client)" labelParent="{!this}" /><nttdcore:DLabel name="DL184" default="Primary End" labelParent="{!this}" /><nttdcore:DLabel name="DL185" default="The ultimate end Client for the project" labelParent="{!this}" /><nttdcore:DLabel name="DL186" default="Search for Account" labelParent="{!this}" /><nttdcore:DLabel name="DL187" default="Enter client name" labelParent="{!this}" /><nttdcore:DLabel name="DL188" default="Account Name" labelParent="{!this}" /><nttdcore:DLabel name="DL189" default="City/Town" labelParent="{!this}" /><nttdcore:DLabel name="DL190" default="State/Province/Emirate" labelParent="{!this}" /><nttdcore:DLabel name="DL191" default="Country" labelParent="{!this}" /><nttdcore:DLabel name="DL192" default="Show me clients that are not in my Operating Unit" labelParent="{!this}" /><nttdcore:DLabel name="DL193" default="Search" labelParent="{!this}" /><nttdcore:DLabel name="DL194" default="Updating..." labelParent="{!this}" /><nttdcore:DLabel name="DL195" default="Search Results" labelParent="{!this}" /><nttdcore:DLabel name="DL196" default="No Results Were Found." labelParent="{!this}" /><nttdcore:DLabel name="DL197" default="Action" labelParent="{!this}" /><nttdcore:DLabel name="DL198" default="Select" labelParent="{!this}" /><nttdcore:DLabel name="DL199" default="Step 2 &ndash; Select Opportunity" labelParent="{!this}" /><nttdcore:DLabel name="DL200" default="Updating..." labelParent="{!this}" /><nttdcore:DLabel name="DL201" default="Select Opportunity" labelParent="{!this}" /><nttdcore:DLabel name="DL202" default="Select an opportunity from the list below. If you do not select an existing opportunity, one will be created upon completion of the 4 project setup steps." labelParent="{!this}" /><nttdcore:DLabel name="DL203" default="Warning: You have selected an existing opportunity record that is already linked to another project. As a result, the opportunity record will not be updated with project details. Select &#39;Create New Opportunity&#39; if a one-to-one opportunity to project relationship is desired or proceed to step 3." labelParent="{!this}" /><nttdcore:DLabel name="DL204" default="Action" labelParent="{!this}" /><nttdcore:DLabel name="DL205" default="Select" labelParent="{!this}" /><nttdcore:DLabel name="DL206" default="Account Name" labelParent="{!this}" /><nttdcore:DLabel name="DL207" default="Number" labelParent="{!this}" /><nttdcore:DLabel name="DL208" default="Stage" labelParent="{!this}" /><nttdcore:DLabel name="DL209" default="Type" labelParent="{!this}" /><nttdcore:DLabel name="DL210" default="Opportunity Name" labelParent="{!this}" /><nttdcore:DLabel name="DL211" default="Opportunity ID:" labelParent="{!this}" /><nttdcore:DLabel name="DL212" default="Opportunity Name:" labelParent="{!this}" /><nttdcore:DLabel name="DL213" default="AECOM Role:" labelParent="{!this}" /><nttdcore:DLabel name="DL214" default="Primary Department:" labelParent="{!this}" /><nttdcore:DLabel name="DL215" default="Business Unit:" labelParent="{!this}" /><nttdcore:DLabel name="DL216" default="Geography:" labelParent="{!this}" /><nttdcore:DLabel name="DL217" default="Lead Region:" labelParent="{!this}" /><nttdcore:DLabel name="DL218" default="Lead District:" labelParent="{!this}" /><nttdcore:DLabel name="DL219" default="Sub Practice Area:" labelParent="{!this}" /><nttdcore:DLabel name="DL220" default="Gross AECOM Revenue:" labelParent="{!this}" /><nttdcore:DLabel name="DL221" default="Subs/Other Revenue:" labelParent="{!this}" /><nttdcore:DLabel name="DL222" default="Net Revenue:" labelParent="{!this}" /><nttdcore:DLabel name="DL223" default="Created By:" labelParent="{!this}" /><nttdcore:DLabel name="DL224" default="Value (Estimated AECOM Revenue)" labelParent="{!this}" /><nttdcore:DLabel name="DL225" default="Capture Manager" labelParent="{!this}" /><nttdcore:DLabel name="DL226" default="If a new opportunity is to be created, please select the type of opportunity to be created from the drop down list and select Create New Opportunity." labelParent="{!this}" /><nttdcore:DLabel name="DL227" default="Create New Opportunity" labelParent="{!this}" /><nttdcore:DLabel name="DL228" default="Step 3 &ndash; Project Information" labelParent="{!this}" /><nttdcore:DLabel name="DL229" default="Updating..." labelParent="{!this}" /><nttdcore:DLabel name="DL230" default="General Project Information" labelParent="{!this}" /><nttdcore:DLabel name="DL231" default="Consider a title that is applicable for both internal and external (client facing) use." labelParent="{!this}" /><nttdcore:DLabel name="DL232" default="Project Name" labelParent="{!this}" /><nttdcore:DLabel name="DL233" default="Opportunity Name" labelParent="{!this}" /><nttdcore:DLabel name="DL234" default="Related Program Opportunity" labelParent="{!this}" /><nttdcore:DLabel name="DL235" default="Next" labelParent="{!this}" /><nttdcore:DLabel name="DL236" default="Please note, in Step 2 you linked this new project to a Program Opportunity. If this project is being created for the inital pursuit of Program/MSA/Panel then this is appropriate. If this project is actually a Task Order within an existing panel, then you should return to Step 2 and select a Task Order Opportunity (existing or create new)" labelParent="{!this}" /><nttdcore:DLabel name="DL237" default="Possible Project Matches" labelParent="{!this}" /><nttdcore:DLabel name="DL238" default="Step 4 &ndash; Select Organization(s)" labelParent="{!this}" /><nttdcore:DLabel name="DL239" default="Selected Organizations" labelParent="{!this}" /><nttdcore:DLabel name="DL240" default="Updating..." labelParent="{!this}" /><nttdcore:DLabel name="DL241" default="Info" labelParent="{!this}" /><nttdcore:DLabel name="DL242" default="{{1}}&lt;br /&gt;&lt;br/&gt; {{2}}" labelParent="{!this}" p1="{!lSelectedOrganizationsPrimaryNotFoundWarning}" p2="{!lSelectedOrganizationsPrimaryNotFoundList}" /><nttdcore:DLabel name="DL243" default="Info" labelParent="{!this}" /><nttdcore:DLabel name="DL244" default="Please note, the Opportunity selected has one or more departments allocated to which there is no matching record within ePM, and as such these departments have not been copied across. Please review the managing organisations on the project and update appropriately.&lt;br /&gt;&lt;/br /&gt;The following department could not be copied to the project:&lt;br /&gt;&lt;br /&gt;&lt;ul&gt;&lt;li&gt;{{1}}&lt;/li&gt;&lt;/ul&gt;" labelParent="{!this}" p1="{!oDepartment}" /><nttdcore:DLabel name="DL245" default="Warning" labelParent="{!this}" /><nttdcore:DLabel name="DL246" default="You have selected a Primary Organisation {{1}} that belongs to an operating unit or business which is not the operating unit to which you belong to. For example you may be an Australian employee and you have selected to create a project within the UK operating unit. Please review your selection of Primary Organisation {{2}} and update if appropriate." labelParent="{!this}" p1="{!oPrimaryOrganization.Department__c}" p2="{!oPrimaryOrganization.Department__c}" /><nttdcore:DLabel name="DL247" default="Warning" labelParent="{!this}" /><nttdcore:DLabel name="DL248" default="A client record you selected in Step 1 is not associated with the project owning organization. Contact Shared Services to create a client record within the owning organization to avoid a future Oracle syncing error when booking the project." labelParent="{!this}" /><nttdcore:DLabel name="DL249" default="No Organizations have been selected." labelParent="{!this}" /><nttdcore:DLabel name="DL250" default="Action" labelParent="{!this}" /><nttdcore:DLabel name="DL251" default="Make Primary" labelParent="{!this}" /><nttdcore:DLabel name="DL252" default="Remove" labelParent="{!this}" /><nttdcore:DLabel name="DL253" default="Type" labelParent="{!this}" /><nttdcore:DLabel name="DL254" default="Office" labelParent="{!this}" /><nttdcore:DLabel name="DL255" default="Contribution %" labelParent="{!this}" /><nttdcore:DLabel name="DL256" default="%" labelParent="{!this}" /><nttdcore:DLabel name="DL257" default="Your Owning Organization" labelParent="{!this}" /><nttdcore:DLabel name="DL258" default="No Owning Organizations Found." labelParent="{!this}" /><nttdcore:DLabel name="DL259" default="Action" labelParent="{!this}" /><nttdcore:DLabel name="DL260" default="Set Primary" labelParent="{!this}" /><nttdcore:DLabel name="DL261" default="Set Supporting" labelParent="{!this}" /><nttdcore:DLabel name="DL262" default="Office" labelParent="{!this}" /><nttdcore:DLabel name="DL263" default="Search For Organizations" labelParent="{!this}" /><nttdcore:DLabel name="DL264" default="When selecting an organization, please review the legal entity associated with the org (the first part of the organization name) to ensure that you select the organization for the correct AECOM Legal entity who will own the contract." labelParent="{!this}" /><nttdcore:DLabel name="DL265" default="Organization Name" labelParent="{!this}" /><nttdcore:DLabel name="DL266" default="Organization Name" labelParent="{!this}" /><nttdcore:DLabel name="DL267" default="Search" labelParent="{!this}" /><nttdcore:DLabel name="DL268" default="Reset Search" labelParent="{!this}" /><nttdcore:DLabel name="DL269" default="Geography Name" labelParent="{!this}" /><nttdcore:DLabel name="DL270" default="Select" labelParent="{!this}" /><nttdcore:DLabel name="DL271" default="Region" labelParent="{!this}" /><nttdcore:DLabel name="DL272" default="Select" labelParent="{!this}" /><nttdcore:DLabel name="DL273" default="District" labelParent="{!this}" /><nttdcore:DLabel name="DL274" default="Select" labelParent="{!this}" /><nttdcore:DLabel name="DL275" default="Office" labelParent="{!this}" /><nttdcore:DLabel name="DL276" default="Select" labelParent="{!this}" /><nttdcore:DLabel name="DL277" default="Business Line" labelParent="{!this}" /><nttdcore:DLabel name="DL278" default="Select" labelParent="{!this}" /><nttdcore:DLabel name="DL279" default="Department" labelParent="{!this}" /><nttdcore:DLabel name="DL280" default="Select" labelParent="{!this}" /><nttdcore:DLabel name="DL281" default="Searching..." labelParent="{!this}" /><nttdcore:DLabel name="DL282" default="Search Results" labelParent="{!this}" /><nttdcore:DLabel name="DL283" default="Action" labelParent="{!this}" /><nttdcore:DLabel name="DL284" default="Set Primary" labelParent="{!this}" /><nttdcore:DLabel name="DL285" default="Set Supporting" labelParent="{!this}" /><nttdcore:DLabel name="DL286" default="Office" labelParent="{!this}" />               
+
+                        <apex:tabpanel id="thetabpanel" switchtype="client" value="{!TabState}" tabclass="activeTab" inactivetabclass="inactiveTab" disabledtabclass="disabledTab" >
+                            <apex:tab label="{!dLabel['DL162']}" name="name1" id="tabOne" >
+                                    
+                                    <apex:outputpanel id="SiteTab" >
+                                    <apex:actionregion >
+
+                                    <apex:pageblocksection title="{!dLabel['DL163']}" columns="1" collapsible="false" />
+                                    <apex:outputpanel id="SitePanel" >
+                                        <apex:actionstatus id="SiteSelectUpdateStatus" >
+                                            <apex:facet name="start" >
+                                                <p style="padding-bottom:20px;" class="searchText" ><img style="position:relative;top:12px;" src="/img/loading32.gif" /> {!dLabel['DL164']}</p>
+                                            </apex:facet>
+                                            <apex:facet name="stop" >
+                                                    <apex:outputpanel >
+                                                            <apex:pagemessage severity="INFO" rendered="{!IF(lstSites.size > 0, false, true)}" summary="{!dLabel['DL165']}" /> 
+                                                            <apex:outputpanel id="SiteSelect" rendered="{!if(lstSites.size > 0, true, false)}" >
+
+                                                            <div style="padding:0 12px;margin-top:7px" >
+                                                                <apex:variable var="rowNum" value="{!0}" />
+                                                                <apex:pageblocktable value="{!lstSites}" var="Site" rendered="{!if(lstSites.size > 0, true, false)}" >
+                                                                    <apex:column headervalue="{!dLabel['DL166']}" >
+                                                                        <apex:commandlink style="text-decoration: none;" value="{!dLabel['DL167']}" action="{!RemoveSite}" title="{!dLabel['DL168']}" rerender="tabPanel" status="SiteSelectUpdateStatus" >
+                                                                        <!-- <apex:commandLink style="text-decoration: none;" value="Remove" action="{!RemoveSite}" title="Remove" rerender="tabPanel" status="SiteSelectUpdateStatus" rendered="{!and(not(Site.booIsDefaultTopTask), not(Site.booIsPrimaryEnd))}"> --> 
+                                                                          <apex:param name="rowIndex" value="{!rowNum}" assignto="{!iSiteRowDelete}" />
+                                                                       </apex:commandlink>
+                                                                       <apex:variable var="rowNum" value="{!rowNum + 1}" />
+                                                                    </apex:column>
+                                                                    <apex:repeat value="{!$ObjectType.Site__c.FieldSets.pse_ClientFinder_Search_Result_Fieldset}" var="SearchField" >
+                                                                        <apex:column value="{!Site.oSite[SearchField]}" />
+                                                                    </apex:repeat>
+                                                                    <apex:column headervalue="{!dLabel['DL169']}" >
+                                                                        <apex:inputcheckbox value="{!Site.booIsBilling}" disabled="{!Site.booIsDefaultTopTask}" >
+                                                                            <apex:actionsupport event="onclick" action="{!BillingSelect}" rerender="SiteTab" status="SiteSelectUpdateStatus" >
+                                                                                <apex:param assignto="{!idSiteID}" name="SiteID" value="{!Site.oSite.id}" />
+                                                                            </apex:actionsupport>
+                                                                        </apex:inputcheckbox>
+                                                                    </apex:column>
+                                                                    <apex:column headervalue="{!dLabel['DL170']}" >
+                                                                        <apex:inputcheckbox value="{!Site.booIsDefaultTopTask}" disabled="{!OR(Site.booIsDefaultTopTask, NOT(Site.booIsBilling))}" >
+                                                                            <apex:actionsupport event="onclick" action="{!DefaultTopSelect}" rerender="SiteTab" status="SiteSelectUpdateStatus" >
+                                                                                <apex:param assignto="{!idSiteID}" name="SiteID" value="{!Site.oSite.id}" />
+                                                                            </apex:actionsupport>
+                                                                        </apex:inputcheckbox>
+                                                                    </apex:column>
+                                                                    <apex:column headervalue="{!dLabel['DL171']}" >
+                                                                        <apex:inputcheckbox value="{!Site.booIsEnd}" disabled="{!Site.booIsPrimaryEnd}" >
+                                                                            <apex:actionsupport event="onclick" action="{!EndSelect}" rerender="SiteTab" status="SiteSelectUpdateStatus" >
+                                                                                <apex:param assignto="{!idSiteID}" name="SiteID" value="{!Site.oSite.id}" />
+                                                                            </apex:actionsupport>
+                                                                        </apex:inputcheckbox>
+                                                                    </apex:column>
+                                                                    <apex:column headervalue="{!dLabel['DL172']}" >
+                                                                        <apex:inputcheckbox value="{!Site.booIsPrimaryEnd}" disabled="{!OR(Site.booIsPrimaryEnd, NOT(Site.booIsEnd))}" >
+                                                                            <apex:actionsupport event="onclick" action="{!PrimaryEndSelect}" rerender="SiteTab, theForm" status="SiteSelectUpdateStatus" >
+                                                                                <apex:param assignto="{!idSiteID}" name="SiteID" value="{!Site.oSite.id}" />
+                                                                            </apex:actionsupport>
+                                                                        </apex:inputcheckbox>
+                                                                    </apex:column>
+                                                                    <apex:column headervalue="{!dLabel['DL173']}" >
+                                                                        <apex:selectlist size="1" value="{!Site.billingContact}" disabled="{!NOT(Site.booIsBilling)}" >
+                                                                            <apex:selectoptions value="{!Site.contacts}" />
+                                                                        </apex:selectlist>
+                                                                    </apex:column>
+                                                                    <apex:column headervalue="{!dLabel['DL174']}" >
+                                                                        <apex:input value="{!Site.contributions}" type="number" />
+                                                                    </apex:column>
+                                                                </apex:pageblocktable>
+                                                            </div>
+
+                                                            <br/>
+                                                            
+                                                            <div style="text-align:center;padding:0 0 5px 10px;" >
+                                                                <apex:commandbutton value="{!dLabel['DL175']}" action="{!Step2}" rerender="tabPanel, messages" />
+                                                            </div>
+
+                                                            <br/>
+
+                                                            <div class="infoTable" >
+                                                                <table border="1" cellpadding="0" cellspacing="0" >
+                                                                    <tr>
+                                                                        <th>{!dLabel['DL176']}</th>
+                                                                        <th>{!dLabel['DL177']}</th>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td>{!dLabel['DL178']}</td>
+                                                                        <td>{!dLabel['DL179']}</td>
+                                                                    </tr>   
+                                                                    <tr>
+                                                                        <td>{!dLabel['DL180']}</td>
+                                                                        <td>{!dLabel['DL181']}</td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td>{!dLabel['DL182']}</td>
+                                                                        <td>{!dLabel['DL183']}</td>
+                                                                    </tr>   
+                                                                    <tr>
+                                                                        <td>{!dLabel['DL184']}</td>
+                                                                        <td>{!dLabel['DL185']}</td>
+                                                                    </tr>
+                                                                </table>
+                                                            </div>
+                                                            <br/><br/><br/>  
+                                                            
+                                                        </apex:outputpanel> 
+                                                    </apex:outputpanel>                     
+                                            </apex:facet>
+                                        </apex:actionstatus>
+                                    </apex:outputpanel> 
+
+                                    <apex:outputpanel >
+                                        <apex:actionfunction action="{!SearchSites}" name="SearchSites" rerender="SiteTab" status="SiteSearchUpdateStatus" />
+
+                                        <div id="AddressInput" tabindex="1" >
+                                        <apex:pageblocksection title="{!dLabel['DL186']}" columns="2" collapsible="false" >
+                                            <!--<apex:repeat value="{!$ObjectType.Site__c.FieldSets.pse_ClientFinder_Search_Fieldset}" var="FieldsForSearch">
+                                                <apex:pageBlockSectionItem >
+                                                    <apex:outputLabel value="{!FieldsForSearch.Label}" />
+                                                    <apex:inputtext value="{!oSite[FieldsForSearch]}" />
+                                                </apex:pageBlockSectionItem>
+                                            </apex:repeat>-->
+                                            <apex:pageblocksectionitem helptext="{!dLabel['DL187']}" >
+                                                <apex:outputlabel value="{!dLabel['DL188']}" />
+                                                <apex:inputtext value="{!oSiteSearch.name}" />
+                                            </apex:pageblocksectionitem>
+                                            <apex:pageblocksectionitem >
+                                                <apex:outputlabel value="{!dLabel['DL189']}" />
+                                                <apex:inputtext value="{!oSiteSearch.city}" />
+                                            </apex:pageblocksectionitem>
+                                             <apex:pageblocksectionitem >
+                                                <apex:outputlabel value="{!dLabel['DL190']}" />
+                                                <apex:inputtext value="{!oSiteSearch.province}" />
+                                            </apex:pageblocksectionitem>
+                                            <apex:pageblocksectionitem >
+                                                <apex:outputlabel value="{!dLabel['DL191']}" />
+                                                <apex:inputtext value="{!oSiteSearch.country}" />
+                                            </apex:pageblocksectionitem>                                                                                    
+                                        </apex:pageblocksection>
+                                        </div>
+                                        
+
+                                        
+                                        <div style="text-align:center;" >
+                                            <apex:outputlabel value="{!dLabel['DL192']}" />&nbsp;
+                                            <c:ECO_HelpIcon helptext="Check the box to search for clients with physical or billing locations outside of the users operating unit (region/geography)" />
+                                            <apex:inputcheckbox value="{!bSearchOutsideUserOrg}" />
+                                            <br/><br/>
+                                            <apex:commandbutton id="SearchButton" action="{!SearchSites}" value="{!dLabel['DL193']}" rerender="SiteTab" status="SiteSearchUpdateStatus" />
+                                        </div>
+                                        
+                                        <br/><br/><br/>
+                                    </apex:outputpanel>
+
+                                    <apex:outputpanel id="SiteSearch" >                      
+                                        <apex:actionstatus id="SiteSearchUpdateStatus" >
+                                            <apex:facet name="start" >
+                                                <p style="padding-bottom:20px;" class="searchText" ><img style="position:relative;top:12px;" src="/img/loading32.gif" /> {!dLabel['DL194']}</p>
+                                            </apex:facet>
+                                            <apex:facet name="stop" >
+                                                <apex:outputtext value="{!strSearchResults}" />
+
+                                                <apex:outputpanel id="SiteSearchResult" rendered="{!booDisplaySiteSearchResult}" >
+                                                    <apex:pageblocksection title="{!dLabel['DL195']}" columns="1" collapsible="false" />
+                                                        <div style="padding:0 12px;margin-top:7px" >
+
+                                                            <apex:pagemessage severity="INFO" rendered="{!IF(lstSitesSearchResults.size > 0, false, true)}" summary="{!dLabel['DL196']}" /> 
+                                                            <apex:pageblocktable value="{!lstSitesSearchResults}" rendered="{!IF(lstSitesSearchResults.size > 0, true, false)}" var="Site" >
+                                                                <apex:column width="35" >
+                                                                    <apex:facet name="header" >{!dLabel['DL197']}</apex:facet>
+                                                                    <apex:commandlink action="{!SelectSite}" value="{!dLabel['DL198']}" rerender="tabPanel" status="SiteSelectUpdateStatus" >
+                                                                        <apex:param assignto="{!idSiteID}" name="SiteID" value="{!Site.id}" />
+                                                                    </apex:commandlink>&nbsp;&nbsp;
+                                                                </apex:column>
+                                                                <apex:repeat value="{!$ObjectType.Site__c.FieldSets.pse_ClientFinder_Search_Result_Fieldset}" var="SearchField" >
+                                                                    <apex:column value="{!Site[SearchField]}" />
+                                                                </apex:repeat>
+                                                            </apex:pageblocktable>
+                                                        </div>
+                                                        <br/><br/>
+                                                        <apex:outputtext style="color: red;" value="{!siteSearchResultMsg}" />
+                                                        <br/><br/>
+                                                        <div style="text-align:center;" >
+                                                            <apex:commandbutton value="{!showMoreSiteText}" action="{!toggleSiteShow}" rerender="SiteTab" status="SiteSearchUpdateStatus" rendered="{!bShowMoreButtonSite}" />
+                                                        </div>
+                                                        <br/><br/><br/>
+                                                </apex:outputpanel>
+
+
+                                            </apex:facet>
+                                        </apex:actionstatus>
+                                    </apex:outputpanel>     
+
+                                    </apex:actionregion>
+                                </apex:outputpanel> 
+
+                            </apex:tab>
+
+                            <apex:tab label="{!dLabel['DL199']}" name="name2" id="tabTwo" disabled="{!if(tab2enabled, false, true)}" >
+                                <apex:actionregion >
+
+
+                                    <apex:actionstatus id="OppSelectStatus" >
+                                        <apex:facet name="start" >
+                                            <p style="padding-bottom:20px;" class="searchText" ><img style="position:relative;top:12px;" src="/img/loading32.gif" /> {!dLabel['DL200']}</p>
+                                        </apex:facet>
+                                        <apex:facet name="stop" >
+                                            <apex:outputpanel >                                               
+                                            <apex:pageblocksection title="{!dLabel['DL201']}" columns="1" collapsible="false" />
+                                            <div style="padding:0 12px;margin-top:7px" >
+
+                                            <apex:pagemessage severity="INFO" rendered="{!IF(lstSearchOpportunities.size > 0, false, true)}" summary="{!dLabel['DL202']}" /> 
+
+                                            <apex:pagemessage severity="Warning" rendered="{!bLinkedToProject}" summary="{!dLabel['DL203']}" />
+
+                                            <apex:outputpanel id="opportunities" >
+                                            <apex:pageblocktable value="{!lstOppClone}" var="SearchOpportunity" rendered="{!IF(lstSearchOpportunities.size > 0, true, false)}" >
+
+                                                <apex:column width="35" >
+                                                    <apex:facet name="header" >{!dLabel['DL204']}</apex:facet>
+                                                    <apex:commandlink action="{!SelectOpportunity}" value="{!dLabel['DL205']}" rerender="tabPanel, messages" status="OppSelectStatus" >
+                                                        <apex:param assignto="{!sSelectedOpportunityId}" name="strSearchOpportunityID" value="{!SearchOpportunity.id}" />
+                                                    </apex:commandlink>
+                                                </apex:column>
+
+                                                <apex:column >
+                                                    <apex:facet name="header" >{!dLabel['DL206']}</apex:facet>
+                                                    {!SearchOpportunity.acctName}
+                                                </apex:column>
+                                                <apex:column >
+                                                    <apex:facet name="header" >{!dLabel['DL207']}</apex:facet>
+                                                    {!SearchOpportunity.oppNumber}
+                                                </apex:column>
+                                                <apex:column >
+                                                    <apex:facet name="header" >{!dLabel['DL208']}</apex:facet>
+                                                    {!SearchOpportunity.stage}
+                                                </apex:column>
+                                                <apex:column >
+                                                    <apex:facet name="header" >{!dLabel['DL209']}</apex:facet>
+                                                    {!SearchOpportunity.type}
+                                                </apex:column>
+                                     
+                                                <apex:column >
+                                                    <apex:facet name="header" >{!dLabel['DL210']}</apex:facet>
+                                                    
+                                                    <a class="tooltip" target="_blank" >{!SearchOpportunity.oppName}
+                                                        <span>
+                                                            <b>{!dLabel['DL211']}</b>&nbsp;{!SearchOpportunity.oppNumber}<br/>
+                                                            <b>{!dLabel['DL212']}</b>&nbsp;{!SearchOpportunity.oppName}<br/>
+                                                            <b>{!dLabel['DL213']}</b>&nbsp;{!SearchOpportunity.AECOMrole}<br/>
+                                                            <b>{!dLabel['DL214']}</b>&nbsp;{!SearchOpportunity.PrimaryDepartment}<br/>
+                                                            <b>{!dLabel['DL215']}</b>&nbsp;{!SearchOpportunity.BusinessUnit}<br/>
+                                                            <b>{!dLabel['DL216']}</b>&nbsp;{!SearchOpportunity.Geography}<br/>
+                                                            <b>{!dLabel['DL217']}</b>&nbsp;{!SearchOpportunity.LeadRegion}<br/>
+                                                            <b>{!dLabel['DL218']}</b>&nbsp;{!SearchOpportunity.LeadDistrict}<br/>
+                                                            <b>{!dLabel['DL219']}</b>&nbsp;{!SearchOpportunity.SubPracticeArea}<br/><br/>
+                                                            <b>{!dLabel['DL220']}</b>&nbsp;{!SearchOpportunity.GrossAECOMrevenue}<br/>
+                                                            <b>{!dLabel['DL221']}</b>&nbsp;{!SearchOpportunity.SubOtherRevenue}<br/>
+                                                            <b>{!dLabel['DL222']}</b>&nbsp;{!SearchOpportunity.NetRevenue}<br/><br/>
+                                                            <b>{!dLabel['DL223']}</b>&nbsp;{!SearchOpportunity.CreatedByName}<br/>
+                                                        </span>
+                                                    </a>
+                                                </apex:column>
+                                                <apex:column >
+                                                    <apex:facet name="header" >{!dLabel['DL224']}</apex:facet>
+                                                    {!SearchOpportunity.Value}
+                                                </apex:column>                                                  
+                                                <apex:column >
+                                                    <apex:facet name="header" >{!dLabel['DL225']}</apex:facet>
+                                                    {!SearchOpportunity.CapManager}
+                                                </apex:column>
+
+                                            </apex:pageblocktable>
+                                                <div style="text-align:center;" >
+                                                    <apex:commandbutton value="{!showMoreOppText}" action="{!toggleOppShow}" rerender="opportunities" status="OppSelectStatus" rendered="{!bShowMoreButtonOpp}" />
+                                                </div>
+                                                <br/><br/><br/>
+                                            </apex:outputpanel>
+
+
+                                            </div>
+
+                                                <br/><br/>
+                                                <apex:outputpanel id="skipOpp" >
+                                                <div style="text-align:center;" >
+                                                    <apex:outputtext value="{!dLabel['DL226']}" />
+                                                    <c:ECO_HelpIcon helptext="<b>Project Opportunities</b><br />Standard stand-alone opportunity type.<br /></br /><b>Progam Opportunities</b><br/>Master Contract with individual opportunities under it, e.g., ID/IQ, MSA, or on-call contract. Does not result in a booking on its own.<br /></br /><b>Task Order Opportunities</b><br />Individual projects that will be booked under a Program-type master contract." />
+                                                    &nbsp;&nbsp;
+                                                    <apex:selectlist value="{!idSelectedOppRecType}" size="1" >
+                                                        <apex:selectoptions value="{!opportunityRecType}" />
+                                                        <apex:actionsupport event="onchange" action="{!changeRegion}" rerender="tabPanel, messages" />
+                                                    </apex:selectlist>&nbsp;&nbsp;
+                                                    <!--<apex:commandButton id="skipOppButton" value="Create New Opportunity" action="{!SkipOpportunity}"  reRender="tabPanel, messages" />-->
+                                                    <apex:commandlink action="{!SkipOpportunity}" style="text-decoration:none" rerender="tabPanel, messages" >
+                                                        <apex:commandbutton value="{!dLabel['DL227']}" disabled="{!createNewOppDisabled}" />
+                                                    </apex:commandlink>
+                                                </div>
+                                                </apex:outputpanel>
+                                                <br/><br/>
+                                            </apex:outputpanel>
+                                        </apex:facet>
+                                    </apex:actionstatus>
+                                </apex:actionregion>
+                            <!--</apex:outputPanel> -->
+                            </apex:tab>
+
+                            <apex:tab label="{!dLabel['DL228']}" name="name3" id="tabThree" disabled="{!OR(if(lstSites.size > 0, false, true), NOT(bOppSelected))}" >
+
+                                <apex:outputpanel id="ProjectSetupPanel" >
+
+                                    <apex:actionfunction action="{!CreateProject}" name="CreateProject" rerender="WholeForm" />
+                                    <apex:actionregion >
+                                        <!--  Project Setup Input Field Section -->
+                                        <apex:actionstatus id="ProjectSetupStatus" >
+                                            <apex:facet name="start" >
+                                                <p style="padding-bottom:20px;" class="searchText" ><img style="position:relative;top:12px;" src="/img/loading32.gif" /> {!dLabel['DL229']}</p>
+                                            </apex:facet>
+                                            <apex:facet name="stop" >
+                                                <apex:outputpanel id="ProjectSetup" >
+                                                     
+                                                    <div id="ProjectInput" >
+                                                        <apex:pageblocksection title="{!dLabel['DL230']}" columns="2" collapsible="false" >
+                                                            <apex:pageblocksectionitem helptext="{!dLabel['DL231']}" >
+                                                                <apex:outputlabel value="{!dLabel['DL232']}" />
+                                                                <apex:outputpanel >
+                                                                    <div class="requiredInput" >
+                                                                        <div class="requiredBlock" />
+                                                                        <apex:inputtext maxlength="30" value="{!oProject.name}" required="true" />
+                                                                    </div>
+                                                                </apex:outputpanel>
+                                                            </apex:pageblocksectionitem>
+                                                            <apex:pageblocksectionitem rendered="{!oppName != null}" >
+                                                                <apex:outputlabel value="{!dLabel['DL233']}" />
+                                                                <apex:outputtext value="{!oppName}" />
+                                                            </apex:pageblocksectionitem>
+
+                                                            <!--<apex:pageBlockSectionItem helpText="Name the current owner of this Project - may be bid/capture manager, project manager or another person.">
+                                                                <apex:outputLabel value="Owner" />
+                                                                <apex:inputField styleClass="hideDropdown" value="{!oProject.ownerid}" required="true" />
+                                                            </apex:pageBlockSectionItem>-->
+
+                                                            <apex:repeat value="{!$ObjectType.pse__Proj__c.FieldSets.pse_ProjectFieldsforCustomProjectSetup}" var="Field1" >
+
+                                                                <apex:inputfield value="{!oProject[Field1]}" required="true" rendered="{!AND(Field1.required, Field1.FieldPath!='Name')}" />
+                                                                <apex:inputfield value="{!oProject[Field1]}" rendered="{!AND(NOT(Field1.required), Field1.FieldPath!='pse__Opportunity__c')}" />
+                                                            </apex:repeat>
+
+                                                            <apex:pageblocksectionitem rendered="{!IF(CONTAINS(sSelectedOppRecType, 'Task'), true, false)}" >
+                                                                <apex:outputlabel value="{!dLabel['DL234']}" />
+                                                                <apex:selectlist size="1" value="{!sSelectedOpportunityId}" >
+                                                                    <apex:selectoptions value="{!loOpportunities}" />
+                                                                </apex:selectlist>
+                                                            </apex:pageblocksectionitem>
+                                 
+                                                            <!-- <apex:pageBlockSectionItem rendered="{!IF(CONTAINS(sSelectedOppRecType, 'Task'), true, false)}">
+                                                                <apex:pageBlockSectionItem rendered="{!IF(CONTAINS(sSelectedOppRecType, 'Task'), true, false)}">
+                                                                <apex:outputLabel value="Related Program Opportunity" />
+                                                                <apex:inputtext  value="{!oProject.Opportunity.Master_Contract_lookup__c}" /> 
+                                                            </apex:pageBlockSectionItem>-->
+                                                          
+                                                            <apex:pageblocksectionitem helptext="{!$ObjectType.Opportunity.fields.ProjectCountry__c.InlineHelpText}" rendered="{!oppName == null}" >
+                                                                <apex:outputlabel value="{!$ObjectType.Opportunity.fields.ProjectCountry__c.Label}" />
+                                                                    <apex:outputpanel layout="block" styleclass="requiredInput" >
+                                                                    <apex:outputpanel layout="block" styleclass="requiredBlock" /> 
+                                                                    <apex:selectlist size="1" value="{!OppProjectCountryName}" >
+                                                                        <apex:selectoptions value="{!projCountryOptions}" />
+                                                                    </apex:selectlist>
+                                                                </apex:outputpanel>
+                                                            </apex:pageblocksectionitem>
+                                                        </apex:pageblocksection>
+                                                    </div>
+
+                                                    <!--<script type="text/javascript">
+                                                        var r$ = jQuery.noConflict();
+                                                        r$(function(){
+                                                            r$("[id$='mlktp']").hide();
+                                                        });
+
+                                                    </script>-->
+
+                                                    <div style="text-align:center;" > 
+                                                        <apex:commandbutton value="{!dLabel['DL235']}" action="{!ProjectDetailNext}" rerender="tabPanel, messages, buttons" status="ProjectSetupStatus" />
+                                                    </div>
+                                                    <br/><br/>
+                                                    <div>
+                                                    <apex:pagemessage severity="INFO" escape="false" rendered="{!IF(bOpportunityProgramSelected==false, false, true)}" summary="{!dLabel['DL236']}" /> 
+                                                    </div>
+
+                                                    <apex:outputpanel id="ProjectMatch" rendered="{!boolNameAttempted}" >
+
+                                                    <apex:pageblocksection title="{!dLabel['DL237']}" columns="1" collapsible="false" />
+                                                        <div style="padding:0 12px;margin-top:7px" >
+                                                        <apex:pageblocktable value="{!listSimilarProjects}" var="matchProject" rendered="{!IF(listSimilarProjects.size > 0, true, false)}" >
+                                                            <apex:repeat value="{!$ObjectType.pse__Proj__c.FieldSets.pse_ProjectFieldsforCustomProjectSetup}" var="MatchProjectField" >
+                                                                <apex:column >
+                                                                    <apex:facet name="header" >{!MatchProjectField.label}</apex:facet>
+                                                                    <apex:outputfield value="{!matchProject[MatchProjectField]}" rendered="{!IF(MatchProjectField.Label=='Project Name', false, true)}" />
+                                                                    <apex:outputlink value="/{!matchProject.id}" target="_blank" rendered="{!IF(MatchProjectField.Label=='Project Name', true, false)}" >{!matchProject[MatchProjectField]}</apex:outputlink>&nbsp;&nbsp;
+                                                                </apex:column>
+                                                            </apex:repeat>                                              
+                                                        </apex:pageblocktable>
+                                                        </div>
+                                                    </apex:outputpanel>
+
+
+
+                                                    <!--US-03471 Tom Smalara-->
+                                                     <!-- <apex:pageBlockTable value="{!lstOppClone}" var="SearchOpportunity" rendered="{!AND(IF(sSelectedOpportunityID = null, true, false), IF(CONTAINS(sSelectedOppRecType, 'Task'), true, false))}">
+                                                        Select Related Program Opportunity
+                                                        <apex:column width="35">
+                                                            <apex:facet name="header">Action</apex:facet>
+                                                            <apex:commandLink action="{!SelectOpportunityForMasterContract}" value="Select" rerender="tabPanel, messages" status="OppSelectStatus">
+                                                                <apex:param assignTo="{!sSelectedOpportunityId}" name="strSearchOpportunityID" value="{!SearchOpportunity.id}" />
+                                                            </apex:commandLink>
+                                                        </apex:column>
+
+                                                        <apex:column >
+                                                            <apex:facet name="header">Account Name</apex:facet>
+                                                            {!SearchOpportunity.acctName}
+                                                        </apex:column>
+                                                        <apex:column >
+                                                            <apex:facet name="header">Number</apex:facet>
+                                                            {!SearchOpportunity.oppNumber}
+                                                        </apex:column>
+                                                        <apex:column >
+                                                            <apex:facet name="header">Stage</apex:facet>
+                                                            {!SearchOpportunity.stage}
+                                                        </apex:column>
+                                                        <apex:column >
+                                                            <apex:facet name="header">Type</apex:facet>
+                                                            {!SearchOpportunity.type}
+                                                        </apex:column>
+                                             
+                                                        <apex:column >
+                                                            <apex:facet name="header">Opportunity Name</apex:facet>
+                                                            
+                                                            <a class="tooltip" target="_blank">{!SearchOpportunity.oppName}
+                                                                <span>
+                                                                    <b>Opportunity ID:</b>&nbsp;{!SearchOpportunity.oppNumber}<br/>
+                                                                    <b>Opportunity Name:</b>&nbsp;{!SearchOpportunity.oppName}<br/>
+                                                                    <b>AECOM Role:</b>&nbsp;{!SearchOpportunity.AECOMrole}<br/>
+                                                                    <b>Primary Department:</b>&nbsp;{!SearchOpportunity.PrimaryDepartment}<br/>
+                                                                    <b>Business Unit:</b>&nbsp;{!SearchOpportunity.BusinessUnit}<br/>
+                                                                    <b>Geography:</b>&nbsp;{!SearchOpportunity.Geography}<br/>
+                                                                    <b>Lead Region:</b>&nbsp;{!SearchOpportunity.LeadRegion}<br/>
+                                                                    <b>Lead District:</b>&nbsp;{!SearchOpportunity.LeadDistrict}<br/>
+                                                                    <b>Sub Practice Area:</b>&nbsp;{!SearchOpportunity.SubPracticeArea}<br/><br/>
+                                                                    <b>Subs/Other Revenue:</b>&nbsp;{!SearchOpportunity.SubOtherRevenue}<br/>
+                                                                    <b>Net Revenue:</b>&nbsp;{!SearchOpportunity.NetRevenue}<br/><br/>
+                                                                    <b>Created By:</b>&nbsp;{!SearchOpportunity.createdDate}<br/>
+                                                                </span>
+                                                            </a>
+                                                        </apex:column>
+                                                        <apex:column >
+                                                            <apex:facet name="header">Value (Estimated AECOM Revenue)</apex:facet>
+                                                            {!SearchOpportunity.Value}
+                                                        </apex:column>                                                  
+                                                        <apex:column >
+                                                            <apex:facet name="header">Capture Manager</apex:facet>
+                                                            {!SearchOpportunity.CapManager}
+                                                        </apex:column>        
+                                                    </apex:pageBlockTable> -->
+
+
+
+
+                                                    
+                                                </apex:outputpanel> 
+                                            </apex:facet>
+                                        </apex:actionstatus>
+                                        <br/><br/>
+                                    </apex:actionregion>
+
+
+                                    <br/><br/><br/>
+                                </apex:outputpanel>
+
+                            </apex:tab>
+
+                            <apex:tab label="{!dLabel['DL238']}" name="name4" id="tabFour" disabled="{!OR(if(lstSites.size > 0, false, true), NOT(bProjectFilled))}" >
+                                    <apex:outputpanel id="searchSection" >
+                                       
+                                        <apex:pageblocksection title="{!dLabel['DL239']}" columns="1" collapsible="false" />
+
+                                        <apex:actionregion >
+
+
+                                            <div id="Orgsearch" style="padding:0 12px;margin-top:7px" >
+                                            <apex:actionstatus id="selectStatus" >
+                                                <apex:facet name="start" >
+                                                    <p style="padding-bottom:20px;" class="searchText" ><img style="position:relative;top:12px;" src="/img/loading32.gif" /> {!dLabel['DL240']}</p>
+                                                </apex:facet>
+                                                <apex:facet name="stop" >
+                                                        <apex:outputpanel >
+
+                                                        <!--3818-->
+
+                                                            <apex:pagemessage title="{!dLabel['DL241']}" severity="WARNING" strength="3" escape="false" rendered="{!lSelectedOrganizationsPrimaryNotFound}" summary="{!dLabel['DL242']}" />            
+
+                                                            <apex:pagemessage title="{!dLabel['DL243']}" severity="WARNING" strength="3" escape="false" rendered="{!AND(IF(lSelectedOrganizations.size > 0, false, true), IF(oDepartment=null, false, true))}" summary="{!dLabel['DL244']}" >
+                                                            </apex:pagemessage>
+
+                                                            <apex:pagemessage title="{!dLabel['DL245']}" severity="WARNING" strength="3" rendered="{!AND(IF(userOrg.OUID__c == oPrimaryOrganization.OUID__c, false, true), if( userOrg == null, false, true), if(oPrimaryOrganization == null, false, true))}" summary="{!dLabel['DL246']}" /> 
+
+                                                            <apex:pagemessage title="{!dLabel['DL247']}" severity="WARNING" strength="3" rendered="{!AND(IF(oPrimaryEnd.osite.OUID__c == oPrimaryOrganization.OUID__c, false, true), if(oPrimaryOrganization == null, false, true))}" summary="{!dLabel['DL248']}" /> 
+
+
+                                                            <apex:pagemessage severity="INFO" rendered="{!IF(lSelectedOrganizations.size > 0, false, true)}" summary="{!dLabel['DL249']}" >
+                                                                
+                                                            </apex:pagemessage> 
+
+                                                            <apex:outputpanel rendered="{!if(lSelectedOrganizations.size > 0, true, false)}" >
+                                                                <apex:pageblocktable value="{!lSelectedOrganizations}" var="organization" >
+                                                                    <apex:column >
+                                                                        <apex:facet name="header" >{!dLabel['DL250']}</apex:facet>
+                                                                        <apex:commandlink action="{!SelectPrimary}" value="{!dLabel['DL251']}" rendered="{!not(organization.strType = 'Primary')}" rerender="messages, searchSection, buttons" status="selectStatus" >
+                                                                            <apex:param assignto="{!sSelectedOrganizationId}" name="OrganizationId" value="{!organization.oOrganization.Id}" />
+                                                                        </apex:commandlink>&nbsp;&nbsp;
+                                                                        <apex:commandlink action="{!RemoveEntry}" value="{!dLabel['DL252']}" rerender="messages, searchSection, buttons" status="selectStatus" >
+                                                                        <!-- <apex:commandLink action="{!RemoveEntry}" value="Remove" rendered="{!not(organization.strType = 'Primary')}" rerender="messages, searchSection, buttons" status="selectStatus"> -->
+                                                                            <apex:param assignto="{!sSelectedOrganizationId}" name="OrganizationId" value="{!organization.oOrganization.Id}" />
+                                                                        </apex:commandlink>
+                                                                    </apex:column>
+                                                                    <apex:column >
+                                                                        <apex:facet name="header" >{!dLabel['DL253']}</apex:facet>
+                                                                        {!organization.strType}
+                                                                    </apex:column>
+                                                                    <apex:column value="{!organization.oOrganization.OrganizationName__c}" />
+                                                                    <apex:column value="{!organization.oOrganization.GeographyName__c}" /> 
+                                                                    <apex:column value="{!organization.oOrganization.Region__c}" /> 
+                                                                    <apex:column value="{!organization.oOrganization.District__c}" />
+                                                                    <apex:column headervalue="{!dLabel['DL254']}" value="{!organization.oOrganization.LocationName__c}" />
+                                                                    <apex:column value="{!organization.oOrganization.BusinessLineName__c}" />
+                                                                    <apex:column value="{!organization.oOrganization.Department__c}" />
+                                                                    <apex:column style="text-align:right;" >
+                                                                        <apex:facet name="header" >{!dLabel['DL255']}</apex:facet>
+                                                                        <apex:inputfield style="width:4em;text-align:right;" value="{!organization.oProjectOrganization.ContributionPercent__c}" />&nbsp;{!dLabel['DL256']}
+                                                                    </apex:column> 
+                                                                </apex:pageblocktable>
+                                                                
+                                                            </apex:outputpanel> 
+
+                                                            <br/><br/>
+
+                                                        </apex:outputpanel>
+                                                </apex:facet>
+                                            </apex:actionstatus>
+                                            </div>
+                                            <apex:outputpanel >
+                                            <apex:pageblocksection title="{!dLabel['DL257']}" collapsible="false" />
+                                            <div style="padding:0 12px;margin-top:7px" >
+                                            <apex:outputtext value="{!dLabel['DL258']}" rendered="{!IF(lUserOrganizations.size > 0, false, true)}" />
+                                            <apex:pageblocktable value="{!lUserOrganizations}" var="organization" rendered="{!IF(lUserOrganizations.size > 0, true, false)}" >
+                                                <apex:column width="200px" >
+                                                    <apex:facet name="header" >{!dLabel['DL259']}</apex:facet>
+                                                    <apex:commandlink action="{!SelectPrimary}" value="{!dLabel['DL260']}" rerender="messages, buttons, tabPanel, searchSection" status="selectStatus" >
+                                                        <apex:param assignto="{!sSelectedOrganizationId}" name="OrganizationId" value="{!organization.Id}" />
+                                                    </apex:commandlink>&nbsp;&nbsp;
+                                                    <apex:commandlink action="{!SelectSecondary}" value="{!dLabel['DL261']}" rerender="messages, buttons, tabPanel, searchSection" status="selectStatus" >
+                                                        <apex:param assignto="{!sSelectedOrganizationId}" name="OrganizationId" value="{!organization.Id}" />
+                                                    </apex:commandlink>
+                                                </apex:column>
+                                                <apex:column value="{!organization.OrganizationName__c}" />
+                                                <apex:column value="{!organization.GeographyName__c}" /> 
+                                                <apex:column value="{!organization.Region__c}" /> 
+                                                <apex:column value="{!organization.District__c}" />
+                                                <apex:column headervalue="{!dLabel['DL262']}" value="{!organization.LocationName__c}" />
+                                                <apex:column value="{!organization.BusinessLineName__c}" />
+                                                <apex:column value="{!organization.Department__c}" />
+                                                
+                                            </apex:pageblocktable>
+                                            </div>
+                                            </apex:outputpanel>
+                                            
+                                                                                        
+                                            <apex:pageblocksection title="{!dLabel['DL263']}" collapsible="false" columns="1" >
+
+                                            <apex:pagemessage severity="INFO" escape="false" summary="{!dLabel['DL264']}" /> 
+                                            
+                                                <apex:panelgrid columns="4" columnclasses="colA, colB, colC" id="theGrid" >
+                                                    <apex:outputlabel for="Name" value="{!dLabel['DL265']}" />
+                                                    <apex:inputtext title="{!dLabel['DL266']}" styleclass="fixedName" id="Name" value="{!sOrganizationName}" />
+                                                    <apex:commandbutton value="{!dLabel['DL267']}" action="{!SearchOrganizations}" rerender="messages, searchSection" status="searchStatus" />
+                                                    <apex:commandbutton value="{!dLabel['DL268']}" action="{!Reset}" rerender="messages, searchSection" status="searchStatus" />
+
+                                                    <apex:outputlabel for="GeographyName" value="{!dLabel['DL269']}" />
+                                                    <apex:selectlist styleclass="fixedPickList" size="1" id="GeographyName" value="{!sGeographyName}" >
+                                                        <apex:selectoption itemvalue="" itemlabel="{!dLabel['DL270']}" />
+                                                        <apex:selectoptions value="{!loGeographies}" />
+                                                        <apex:actionsupport event="onchange" action="{!SearchOrganizations}" rerender="messages, searchSection" status="searchStatus" />
+                                                    </apex:selectlist>  
+                                                    <apex:outputtext value="" />
+                                                    <apex:outputtext value="" />
+
+                                                    <apex:outputlabel for="Region" value="{!dLabel['DL271']}" />
+                                                    <apex:selectlist styleclass="fixedPickList" size="1" id="Region" value="{!sRegion}" >
+                                                        <apex:selectoption itemvalue="" itemlabel="{!dLabel['DL272']}" />
+                                                        <apex:selectoptions value="{!loRegions}" />
+                                                        <apex:actionsupport event="onchange" action="{!SearchOrganizations}" rerender="messages, searchSection" status="searchStatus" />
+                                                    </apex:selectlist>  
+                                                    <apex:outputtext value="" />
+                                                    <apex:outputtext value="" />
+
+                                                    <apex:outputlabel for="District" value="{!dLabel['DL273']}" />
+                                                    <apex:selectlist styleclass="fixedPickList" size="1" id="District" value="{!sDistrict}" >
+                                                        <apex:selectoption itemvalue="" itemlabel="{!dLabel['DL274']}" />
+                                                        <apex:selectoptions value="{!loDistricts}" />
+                                                        <apex:actionsupport event="onchange" action="{!SearchOrganizations}" rerender="messages, searchSection" status="searchStatus" />
+                                                    </apex:selectlist>
+                                                    <apex:outputtext value="" />
+                                                    <apex:outputtext value="" />
+
+                                                    <apex:outputlabel for="Office" value="{!dLabel['DL275']}" />
+                                                    <apex:selectlist styleclass="fixedPickList" size="1" id="Office" value="{!sLocation}" >
+                                                        <apex:selectoption itemvalue="" itemlabel="{!dLabel['DL276']}" />
+                                                        <apex:selectoptions value="{!loLocations}" />
+                                                        <apex:actionsupport event="onchange" action="{!SearchOrganizations}" rerender="messages, searchSection" status="searchStatus" />
+                                                    </apex:selectlist>
+                                                    <apex:outputtext value="" />
+                                                    <apex:outputtext value="" />
+
+                                                    <apex:outputlabel for="BusinessLine" value="{!dLabel['DL277']}" />
+                                                    <apex:selectlist styleclass="fixedPickList" size="1" id="BusinessLine" value="{!sBusinessLine}" >
+                                                        <apex:selectoption itemvalue="" itemlabel="{!dLabel['DL278']}" />
+                                                        <apex:selectoptions value="{!loBusinessLines}" />
+                                                        <apex:actionsupport event="onchange" action="{!SearchOrganizations}" rerender="messages, searchSeresetction" status="searchStatus" />
+                                                    </apex:selectlist>
+                                                    <apex:outputtext value="" />
+                                                    <apex:outputtext value="" />
+
+                                                    <apex:outputlabel for="Department" value="{!dLabel['DL279']}" />
+                                                    <apex:selectlist styleclass="fixedPickList" size="1" id="Department" value="{!sDepartment}" >
+                                                        <apex:selectoption itemvalue="" itemlabel="{!dLabel['DL280']}" />
+                                                        <apex:selectoptions value="{!loDepartments}" />
+                                                        <apex:actionsupport event="onchange" action="{!SearchOrganizations}" rerender="messages, searchSection" status="searchStatus" />
+                                                    </apex:selectlist>
+                                                    <apex:outputtext value="" />
+                                                    <apex:outputtext value="" />
+
+                                                    
+                                                </apex:panelgrid>
+                                            </apex:pageblocksection>
+                                                                      
+                                            <apex:actionstatus id="searchStatus" >
+                                                <apex:facet name="start" >
+                                                    <p style="padding-bottom:20px;" class="searchText" ><img style="position:relative;top:12px;" src="/img/loading32.gif" /> {!dLabel['DL281']}</p>
+                                                </apex:facet>
+                                                <apex:facet name="stop" >
+                                                    <apex:outputpanel >
+                                                    <apex:pageblocksection rendered="{!bSearchInProgress}" title="{!dLabel['DL282']}" collapsible="false" />
+                                                    <div style="padding:0 12px;margin-top:7px" >
+                                                    <apex:pageblocktable rendered="{!bSearchInProgress}" value="{!lOrganizations}" var="organization" >
+                                                        <apex:column width="200px" >
+                                                            <apex:facet name="header" >{!dLabel['DL283']}</apex:facet>
+                                                            <apex:commandlink action="{!SelectPrimary}" value="{!dLabel['DL284']}" rerender="messages, searchSection, buttons" status="selectStatus" >
+                                                                <apex:param assignto="{!sSelectedOrganizationId}" name="OrganizationId" value="{!organization.Id}" />
+                                                            </apex:commandlink>&nbsp;&nbsp;
+                                                            <apex:commandlink action="{!SelectSecondary}" value="{!dLabel['DL285']}" rerender="messages, searchSection, buttons" status="selectStatus" >
+                                                                <apex:param assignto="{!sSelectedOrganizationId}" name="OrganizationId" value="{!organization.Id}" />
+                                                            </apex:commandlink>
+                                                        </apex:column>
+                                                        <apex:column value="{!organization.OrganizationName__c}" />
+                                                        <apex:column value="{!organization.GeographyName__c}" /> 
+                                                        <apex:column value="{!organization.Region__c}" /> 
+                                                        <apex:column value="{!organization.District__c}" />
+                                                        <apex:column headervalue="{!dLabel['DL286']}" value="{!organization.LocationName__c}" />
+                                                        <apex:column value="{!organization.BusinessLineName__c}" />
+                                                        <apex:column value="{!organization.Department__c}" />
+                                                        <!-- <apex:column value="{!organization.ProjectOwning__c}"/>-->
+                                                    </apex:pageblocktable>
+                                                    </div>
+                                                    <br/><br/>
+                                                    <apex:outputpanel rendered="{!bSearchInProgress}" >
+                                                        <div style="text-align:center;" >
+                                                            <apex:commandbutton value="{!showMoreOrgText}" action="{!toggleOrgShow}" rerender="messages, searchSection" status="searchStatus" rendered="{!bShowMoreButtonOrg}" />
+                                                        </div>
+                                                    </apex:outputpanel>
+                                                    </apex:outputpanel>
+                                                </apex:facet>
+                                            </apex:actionstatus>
+                                        </apex:actionregion>
+                                    </apex:outputpanel>
+                                    <br/><br/><br/>
+                            </apex:tab>
+                        </apex:tabpanel>
+                    </apex:outputpanel>
+
+
+
+
+
+
+
+
+                    
+                </apex:pageblock>
+            </apex:outputpanel>
+
+
+
+        </apex:form>
+    </apex:outputpanel>
+
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

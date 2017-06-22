@@ -1,0 +1,14 @@
+<apex:page showheader="false" sidebar="false">
+<style>
+a#publisherDropdown{
+	display: none;
+}
+</style>
+	<chatter:newsFeed />
+	<!-- <apex:includeScript value="{!$Resource.ECO_jQuery_1_11_2_min_js}"/> -->
+	<script>
+	// $(document).ready(function(){		
+	// 	$('a#publisherDropdown').css({display: 'none'});
+	// })
+	</script>
+</apex:page>

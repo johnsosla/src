@@ -1,0 +1,34 @@
+<apex:page controller="rsWorkHistoryLookupController" showHeader="false" sidebar="false" docType="html-5.0" >
+    <apex:form >
+        <apex:pageBlock title="Results">
+        <apex:pageMessages escape="false" />
+            <apex:pageBlockTable rendered="{!Parts.size>0}" width="100%" value="{!Parts}" var="currWorkPart" >
+                <apex:column >
+                    <apex:facet name="header">
+                        <apex:outputText value="{!$ObjectType['rs_Profile_Part__c'].fields['Company_Name__c'].Label}" />
+                    </apex:facet>
+                    <apex:outputLink value="javascript:top.window.opener.lookupPick2('{!FormTag}','{!TextBox}_lkid','{!TextBox}','{!currWorkPart.Id}','{!JSENCODE(currWorkPart.Company_Name__c)}', false)" >{!currWorkPart.Company_Name__c}</apex:outputLink>
+                </apex:column>
+                <apex:column >
+                    <apex:facet name="header">
+                        <apex:outputText value="{!$ObjectType['rs_Profile_Part__c'].fields['Job_Title__c'].Label}" />
+                    </apex:facet>
+                    <apex:outputField value="{!currWorkPart.Job_Title__c}" />
+                </apex:column>
+                <apex:column >
+                    <apex:facet name="header">
+                        <apex:outputText value="{!$ObjectType['rs_Profile_Part__c'].fields['Start_Date__c'].Label}" />
+                    </apex:facet>
+                    <apex:outputField value="{!currWorkPart.Start_Date__c}" />
+                </apex:column>
+                <apex:column >
+                    <apex:facet name="header">
+                        <apex:outputText value="{!$ObjectType['rs_Profile_Part__c'].fields['End_Date__c'].Label}" />
+                    </apex:facet>
+                    <apex:outputField value="{!currWorkPart.End_Date__c}" />
+                </apex:column>
+            </apex:pageBlockTable>
+            <apex:outputText rendered="{!Parts.size<1}" value="{!$Label.No_Records_To_Display}" />
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

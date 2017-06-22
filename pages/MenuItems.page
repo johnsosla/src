@@ -1,0 +1,39 @@
+<apex:page controller="menuItemController" id="mainpage">
+
+      <apex:pageblock rendered="{!typ='ALL'}">
+      <apex:sectionHeader title="Taxonomy"/>
+      <apex:outputPanel >
+        <font color="blue">
+        <p>Geography, Business Lines, Practice Areas and Sub Practice Areas are managed by System Administrators.</p>
+        <p>Geography Admins can manage the Practice Areas and Sub Practice Areas for their Business Lines, via the Collection Manager.</p> 
+        <p>These values defined in the Collection Manager will be available as selections when users add Departments to an Opportunity.</p>
+        </font><hr></hr>
+        </apex:outputPanel>
+
+          <apex:pageblockSection columns="1">
+              <apex:pageBlockSectionItem >
+                  <apex:outputLink value="/apex/MenuItems?typ=G">Geography</apex:outputLink>
+              </apex:pageBlockSectionItem>
+              <apex:pageBlockSectionItem >
+                  <apex:outputLink value="/apex/MenuItems?typ=BL">Business Line</apex:outputLink>
+              </apex:pageBlockSectionItem>
+              <apex:pageBlockSectionItem >
+                  <apex:outputLink value="/apex/MenuItems?typ=PA">AECOM Work</apex:outputLink>
+              </apex:pageBlockSectionItem>
+              <apex:pageBlockSectionItem >
+                  <apex:outputLink value="/apex/MenuItems?typ=SPA">Sub Practice Area</apex:outputLink>
+              </apex:pageBlockSectionItem>
+              <apex:pageBlockSectionItem >
+                  <apex:outputLink value="/apex/CollectionManager">Collection Manager</apex:outputLink>
+              </apex:pageBlockSectionItem><hr></hr>
+              <apex:pageBlockSectionItem >
+                  <apex:outputLink value="/apex/MenuItems?typ=PAC">AECOM Collection Records (SysAdmin Use Only)</apex:outputLink>
+              </apex:pageBlockSectionItem>              
+          </apex:pageblockSection>
+      </apex:pageblock>
+      <apex:enhancedList type="Geography__c" height="800" rowsPerPage="100" customizable="False" rendered="{!typ='G'}"/>
+      <apex:enhancedList type="Business_Line__c" height="800" rowsPerPage="100" customizable="False" rendered="{!typ='BL'}"/>
+      <apex:enhancedList type="Practice_Area__c" height="800" rowsPerPage="100" customizable="False" rendered="{!typ='PA'}"/>
+      <apex:enhancedList type="Sub_Practice_Area__c" height="800" rowsPerPage="100" customizable="False" rendered="{!typ='SPA'}"/>
+      <apex:enhancedList type="Practice_Area_Collection__c" height="800" rowsPerPage="100" customizable="False" rendered="{!typ='PAC'}"/>
+</apex:page>

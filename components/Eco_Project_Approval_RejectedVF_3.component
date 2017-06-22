@@ -1,0 +1,14 @@
+<apex:component language="{!theLanguage}" controller="nttdcore.DLabelChildController" access="global" ><nttdcore:DLabel name="DL1" default="ACTION: {{1}} has been Rejected/Recalled
+
+Project Name: {{2}}
+Project Long Name: {{3}}
+Project Description: {{4}}
+Estimated Gross Fee: {{5}}" labelParent="{!this}" componentContext="Eco_Project_Approval_RejectedVF_3" p1="{!theRelatedTo.Name}" p2="{!theRelatedTo.Name}" p3="{!theRelatedTo.ProjectLongName__c}" p4="{!theRelatedTo.ProjectDescription__c}" p5="{!theRelatedTo.EstimatedContractValue__c}" /><apex:attribute name="theLanguage" type="String" required="true" description="language" access="global" /><apex:attribute name="theRecipient" type="Contact" required="true" description="recipient" access="global" /><apex:attribute name="theRelatedTo" type="pse__Proj__c" required="true" description="related to" access="global" />
+
+{!dlRoot.dLabel['DL1']}
+
+<a href="{!LEFT($Api.Partner_Server_URL_290,FIND('services',$Api.Partner_Server_URL_290)-1)}{!theRelatedTo.Id}" ><nttdcore:DLabel name="DL2" default="Project Link" labelParent="{!this}" componentContext="Eco_Project_Approval_RejectedVF_3" />
+         {!dlRoot.dLabel['DL2']}
+         </a>
+    
+<nttdcore:DLabelInit language="{!theLanguage}" labelParentInit="{!this}" /></apex:component>

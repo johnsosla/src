@@ -1,0 +1,22 @@
+<apex:component language="{!theLanguage}" controller="nttdcore.DLabelChildController" access="global" ><apex:attribute name="theLanguage" type="String" required="true" description="language" access="global" /><apex:attribute name="theRecipient" type="User" required="true" description="recipient" access="global" /><apex:attribute name="theRelatedTo" type="ReviewMember__c" required="true" description="related to" access="global" />
+    <apex:outputpanel ><nttdcore:DLabel name="DL1" default="You have been named as a/an" labelParent="{!this}" componentContext="Eco_Tech_Quality_Team_Review_Ready798_1" /><nttdcore:DLabel name="DL2" default="on the deliverable listed below which is now ready for your technical quality review." labelParent="{!this}" componentContext="Eco_Tech_Quality_Team_Review_Ready798_1" /><nttdcore:DLabel name="DL3" default="Open the link below to initiate the review process or contact the Project Manager for further details." labelParent="{!this}" componentContext="Eco_Tech_Quality_Team_Review_Ready798_1" />
+        {!dlRoot.dLabel['DL1']} <b>{!theRelatedTo.Role__c}</b> {!dlRoot.dLabel['DL2']}   
+        <br/>
+        {!dlRoot.dLabel['DL3']}
+        
+        
+        <br/>
+        <b><nttdcore:DLabel name="DL4" default="Project Number:" labelParent="{!this}" componentContext="Eco_Tech_Quality_Team_Review_Ready798_1" />{!dlRoot.dLabel['DL4']}</b>    {!theRelatedTo.ProjectNumber__c} <br/>
+        <b><nttdcore:DLabel name="DL5" default="Project Name:" labelParent="{!this}" componentContext="Eco_Tech_Quality_Team_Review_Ready798_1" />{!dlRoot.dLabel['DL5']}</b>    {!theRelatedTo.ProjectName__c} <br/>
+        <b><nttdcore:DLabel name="DL6" default="Project Manager:" labelParent="{!this}" componentContext="Eco_Tech_Quality_Team_Review_Ready798_1" />{!dlRoot.dLabel['DL6']}</b>    {!theRelatedTo.ProjectManager__c}<br/> 
+        <b><nttdcore:DLabel name="DL7" default="Deliverable Name:" labelParent="{!this}" componentContext="Eco_Tech_Quality_Team_Review_Ready798_1" />{!dlRoot.dLabel['DL7']}</b>    {!theRelatedTo.DeliverableName__c}<br/>
+        <b><nttdcore:DLabel name="DL8" default="Deliverable Version:" labelParent="{!this}" componentContext="Eco_Tech_Quality_Team_Review_Ready798_1" />{!dlRoot.dLabel['DL8']}</b>    {!theRelatedTo.DeliverableVersion__c}<br/>
+        <b><nttdcore:DLabel name="DL9" default="Required Review Date:" labelParent="{!this}" componentContext="Eco_Tech_Quality_Team_Review_Ready798_1" />{!dlRoot.dLabel['DL9']}</b>    {!theRelatedTo.RequiredReviewDate__c}<br/>
+        <b><nttdcore:DLabel name="DL10" default="Deliverable Due Date:" labelParent="{!this}" componentContext="Eco_Tech_Quality_Team_Review_Ready798_1" />{!dlRoot.dLabel['DL10']}</b>    {!theRelatedTo.DeliverableDueDate__c}<br/>
+        
+        <br/>
+        
+        <a href = "{!theRelatedTo.TechnicalQualityReviewPage__c}"><!--Link to TQR</a>-->
+        <!--<a href="{!LEFT($Api.Partner_Server_URL_290,FIND('services',$Api.Partner_Server_URL_290)-1)}{!theRelatedTo.Id}" >--><nttdcore:DLabel name="DL11" default="Link to TQR" labelParent="{!this}" componentContext="Eco_Tech_Quality_Team_Review_Ready798_1" />{!dlRoot.dLabel['DL11']}</a>
+    </apex:outputpanel>
+<nttdcore:DLabelInit language="{!theLanguage}" labelParentInit="{!this}" /></apex:component>

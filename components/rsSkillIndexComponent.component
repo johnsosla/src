@@ -1,0 +1,245 @@
+<apex:component controller="rsSkillIndexController" allowDML="true">
+
+    <apex:attribute name="rsProfile" assignTo="{!profile}" description="" type="rsProfile" required="true"/>
+
+    <apex:attribute name="reRender" description="" type="String" required="false"/>
+    <script>
+        //Required Fields for this component
+        requiredFields = ['[id$=newSkillInput]','[id$=newSkillLevel]','[id$=skillArea]'];
+        var decodeEntities = (function() {
+        // this prevents any overhead from creating the object each time
+            var element = document.createElement('div');
+
+            function decodeHTMLEntities (str) {
+                if(str && typeof str === 'string') {
+                  // strip script/html tags
+                  str = str.replace(/<script[^>]*>([\S\s]*?)<\/script>/gmi, '');
+                  str = str.replace(/<\/?\w(?:[^"'>]|"[^"]*"|'[^']*')*>/gmi, '');
+                  element.innerHTML = str;
+                  str = element.textContent;
+                  element.textContent = '';
+                }
+                console.log('#### ' + str);
+                return str;
+            }
+
+            return decodeHTMLEntities;
+        })();
+        function skillSetup() {
+            $j('td[id$="addSkillInputLabelTd"]').hide();
+            $j('td[id$="addSkillInputTd"]').hide();
+            $j('#addNewSkillLink').click(function() {
+                $j(this).parent().hide();
+                $j('td[id$="addSkillInputLabelTd"]').show();
+                $j('td[id$="addSkillInputTd"]').show();
+                $j('td[id$="compentencyLvlTd"]').attr('colspan',3);
+            });
+        }
+        $j(function() {
+            skillSetup();
+            helpTextSetup();
+            $j('[id$=newSkillInput]').on("autocompleteselect", function(event, ui) {
+                if(ui.item.value.indexOf('-') > -1) {
+                    event.preventDefault();
+                    console.log(ui.item.value);
+                    var skillAndArea = decodeEntities(ui.item.value).split('-');
+                    console.log(skillAndArea);
+                    $j('[id$=newSkillInput]').val(skillAndArea[1].trim());
+                    $j('[id$=skillArea]').val(skillAndArea[0].trim());
+                }
+            });
+        });
+    </script>
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h3 class="panel-title has-spinner pull-left" id="skillHeader">{!$Label.Skill_Index}&nbsp;<img height="15" width="15" class="spinner" src="{!URLFOR($Resource.rs_bundle, '/images/loading.gif')}" alt="loading" title="loading"/></h3>
+            <apex:commandLink value="" styleClass="{!IF(canEdit, '','disabled')} has-spinner pull-right " reRender="{!reRender}" action="{!newPart}" onclick="if(!inProgress) showSectionSpinner('skillHeader'); if (inProgress) return false; inProgress = true;" oncomplete="resetProgress(); setupFields();focusField('newSkillInput');" rendered="{!IsListMode && canEdit}">
+                 <span title="{!$Label.Add}" class="glyphicon glyphicon-plus"></span>
+            </apex:commandLink>
+            <div class="clearfix"/>
+        </div>
+
+        <div class="panel-body">
+
+            <apex:outputPanel rendered="{!IsEditMode}">
+            <apex:actionRegion >
+
+                <table id="editSkills" class="table">
+                    <tbody>
+                        <tr>
+                            <td style="border-top:none;"><apex:outputLabel for="newSkillInput" value="{!$Label.Skill}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['rs_Profile_Part__c'].fields['Skill__c'].inlineHelpText}"/></apex:outputLabel></td>
+                            <td style="border-top:none;">
+                                <div class="rsRequired">
+                                    <div class="rsRequiredBlock"/>
+                                    <apex:inputText id="newSkillInput" value="{!CurrentPart.Skill}" maxlength="255"/>
+                                    <span class="rsError"><br/>{!$Label.Skill} {!$Label.Is_Required}</span>
+                                </div>
+                            </td>
+                            <td id="addSkillInputLabelTd"><apex:outputLabel for="skillArea" value="{!$Label.Skill_Area}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['rs_Profile_Part__c'].fields['Skill_Area__c'].inlineHelpText}"/></apex:outputLabel></td>
+                            <td id="addSkillInputTd">
+                                <div class="rsRequired">
+                                    <div class="rsRequiredBlock"/>
+                                    <apex:selectList id="skillArea" styleClass="" size="1" value="{!CurrentPart.SkillArea}">
+                                        <apex:selectOptions value="{!skillAreaList}"/>
+                                    </apex:selectList>
+                                    <span class="rsError">{!$Label.Skill_Area} {!$Label.Is_Required}</span>
+                                </div>
+                            </td>
+                            <td style="border-top:none;">
+                                <a id="addNewSkillLink" onclick="focusField('newSkillInput');">{!$Label.Can_Not_Find_Skill}</a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><apex:outputLabel for="newSkillLevel" value="{!$Label.Competency_Level}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['rs_Profile_Part__c'].fields['Skill_Level__c'].inlineHelpText}"/></apex:outputLabel></td>
+                            <td id="compentencyLvlTd" colspan="3">
+                            <div class="rsRequired">
+                                <div class="rsRequiredBlock"/>
+                                <apex:selectList id="newSkillLevel" styleClass="" size="1" value="{!CurrentPart.SkillLevel}">
+                                    <apex:selectOptions value="{!skillLevelList}"/>
+                                </apex:selectList>
+                                <span class="rsError">{!$Label.Competency_Level} {!$Label.Is_Required}</span>
+                            </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <br/>
+                <div class="col-md-4 text-center">
+                    <div class="text-center">
+
+                        <apex:commandLink action="{!savePart}" value="{!$Label.Save}" styleClass="btn brandStyledBtn" reRender="{!reRender}" onclick="if(!checkRequiredFields()) {$j('#addNewSkillLink').trigger('click');;return false;} if(!inProgress) showSectionSpinner('skillHeader'); inProgress = true;" oncomplete="resetProgress();">
+                             <span class="glyphicon glyphicon-ok-circle"></span>
+                        </apex:commandLink>
+                        &nbsp;
+                        <apex:commandLink action="{!cancelPart}" value="{!$Label.Cancel}" styleClass="btn btn--neutral" reRender="{!reRender}" onclick="if(!inProgress) showSectionSpinner('skillHeader'); inProgress = true;" oncomplete="resetProgress();">
+                             <span class="glyphicon glyphicon-remove-circle"></span>
+                        </apex:commandLink>
+                    </div>
+                </div>
+            </apex:actionRegion>
+            </apex:outputPanel>
+
+            <apex:outputPanel rendered="{!IsViewMode}">
+                <div class="col-md-4 text-center">
+                    <apex:commandLink action="{!cancelPart}" immediate="true" value="{!$Label.Cancel}" styleClass="btn btn--neutral" reRender="{!reRender}" onclick="if(!inProgress) showSectionSpinner('skillHeader'); inProgress = true;" oncomplete="resetProgress();">
+                         <span class="glyphicon glyphicon-remove-circle"></span>
+                    </apex:commandLink>
+                </div>
+                <br/>
+
+                <table class="table">
+                    <tbody>
+                        <tr>
+                            <td>
+                                <apex:outputLabel value="{!$Label.Skill_Area}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['rs_Profile_Part__c'].fields['Skill_Area__c'].inlineHelpText}"/></apex:outputLabel>
+                            </td>
+                            <td>
+                                <apex:outputText value="{!CurrentPart.SkillArea}"/>
+                            </td>
+                            <td>
+                                <apex:outputLabel value="{!$Label.Skill}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['rs_Profile_Part__c'].fields['Skill__c'].inlineHelpText}"/></apex:outputLabel>
+                            </td>
+                            <td>
+                                <apex:outputText value="{!CurrentPart.Skill}"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <apex:outputLabel value="{!$Label.Competency_Level}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['rs_Profile_Part__c'].fields['Skill_Level__c'].inlineHelpText}"/></apex:outputLabel>
+                            </td>
+                            <td colspan="3">
+                                <apex:outputText value="{!CurrentPart.SkillLevel}"/>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </apex:outputPanel>
+
+            <apex:outputPanel rendered="{!IsListMode}" id="skillPanel">
+
+                <table id="regTable" class="table">
+                    <thead>
+                        <tr>
+                            <th>{!$Label.Action}</th>
+                            <th>
+                                <apex:commandLink action="{!sortParts}" reRender="skillPanel" onclick="if (inProgress) return false; inProgress = true;" oncomplete="resetProgress();sortOrderArrow(this.id);" value="{!$ObjectType['rs_Profile_Part__c'].fields['Skill_Area__c'].Label}">
+                                    <apex:param name="sortField" value="Skill_Area__c"/>
+                                    <span class="toggleClassDown glyphicon glyphicon-chevron-down"></span>
+                                    <span class="toggleClassUp glyphicon glyphicon-chevron-up"></span>
+                                </apex:commandLink>
+                            </th>
+                            <th>
+                                <apex:commandLink action="{!sortParts}" reRender="skillPanel" onclick="if (inProgress) return false; inProgress = true;" oncomplete="resetProgress();sortOrderArrow(this.id);" value="{!$ObjectType['rs_Profile_Part__c'].fields['Skill__c'].Label}">
+                                    <apex:param name="sortField" value="Skill__c"/>
+                                    <span class="toggleClassDown glyphicon glyphicon-chevron-down"></span>
+                                    <span class="toggleClassUp glyphicon glyphicon-chevron-up"></span>
+                                </apex:commandLink>
+                            </th>
+                            <th>
+                                <apex:commandLink action="{!sortParts}" reRender="skillPanel" onclick="if (inProgress) return false; inProgress = true;" oncomplete="resetProgress();sortOrderArrow(this.id);" value="{!$Label.Competency_Level}">
+                                    <apex:param name="sortField" value="Skill_Level__c"/>
+                                    <span class="toggleClassDown glyphicon glyphicon-chevron-down"></span>
+                                    <span class="toggleClassUp glyphicon glyphicon-chevron-up"></span>
+                                </apex:commandLink>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        <apex:repeat value="{!ViewParts}" var="part">
+                            <tr style="background-color:{!IF(part.ProfilePart.IsPendingOrInReview, 'LightYellow', 'white')};">
+                                <td>
+                                    <div class="dropdown">
+                                        <button class="wrench btn-default btn-sm dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown">
+                                            <span class="glyphicon glyphicon-wrench"></span>
+                                        </button>
+                                        <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">
+                                            <li role="presentation">
+                                                <apex:commandLink tabindex="-1" html-data-role="menuitem" action="{!viewPart}" value="{!$Label.View}" reRender="{!reRender}" onclick="if(!inProgress) showSectionSpinner('skillHeader'); inProgress = true;" oncomplete="resetProgress();">
+                                                    <apex:param value="{!part.ProfilePart.Id}" name="partId"/>
+                                                </apex:commandLink>
+                                            </li>
+                                            <apex:outputPanel rendered="{!canEdit}" layout="none">
+                                                <li role="presentation">
+
+                                                    <apex:commandLink tabindex="-1" html-data-role="menuitem" action="{!editPart}" value="{!$Label.Edit}" reRender="{!reRender}" onclick="if(!inProgress) showSectionSpinner('skillHeader'); inProgress = true;" oncomplete="resetProgress();skillSetup();setupFields();">
+                                                        <apex:param value="{!part.ProfilePart.Id}" name="partId"/>
+                                                    </apex:commandLink>
+                                                </li>
+                                                <li role="presentation" class="divider"></li>
+                                                <li role="presentation">
+                                                    <apex:commandLink tabindex="-1" html-data-role="menuitem" action="{!deletePart}" value="{!$Label.Delete}" reRender="{!reRender}" onclick="if(!confirmDeletePart()) return false; if (inProgress) return false; inProgress = true; showSectionSpinner('skillHeader');" oncomplete="resetProgress();">
+                                                        <apex:param value="{!part.ProfilePart.Id}" name="partId"/>
+                                                    </apex:commandLink>
+                                                </li>
+                                            </apex:outputPanel>
+                                            <apex:outputPanel layout="none" rendered="{!isApprovable && part.ProfilePart.IsPendingOrInReview}">
+                                                <li role="presentation" class="divider"></li>
+                                                <li role="presentation">
+                                                    <apex:commandLink tabindex="-1" html-data-role="menuitem" action="{!approvePart}" value="{!$Label.Approve_Item}" reRender="{!reRender}" onclick="if(!inProgress) showSectionSpinner('skillHeader'); inProgress = true;" oncomplete="resetProgress();">
+                                                        <apex:param value="{!part.ProfilePart.Id}" name="partId"/>
+                                                    </apex:commandLink>
+                                                </li>
+                                            </apex:outputPanel>
+                                        </ul>
+                                    </div>
+                                </td>
+                                <td><apex:outputText value="{!part.ProfilePart.SkillArea}"/></td>
+                                <td><apex:outputText value="{!part.ProfilePart.Skill}"/></td>
+                                <td><apex:outputText value="{!part.ProfilePart.SkillLevel}"/></td>
+                            </tr>
+                        </apex:repeat>
+                    </tbody>
+                </table>
+
+                <c:rsPaginationComponent nextPage="{!getNextPage}" previousPage="{!getPreviousPage}" firstPage="{!getFirstPage}" lastPage="{!getLastPage}" viewIndex="{!ViewIndex}" viewLimit="{!ViewLimit}" totalParts="{!TotalParts}" pageNumber="{!PageNum}" numberOfPages="{!NumberOfPages}" rendered="{!TotalParts > ResultLimit}" reRender="{!reRender}"/>
+
+            </apex:outputPanel>
+
+            <c:rsAutoComplete field="Skill__c" fieldId="newSkillInput" sObject="rs_Profile_Part__c"/>
+
+        </div>
+    </div>
+
+</apex:component>

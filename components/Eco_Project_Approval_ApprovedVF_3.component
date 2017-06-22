@@ -1,0 +1,17 @@
+<apex:component language="{!theLanguage}" access="global" >
+<apex:attribute name="theLanguage" type="String" required="true" description="language" access="global" /><apex:attribute name="theRecipient" type="Contact" required="true" description="recipient" access="global" /><apex:attribute name="theRelatedTo" type="pse__Proj__c" required="true" description="related to" access="global" />
+
+{!theRelatedTo.Name} {!$Label.Eco_Project_Approval_ApprovedVF_3_DL1}
+
+{!$Label.Eco_Project_Approval_ApprovedVF_3_DL2} {!theRelatedTo.Name}
+
+{!$Label.Eco_Project_Approval_ApprovedVF_3_DL3} {!theRelatedTo.ProjectDescription__c}
+
+{!$Label.Eco_Project_Approval_ApprovedVF_3_DL4} {!theRelatedTo.EstimatedContractValue__c}
+
+<!--Project Long Name: {!theRelatedTo.LongName}-->
+
+<!--{!theRelatedTo.Link}-->
+<a href="{!LEFT($Api.Partner_Server_URL_290,FIND('services',$Api.Partner_Server_URL_290)-1)}{!theRelatedTo.Id}" >{!$Label.Eco_Project_Approval_ApprovedVF_3_DL5}
+         </a>
+</apex:component>

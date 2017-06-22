@@ -1,0 +1,3 @@
+<apex:page standardController="DOAApprovalRequest__c" extensions="ECO_DOA_ApprovalRequest_RedirectCtrl" action="{!redirectForm}" showHeader="true" sidebar="true">
+  
+</apex:page>

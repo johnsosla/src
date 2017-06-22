@@ -1,0 +1,2 @@
+<apex:page standardController="BudgetHeader__c" extensions="ECO_AddFoundResourceController" sidebar="false" showHeader="false" action="{!add}">
+</apex:page>

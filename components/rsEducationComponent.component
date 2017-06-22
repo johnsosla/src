@@ -1,0 +1,355 @@
+<apex:component controller="rsEducationController" allowDML="true">
+    <apex:includeScript value="{!URLFOR($Resource.rs_libs, 'jquery/jquery.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.rs_libs, 'jqueryui/jquery-ui.js')}"/>
+
+    <style>
+        ul.ui-autocomplete {
+            list-style: none;
+        }
+    </style>
+    <script type="text/javascript">
+        inputFields =['[id$=yearObtained]'];
+        j$ = jQuery.noConflict();
+        function removeCommaFromYear() {
+            j$('[id$=yearObtained]').val(j$('[id$=yearObtained]').val().replace(/\,/g,""));
+        }
+    </script>
+
+    <script type="text/javascript">
+        var j$ = jQuery.noConflict();
+
+        function validateYearObtained(){
+            var val = j$("[id$='yearObtained']").val();
+            var d = new Date();
+            if(val > d.getFullYear()) {
+                alert('{!$Label.Future_Degree_Error}');
+                return false;
+            }
+            return true;
+
+        }
+        function setEducationRequiredFields() {
+            //Required fields for this component
+            requiredFields = ['[id$=institution]','[id$=degree]','[id$=degreeSpecialty]','[id$=eduCountry]','[id$=yearObtained]'];
+        }
+        j$(document).ready(function() {
+            if( '{!IsSF1}' == 'true' ) {
+                j$('[id$=eduAttachLink]').removeAttr('onclick href').parent().addClass('disabled');
+            }
+            helpTextSetup();
+            setEducationRequiredFields();
+            setUpEduParts();
+        });
+        function setUpEduParts() {
+            j$('a[id$=moveEduPartUp]').each(function() {
+                if(j$(this).hasClass('0')) {
+                    j$(this).removeAttr('onclick href').parent().addClass('disabled');
+                    j$(this).click(function(e) {
+                        e.preventDefault();
+                    });
+                }
+            });
+            j$('a[id$=moveEduPartDown]').each(function() {
+                var arr = j$(this).attr('class').split(" ");
+                if((arr.length == 1 && arr[0] == '0')) {
+                    j$(this).removeAttr('onclick href').parent().addClass('disabled');
+                    j$(this).click(function(e) {
+                        e.preventDefault();
+                    });
+                }
+                else if (arr[0] == arr[1] || (arr[0] == '0' && arr[1].length == 0)) {
+                    j$(this).removeAttr('onclick href').parent().addClass('disabled');
+                    j$(this).click(function(e) {
+                        e.preventDefault();
+                    });
+                }
+            });
+        }
+    </script>
+
+    <apex:attribute name="rsProfile" assignTo="{!profile}" description="" type="rsProfile" required="true"/>
+
+    <apex:attribute name="reRender" description="" type="String" required="false"/>
+
+    <div class="panel panel-default">
+
+
+        <div class="panel-heading">
+            <h3 class="panel-title has-spinner pull-left" id="eduHeader">{!$Label.Education}&nbsp; <img height="15" width="15" class="spinner" src="{!URLFOR($Resource.rs_bundle, '/images/loading.gif')}" alt="{!$Label.Add}" title="{!$Label.Add}"/> </h3>
+
+            <apex:commandLink value="" styleClass="{!IF(canEdit, '','disabled')} has-spinner pull-right " reRender="{!reRender}" action="{!newPart}" onclick="if(inProgress) return false; showSectionSpinner('eduHeader'); inProgress = true;" oncomplete="resetProgress(); loadCountry('eduCountry');setupFields();focusField('degree');" rendered="{!IsListMode && canEdit}">
+                 <span title="{!$Label.Add}" class="glyphicon glyphicon-plus"></span>
+            </apex:commandLink>
+            <div class="clearfix"/>
+        </div>
+
+        <div class="panel-body">
+
+            <apex:outputPanel rendered="{!IsEditMode}">
+            <apex:actionRegion >
+
+                <table class="table">
+                    <tr>
+                        <td style="border-top:none;">
+                            <apex:outputLabel value="{!$ObjectType['rs_Profile_Part__c'].fields['Degree__c'].Label}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['rs_Profile_Part__c'].fields['Degree__c'].inlineHelpText}"/></apex:outputLabel>
+                        </td>
+                        <td style="border-top:none;">
+                            <div class="rsRequired">
+                                <div class="rsRequiredBlock"/>
+                                <apex:inputText id="degree" value="{!CurrentPart.Degree}" maxlength="255"/>
+                                <span class="rsError"><br/>{!$ObjectType['rs_Profile_Part__c'].fields['Degree__c'].Label} {!$Label.Is_Required}</span>
+                            </div>
+                        </td>
+                        <td style="border-top:none;">
+                            <apex:outputLabel for="degreeSpecialty" value="{!$ObjectType['rs_Profile_Part__c'].fields['Degree_Specialty__c'].Label}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['rs_Profile_Part__c'].fields['Degree_Specialty__c'].inlineHelpText}"/></apex:outputLabel>
+                        </td>
+                        <td style="border-top:none;">
+                            <div class="rsRequired">
+                                <div class="rsRequiredBlock"/>
+                                <apex:inputText id="degreeSpecialty" value="{!CurrentPart.DegreeSpecialty}" maxlength="255"/>
+                                <span class="rsError"><br/>{!$ObjectType['rs_Profile_Part__c'].fields['Degree_Specialty__c'].Label} {!$Label.Is_Required}</span>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <apex:outputLabel value="{!$ObjectType['rs_Profile_Part__c'].fields['Institution__c'].Label}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['rs_Profile_Part__c'].fields['Institution__c'].inlineHelpText}"/></apex:outputLabel>
+                        </td>
+                        <td>
+                        <div class="rsRequired">
+                                <div class="rsRequiredBlock"/>
+                                <apex:inputText id="institution" value="{!CurrentPart.Institution}" maxlength="255"/>
+                                <span class="rsError"><br/>{!$ObjectType['rs_Profile_Part__c'].fields['Institution__c'].Label} {!$Label.Is_Required}</span>
+                            </div>
+
+                        </td>
+                        <td>
+                            <apex:outputLabel for="eduCountry" value="{!$ObjectType['rs_Profile_Part__c'].fields['Institution_Country__c'].Label}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['rs_Profile_Part__c'].fields['Institution_Country__c'].inlineHelpText}"/></apex:outputLabel>
+                        </td>
+                        <td>
+                            <div class="rsRequired">
+                                <div class="rsRequiredBlock"/>
+                                <apex:selectList id="eduCountry" value="{!CurrentPart.InstitutionCountry}" size="1" styleClass="">
+                                    <apex:selectOptions value="{!countryList}"/>
+                                </apex:selectList>
+                                <span class="rsError">{!$ObjectType['rs_Profile_Part__c'].fields['Institution_Country__c'].Label} {!$Label.Is_Required}</span>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <apex:outputLabel for="yearObtained" value="{!$ObjectType['rs_Profile_Part__c'].fields['Year_Obtained__c'].Label}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['rs_Profile_Part__c'].fields['Year_Obtained__c'].inlineHelpText}"/></apex:outputLabel>
+                        </td>
+                        <td colspan="3">
+                            <div class="rsRequired">
+                                <div class="rsRequiredBlock"/>
+                                <apex:inputField id="yearObtained" value="{!CurrentPart.Obj['Year_Obtained__c']}"/>
+                                <span class="rsError"><br/>{!$ObjectType['rs_Profile_Part__c'].fields['Year_Obtained__c'].Label} {!$Label.Is_Required}</span>
+                            </div>
+                        </td>
+                    </tr>
+
+                </table>
+                <br/>
+                <div class="text-center">
+
+                    <apex:commandLink action="{!savePart}" value="{!$Label.Save}" styleClass="btn brandStyledBtn" reRender="{!reRender}" onclick="if(inProgress) return false; setEducationRequiredFields();if(!checkRequiredFields()) return false; if(!validateYearObtained()) return false; showSectionSpinner('eduHeader'); inProgress = true;" oncomplete="resetProgress();">
+                         <span class="glyphicon glyphicon-ok-circle"></span>
+                    </apex:commandLink>
+                    &nbsp;
+                    <apex:commandLink action="{!saveAndApprove}" value="{!$Label.Save_And_Approve}" styleClass="btn brandStyledBtn" reRender="{!reRender}" onclick="if(inProgress) return false; setEducationRequiredFields();if(!checkRequiredFields()) return false; if(!validateYearObtained()) return false; showSectionSpinner('eduHeader'); inProgress = true;" oncomplete="resetProgress();" rendered="{!isApprovable && CurrentPart.IsPendingOrInReview}">
+                        <apex:param value="{!CurrentPart.Id}" name="partId"/>
+                        <span class="glyphicon glyphicon-ok-circle"></span>
+                    </apex:commandLink>
+                    &nbsp;
+                    <apex:commandLink action="{!cancelPart}" value="{!$Label.Cancel}" styleClass="btn btn--neutral" reRender="{!reRender}" onclick="if(inProgress) return false; showSectionSpinner('eduHeader'); inProgress = true; clearInputFields();" oncomplete="resetProgress();">
+                         <span class="glyphicon glyphicon-remove-circle"></span>
+                    </apex:commandLink>
+                </div>
+            </apex:actionRegion>
+            </apex:outputPanel>
+
+            <apex:outputPanel rendered="{!IsViewMode}">
+                <div class="col-md-4 text-center">
+                    <apex:commandLink action="{!cancelPart}" immediate="true" value="{!$Label.Cancel}" styleClass="btn btn--neutral" reRender="{!reRender}" onclick="if(inProgress) return false; showSectionSpinner('eduHeader'); inProgress = true;" oncomplete="resetProgress();">
+                            <span class="glyphicon glyphicon-remove-circle"></span>
+                    </apex:commandLink>
+                </div>
+                <br/>
+            <table class="table">
+                    <tr>
+                        <td>
+                            <apex:outputLabel value="{!$ObjectType['rs_Profile_Part__c'].fields['Degree__c'].Label}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['rs_Profile_Part__c'].fields['Degree__c'].inlineHelpText}"/></apex:outputLabel>
+                        </td>
+                        <td>
+                            <apex:outputText value="{!CurrentPart.Degree}"/>
+                        </td>
+                        <td>
+                            <apex:outputLabel value="{!$ObjectType['rs_Profile_Part__c'].fields['Degree_Specialty__c'].Label}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['rs_Profile_Part__c'].fields['Degree_Specialty__c'].inlineHelpText}"/></apex:outputLabel>
+                        </td>
+                        <td>
+                            <apex:outputText value="{!CurrentPart.DegreeSpecialty}"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <apex:outputLabel value="{!$ObjectType['rs_Profile_Part__c'].fields['Institution__c'].Label}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['rs_Profile_Part__c'].fields['Institution__c'].inlineHelpText}"/></apex:outputLabel>
+                        </td>
+                        <td>
+                            <apex:outputText value="{!CurrentPart.Institution}"/>
+                        </td>
+                        <td>
+                            <apex:outputLabel value="{!$ObjectType['rs_Profile_Part__c'].fields['Institution_Country__c'].Label}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['rs_Profile_Part__c'].fields['Institution_Country__c'].inlineHelpText}"/></apex:outputLabel>
+                        </td>
+                        <td>
+                            <apex:outputText value="{!CurrentPart.InstitutionCountry}"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <apex:outputLabel value="{!$ObjectType['rs_Profile_Part__c'].fields['Year_Obtained__c'].Label}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['rs_Profile_Part__c'].fields['Year_Obtained__c'].inlineHelpText}"/></apex:outputLabel>
+                        </td>
+                        <td colspan="3">
+                            <apex:outputText value="{!CurrentPart.YearObtained}"/>
+                        </td>
+                    </tr>
+
+                </table>
+
+            </apex:outputPanel>
+
+
+
+
+            <apex:outputPanel id="listPanel" rendered="{!IsListMode}">
+
+            <table id="educationTable" class="table ">
+                <thead>
+                    <tr>
+                        <th>{!$Label.Action}</th>
+                        <th>
+                            <apex:commandLink action="{!sortParts}" reRender="listPanel" onclick="if (inProgress) return false; inProgress = true;" oncomplete="resetProgress();sortOrderArrow(this.id);setUpEduParts();" value="{!$ObjectType['rs_Profile_Part__c'].fields['Degree__c'].Label}">
+                                <apex:param name="sortField" value="Degree__c"/>
+                                <span class="toggleClassDown glyphicon glyphicon-chevron-down"></span>
+                                <span class="toggleClassUp glyphicon glyphicon-chevron-up"></span>
+                            </apex:commandLink>
+                        </th>
+                        <th>
+                            <apex:commandLink action="{!sortParts}" reRender="listPanel" onclick="if (inProgress) return false; inProgress = true;" oncomplete="resetProgress();sortOrderArrow(this.id);setUpEduParts();" value="{!$ObjectType['rs_Profile_Part__c'].fields['Degree_Specialty__c'].Label}">
+                                <apex:param name="sortField" value="Degree_Specialty__c"/>
+                                <span class="toggleClassDown glyphicon glyphicon-chevron-down"></span>
+                                <span class="toggleClassUp glyphicon glyphicon-chevron-up"></span>
+                            </apex:commandLink>
+                        </th>
+                        <th>
+                            <apex:commandLink action="{!sortParts}" reRender="listPanel" onclick="if (inProgress) return false; inProgress = true;" oncomplete="resetProgress();sortOrderArrow(this.id);setUpEduParts();" value="{!$ObjectType['rs_Profile_Part__c'].fields['Institution__c'].Label}">
+                                <apex:param name="sortField" value="Institution__c"/>
+                                <span class="toggleClassDown glyphicon glyphicon-chevron-down"></span>
+                                <span class="toggleClassUp glyphicon glyphicon-chevron-up"></span>
+                            </apex:commandLink>
+                        </th>
+                        <th>
+                            <apex:commandLink action="{!sortParts}" reRender="listPanel" onclick="if (inProgress) return false; inProgress = true;" oncomplete="resetProgress();sortOrderArrow(this.id);setUpEduParts();" value="{!$ObjectType['rs_Profile_Part__c'].fields['Institution_Country__c'].Label}">
+                                <apex:param name="sortField" value="Institution_Country__c"/>
+                                <span class="toggleClassDown glyphicon glyphicon-chevron-down"></span>
+                                <span class="toggleClassUp glyphicon glyphicon-chevron-up"></span>
+                            </apex:commandLink>
+                        </th>
+                        <th>
+                            <apex:commandLink action="{!sortParts}" reRender="listPanel" onclick="if (inProgress) return false; inProgress = true;" oncomplete="resetProgress();sortOrderArrow(this.id);setUpEduParts();" value="{!$ObjectType['rs_Profile_Part__c'].fields['Year_Obtained__c'].Label}">
+                                <apex:param name="sortField" value="Year_Obtained__c"/>
+                                <span class="toggleClassDown glyphicon glyphicon-chevron-down"></span>
+                                <span class="toggleClassUp glyphicon glyphicon-chevron-up"></span>
+                            </apex:commandLink>
+                        </th>
+                        <th class="text-center">{!$Label.Attachment}</th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                    <apex:repeat value="{!ViewParts}" var="part">
+                        <tr style="background-color:{!IF(part.ProfilePart.IsPendingOrInReview, 'LightYellow', 'white')};">
+                            <td>
+                                <div class="dropdown">
+                                    <button class="wrench btn-default btn-sm dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown">
+                                        <span class="glyphicon glyphicon-wrench"></span>
+                                    </button>
+                                    <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">
+                                        <li role="presentation">
+                                            <apex:commandLink tabindex="-1" html-data-role="menuitem" action="{!viewPart}" value="{!$Label.View}" reRender="{!reRender}" onclick="if(inProgress) return false; showSectionSpinner('eduHeader'); inProgress = true;" oncomplete="resetProgress();">
+                                                <apex:param value="{!part.ProfilePart.Id}" name="partId"/>
+                                            </apex:commandLink>
+                                        </li>
+                                        <apex:outputPanel rendered="{!canEdit}" layout="none">
+                                            <li role="presentation">
+
+                                                <apex:commandLink tabindex="-1" html-data-role="menuitem" action="{!editPart}" value="{!$Label.Edit}" reRender="{!reRender}" onclick="if(inProgress) return false; showSectionSpinner('eduHeader'); inProgress = true;" oncomplete="resetProgress();removeCommaFromYear();setupFields();">
+                                                    <apex:param value="{!part.ProfilePart.Id}" name="partId"/>
+                                                </apex:commandLink>
+                                            </li>
+                                             <li role="presentation" class="divider"></li>
+                                            <li>
+                                                <apex:commandLink tabindex="-1" html-data-role="menuitem" action="{!movePartUp}" value="{!$Label.Move_Part_Up}" styleClass="{!part.ProfilePart.PartSequence}" reRender="{!reRender}" oncomplete="resetProgress();" onclick="if(inProgress) return false; showSectionSpinner('eduHeader'); inProgress = true;" id="moveEduPartUp">
+                                                    <apex:param value="{!part.ProfilePart.Id}" name="partId"/>
+                                                </apex:commandLink>
+                                            </li>
+                                            <li>
+                                                <apex:commandLink tabindex="-1" html-data-role="menuitem" action="{!movePartDown}" value="{!$Label.Move_Part_Down}" styleClass="{!Parts.size - 1} {!part.ProfilePart.PartSequence}" reRender="{!reRender}" oncomplete="resetProgress();" onclick="if(inProgress) return false; showSectionSpinner('eduHeader'); inProgress = true;" id="moveEduPartDown">
+                                                    <apex:param value="{!part.ProfilePart.Id}" name="partId"/>
+                                                </apex:commandLink>
+                                            </li>
+                                            <li role="presentation" class="divider"></li>
+                                            <li role="presentation">
+                                                <apex:commandLink tabindex="-1" html-data-role="menuitem" value="{!$Label.Add_Attachment}" onclick="if(inProgress) return false; showSectionSpinner('eduHeader'); inProgress = true; window.top.location.href='/apex/rsAttachment?partId={!part.ProfilePart.Id}&retUrl=/_ui/core/userprofile/UserProfilePage&ownerId={!profile.Id}&tab=Skills_and_Qualifications&tab.Skills_and_Qualifications.subtab=2';" oncomplete="resetProgress();" id="eduAttachLink">
+                                                    <apex:param value="{!part.ProfilePart.Id}" name="partId"/>
+                                                </apex:commandLink>
+                                            </li>
+                                            <li role="presentation">
+                                                <apex:commandLink action="{!deleteAttachment}" reRender="{!reRender}" rendered="{!part.DeleteRender}" value="{!$Label.Remove_Attachment}" onclick="if(inProgress) return false; if(!confirmDeleteAttachment()) return false; showSectionSpinner('eduHeader');">
+                                                    <apex:param name="attachmentId" value="{!part.ProfilePart.AttachmentId}"/>
+                                                    <apex:param name="partId" value="{!part.ProfilePart.Id}"/>
+                                                </apex:commandLink>
+                                            </li>
+                                            <li role="presentation" class="divider"></li>
+                                            <li role="presentation">
+                                                <apex:commandLink tabindex="-1" html-data-role="menuitem" action="{!deletePart}" value="{!$Label.Delete}" reRender="{!reRender}" onclick="if(inProgress) return false; if(!confirmDeletePart()) return false; inProgress = true; showSectionSpinner('eduHeader');" oncomplete="resetProgress();setUpEduParts();">
+                                                    <apex:param value="{!part.ProfilePart.Id}" name="partId"/>
+                                                </apex:commandLink>
+                                            </li>
+                                        </apex:outputPanel>
+                                        <apex:outputPanel layout="none" rendered="{!isApprovable && part.ProfilePart.IsPendingOrInReview}">
+                                            <li role="presentation" class="divider"></li>
+                                            <li role="presentation">
+                                                <apex:commandLink tabindex="-1" html-data-role="menuitem" action="{!approvePart}" value="{!$Label.Approve_Item}" reRender="{!reRender}" onclick="if(inProgress) return false; showSectionSpinner('eduHeader'); inProgress = true;" oncomplete="resetProgress();">
+                                                    <apex:param value="{!part.ProfilePart.Id}" name="partId"/>
+                                                </apex:commandLink>
+                                            </li>
+                                        </apex:outputPanel>
+                                    </ul>
+                                </div>
+                            </td>
+                            <td>{!part.ProfilePart.Degree}</td>
+                            <td>{!part.ProfilePart.DegreeSpecialty}</td>
+                            <td>{!part.ProfilePart.Institution}</td>
+                            <td>{!part.ProfilePart.InstitutionCountry}</td>
+                            <td>{!part.ProfilePart.YearObtained}</td>
+                            <td>
+                                <div class="text-center">
+                                    <apex:outputLink value="/servlet/servlet.FileDownload?file={!part.ProfilePart.AttachmentId}" target="_blank">{!part.ProfilePart.AttachmentName}</apex:outputLink>
+                                </div>
+                            </td>
+                        </tr>
+                    </apex:repeat>
+                </tbody>
+            </table>
+
+            <c:rsPaginationComponent nextPage="{!getNextPage}" previousPage="{!getPreviousPage}" firstPage="{!getFirstPage}" lastPage="{!getLastPage}" viewIndex="{!ViewIndex}" viewLimit="{!ViewLimit}" totalParts="{!TotalParts}" pageNumber="{!PageNum}" numberOfPages="{!NumberOfPages}" rendered="{!TotalParts > ResultLimit}" reRender="{!reRender}"/>
+            </apex:outputPanel>
+
+            <c:rsAutoComplete fieldId="institution" field="Institution__c" sObject="rs_Profile_Part__c"/>
+            <c:rsAutoComplete fieldId="degreeSpecialty" field="Degree_Specialty__c" sObject="rs_Profile_Part__c"/>
+            <c:rsAutoComplete fieldId="degree" field="Degree__c" sObject="rs_Profile_Part__c"/>
+
+        </div>
+    </div>
+</apex:component>

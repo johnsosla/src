@@ -1,0 +1,9 @@
+<apex:component language="{!theLanguage}" controller="nttdcore.DLabelChildController" access="global" ><apex:attribute name="theLanguage" type="String" required="true" description="language" access="global" /><apex:attribute name="theRecipient" type="Contact" required="true" description="recipient" access="global" /><apex:attribute name="theRelatedTo" type="Project_Site__c" required="true" description="related to" access="global" />
+    <apex:outputpanel >
+    <p><nttdcore:DLabel name="DL1" default="A customer record for {{1}} has been added to {{2}}. Record details can be reviewed at the following:" labelParent="{!this}" componentContext="Key_Client_Added_to_ProjectVF_1" p1="{!theRelatedTo.Account_Name__c}" p2="{!theRelatedTo.Project__c}" />
+        {!dlRoot.dLabel['DL1']} 
+        </p><p>
+        <a href="{!theRelatedTo.ProjectLink__c}" ><nttdcore:DLabel name="DL2" default="Project Link" labelParent="{!this}" componentContext="Key_Client_Added_to_ProjectVF_1" />{!dlRoot.dLabel['DL2']} </a>
+        </p>
+    </apex:outputpanel>
+<nttdcore:DLabelInit language="{!theLanguage}" labelParentInit="{!this}" /></apex:component>

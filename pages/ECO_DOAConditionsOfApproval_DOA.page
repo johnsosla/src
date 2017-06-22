@@ -1,0 +1,78 @@
+<apex:page standardController="DOAConditions__c" extensions="ECO_DOAConditions_DOACtrl" action="{!redirect}">
+    <style>
+    /*.customHelpText{
+		padding:20px 25px;
+		border:1px solid #85B3CE;
+		min-height:30px;
+		display:block;
+		width:auto;
+		margin:0;
+		background-color:#E3F0F8;
+		background-image: url('../img/icon/forecasts24.png');
+		background-position:1% 50%;
+		background-repeat:no-repeat;
+		border-radius:4px;
+		margin-bottom:15px;
+	}
+	.customHelpBody{
+		display:inline-block;
+		color:#;
+		max-width:95%;
+		margin-left:28px;
+    }*/
+    /* CUSTOM HELP / GUIDANCE TEXT BOX */
+        .customHelpText{
+            padding: 7px;
+            border: 1px solid #85B3CE;
+            min-height: 30px;
+            display: block;
+            width: auto;
+            margin: 0 0 5px 0;
+            background-repeat: no-repeat;
+            border-radius: 4px;
+            background-color: #A2D3F1;
+            
+        }
+        .customHelpBody{
+            display:inline-block;
+            color:#;
+            max-width:95%;
+        }
+    	.hideDropdown select{
+            display:none !important;
+        }
+</style>
+<apex:form >
+	<apex:sectionHeader title="DOA Conditions of Approval Edit" />
+    <div class="customHelpText">
+        <div class="customHelpBody">
+            <p>
+                Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.
+            </p>
+        </div>
+	</div>
+	<apex:pageBlock title="DOA Conditions of Approval Edit">
+
+	<!--<apex:pageBlockButtons >
+		<apex:commandButton value="Save" action="{!save}"/>
+		<apex:commandButton value="Return to MSA" action="{!cancel}"/>
+	</apex:pageBlockButtons>
+
+	<apex:pageBlockSection collapsible="false">
+		<apex:pageBlockSectionItem >
+			<apex:outputText value="DOA Condition"/>
+			<apex:inputField value="{!DOAConditions__c.Name}"/>
+		</apex:pageBlockSectionItem>
+        <apex:pageBlockSectionItem >
+            <apex:outputLabel value="Created By" />
+            <apex:inputField styleClass="hideDropdown" value="{!DOAConditions__c.CreatedBy__c}"/>
+        </apex:pageBlockSectionItem>
+        <apex:inputField value="{!DOAConditions__c.DOAApprovalRequest__c}"/>
+		<apex:inputField value="{!DOAConditions__c.DOARegister__c}"/>
+        
+	</apex:pageBlockSection>-->
+	
+
+		</apex:pageBlock>
+	</apex:form>
+</apex:page>

@@ -1,0 +1,758 @@
+<apex:page showHeader="true" sidebar="true" tabStyle="EnrollmentPlan__c"
+            controller="INC_ShowEnrollmentMetricsController" standardStylesheets="false">
+    <style>
+        .metricTable
+        {
+            font-family:"Trebuchet MS", Arial, Helvetica, sans-serif;
+            width:100%;
+            border-collapse:collapse;
+        }
+
+        .table1, .table2
+        {
+            font-family:"Trebuchet MS", Arial, Helvetica, sans-serif;
+            width:100%;
+            border-collapse:collapse;
+            margin-top:10px;
+        }
+        .epdetails{
+            padding-bottom: 3px;
+        }
+        .metricTable td, .metricTable th
+        { 
+            font-size:1.2em;
+            border:1px solid #000000;
+            padding:3px 7px 2px 7px;
+        }
+        .table1 td, .table2 td
+        {
+            border:1px solid #000000;
+            padding:3px 7px 2px 7px;
+        }
+        .metricTable th 
+        {
+            font-size:1.4em;
+            text-align:center;
+            padding-top:5px;
+            padding-bottom:4px;
+            background-color:#A9A9A9;
+            color:#fff;
+        }
+        .metricTable tr.importantrow td 
+        {
+            color:#000;
+            background-color:#B0C4DE;
+            font-weight: bold;
+        } 
+        .tableheader{
+            margin-right: auto;
+            margin-left: auto;
+            text-align: left;
+            font-size: 16px;
+        }
+        .currency{
+            text-align: right;
+            padding-right: 0;
+        }
+        .currency span{
+            visibility: hidden;
+
+        }
+        .percent{
+            text-align: right;
+            padding-right: 0;
+        }
+        .label{
+            text-align: left;
+            width: 400px;
+        }
+        .aslabel::after{
+            display: inline; 
+            content: "*"; 
+            font-size: 1em; 
+            font-weight: bold;  
+             
+        }
+        .red{
+            background-color: red;
+        }
+        .green{
+            background-color: #00fe03;
+        }
+        .yellow{
+            background-color: yellow;
+        }
+        .gray{
+            background-color: #DCDCDC;
+        }
+        .status{
+            width:32%;
+            margin-left: 10px;
+            float:left;
+        }
+        .status2{
+            width:33%;
+            float:left;
+        }
+        .status3{
+            width:33%;
+            float:left;
+        }
+        .status4{
+            width:32%;
+            margin-left: 10px;
+            float:left;
+        }
+        .status5{
+            width:33%;
+            float:left;
+        }
+        .status6{
+            width:33%;
+            float:left;
+        }
+        .statusTM{
+            width:50%;
+            margin-left: 10px;
+            float:left;
+        }
+        .statusTM2{
+            width:49%;
+            float:left;
+        }
+        .statusTM4{
+            width:50%;
+            margin-left: 10px;
+            float:left;
+        }
+        .statusTM5{
+            width:49%;
+            float:left;
+        }
+        .status, .status2, .status3{
+            border:1px solid black;
+            display: block;
+            height: 120px;
+            padding: 5px 5px 5px 5px;
+            font-weight: bold;
+            font-size: 11px;
+            margin:0px;
+            padding-left:2px;
+            padding-right:2px;
+
+        }
+        .status, .status2{
+            border-right: none;
+        }
+        .status4, .status5, .status6{
+            border:1px solid black;
+            display: block;
+            height: 30px;
+            padding: 5px 5px 5px 5px;
+            font-weight: bold;
+            font-size: 11px;
+            margin:0px;
+            padding-left:2px;
+            padding-right:2px;
+
+        }
+
+        .status4, .status5{
+            border-right: none;
+        }
+        .statusTM4, .statusTM5{
+            border:1px solid black;
+            display: block;
+            height: 30px;
+            padding: 5px 5px 5px 5px;
+            font-weight: bold;
+            font-size: 11px;
+            margin:0px;
+            padding-left:2px;
+            padding-right:2px;
+
+        }
+        .statusTM, .statusTM2{
+            border:1px solid black;
+            display: block;
+            height: 120px;
+            padding: 5px 5px 5px 5px;
+            font-weight: bold;
+            font-size: 11px;
+            margin:0px;
+            padding-left: 2px;
+            padding-right: 2px;
+
+        }
+        .status li, .status2 li, .status3 li{
+            list-style-type: none;
+            text-decoration: none;
+            text-align: center;
+        }
+        .status4 li, .status5 li, .status6 li{
+            list-style-type: none;
+            text-decoration: none;
+            text-align: center;
+        }
+        .statusTM li, .statusTM2 li{
+            list-style-type: none;
+            text-decoration: none;
+            text-align: center;
+        }
+        .statusTM4 li, .statusTM5 li{
+            list-style-type: none;
+            text-decoration: none;
+            text-align: center;
+        }
+        .message{
+            padding-bottom: 5px;
+        }
+        .approvedtable{
+            padding-top: 5px;
+        }
+        .incentivevalues{
+            display:block;
+        }
+        .normal{
+            cursor:pointer;
+        }
+        .hover{
+            color: blue;
+            cursor:pointer;
+        }
+        
+        .incentivemessage{
+            font-size: 10px;
+        }
+        .incentivemessage:before{
+            bottom: 3px;
+            content: "(1)";
+            font-size: 8px;
+            position: relative;
+            top: -5px;  
+        }
+        .incentivemessage2{
+            font-size: 10px;
+        }       
+        .incentivemessage2:before{
+            bottom: 3px;
+            content: "*";
+            font-size: 8px;
+            position: relative;
+            top: -5px;  
+        }
+        .incentivemessagediv{
+            margin-left: 10px;
+        }
+        .pheader{
+            font-size: 30px;
+        }
+        .dtwheader:after{
+            bottom: 5px;
+            content: "*";
+            font-size: 8px;
+            position: relative;
+            top: -5px;
+        }
+        .dtwmessage:before{
+            bottom: 3px;
+            content: "*";
+            font-size: 8px;
+            position: relative;
+            top: -5px;  
+        }
+        .dtwmessage{
+            margin-left: 10px;
+            font-size: 10px;
+        }
+        
+        .table1{
+            float:left;
+            width: 50%;
+            height: auto;
+        }
+        
+        .raised1:after{
+            bottom: 3px;
+            content: "(1)";
+            font-size: 8px;
+            position: relative;
+            top: -8px;
+        }
+
+        .table2{
+            float:left;
+            width: 50%;
+            padding-left: 10px;
+        }
+        
+        
+        .column1{
+            width:200px;
+            text-align: left;
+        }
+        .column2{
+            width:75px;
+            text-align: right;
+        } 
+        .firstmessage{
+            float:right;
+        }
+        .metricstart{
+            float:left;
+        }
+        #isrreport{
+            text-align: left;
+        }
+        .right{
+            text-align:right;
+        }
+        .float{
+            float:left;
+            width:100%;
+        }
+        .plantypetable{
+            font-size: 10px;
+        }
+        .statusHeaders{
+            font-size: 11px;
+        }
+    </style>
+    <apex:includeScript value="{!$Resource.ECO_jQuery_1_11_2_min_js}"/>
+    <apex:includeScript value="{!URLFOR($Resource.ECO_jQueryUI_1_11_2, 'jquery-ui.min.js')}" />
+    <script>
+    $j = jQuery.noConflict();
+    $j(document).ready(function(){
+        $j( ".docheaderclass").click(function(){
+            $j(this).next().slideToggle(400);
+        });
+        $j(".clickheader").hover(function(){
+                $j(this).removeClass('normal').addClass('hover');
+            }, function(){
+                $j(this).removeClass('hover').addClass('normal');
+            });
+        
+    });
+        
+    </script>
+    
+    <apex:sectionHeader title="{!$Label.DTWINCSEMEnrollment_Plan_Summary}" subtitle="{!$Label.DTWINCSEMViewing_ISR_for}{!oEnrollmentPlan.IncentiveProject__r.Name}" help="http://my.aecomnet.com/portal/site/Intranet/menuitem.4bb5ad8d27dddb3d13bd6e20c43611ca/?vgnextoid=4699bc2ceae8e410VgnVCM100000089e1bacRCRD&vgnextchannel=c7e1b267a0f9c410VgnVCM100000089e1bacRCRD&vgnextfmt=default" />
+    <apex:form >
+    <apex:pageBlock >
+        <apex:pageBlockButtons location="both">
+      
+            <apex:commandButton value="{!$Label.DTWINCSEMIncentive_Calculator}" action="{!openCalculator}"  styleClass="hidebutton" rendered="{!oEnrollmentPlan.IncentivePlan__r.ContractType__c='Fixed Price'}"/>
+ 
+            <apex:commandButton Value="{!$Label.DTWINCSEMAcknowledge_Warning}" action="{!UpdateFlag}" rendered="{!oEnrollmentPlan.MetricWarningActive__c = 'Yes'}"/>
+            
+            <apex:CommandButton value="{!$Label.DTWINCSEMCLOSE}" action="{!close}"/>
+        </apex:pageBlockButtons>
+        
+<apex:pageBlockSection collapsible="true" title="{!$Label.DTWINCSEMEnrollment_Plan_Details}" id="section1">
+    <script>twistSection(document.getElementById("{!$Component.section1}").childNodes[0].childNodes[0]); </script>
+
+        <apex:outputField value="{!oEnrollmentPlan.Name}"/>
+        <apex:outputField value="{!oEnrollmentPlan.IncentiveProject__r.Name}" />
+        <apex:outputField value="{!oEnrollmentPlan.IncentiveProject__r.ProjectID__c}" />
+        <apex:outputField value="{!oEnrollmentPlan.IPProjectManager__c}" />
+        <apex:outputField value="{!oEnrollmentPlan.IncentiveProject__r.CustomerName__c}" />
+        <apex:outputField value="{!oEnrollmentPlan.ContractType__c}" />
+        <apex:outputField value="{!oEnrollmentPlan.OrgCarryingOutProject__c}" />
+        <apex:outputField value="{!oEnrollmentPlan.ProjectStartDate__c}" />
+        <apex:outputField value="{!oEnrollmentPlan.EnrollmentStatus__c}" />
+        <apex:outputField value="{!oEnrollmentPlan.ScheduledFinishDate__c}" />
+        <apex:outputText />
+</apex:pageBlockSection>
+<div>
+ 
+<apex:pageBlockSection title="{!$Label.DTWINCSEMIncentive_Status_Report}" collapsible="true" columns="1">
+<div class="content"> 
+      
+       <div class="message" >{!$label.DTWINCSEMMESSAGE1} <a href="https://myecosystem.aecom.com/ops/fwi/delex/Pages/d2w-dcs-participantresources.aspx?SectionId=26">{!$label.DTWINCSEMMESSAGE2}</a>
+       </div>
+    <apex:outputpanel rendered="{!IF(oEnrollmentPlan.IncentivePlan__r.ContractType__c='Fixed Price', true, false)}">
+        <div>
+        <div class="status {!sFirstMessageClass}">
+           
+           <li class="statusHeaders">{!$label.DTWINCSEMProject_performing_below_DTW_Baseline_margin} </li>
+           <li class="statusHeaders">(EAC margin % &lt; baseline margin %)</li>
+           <li>--------------------</li>
+           
+           <li>{!$label.DTWINCSEMBaseline_margin_is_the_expected_level}</li>
+        </div>
+        
+        <div class="status2 {!sSecondMessageClass}">
+          
+           <li class="statusHeaders">{!$label.DTWINCSEMProject_performing_above_Baseline_of_NSR_but_below_Threshold_of_NS}</li>
+           <li class="statusHeaders">(EAC margin &gt; baseline but &lt; threshold)</li>
+           <li>--------------------</li>
+           
+           <li>{!$label.DTWINCSEMThreshold_margin_is_the_minimum_margin_to_begin_to_generate_an_ince}</li>
+        </div>
+        <div class="status3 {!sThirdMessageClass}">
+       
+           <li class="statusHeaders">{!$label.DTWINCSEMProject_performing_above_Threshold_of_NSR}</li>
+           <li class="statusHeaders">(EAC margin &gt; threshold)</li>
+           <li>--------------------</li>
+         
+           <li>{!$label.DTWINCSEMCongratulations_Based_on_Forecast_EAC_this_project}</li>
+        </div>
+        </div>
+    </apex:outputpanel>
+    <apex:outputpanel rendered="{!IF(oEnrollmentPlan.IncentivePlan__r.ContractType__c='Fixed Price', true, false)}">
+        <div>
+        <div class="status4 {!sFirstMessageClass}">
+        
+           <li class="statusHeaders">{!$Label.DTWINCSEMBaseline_of_NSR}</li>
+           <li class="statusHeaders">{!oEnrollmentPlan.BaselineGMofNSR__c}%</li>
+        </div>
+        
+        <div class="status5 {!sSecondMessageClass}">
+        
+           <li class="statusHeaders">{!$Label.DTWINCSEMThreshold_of_NSR}</li>
+           <li class="statusHeaders">{!oEnrollmentPlan.ThresholdGM__c}%</li>
+        </div>
+        <div class="status6 {!sThirdMessageClass}">
+         
+           <li class="statusHeaders">{!$Label.DTWINCSEMEAC_of_NSR}</li>
+           <apex:outputPanel rendered="{!oEnrollmentPlan.IncentivePlan__r.ContractSubType__c='Gross Margin'}">
+           <li class="statusHeaders">{!oEnrollmentPlan.ForecastGrossMarginofNSR__c}%</li>
+           </apex:outputPanel>
+           <apex:outputPanel rendered="{!oEnrollmentPlan.IncentivePlan__r.ContractSubType__c='Net Margin'}">
+           <li class="statusHeaders">{!oEnrollmentPlan.ForecastNetMarginofNSR__c}%</li>
+           </apex:outputPanel>
+        </div>
+        </div>
+    </apex:outputpanel>
+        <apex:outputpanel rendered="{!IF(oEnrollmentPlan.IncentivePlan__r.ContractType__c='Fixed Price', false, true)}">
+        <div>
+        <div class="statusTM {!sFirstMessageClass}">
+       
+           <li class="statusHeaders">{!$label.DTWINCSEMProject_Performing_Below_Baseline_Margin}</li>
+           <li class="statusHeaders">(EAC Margin &lt; Baseline Margin)</li>
+           <li>--------------------</li>
+         
+           <li>{!$label.DTWINCSEMBaseline_margin_is_the_minimum_margin_required}</li>
+        </div>
+        <div class="statusTM2 {!sThirdMessageClass}">
+        
+           <li class="statusHeaders">{!$label.DTWINCSEMProject_Performing_Above_Baseline_Margin}</li>
+           <li class="statusHeaders">(EAC Margin &gt; Baseline Margin)</li>
+           <li>--------------------</li>
+         
+           <li>{!$label.DTWINCSEM_Congratulations_Based_on_the_latest_EAC_this_project_is_expected}-</li>
+        </div>
+        </div>
+    </apex:outputpanel>
+    <apex:outputpanel rendered="{!IF(oEnrollmentPlan.IncentivePlan__r.ContractType__c='Fixed Price', false, true)}">
+        <div>
+        <div class="statusTM4 {!sFirstMessageClass}">
+       
+           <li class="statusHeaders">{!$Label.DTWINCSEMBaseline_Margin}</li>
+           <li class="statusHeaders">{!oEnrollmentPlan.BaselineGrossMargin__c}</li>
+        </div>
+        <div class="statusTM5 {!sThirdMessageClass}">
+           <li class="statusHeaders">EAC Margin $</li>
+           <apex:outputPanel rendered="{!oEnrollmentPlan.IncentivePlan__r.ContractSubType__c='Gross Margin'}">
+           <li class="statusHeaders">{!oEnrollmentPlan.ForecastGrossMarginBudget__c}</li>
+           </apex:outputPanel>
+           <apex:outputPanel rendered="{!oEnrollmentPlan.IncentivePlan__r.ContractSubType__c='Net Margin'}">
+           <li class="statusHeaders">{!oEnrollmentPlan.ForecastNetMarginBudget__c}</li>
+           </apex:outputPanel>
+        </div>
+        </div>
+    </apex:outputpanel>
+    </div>
+    </apex:pageBlockSection>
+    <apex:pageBlockSection showHeader="false" collapsible="false" columns="2" rendered="{!PanelToRender=1}">
+        <!--<apex:outputField value="{!oEnrollmentPlan.IncentiveProject__r.ForecastNetMarginBudget__c}" rendered="{!bNMPlan}" />
+
+        <apex:outputField value="{!oEnrollmentPlan.IncentiveProject__r.ForecastGrossMarginBudget__c}" rendered="{!NOT(bNMPlan)}"/>
+
+        <apex:outputField value="{!oEnrollmentPlan.DSOTarget__c}" />
+        
+        <apex:outputField value="{!oEnrollmentPlan.BaselineGrossMargin__c}"/>
+        
+        <apex:outputField value="{!oEnrollmentPlan.FinalITDDSO__c}" />
+        
+        
+        <apex:outputtext value="" rendered="{!oEnrollmentPlan.IncentivePlan__r.ContractType__c='Fixed Price'}"/>
+        <apex:outputField value="{!oEnrollmentPlan.BaselineGMofNSR__c}" rendered="{!oEnrollmentPlan.IncentivePlan__r.ContractType__c='Fixed Price'}" />
+        
+        
+        <apex:pageBlockSectionItem helpText="{!$ObjectType.EnrollmentPlan__c.Fields.EstimatedIncentivePoolEAC__c.InlineHelpText}">
+        <apex:outputLabel for="eac" styleClass="raised1">{!$ObjectType.EnrollmentPlan__c.Fields.EstimatedIncentivePoolEAC__c.LABEL}</apex:outputLabel>
+        <apex:outputField id="eac" value="{!oEnrollmentPlan.EstimatedIncentivePoolEAC__c}"/>
+        </apex:pageBlockSectionItem>
+
+        <apex:outputField value="{!oEnrollmentPlan.ClientSatisfactionCurrent__c}" />
+        <apex:outputText value=""/>
+        <apex:outputField value="{!oEnrollmentPlan.ScoreOnSafetyforLifeMetrics__c}"/>
+        <apex:outputText value=""/>
+        <apex:outputField value="{!oEnrollmentPlan.ScoreOnSafetyforLifeMetricsCurrent__c}"/>
+        <apex:outputText value=""/>
+        <apex:outputField value="{!oEnrollmentPlan.NumberofParticipants__c}"/>
+        <apex:outputText value=""/>
+        <apex:outputField value="{!oEnrollmentPlan.IncentiveProject__r.DataRefreshDate__c}"/>
+        -->
+        <apex:pageBlockSectionItem helpText="{!sEstimatedEACHelp}">
+        <apex:outputLabel for="eac" styleClass="raised1">{!$ObjectType.EnrollmentPlan__c.Fields.EstimatedIncentivePoolEAC__c.LABEL}</apex:outputLabel>
+        <apex:outputField id="eac" value="{!oEnrollmentPlan.EstimatedIncentivePoolEAC__c}"/>
+        </apex:pageBlockSectionItem>
+        <apex:outputField value="{!oEnrollmentPlan.DSOTarget__c}" />
+        <apex:pageBlockSectionItem helpText="{!sMaximumEACHelp}">
+        <apex:outputLabel for="max">{!$ObjectType.EnrollmentPlan__c.Fields.MaxIncentivePool__c.LABEL}</apex:outputLabel>
+        <apex:outputField id="max" value="{!oEnrollmentPlan.MaxIncentivePool__c}" />
+        </apex:pageBlockSectionItem>
+        <apex:outputField value="{!oEnrollmentPlan.FinalITDDSO__c}" />
+
+        <apex:pageBlockSectionItem helpText="{!$ObjectType.EnrollmentPlan__c.fields.ClientSatisfactionDisplay__c.inlineHelpText}">
+                <!-- Localized version of commented formula field below -->
+                <apex:outputLabel value="{!$ObjectType.EnrollmentPlan__c.fields.ClientSatisfactionDisplay__c.label}" />
+                <apex:outputLabel value="{!$Label.DTWINCELCNPSO7}" />
+          </apex:pageBlockSectionItem>
+
+        <!-- <apex:outputField value="{!oEnrollmentPlan.ClientSatisfactionDisplay__c}" /> -->
+        <apex:outputField value="{!oEnrollmentPlan.ScoreOnSafetyforLifeMetrics__c}"/>
+        <apex:outputField value="{!oEnrollmentPlan.ClientSatisfactionCurrent__c}" />
+        <apex:outputField value="{!oEnrollmentPlan.ScoreOnSafetyforLifeMetricsCurrent__c}"/>
+    </apex:pageBlockSection>
+
+    <apex:pageBlockSection showHeader="false" collapsible="false" columns="2" rendered="{!PanelToRender=2}">
+        <apex:pageBlockSectionItem helpText="{!$ObjectType.IncentiveProject__c.Fields.ForecastNMofNSR__c.InlineHelpText}" rendered="{!bNMPlan}">
+        
+        <apex:outputLabel value="{!$Label.DTWINCSEMCurrent_EAC_Margin_of_NSR}" />
+        <apex:outputField value="{!oEnrollmentPlan.IncentiveProject__r.ForecastNMofNSR__c}"  />
+        </apex:pageBlockSectionItem>
+
+        <apex:pageBlockSectionItem helpText="{!$ObjectType.IncentiveProject__c.Fields.ForecastGrossMarginofNSR__c.InlineHelpText}" rendered="{!NOT(bNMPlan)}">
+        
+        <apex:outputLabel value="{!$Label.DTWINCSEMCurrent_EAC_Margin_of_NSR}" />
+        <apex:outputField value="{!oEnrollmentPlan.IncentiveProject__r.ForecastGrossMarginofNSR__c}" />
+        </apex:pageBlockSectionItem>
+        
+        <apex:pageBlockSectionItem helpText="{!$ObjectType.EnrollmentPlan__c.Fields.MaxIncentivePool__c.InlineHelpText}">
+        <apex:outputLabel for="eac" >{!$ObjectType.EnrollmentPlan__c.Fields.MaxIncentivePool__c.LABEL}</apex:outputLabel>
+        <apex:outputField id="eac" value="{!oEnrollmentPlan.MaxIncentivePool__c}"/>
+        </apex:pageBlockSectionItem> 
+
+        <apex:outputField value="{!oEnrollmentPlan.ThresholdGM__c}" rendered="{!NOT(bNMPlan)}" />
+        <apex:outputField value="{!oEnrollmentPlan.ThresholdNM__c}" rendered="{!bNMPlan}"/>
+
+        <apex:outputField value="{!oEnrollmentPlan.NumberofParticipants__c}"/>
+        
+        <apex:outputField value="{!oEnrollmentPlan.BaselineGMofNSR__c}" rendered="{!NOT(bNMPlan)}" />
+        
+        <apex:outputField value="{!oEnrollmentPlan.BaselineNMofNSR__c}" rendered="{!bNMPlan}"/>
+    
+        <apex:outputField value="{!oEnrollmentPlan.IncentiveProject__r.DataRefreshDate__c}"/>
+       
+        <apex:outputText value="{!EACvsBaseline}" label="{!$Label.DTWINCSEMEAC_Margin_vs_Baseline}" />
+        
+        <apex:outputText />
+       
+        <apex:outputText value="{!IF(oEnrollmentPlan.EEACGMPerformance__c == 'Above Threshold','Yes','No')}" label="{!$Label.DTWINCSEMIs_Project_Forecasting_an_Incentive}"/>
+    </apex:pageBlockSection>
+    
+    <!--<apex:pageBlockSection columns="1">
+    <apex:outputPanel id="inctable" layout="block">
+            <table id="incentivetable" class="table1">
+                <apex:repeat value="{!listIncValues}" var="incrow">
+                    <tr>
+                        <td class="column1 {!incrow.tdclass}">{!incrow.label}</td>
+                        <td class="column2">{!incrow.column1val}</td>
+                    </tr>
+                </apex:repeat>
+            </table>
+            <table id="incentivetable2" class="table2">
+                <apex:repeat value="{!listIncValuesTable2}" var="incrow2">
+                    <tr>
+                        <td class="column1 {!incrow2.tdclass}">{!incrow2.label}</td>
+                        <td class="column2">{!incrow2.column1val}</td>
+                    </tr>
+                </apex:repeat>
+            </table>
+    </apex:outputPanel>
+    </apex:pageblocksection> -->
+    <apex:pageBlockSection columns="1">
+     <apex:outputpanel >
+     <div class="firstmessage">
+       <apex:outputPanel rendered="{!AND(IF(oEnrollmentPlan.IncentivePlan__r.ContractType__c='Fixed Price', true, false),PanelToRender=1)}"> 
+            <p class="incentivemessage" >
+                {!sFootNote}
+            </p>
+        </apex:outputPanel>
+     <!--  <apex:outputPanel rendered="{!AND(IF(oEnrollmentPlan.IncentivePlan__r.ContractType__c='Time & Material', true, false),PanelToRender=1)}"> 
+            <p class="incentivemessage" >
+                The Estimated Incentive Pool shown here is calculated based on the latest Forecast Margin $ in comparison to the Baseline Margin $.  This is a point in time measure that changes with any subsequent EAC updates made by the PM.  Final incentive pool calculations are based on final project margin results, final margin as a percent of NSR, and assessment of operational metrics.   Approvers will assess operational metrics and margin % of NSR at project completion.
+            </p>
+        </apex:outputPanel> -->
+    </div>
+    </apex:outputpanel>
+</apex:pageBlockSection>
+ </div>
+<apex:outputPanel >
+<div class="metricstart">
+        <div id="Baseline">
+            <div class="tableheader docheaderclass">
+                <p class="pheader">
+               
+                
+                    <h1 class="clickheader dtwheader">{!$label.DTWINCSEMDeliver_to_Win_Baseline_Metrics}</h1>
+                </p>
+                <p>
+                    <table class="plantypetable">
+                      <tr>
+                        <td>{!$label.DTWINCSEMPlan_Type}: {!oEnrollmentPlan.IncentivePlan__r.ContractType__c}</td>
+                      </tr>
+                      <tr>
+                        <td>{!$label.DTWINCSEMMargin_Type}: {!oEnrollmentPlan.IncentivePlan__r.ContractSubType__c}</td>
+                      </tr>
+                    </table>
+                </p>
+            </div>
+            <div class="content">
+                <table class="metricTable">
+                    <tr class="headerrow">
+                        <th></th>
+                        <th>{!firstColumnHeader}</th>
+                        <th>{!$label.DTWINCSEMCurrent}</th>
+                        <th></th>
+                        <th>{!$label.DTWINCSEMVariance}</th>
+                        <th></th>
+                    </tr>
+                    <apex:repeat value="{!listBaseline}" var="basRow">
+                        <tr class="{!basRow.sClass}">
+                            <td class=" label {!basRow.tdclass}  {!basRow.labelclass}">{!basRow.Label}</td>
+                            <td class="{!basRow.tdclass} right">{!basRow.Column1Val}<span>%</span></td>
+                            <td class="{!basRow.tdclass} right">{!basRow.CurrentVal}<span>%</span></td>
+                            <td class="warning {!basRow.tdclass}"></td>
+                            <td class="{!basRow.tdclass} right">{!basRow.Variance}<span>%</span></td>
+                            <td class="warning {!basRow.tdclass}">
+                              <apex:outputText escape="false" value="{!basRow.imageCol2}"/>
+                            </td>
+                        </tr>
+                    </apex:repeat>
+                </table>
+                <p class="dtwmessage">
+                
+                    {!$label.DTWINCSEM_Includes_Management_Adjustments_if_any_Changes_in_budget_since}
+                </p>
+            </div>
+        </div>
+        <div id="Approved" class="approvedtable">
+            <div class="tableheader docheaderclass">
+                <p class="pheader">
+                
+                    <h1 class="clickheader">{!$LABEL.DTWINCSEMApproved_Budget}</h1>
+                </p>
+            </div>
+            <div class="content">
+                <table class="metricTable">
+                    <tr class="headerrow">
+                        <th></th>
+                        <th>{!firstColumnHeader}</th>
+                        
+                        <th>{!$label.DTWINCSEMCurrent}</th>
+                        <th></th>
+                        
+                        <th>{!$label.DTWINCSEMVariance}</th>
+                        <th></th>
+                    </tr>
+                    <apex:repeat value="{!listApproved}" var="appRow">
+                        <tr class="{!appRow.sClass}">
+                            <td class=" label {!appRow.tdclass}">{!appRow.Label}</td>
+                            <td class="{!appRow.tdclass}">{!appRow.Column1Val}<span>%</span></td>
+                            <td class="{!appRow.tdclass}">{!appRow.CurrentVal}<span>%</span></td>
+                            <td class="warning {!appRow.tdclass}"></td>
+                            <td class="{!appRow.tdclass}">{!appRow.Variance}<span>%</span></td>
+                            <td class="warning {!appRow.tdclass}">
+                                <apex:outputText escape="false" value="{!appRow.imageCol2}"/>
+                            </td>
+                        </tr>
+                    </apex:repeat>
+                </table>
+            </div>
+        </div>
+        <div id="Forcasted">
+            <div class="tableheader docheaderclass">
+                <p class="pheader">
+                    <h1 class="clickheader">{!$Label.DTWForecastedBudget}</h1>
+                </p>
+            </div>
+            <div class="content">
+                <table class="metricTable">
+                    <tr class="headerrow">
+                        <th></th>
+                        <th>{!firstColumnHeader}</th>
+                       
+                        <th>{!$label.DTWINCSEMCurrent}</th>
+                        <th></th>
+                         
+                        <th>{!$label.DTWINCSEMVariance}</th>
+                        <th></th>
+                    </tr>
+                    <apex:repeat value="{!listForecasted}" var="forRow">
+                        <tr class="{!forRow.sClass}">
+                            <td class=" label {!forRow.tdclass}">{!forRow.Label}</td>
+                            <td class="{!forRow.tdclass}">{!forRow.Column1Val}<span>%</span></td>
+                            <td class="{!forRow.tdclass}">{!forRow.CurrentVal}<span>%</span></td>
+                            <td class="{!forRow.tdclass}">{!forRow.imageCol1}</td>
+                            <td class="{!forRow.tdclass}">{!forRow.Variance}<span>%</span></td>
+                            <td class="{!forRow.tdclass}">{!forRow.imageCol2}</td>
+                        </tr>
+                    </apex:repeat>
+                </table>
+            </div>
+        </div>
+        <div id="Actual">
+            <div class="tableheader docheaderclass">
+                <p class="pheader">
+               
+                    <h1 class="clickheader">{!$label.DTWINCSEMInception_to_Date_Actuals}</h1>
+                </p>
+            </div>
+            <div class="content">
+                <table class="metricTable">
+                    <tr class="headerrow">
+                        <th></th>
+                        <th>{!firstColumnHeader}</th>
+                         
+                        <th>{!$label.DTWINCSEMCurrent}</th>
+                        <th></th>
+                        
+                        <th>{!$label.DTWINCSEMVariance}</th>
+                        <th></th>
+                    </tr>
+                    <apex:repeat value="{!listActuals}" var="appRow">
+                        <tr class="{!appRow.sClass}">
+                            <td class=" label {!appRow.tdclass}">{!appRow.Label}</td>
+                            <td class="{!appRow.tdclass}">{!appRow.Column1Val}<span>%</span></td>
+                            <td class="{!appRow.tdclass}">{!appRow.CurrentVal}<span>%</span></td>
+                            <td class="{!appRow.tdclass}">{!appRow.imageCol1}</td>
+                            <td class="{!appRow.tdclass}">{!appRow.Variance}<span>%</span></td>
+                            <td class="{!appRow.tdclass}">{!appRow.imageCol2}</td>
+                        </tr>
+                    </apex:repeat>
+                </table>
+            </div>
+        </div>
+</div>
+</apex:outputPanel>
+<div class="float">
+           
+    <apex:pageBlockSection title="{!$Label.DTWINCSEMIncentive_Plan_Details}"  id="section2"  collapsible="true" columns="1" showHeader="true"> 
+        <script>twistSection(document.getElementById("{!$Component.section2}").childNodes[0].childNodes[0]); </script>
+            <apex:outputField value="{!oEnrollmentPlan.IncentivePlan__r.Name}"/>
+            <apex:outputField value="{!oEnrollmentPlan.IncentivePlan__r.ContractType__c}"/>
+            <apex:outputField value="{!oEnrollmentPlan.IncentivePlan__r.ContractSubType__c}"/>
+            <apex:outputField value="{!oEnrollmentPlan.IncentivePlan__r.ProfitSharingPercent__c}" />
+        <apex:pageBlockSection showHeader="false" columns="1">
+            <apex:outputField value="{!oEnrollmentPlan.IncentivePlan__r.HelpText__c}"/>
+            <apex:outputField value="{!oEnrollmentPlan.IncentivePlan__r.PlanCriteria__c}"/>
+        </apex:pageBlockSection>
+    </apex:pageBlockSection>
+</div>
+</apex:pageBlock> 
+</apex:form>
+</apex:page>

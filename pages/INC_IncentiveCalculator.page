@@ -1,0 +1,285 @@
+<apex:page showHeader="true" sidebar="true">
+ <style>
+ input:focus{
+    background-color: yellow;
+ }
+ #calctables table th{
+    background-color: #4747A3;
+    border: 1px solid black;
+    text-align: center;
+    color:white;
+    font-size: 10px;
+ }
+ #calctables table td{
+    border: 1px solid black;
+ }
+ #calctables .blankheader{
+    background: none;
+    border:none;
+ }
+ #calctables .blank{
+    border:none;
+ }
+ </style>
+ <apex:includeScript value="{!$Resource.ECO_jQuery_1_11_2_min_js}"/>
+ <apex:includeScript value="{!URLFOR($Resource.ECO_jQueryUI_1_11_2, 'jquery-ui.min.js')}" />
+   
+<apex:form >
+<script type="text/javascript">
+    function calcpercent(){
+        var percent = $j("#peratenroll").val();
+        percent = 100 - percent;
+        $j("#costRemaining").text(percent);
+        
+    }
+    Number.prototype.formatMoney = function(c, d, t){
+    var n = this, 
+    c = isNaN(c = Math.abs(c)) ? 2 : c, 
+    d = d == undefined ? "." : d, 
+    t = t == undefined ? "," : t, 
+    s = n < 0 ? "-" : "", 
+    i = parseInt(n = Math.abs(+n || 0).toFixed(c)) + "", 
+    j = (j = i.length) > 3 ? j % 3 : 0;
+   return s + (j ? i.substr(0, j) + t : "") + i.substr(j).replace(/(\d{3})(?=\d)/g, "$1" + t) + (c ? d + Math.abs(n - i).toFixed(c).slice(2) : "");
+    };
+    function calcbudget(){
+        //first grab all fields and remove any formatting
+        var nsrbudget = $j("#nsrbudget").val();
+        nsrbudget = nsrbudget.replace(/[^\d\.-]/g,'');
+        var laborbudget = $j("#laborbudget").val();
+        laborbudget = laborbudget.replace(/[^\d\.-]/g,'');
+        var nsrNumber = parseFloat(nsrbudget);
+        var laborNumber = parseFloat(laborbudget);
+        var grossMargin = nsrNumber - laborNumber;
+        var grossNumber = parseFloat(grossMargin);
+        var nsrper = (grossMargin/nsrNumber)*100;
+        var holdnsrper = (grossMargin/nsrNumber);
+        //format all values then put back on page
+        var txtfield = nsrNumber.formatMoney(0, '.', ',');
+        $j("#nsrbudget").val(txtfield);
+        txtField = laborNumber.formatMoney(0, '.', ',');
+        $j("#laborbudget").val(txtField);
+        txtField = grossNumber.formatMoney(0, '.', ',');
+        $j("#grossbudget").text(txtField);
+        $j("#pergmbudget").text(parseFloat(nsrper).toFixed(2));
+        $j("#gmperatbudget").text(parseFloat(nsrper).toFixed(2));
+        nsrper = nsrper + 2;
+        var holdthresholdper = holdnsrper + .02;
+        $j("#thresholdgm").text(parseFloat(nsrper).toFixed(2));
+        
+        //forcast
+        var nsrbudget = $j("#nsrforecast").val();
+        nsrbudget = nsrbudget.replace(/[^\d\.-]/g,'');
+        var laborbudget = $j("#laborforecast").val();
+        laborbudget = laborbudget.replace(/[^\d\.-]/g,'');
+        var nsrNumber = parseFloat(nsrbudget);
+        var laborNumber = parseFloat(laborbudget);
+        var grossMargin = nsrNumber - laborNumber;
+        var grossNumber = parseFloat(grossMargin);
+        var nsrper = (grossMargin/nsrNumber)*100;
+        var baselinegmdol = nsrbudget * (holdnsrper);
+        var thresholdgmdol = nsrbudget * holdthresholdper;
+        //format all values then put back on page
+        var txtfield = nsrNumber.formatMoney(0, '.', ',');
+        $j("#nsrforecast").val(txtfield);
+        txtField = laborNumber.formatMoney(0, '.', ',');
+        $j("#laborforecast").val(txtField);
+        txtField = grossNumber.formatMoney(0, '.', ',');
+        $j("#grossforcast").text(txtField);
+        $j("#pergmforecast").text(parseFloat(nsrper).toFixed(2));
+        txtField = parseFloat(baselinegmdol).formatMoney(0, '.', ',');
+        $j("#baselinegmdol").text(txtField);
+        txtField = parseFloat(thresholdgmdol).formatMoney(0, '.', ',');
+        $j("#thresholdgmdol").text(txtField);
+
+        //more complicated formulas
+        //Incremental gm$
+        var c13 = $j("#pergmforecast").text();
+        var b19 = $j("#pergmbudget").text();
+        var nc13 = parseFloat(c13);
+        var nb19 = parseFloat(b19);
+        if(nc13 > nb19){
+            var c12 = $j("#grossforcast").text();
+            var b25 = $j("#baselinegmdol").text();
+            c12 = c12.replace(/[^\d\.-]/g,'');
+            b25 = b25.replace(/[^\d\.-]/g,'');
+            var nc12 = parseFloat(c12);
+            var nb25 = parseFloat(b25);
+            var b29 = nc12-nb25;
+            $j("#incgmdol").text(b29.formatMoney(0, '.',','));
+        }else{
+            $j("#incgmdol").text('');
+        }
+
+        //max incentive Pool
+        var c10 = $j("#nsrforecast").val();
+        c10 = c10.replace(/[^\d\.-]/g,'');
+        var val1 = c10 * .03;
+        var c6 = $j('#peratenroll').val();
+        c6 = c6.replace(/[^\d\.-]/g,'');
+        c6 = c6/100;
+        var val2 = 1 - c6;
+        var val3 = val1 * val2;
+        var nVal2 = parseFloat(val3);
+        $j('#maxincpool').text(nVal2.formatMoney(0, '.' , ','));
+        
+        //Estimated Incentive pool
+        var c12 = parseFloat($j("#grossforcast").val().replace(/[^\d\.-]/g,''));
+        
+        var b27 = parseFloat($j("#thresholdgm").text().replace(/[^\d\.-]/g,''));
+        var c10 = parseFloat($j("#nsrforecast").val().replace(/[^\d\.-]/g,''));
+        var c12 = parseFloat($j("#grossforcast").text().replace(/[^\d\.-]/g,''));
+        
+        var c13 = c12/c10;
+
+
+        var b12 = parseFloat($j("#grossbudget").text().replace(/[^\d\.-]/g,''));
+        var b10 = parseFloat($j("#nsrbudget").val().replace(/[^\d\.-]/g,''));
+        var b13 = b12/b10;
+
+        var c6  = parseFloat($j("#peratenroll").val().replace(/[^\d\.-]/g,''));
+        c6 = c6 / 100;
+        var b23 = parseFloat($j("#maxincpool").text().replace(/[^\d\.-]/g,''));
+
+        var b27 = parseFloat($j("#thresholdgmdol").text().replace(/[^\d\.-]/g,''));
+        
+        var val = 0;
+        if(c12 > b27){
+            if(((c10*(c13-b13))*0.5*(1-c6)) > b23){
+                val = b23;
+            }else{
+                val = ((c10*(c13-b13))*0.5*(1-c6));
+            }
+        }
+        
+        $j("#estincentivepool").text(val.formatMoney(0, '.' , ','));
+        
+    }
+    
+</script>
+<script>
+    
+    $j = jQuery.noConflict();
+    $j(document).ready(function(){
+        $j( "#peratenroll").blur(function(){
+            calcpercent();
+            calcbudget();
+        });
+        $j(".budgetinput").blur(function(){
+            calcbudget();
+        });
+    });
+</script>
+  <div id="calctables">
+    <table id="percentcompletetable">
+        <tr>
+            <td class="blank">
+            
+                {!$label.DTWINCICPCE} 
+            </td>
+            <td>
+            
+                <input class="inputfield" id="peratenroll" type="text" name="{!$label.DTWINCICpercentComAtEnrollment}"/>
+            </td>
+            </tr>
+        <tr>
+            <td class="blank">
+          
+               {!$label.DTWINCICPOPCR}
+            </td>
+            <td>
+                <output id="costRemaining"></output>
+            </td>
+       </tr>
+    </table>
+    <table>
+        <tr>
+            <th class="blankheader"></th>
+            
+            <th>{!$label.DTWINCICBudget}</th>
+           
+            <th>{!$label.DTWINCICCEOFR}</th>
+        </tr>
+        <tr>
+           
+            <td class="blank">{!$label.DTWINCICNSR}</td>
+            <td><input type="text" class="budgetinput inputfield" id="nsrbudget"></input></td>
+            <td><input class="budgetinput inputfield" id="nsrforecast"></input></td>
+        </tr>
+        <tr>
+        
+            <td class="blank">{!$label.DTWINCICDPE}</td>
+            <td><input class="budgetinput inputfield" id="laborbudget"></input></td>
+            <td><input class="budgetinput inputfield" id="laborforecast"></input></td>
+        </tr>
+        <tr>
+         
+            <td class="blank">{!$label.DTWINCICDPE} </td>
+            <td id="grossbudget"></td>
+            <td id="grossforcast"></td>
+        </tr>
+        <tr>
+        
+            <td class="blank">{!$label.DTWINCICGMNSR}</td>
+            <td id="pergmbudget"></td>
+            <td id="pergmforecast"></td>
+        </tr>
+    </table>
+    <table>
+        <tr>
+        
+            <th class="blankheader"></th>
+            <th>{!$label.DTWINCICAtBudget}</th>
+            <th class="blankheader"></th>
+        </tr>
+        <tr>
+       
+            <td class="blank">{!$label.DTWINCICBGM}</td>
+            <td id="gmperatbudget"></td>
+            <td class="blank"></td>
+        </tr>
+        <tr>
+       
+            <td class="blank">{!$label.DTWINCICTGM}</td>
+            <td id="thresholdgm"></td>
+            <td class="blank"></td>
+        </tr>
+        <tr>
+       
+            <td class="blank">{!$label.DTWINCICTGM}</td>
+            <td id="estincentivepool"></td>
+            
+            <td class="blank">{!$label.DTWINCICACFPB}</td>
+        </tr>
+        <tr>
+         
+            <td class="blank">{!$label.DTWINCICACFPB}</td>
+            <td id="maxincpool"></td>
+           
+            <td class="blank">{!$label.DTWINCICACF3ON}</td>
+        </tr>
+        <tr>
+         
+            <td class="blank">{!$label.DTWINCICBGMDOLLAR}</td>
+            <td id="baselinegmdol"></td>
+           
+            <td class="blank">{!$label.DTWINCICACF} </td>
+        </tr>
+        <tr>
+       
+            <td class="blank">{!$label.DTWINCICTGMDOLLAR} </td>
+            <td id="thresholdgmdol"></td>
+           
+            <td class="blank">{!$label.DTWINCICACF}</td>
+        </tr>
+        <tr>
+       
+            <td class="blank">{!$label.DTWINCICIGMITA} </td>
+            <td id="incgmdol"></td>
+           
+            <td class="blank">{!$label.DTWINCICMEATBGM}</td>
+        </tr>
+    </table>
+  </div>
+</apex:form>    
+</apex:page>

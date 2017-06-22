@@ -1,0 +1,228 @@
+<apex:component >
+    <style type="text/css">
+        /* New Additions for myEcosystem Header 3/28/2016 Chris Ferguson */
+			/* temporary, set container width to TPN width */
+            html {
+                background-color: #000;
+                margin: auto;
+                max-width: 1500px;
+            }
+			/* permanent code below */
+			@font-face {
+			    font-family: "aecom-sans";
+			    font-weight: 200;
+			    src: url("{!URLFOR($Resource.MES_HeaderAssets, 'MES_HeaderAssets/fonts/AECOMSans_V1.000/EOT/AECOMSans_W_Lt.eot')}") format("eot"), url("{!URLFOR($Resource.MES_HeaderAssets, 'MES_HeaderAssets/fonts/AECOMSans_V1.000/WOFF/AECOMSans_W_Lt.woff')}") format("woff"), url("{!URLFOR($Resource.MES_HeaderAssets, 'MES_HeaderAssets/fonts/AECOMSans_V1.000/TTF/AECOMSans_W_Lt.ttf')}") format("truetype");
+			}
+			@font-face {
+			    font-family: "aecom-sans";
+			    font-style: italic;
+			    font-weight: 200;
+			    src: url("{!URLFOR($Resource.MES_HeaderAssets, 'MES_HeaderAssets/fonts/AECOMSans_V1.000/EOT/AECOMSans_W_LtIt.eot')}") format("eot"), url("{!URLFOR($Resource.MES_HeaderAssets, 'MES_HeaderAssets/fonts/AECOMSans_V1.000/WOFF/AECOMSans_W_LtIt.woff')}") format("woff"), url("{!URLFOR($Resource.MES_HeaderAssets, 'MES_HeaderAssets/fonts/AECOMSans_V1.000/TTF/AECOMSans_W_LtIt.ttf')}") format("truetype");
+			}
+			@font-face {
+			    font-family: "aecom-sans";
+			    font-weight: 400;
+                src: url("{!URLFOR($Resource.MES_HeaderAssets, 'MES_HeaderAssets/fonts/AECOMSans_V1.000/EOT/AECOMSans_W_Rg.eot')}") format("eot"), url("{!URLFOR($Resource.MES_HeaderAssets, 'MES_HeaderAssets/fonts/AECOMSans_V1.000/WOFF/AECOMSans_W_Rg.woff')}") format("woff"), url("{!URLFOR($Resource.MES_HeaderAssets, 'MES_HeaderAssets/fonts/AECOMSans_V1.000/TTF/AECOMSans_W_Rg.ttf')}") format("truetype");
+			}
+			@font-face {
+			    font-family: "aecom-sans";
+			    font-style: italic;
+			    font-weight: 400;
+			    src: url("{!URLFOR($Resource.MES_HeaderAssets, 'MES_HeaderAssets/fonts/AECOMSans_V1.000/EOT/AECOMSans_W_It.eot')}") format("eot"), url("{!URLFOR($Resource.MES_HeaderAssets, 'MES_HeaderAssets/fonts/AECOMSans_V1.000/WOFF/AECOMSans_W_It.woff')}") format("woff"), url("{!URLFOR($Resource.MES_HeaderAssets, 'MES_HeaderAssets/fonts/AECOMSans_V1.000/TTF/AECOMSans_W_It.ttf')}") format("truetype");
+			}
+			@font-face {
+			    font-family: "aecom-sans";
+			    font-weight: 800;
+			    src: url("{!URLFOR($Resource.MES_HeaderAssets, 'MES_HeaderAssets/fonts/AECOMSans_V1.000/EOT/AECOMSans_W_Bd.eot')}") format("eot"), url("{!URLFOR($Resource.MES_HeaderAssets, 'MES_HeaderAssets/fonts/AECOMSans_V1.000/WOFF/AECOMSans_W_Bd.woff')}") format("woff"), url("{!URLFOR($Resource.MES_HeaderAssets, 'MES_HeaderAssets/fonts/AECOMSans_V1.000/TTF/AECOMSans_W_Bd.ttf')}") format("truetype");
+			}
+			@font-face {
+			    font-family: "aecom-sans";
+			    font-style: italic;
+			    font-weight: 800;
+				src: url("{!URLFOR($Resource.MES_HeaderAssets, 'MES_HeaderAssets/fonts/AECOMSans_V1.000/EOT/AECOMSans_W_BdIt.eot')}") format("eot"), url("{!URLFOR($Resource.MES_HeaderAssets, 'MES_HeaderAssets/fonts/AECOMSans_V1.000/WOFF/AECOMSans_W_BdIt.woff')}") format("woff"), url("{!URLFOR($Resource.MES_HeaderAssets, 'MES_HeaderAssets/fonts/AECOMSans_V1.000/TTF/AECOMSans_W_BdIt.ttf')}") format("truetype");
+			}	
+			body, button, input, select, textarea, table, td, b {
+			    font-family: aecom-sans,Arial,sans-serif !important;
+			}	
+
+			.ecosysTitle{
+				margin-top: 1em;
+			}
+			.ecosysTitle h3{
+			    color: #999b9d;
+			    font-size: 2em;
+			    font-weight: 400;
+			    margin: 0 0 1em;
+			}
+			.ecosysTitle{
+				margin-top: 1em;
+			}
+			.ecosysTitle h3{
+			    color: #999b9d;
+			    font-size: 2em;
+			    font-weight: 400;
+			    margin: 0 0 1em;
+			}
+			.smart-links { 
+				float:left;
+			}
+			.header-logo .nav > li {
+			    display: block;
+			    float: left;
+			    position: relative; padding-top:5px;
+			}
+			.smart-links i{ font-size:16px;}	
+			.smart-links .nav > li > a {
+			    display: block;
+			    padding: 10px 10px;
+			    position: relative;
+			}
+			div.top-navigation-menu{
+				background-color: #f2fbfe;
+			}
+			div.ecosysTopHeader{
+				background-color: #ccf0fa;
+				height: 66px;
+				background-image: url('{!URLFOR($Resource.MES_HeaderAssets, 'images/headerBrand.png')}');
+				background-repeat: no-repeat;
+				background-position: 256px 0;	
+				position: relative;
+				padding-left: 15px;
+			    padding-right: 15px;
+			    overflow: hidden;
+			}
+			div.ecosysTopHeader .aecomTitle{
+				background-image: url('{!URLFOR($Resource.MES_HeaderAssets, 'images/aecomHeader.png')}');
+				background-position: 0 11px;
+			    background-repeat: no-repeat;
+			    display: block;
+			    font-weight: 600;
+			    height: 50px;
+			    padding-top: 40px;
+			    font-size: 14px;
+			    float: left;
+			    min-width: 124px;
+			    cursor: pointer;
+			}
+			div.ecosysTopHeader .ecosysTitle{
+				float: right;
+				background-image: url('{!URLFOR($Resource.MES_HeaderAssets, 'images/ecosystemLogoTPN.png')}');
+			    background-repeat: no-repeat;
+			    background-size: 177px 33px;
+				height: 33px;
+				width: 177px;
+			    position: relative;
+			    cursor: pointer;
+			}
+			div.ecosysBottomHeader .ecosysSearchContainer{	
+				float: right;
+				height: 48px;
+				border-left: solid 1px #b2b2b2;
+				padding: 10px 0px 0px 20px;
+				position: relative;
+			}
+			div.ecosysBottomHeader .ecosysSearchContainer .ecosysSearchBox{
+				background-color: #fff;
+				font-size: 16px;
+				color: #666666;
+				border: 0px;	
+				width: 300px;
+				height: 21px;
+			}
+			div.ecosysBottomHeader .ecosysSearchContainer button[type="button"] {
+			    background-image: url('{!URLFOR($Resource.MES_HeaderAssets, 'images/searchGo.png')}');
+			    border: medium none !important;
+			    height: 17px !important;
+			    width: 17px !important;    
+			    outline: medium none !important;
+			    position: absolute !important;
+			    right: 5px;
+			    top: 14px;
+			}
+			div.ecosysBottomHeader{
+				background-color: #66d3ef;
+				height: 49px;
+				background-image: url('{!URLFOR($Resource.MES_HeaderAssets, 'images/headerBrand.png')}');
+				background-repeat: no-repeat;
+				background-position: 256px -66px;
+				padding-left: 0px;
+			    padding-right: 15px;
+			    overflow: hidden;
+			}
+			.smart-links .nav > li{
+				padding-top: 0px;
+			}
+			.smart-links .nav > li > a.ecosysHeaderIcon{
+				padding: 7px 25px 0px 0px;
+				text-decoration: none;
+			}
+			.ecosysBottomHeader .navbar-top-links{
+				margin: 0px 0px 0px 10px;
+				padding: 0px;
+			}
+			.ecosysHeaderButton{
+				display: block;
+				height: 20px;
+				min-width: 27px;
+				background-position: center top;
+				background-repeat: no-repeat;
+				font-size: 8px;
+				color: #f3fbfd;
+				text-align: center;
+				padding-top: 23px;
+			}
+			.ecosysOutlook .ecosysHeaderButton{
+                background-image: url('{!URLFOR($Resource.MES_HeaderAssets, 'images/iconOutlook.png')}');
+			}
+			.ecosysEPM .ecosysHeaderButton{
+                background-image: url('{!URLFOR($Resource.MES_HeaderAssets, 'images/iconEPM.png')}');
+			}
+			.nav > li > a:focus, .nav > li > a:hover {
+			    background-color: transparent;
+			}
+			.navbar-top-links a{
+				outline: 0;
+			}	
+		</style>
+        <script type="text/javascript">
+            /* New Additions for myEcosystem Header 3/28/2016 Chris Ferguson */
+			function doSmartSearch() {
+				var fullurl = "https://aecom--c.na13.visual.force.com/apex/ECO_SmartSearch#q=";
+				var query = document.getElementById('ecosysSearchBox').value;
+				var newurl = fullurl + query + "&t=All&sort=relevancy";
+				var win = window.open(newurl, '_blank');
+				win.focus();
+			}
+		</script>
+		<!-- New Header for myEcosystem 3/28/2016 Chris Ferguson :: Updated 3/30/2016 Michael Wolf -->
+        <div>
+            <div id="header" class="s4-notdlg">
+                <div class="ecosysTopHeader">
+                    <span class="ecosysTitle" onclick="window.location='https://myecosystem.aecom.com';"></span>
+                    <span class="aecomTitle" onclick="window.location='https://myecosystem.aecom.com';"><span class="">Built to deliver a better world</span></span>			
+                </div>
+            <div class="ecosysBottomHeader">			
+                    <div class="ecosysSearchContainer" style="display:none;">
+                        <input id="ecosysSearchBox" class="ecosysSearchBox" placeholder=" SmartSearch" onkeypress="if(event.keyCode==13){doSmartSearch();return false;}" type="text" />
+                            <button type="button" onclick="doSmartSearch();">	</button>
+                    </div>
+                    <div class="header-logo">
+                        <div class="smart-links">
+                            <ul class="nav navbar-top-links">
+                                <li class="">
+                                    <a href="outlook:Inbox" class="ecosysHeaderIcon ecosysOutlook" style="display:none;">
+                                        <span class="ecosysHeaderButton">OUTLOOK</span>
+                                    </a>
+                                </li>
+                                <li class="">
+                                    <a href="http://ecosystem.aecom.com/" target="_blank" class="ecosysHeaderIcon ecosysEPM" style="display:none;">
+                                        <span class="ecosysHeaderButton">ePM</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>	
+            </div>
+        </div>
+</apex:component>

@@ -1,0 +1,39 @@
+<apex:page sidebar="false" showHeader="false" contentType="text/javascript" applyHtmlTag="false" applyBodyTag="false" standardStylesheets="false" controller="IntranetDataServiceController">
+processSalesforceJSONP({
+    "User":
+    [
+    	{
+    		"name": "{!theUser.Name}"
+    		,"photoUrl": "{!photoUrl}"
+    		,"accountId": "{!theUser.Id}"
+    		,"email": "{!theUserEmail}"
+        	,"applications": [<apex:repeat value="{!applications}" var="app" >
+                                <apex:outputPanel rendered="{!!app.IsHidden__c}" layout="none">
+                                    {"appStyle": "{!app.Application__r.NetworkRequirement__c} {!IF(app.Application__r.MobileEnabled__c, '', 'hiddenOnMobile')}"
+                                    ,"url": "{!app.Application__r.ApplicationURL__c}"
+                                    ,"image": "{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/img/loader.gif')}"
+                                    ,"idk": "{!URLFOR($Resource.ECO_CustomGraphicAssets, app.Application__r.ImageName__c)}"
+                                    ,"name": "{!$Label[app.Application__r.ApplicationName__c]}"},
+                                </apex:outputPanel>
+    						</apex:repeat>{}]
+    		,"approvals": [<apex:repeat value="{!approvals}" var="approval" >
+                              	{"approvalTask": "{!approval.ProcessInstance.TargetObject.Name}"
+    							,"approvalStatus" :"{!approval.ProcessInstance.Status}"},
+                           </apex:repeat><apex:outputPanel rendered="{!approvals.size > 0}" layout="none">{}</apex:outputPanel>]
+    		,"tasks": [<apex:repeat value="{!tasks}" var="task" >    						 
+                                 {"id": "{!task.id}"
+                                 ,"name": "{!task.What.Name}"
+                                 ,"subject": "{!task.Subject}"
+                                 ,"activityDate": "{!task.ActivityDate}"
+                                 ,"priority": "{!task.Priority}"},                             
+                       </apex:repeat><apex:outputPanel rendered="{!tasks.size > 0}" layout="none">{}</apex:outputPanel>]
+    		,"alerts": [<apex:repeat value="{!alerts}" var="alert" >
+                                {"href": "{!alert.LinkToRecord__c}"
+    							,"projectNumber": "{!alert.Project_Number__c}"
+    							,"subject": "{!alert.Subject__c}"
+    							,"description": "{!alert.LongDescriptionMaxLength__c}"},
+                         </apex:repeat><apex:outputPanel rendered="{!alerts.size > 0}" layout="none">{}</apex:outputPanel>]
+    	}
+    ] 
+});
+</apex:page>

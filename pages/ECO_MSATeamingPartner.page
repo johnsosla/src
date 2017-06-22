@@ -1,0 +1,67 @@
+<apex:page standardcontroller="MSATeamingPartner__c" extensions="ECO_MSATeamingPartnerController,nttdcore.DLabelParentController" action="{!init}" >
+
+	<style>
+        .customHelpIcon
+        {
+            display:inline-block;
+            margin:0 5px 0 0;
+            width:24px;
+            height:24px;
+            vertical-align:top !important;
+        }
+        /* CUSTOM HELP / GUIDANCE TEXT BOX */
+        .customHelpText{
+            padding: 7px;
+            border: 1px solid #85B3CE;
+            min-height: 10px;
+            display: block;
+            width: auto;
+            margin: 0 0 5px 0;
+            background-repeat: no-repeat;
+            border-radius: 4px;
+            background-color: #A2D3F1;
+            
+        }
+        .customHelpBody{
+            display:inline-block;
+            color:#;
+            max-width:95%;
+        }   
+
+	</style>
+
+	<nttdcore:DLabel name="DL1" default="MSA Teaming Partner Edit" labelParent="{!this}" /><nttdcore:DLabel name="DL2" default="{{1}}({{2}})" labelParent="{!this}" p1="{!agreement.ContractTitle__c}" p2="{!agreement.AgreementNumber__c}" /><apex:sectionheader title="{!dLabel['DL1']}" subtitle="{!dLabel['DL2']}" />
+	<apex:form >	
+        <div class="customHelpText" >
+            <div class="customHelpBody" ><nttdcore:DLabel name="DL3" default="If applicable, add any teaming partner(s) related to the MSA that Project Managers should be aware of when executing task order projects.  This could include vendors or subs that were included as part of the proposal during pursuit of the MSA and have been approved by the client.  Note any special arrangements with the teaming partner in the Comments field so all project team members are aware of any obligations to the partner." labelParent="{!this}" /><nttdcore:DLabel name="DL4" default="Attach any relevant contracts documents with the teaming partner, such as teaming agreements or executed contracts, to the Contracts section on the home page." labelParent="{!this}" />
+{!dLabel['DL3']}<br/><br/>
+
+{!dLabel['DL4']} 
+            </div>
+        </div> 
+
+	<apex:pageBlock ><nttdcore:DLabel name="DL7" default="Contact Information" labelParent="{!this}" />
+		<apex:pageBlockButtons >
+			<nttdcore:DLabel name="DL5" default="Save" labelParent="{!this}" /><apex:commandButton value="{!dLabel['DL5']}" action="{!save}" />
+			<nttdcore:DLabel name="DL6" default="Return to MSA" labelParent="{!this}" /><apex:commandButton value="{!dLabel['DL6']}" action="{!cancel}" />
+		</apex:pageBlockButtons>
+			
+		<apex:pageBlockSection collapsible="false" >
+			<apex:inputField value="{!MSATeamingPartner__c.Account__c}" />
+			<apex:inputField value="{!MSATeamingPartner__c.Comments__c}" />		
+		</apex:pageBlockSection>
+		
+		<apex:pageBlockSection title="{!dLabel['DL7']}" collapsible="false" >
+			<apex:inputField value="{!MSATeamingPartner__c.Contact_Name__c}" />			
+			<apex:inputField value="{!MSATeamingPartner__c.Role__c}" />		
+			<apex:inputField value="{!MSATeamingPartner__c.Phone__c}" />
+			<apex:inputField value="{!MSATeamingPartner__c.Email__c}" />			
+		</apex:pageBlockSection>
+		<apex:inputHidden value="{!MSATeamingPartner__c.Agreement__c}" />
+	<!--	<apex:pageBlockSection title="System Information" collapsible="false">
+			<apex:outputField value="{!MSATeamingPartner__c.Agreement__c}"/>
+		</apex:pageBlockSection>  -->
+	</apex:pageBlock>
+	</apex:form>
+	
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

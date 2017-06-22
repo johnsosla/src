@@ -1,0 +1,42 @@
+<apex:page showheader="false" sidebar="false" standardstylesheets="false" applybodytag="false" applyhtmltag="false" controller="nttdcore.DLabelParentController" >
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" >
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title><nttdcore:DLabel name="DL4" default="Launch Ecosystem" labelParent="{!this}" />{!dLabel['DL4']}</title>
+    <style>.btn{cursor:pointer;}</style>
+    <link href="../Content/bootstrap.min.css" rel="stylesheet" />
+    <script src="../Scripts/modernizr-2.8.3.js" />
+</head>
+<body>
+    <div class="container" >
+        <div class="row" >
+            <div class="col-xs-1 col-md-3" />
+            <div class="col-xs-10 col-md-6" >
+                <form class="form-group" id="login" action="/api/Account/Test" method="post" >
+                    <label for="un" ><nttdcore:DLabel name="DL5" default="Email" labelParent="{!this}" />{!dLabel['DL5']}</label><input class="form-control" id="un" type="text" name="Username" placeholder="Enter email" /><br/>
+                    <label for="pw" ><nttdcore:DLabel name="DL6" default="Password" labelParent="{!this}" />{!dLabel['DL6']}</label><input class="form-control" id="pw" type="password" name="Password" placeholder="Password" /><br/>
+                    <!-- <div class="btn" id="btnSubmit">Submit</div> -->
+                    <input class="btn btn-primary btn-lg btn-block" type="submit" value="Submit" />
+                </form>
+            </div>
+            <div class="col-xs-1 col-md-3" />
+        </div>
+    </div>
+    <script src="../Scripts/jquery-2.1.4.min.js" />
+    <script src="../Scripts/bootstrap.min.js" />
+    <script>
+        $(document).ready(function(){
+            return;
+            setTimeout(function () {
+                if (($.trim($("#un").val()) !== "") && ($.trim($("#pw").val()) !== "")) {
+                    $("#login").submit();
+            }
+        }
+        , 1000)
+        })
+    </script>
+</body>
+</html>
+
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

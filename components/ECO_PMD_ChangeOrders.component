@@ -1,0 +1,19 @@
+<!-- DEPRECATED -->
+<apex:component controller="nttdcore.DLabelChildController" >
+<script type="text/javascript" >
+app.controller("DoughnutCtrl", function ($scope) {
+	$scope.labels = ["Download Sales", "In-Store Sales", "Mail-Order Sales"];
+	$scope.data = [300, 500, 100];
+});
+</script>
+
+<div class="panel panel-default dashbox" >
+	<div class="panel-heading" ><nttdcore:DLabel name="DL1" default="Change Orders" labelParent="{!this}" componentContext="ECO_PMD_ChangeOrders" />
+	{!dlRoot.dLabel['DL1']}
+	</div>
+	
+	<div class="panel-body" ng-controller="DoughnutCtrl" style="max-height:135px;" >
+		<canvas id="doughnut" class="chart chart-doughnut" data="data" labels="labels" /> 
+	</div>
+</div>
+</apex:component>

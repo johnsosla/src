@@ -1,0 +1,37 @@
+<apex:page controller="ECO_ReassignmentReport_Controller"  showHeader="false" sidebar="false">
+<style>
+.hidden{
+    visibility: hidden;
+}
+</style>
+<script>    
+    
+    function disableOnSubmit(input) {
+        setTimeout(' disableAfterTimeout(\'' + input.id + '\');', 50);   
+    }
+    function closeWindow() {
+
+    }
+    function disableAfterTimeout(id) {
+        var toDisable = document.getElementById( id );
+        toDisable.disabled = 'disabled';
+        // Use the Salesforce CSS style to make the button appear disabled
+        toDisable.className = 'btnDisabled';
+        toDisable.value = "Generating Report..."        
+        return false;
+    }
+
+</script>
+
+<apex:form >
+<apex:pageBlock >
+<apex:pageBlockSection title="Reassignment Report" columns="1">
+    <p><b>Click the button below to run the Reassignment Report.</b></p>
+    <apex:commandButton rendered="{!bIsRunning=false}" action="{!callBatch}" value="Run Batch" id="bRunReport" onclick="disableOnSubmit(this);"/>
+    <apex:commandButton rendered="{!bIsRunning}" value="Your report has been scheduled. You may now close this window." id="bClose" onclick="window.close()" styleClass="" />
+</apex:pageBlockSection>
+</apex:pageBlock>
+
+</apex:form> 
+      
+</apex:page>

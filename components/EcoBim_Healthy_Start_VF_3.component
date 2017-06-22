@@ -1,0 +1,9 @@
+<apex:component language="{!theLanguage}" controller="nttdcore.DLabelChildController" access="global" ><nttdcore:DLabel name="DL1" default="The subject project has indicated the use of BIM.  Please click on the link below to review the project and/or contact the project owner for further details to determine if a BIM Healthy Start Review is required.
+    
+    Project Name: {{1}}
+    Project Number: {{2}}
+    Project Owner: {{3}}" labelParent="{!this}" componentContext="EcoBim_Healthy_Start_VF_3" p1="{!theRelatedTo.ProjectNameFormula__c}" p2="{!theRelatedTo.ProjectNumber__c}" p3="{!theRelatedTo.ProjectOwner__c}" /><nttdcore:DLabel name="DL2" default="Project Link: {{1}}" labelParent="{!this}" componentContext="EcoBim_Healthy_Start_VF_3" p1="{!theRelatedTo.ProjectLink__c}" /><apex:attribute name="theLanguage" type="String" required="true" description="language" access="global" /><apex:attribute name="theRecipient" type="Contact" required="true" description="recipient" access="global" /><apex:attribute name="theRelatedTo" type="Packages__c" required="true" description="related to" access="global" />
+    {!dlRoot.dLabel['DL1']}
+    <!--Project Link: {!theRelatedTo.Link}-->
+    {!dlRoot.dLabel['DL2']}
+<nttdcore:DLabelInit language="{!theLanguage}" labelParentInit="{!this}" /></apex:component>

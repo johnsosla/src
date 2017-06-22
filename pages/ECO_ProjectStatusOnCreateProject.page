@@ -1,0 +1,167 @@
+<apex:page >
+    <style>
+        body{
+            font-family:helvetica, arial, sans-serif;
+            font-family:;
+            padding:0;
+            width:100%;
+            height:100%;
+            line-height:100%;
+            padding-left:12px;
+        }
+
+       /* STATUS BAR BUTTON GROUP */
+        body span ul, body div ul{
+            margin:0;
+            padding:0;
+        }
+        body span ul.progress{
+            margin:0 0 8px 0 !important;
+        }
+
+        ul.progress{
+            min-width: 800px;
+        }
+
+        ul.progress li{
+            display:inline-table;
+            width:8%;
+            height:45px;
+            vertical-align:top;
+            position: relative;
+            background-color:#727272;
+            border-radius:3px;
+            padding:0 5px 0 0;
+        	min-width:100px;
+        	cursor:pointer;
+        	margin-left : 0.3em;
+        	background-image: -moz-linear-gradient(top,  rgba(255,255,255,0) 0%, rgba(255,255,255,0.09) 57%, rgba(0,0,0,0.15) 100%); /* FF3.6+ */
+            background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(255,255,255,0)), color-stop(57%,rgba(255,255,255,0.09)), color-stop(100%,rgba(0,0,0,0.15))); /* Chrome,Safari4+ */
+            background-image: -webkit-linear-gradient(top,  rgba(255,255,255,0) 0%,rgba(255,255,255,0.09) 57%,rgba(0,0,0,0.15) 100%); /* Chrome10+,Safari5.1+ */
+            background-image: -o-linear-gradient(top,  rgba(255,255,255,0) 0%,rgba(255,255,255,0.09) 57%,rgba(0,0,0,0.15) 100%); /* Opera 11.10+ */
+            background-image: -ms-linear-gradient(top,  rgba(255,255,255,0) 0%,rgba(255,255,255,0.09) 57%,rgba(0,0,0,0.15) 100%); /* IE10+ */
+            background-image: linear-gradient(to bottom,  rgba(255,255,255,0) 0%,rgba(255,255,255,0.09) 57%,rgba(0,0,0,0.15) 100%); /* W3C */
+        }
+        ul.progress li a{
+        	position: absolute;
+        	left: 7px; 
+            top: 3%; 
+            width: 90%; 
+            height: 45px; 
+            display: table; 
+            font-size:10px;
+            text-decoration:none;
+            font-weight:bold;
+            color:#fff;
+        }
+        ul.progress li div{ 
+            display: table-cell; 
+            vertical-align: middle; 
+        	text-align: center; 
+        }
+        ul.progress li:before{
+            width: 0; 
+            height: 0; 
+            border-top: 15px solid transparent;
+            border-bottom: 15px solid transparent;
+            border-left: 15px solid #727272;
+        }
+        .container{
+            width:100%;
+            height:100%;
+        }
+        .boxed{
+            max-width:1200px;
+            min-width:800px;
+            margin:0 auto;
+        }
+        
+		/* conditional colors */
+        /* not started, default gray, defined above in anchor #404040 */
+        ul.progress li.Ready{
+            background-color:#0099FF;
+            border-color:#0099FF !important;
+        }
+        /*ul.progress li.Started{
+            background-color:#daca2e;
+            border-color:#daca2e !important;
+        }
+        ul.progress li.Started.decission{
+            background:#4058e0;
+            border-color:#4058e0 !important;
+        }
+        ul.progress li.Complete{
+            background-color:#52c934;
+            border-color:#52c934 !important;
+        }
+        ul.progress li.Complete2{
+            background:#54A340;
+            border-color:#54A340 !important;
+        }
+        ul.progress li.Complete.decission{
+            background-color:#52c934;
+            border-color:#52c934 !important;
+        }
+        ul.progress li.Rejected{
+            background-color:#e53d2d;
+            border-color:#e53d2d !important;
+        }*/
+        ul.progress li.decission{
+            border-radius:50px;
+        }
+        
+
+        
+    </style>
+    <apex:form >
+        <apex:outputPanel >
+            <ul class="breadcrumb progress" style="width:1050px;">
+        <li class="Ready">
+            <a href="#" title="{!$Label.ECO_ProjectStatusOnCreateProject_Create1}" target="_parent">
+                <div><apex:outputText value="{!$Label.ECO_ProjectStatusOnCreateProject_Create2}" escape="false" /></div>
+            </a>
+        </li>
+        <li class="activeHover" >
+            <a href="#" >
+                <div><apex:outputText value="{!$Label.ECO_ProjectStatusOnCreateProject_RM}" escape="false" /></div>
+            </a>
+        </li>
+        <li class="decission2">
+            <a href="#" title="{!$Label.ECO_ProjectStatusOnCreateProject_GoNoGo_Title}">
+                <div><apex:outputText value="{!$Label.ECO_ProjectStatusOnCreateProject_GoNoGo}" escape="false" /></div>
+            </a>
+        </li>
+        <li class="activeHover">
+            <a href="#">
+                <div><apex:outputText value="{!$Label.ECO_ProjectStatusOnCreateProject_PrepareProjectPlan}" escape="false" /></div>
+            </a>
+        </li> 
+        <li class="decission">
+            <a href="#" title="{!$Label.ECO_ProjectStatusOnCreateProject_PlanApproval_Title}">
+                <div><apex:outputText value="{!$Label.ECO_ProjectStatusOnCreateProject_PlanApproval}" escape="false" /></div>
+            </a>
+        </li>
+        <li >
+            <a href="#" title="{!$Label.ECO_ProjectStatusOnCreateProject_SubmitBid_Title}">
+                <div><apex:outputText value="{!$Label.ECO_ProjectStatusOnCreateProject_SubmitBid}" escape="false" /></div>
+            </a>
+        </li>
+        <li class="activeHover">
+            <a href="#" title="{!$Label.ECO_ProjectStatusOnCreateProject_ContactReview_Title}" >
+                <div><apex:outputText value="{!$Label.ECO_ProjectStatusOnCreateProject_ContactReview}" escape="false" /></div>
+            </a>
+        </li>
+        <li class="activeHover">
+            <a href="#" title = "{!$Label.ECO_ProjectStatusOnCreateProject_ReviseProject_Title}" >
+                <div><apex:outputText value="{!$Label.ECO_ProjectStatusOnCreateProject_ReviseProject}" escape="false" /></div>
+            </a>
+        </li>
+        <li class=" decission">
+            <a href="#" title="{!$Label.ECO_ProjectStatusOnCreateProject_Approval_Title}">
+                <div><apex:outputText value="{!$Label.ECO_ProjectStatusOnCreateProject_Approval}" escape="false" /></div>
+            </a>
+        </li>
+    </ul>
+        </apex:outputPanel>
+    </apex:form>
+</apex:page>

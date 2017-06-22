@@ -1,0 +1,139 @@
+<apex:page showHeader="True" sidebar="true" standardController="EnrollmentPlan__c" extensions="INC_EnrollPlanInterimPay_Controller" tabStyle="EnrollmentPlan__c" standardStyleSheets="true">
+    <style>
+         .comment{
+            width:540px;
+            height:15px;
+         }
+         .milestone{
+            width:250px;
+         }
+         #descriptioncol{
+           width:410px;
+         }
+         .milestonecol{
+           width:250px;
+         }
+         .mainheading{
+           font-weight: bold;
+           font-size:25px;
+           text-align: center;
+         }
+         .innerheader{
+           font-weight: bold;
+           font-size:15px;
+           padding-bottom: 10px;
+         }
+         .innerdiv{
+            padding-bottom: 10px;
+         }
+         .commentsec{
+          border:none;
+         }
+         .commentlabel{
+          padding-top: 5px;
+          padding-bottom: 3px;
+          font-weight: bold;
+         }
+  </style>
+    <input id="hiddenElementId" type="hidden" />
+    <!--<script type="text/javascript">
+        window.onload = setFocus
+        function setFocus() {
+             document.getElementById("hiddenElementId").focus();
+        }
+    </script> -->
+    <script>function setFocusOnLoad() {}</script> 
+    <apex:form >
+  
+  <apex:sectionHeader title="{!$Label.DTWINCEPEA}" subtitle="{!EnrollmentPlan__c.Name}" help="http://my.aecomnet.com/portal/site/Intranet/menuitem.4bb5ad8d27dddb3d13bd6e20c43611ca/?vgnextoid=4699bc2ceae8e410VgnVCM100000089e1bacRCRD&vgnextchannel=c7e1b267a0f9c410VgnVCM100000089e1bacRCRD&vgnextfmt=default"/>
+        <div>
+       
+            <h1 class="mainheading">{!$Label.DTWINCEPIPEE}</h1>
+        </div>
+        <apex:pageblock id="HeaderBlock" >
+            <apex:pageBlockButtons location="top">
+           
+                <apex:commandButton value="{!$Label.DTWINCEPSAVE} " action="{!save}"/>
+                
+                <apex:commandButton value="{!$Label.DTWINCEPSAC}" action="{!SaveAndContinue}"></apex:commandButton>
+               
+                <apex:commandButton value="{!$Label.DTWINCEPCancel}" action="{!Cancel}"></apex:commandButton>       
+            </apex:pageBlockButtons>
+       
+            <apex:pageBlockSection title="{!$Label.DTWINCEPEAI}">
+                <apex:outputField id="planname" value="{!oEnrollmentPlan.Name}"/>
+                <apex:outputField value="{!oEnrollmentPlan.EnrollmentStatus__c}"/>
+                <apex:outputField value="{!oEnrollmentPlan.MaxIncentivePool__c}" />
+                <apex:outputField value="{!oEnrollmentPlan.ProjectStartDate__c}" />
+                <apex:outputField value="{!oEnrollmentPlan.EstimatedIncentivePool__c}" />
+                <apex:outputField value="{!oEnrollmentPlan.ScheduledFinishDate__c}" />
+                <apex:outputField value="{!oEnrollmentPlan.MinParticipantPayout__c}" />
+                <apex:outputField value="{!oEnrollmentPlan.NSRBudget__c}"/>
+            </apex:pageBlockSection>
+            
+            <apex:pageBlockSection title="{!$Label.DTWINCEPIPRD}" columns="1">
+                <apex:InputField value="{!oEnrollmentPlan.IPFreqofPayment__c}" />
+                <apex:InputField value="{!oEnrollmentPlan.IPNumberofPayments__c}" />
+                <apex:InputField value="{!oEnrollmentPlan.IPYearsRemaining__c}"/>
+                <apex:InputField value="{!oEnrollmentPlan.IPComment__c}" />
+            </apex:pageBlockSection>
+        </apex:pageblock>
+        <div class="innerdiv">
+        
+            <h1 class="innerheader">{!$Label.DTWINCEPPIPT} </h1>
+        </div>
+       
+        <apex:pageBlock Title="{!$Label.DTWINCEPPayments} " id="Payments">
+            <apex:pageBlockButtons location="bottom">
+           
+                <apex:commandButton value="{!$Label.DTWINCEPAddRow}" action="{!addBlankRow}" reRender="partTable,Payments" rendered="{!editParticipants}"></apex:commandButton>
+               
+                <apex:commandButton value="{!$Label.DTWINCEPSAVE}" action="{!Save}"></apex:commandButton>
+               
+                <apex:commandButton value="{!$Label.DTWINCEPSAC}" action="{!SaveAndContinue}"></apex:commandButton>
+               
+                <apex:commandButton value="{!$Label.DTWINCEPCancel}" action="{!Cancel}"></apex:commandButton>
+            </apex:pageBlockButtons>
+            <apex:pagemessages ></apex:pagemessages>
+            <apex:pageBlockTable value="{!listPayments}" var="Payment" id="partTable" rules="all" columnsWidth="60%,30%,10%">
+                <apex:Column id="descriptioncol" headervalue="Description">
+                    <apex:inputField styleclass="comment" value="{!Payment.Description__c}" rendered="{!editParticipants}"/>
+                    <apex:OutputField value="{!Payment.Description__c}" rendered="{!editParticipants = false}"/>
+                </apex:Column>
+                
+                <apex:Column headerClass="milestonecol" headervalue="{!$Label.DTWINCEPECCUP}">
+                    <apex:inputField styleClass="milestone" value="{!Payment.Milestone__c}"/>
+                </apex:Column>
+                
+                <apex:Column headerClass="paydatecol" headervalue="{!$Label.DTWINCEPEDOA}">
+                    <apex:inputField value="{!Payment.PaymentDate__c}" rendered="{!editParticipants}"/>
+                    <apex:OutputField value="{!Payment.PaymentDate__c}" rendered="{!editParticipants = false}"/>
+                </apex:Column>
+                 
+                <apex:Column headervalue="{!$Label.DTWINCEPDateofEval} " rendered="{!oEnrollmentPlan.ApplicationType__c == 'PAY'}">
+                    <apex:inputField value="{!Payment.DateofEval__c}" rendered="{!editParticipants}"/>
+                    <apex:OutputField value="{!Payment.DateofEval__c}" rendered="{!editParticipants = false}"/>
+                </apex:Column>
+                
+                <apex:Column headervalue="{!$Label.DTWINCEPPaymentAwarded} " rendered="{!oEnrollmentPlan.ApplicationType__c == 'PAY'}">
+                    <apex:inputField value="{!Payment.PaymentAwarded__c}" rendered="{!editParticipants}"/>
+                    <apex:OutputField value="{!Payment.PaymentAwarded__c}" rendered="{!editParticipants = false}"/>
+                </apex:Column>
+              
+                <apex:Column headervalue="{!$Label.DTWINCEPIPAmount}" rendered="{!oEnrollmentPlan.ApplicationType__c == 'PAY'}">
+                    <apex:inputField value="{!Payment.IPAmount__c}" rendered="{!editParticipants}"/>
+                    <apex:OutputField value="{!Payment.IPAmount__c}" rendered="{!editParticipants = false}"/>
+                </apex:Column>
+            </apex:pageBlockTable>
+            <!--<apex:pageBlockSection columns="1">
+                <apex:outputPanel >
+                    <div class="commentlabel">
+                        <apex:Outputlabel value="Explanation / Rationale for Payment Timing" />
+                    </div>
+                    <br/>
+                    <apex:inputTextarea styleclass="commentsec" value="{!partComments}" rows="5" cols="100"/>
+                </apex:outputPanel>
+            </apex:pageBlockSection> -->
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

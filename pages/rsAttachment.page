@@ -1,0 +1,21 @@
+<apex:page showHeader="true" sidebar="true" controller="rsAttachmentController" action="{!getAttachmentStatus}">
+
+    <apex:pageMessages />
+    <apex:form enctype="multipart/form-data">
+
+        <apex:sectionHeader title="{!$Label.File_Upload}" subtitle="{!$Label.File_Attachment_Upload}" description="{!$Label.Attachment_Description}."/>
+
+        <apex:pageBlock title="{!$Label.Browse_Upload}">
+            <apex:pageBlockSection >
+                <apex:inputFile value="{!attachment.body}" filename="{!attachment.name}" id="file"/>
+            </apex:pageBlockSection>
+
+            <apex:pageBlockButtons >
+                <apex:commandButton action="{!upload}" value="{!$Label.Upload}" />
+                <apex:commandButton value="{!$Label.Cancel}"  action="{!cancel}" />
+            </apex:pageBlockButtons>
+
+        </apex:pageBlock>
+
+    </apex:form>
+</apex:page>

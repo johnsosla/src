@@ -1,0 +1,69 @@
+<apex:page controller="rsProjectLookupController" showHeader="false" sidebar="false" docType="html-5.0" >
+    <apex:form >
+        <apex:pageBlock title="Project Lookup">
+        <apex:pageMessages escape="false" />
+        <apex:pageBlockButtons location="top">
+                <apex:actionStatus id="profileRefershStatus">
+                    <apex:facet name="start">
+                        <apex:outputPanel >
+                            <apex:commandButton value="{!$Label.Refresh_Results}" disabled="true" />
+                            <apex:image value="/img/loading.gif"/>
+                        </apex:outputPanel>
+                    </apex:facet>
+                    <apex:facet name="stop">
+                        <apex:commandButton value="{!$Label.Refresh_Results}" action="{!refreshResults}" status="profileRefershStatus" />
+                    </apex:facet>
+                </apex:actionStatus>
+            </apex:pageBlockButtons>
+            <apex:pageBlockSection >
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel for="searchNamein" value="Project Name" />
+                    <apex:inputText id="searchNamein" value="{!SearchName}" />
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel for="searchProjectNumberin" value="Project Number" />
+                    <apex:inputText id="searchProjectNumberin" value="{!SearchProjectNumber}" />
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel for="searchLocationin" value="Project Location" />
+                    <apex:inputText id="searchLocationin" value="{!SearchLocation}" />
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel for="searchClientin" value="Project Client" />
+                    <apex:inputText id="searchClientin" value="{!SearchClient}" />
+                </apex:pageBlockSectionItem>
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+
+        <apex:pageBlock title="Results">
+            <apex:pageBlockTable width="100%" value="{!Projects}" var="currProject" >
+                <apex:column width="25%">
+                    <apex:facet name="header">
+                        <apex:outputText value="Project Name" />
+                    </apex:facet>
+                    <apex:outputLink value="javascript:top.window.opener.lookupPick2('{!FormTag}','{!TextBox}_lkid','{!TextBox}','{!currProject.Id}','{!JSENCODE(currProject.ProjectName)}', false)" >
+                        {!currProject.ProjectName}
+                    </apex:outputLink>
+                </apex:column>
+                <apex:column width="25%">
+                    <apex:facet name="header">
+                        <apex:outputText value="Project Number" />
+                    </apex:facet>
+                    <apex:outputText value="{!currProject.ProjectNumber}" />
+                </apex:column>
+                <apex:column width="25%">
+                    <apex:facet name="header">
+                        <apex:outputText value="Project Location" />
+                    </apex:facet>
+                    <apex:outputText value="{!currProject.Location}" />
+                </apex:column>
+                <apex:column width="25%">
+                    <apex:facet name="header">
+                        <apex:outputText value="Project Client" />
+                    </apex:facet>
+                    <apex:outputText value="{!currProject.ClientName}" />
+                </apex:column>
+            </apex:pageBlockTable>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

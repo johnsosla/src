@@ -1,0 +1,434 @@
+<apex:page standardcontroller="pse__Proj__c" extensions="ECO_DocumentManagementContoller,nttdcore.DLabelParentController" standardstylesheets="true" tabstyle="pse__Proj__c" id="page" doctype="html-5.0" >
+
+<style>
+    .dmeOutput{  
+        font-size: 1.0em;
+        font-weight: bold; 
+        color: #4a4a56;  /*Standrd Salesforce Color*/
+    }
+    
+    .attachNewFile{
+        visibility: hidden;
+    }
+    
+    .pbtOutputPanel
+    {
+        padding: 100;
+        color: red;
+    }   
+    
+    .textBox
+    {
+        padding-bottom: 5px;
+    }
+    
+    .fileList
+    {
+        padding-top: 5px;
+        padding-bottom: 5px;
+    }
+    
+    .bPageBlock .detailList tr td.dataCol, 
+    .bPageBlock .detailList tr td.labelCol
+    {
+        border-bottom:1px solid #dbdbdb;
+    }
+
+    .bPageBlock .detailList tr td.dataCol.last, 
+    .bPageBlock .detailList tr td.labelCol.last
+    {
+        border-bottom:0px solid #dbdbdb;
+    }
+     
+    .questionCol {
+        padding-top: 10px;  
+    }
+    .customHelpText{
+            padding:7px;
+            border:1px solid #85B3CE;
+            min-height:30px;
+            display:block;
+            width:auto;
+            margin:0;
+        //  background-color:#C6E4EE;
+            background-color:#A2D3F1;
+            background-repeat:no-repeat;
+            border-radius:4px;
+        }
+        
+        .customHelpBody{
+            display:block;
+            color:#;
+            max-width:95%;
+        }
+</style>
+    <head>
+        <apex:stylesheet value="https://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css" />
+        <apex:includescript value="https://code.jquery.com/jquery-1.9.1.js" />
+        <apex:includescript value="https://code.jquery.com/ui/1.10.3/jquery-ui.js" />
+    </head>
+
+<script>
+    
+    function myURLOpen() 
+    {
+        window.open("https://myecosystem.aecom.com/ppf/pnp/Policies/Project_Document_and_Records_Control_Procedure_Q2_DCS_222_PR1.pdf");
+    }
+
+    /*function openPopup(id)
+    {
+        var newWin=window.open('/' + id, 'PopUp',
+               'height=450,width=650,left=300,top=100,resizable=no,scrollbars=yes,toolbar=no,status=no,channelmode=no');
+        if (window.focus) 
+        {
+            newWin.focus();
+        }
+             
+        return false;      
+    }   */
+    
+    function fileChosen(attachButton,documentField,overrideField)
+    {
+        if(documentField.value != '')
+        {
+            document.getElementById(attachButton).style.visibility = 'visible';         
+            document.getElementById(overrideField).value = '';
+            document.getElementById(overrideField).style.visibility = 'visible';
+                        
+        }
+        else
+        {
+            document.getElementById(attachButton).style.visibility= 'hidden';
+            document.getElementById(overrideField).style.visibility= 'hidden';          
+        }      
+    }
+
+    function documentTypeChosen(value, outputTextField, outputTextFieldAECOM, outputTextFieldOther) {
+
+    }    
+    
+</script>
+
+<apex:form id="form" >
+    <nttdcore:DLabel name="DL75" default="Document Management" labelParent="{!this}" /><apex:sectionheader title="{!dLabel['DL75']}" subtitle="{!pse__Proj__c.ProjectSectionHeaderName__c}" />
+    
+    <div class="customHelpText" >
+        <div class="customHelpBody" ><nttdcore:DLabel name="DL76" default="Planning document management and control protocols to be utilized throughout the project inform the project team on the correct procedures to follow for all project documents, not just deliverables.  This ensures compliance with local AECOM procedures and/or contractual requirements mandated by the client." labelParent="{!this}" /><nttdcore:DLabel name="DL77" default="Document management procedures typically fall within one of the following categories.  Complete this section of the Project Plan accordingly to summarize the required procedures for the project." labelParent="{!this}" /><nttdcore:DLabel name="DL81" default="Users may also consider utilizing AECOM&rsquo;s ProjectHub, a global collaboration document management system that securely connects to a full suite of CAD, BIM and GIS tools. To learn more about ProjectHub and the available document management tools, visit the ProjectHub Technical Practices Group page." labelParent="{!this}" />
+             {!dLabel['DL76']}
+        <br/><br/>{!dLabel['DL77']}
+        <br/><br/>
+        <li><nttdcore:DLabel name="DL78" default="Adopt standard AECOM processes throughout your project (click on the button below to adopt the AECOM standard)" labelParent="{!this}" />{!dLabel['DL78']} </li>
+        <li><nttdcore:DLabel name="DL79" default="Adopt the standard process, though modified to suit client/project requirements (please outline the the variances to be implemented on this project." labelParent="{!this}" />{!dLabel['DL79']} </li>
+        <li><nttdcore:DLabel name="DL80" default="Adopt a client/project specific system, in which case outline the key features of the system and attach any documentation available (e.g. guidelines, user manuals etc)." labelParent="{!this}" />{!dLabel['DL80']}</li>
+        <br/>
+        {!dLabel['DL81']}
+
+        </div>
+    </div>
+
+    <br/>
+    
+    <nttdcore:DLabel name="DL82" default="Document Management Edit" labelParent="{!this}" /><apex:pageblock mode="edit" id="pageBlock" title="{!dLabel['DL82']}" ><nttdcore:DLabel name="DL86" default="Document Management Element" labelParent="{!this}" /><nttdcore:DLabel name="DL87" default="Document Control System" labelParent="{!this}" /><nttdcore:DLabel name="DL88" default="Will standard AECOM or client/project-specific document control system be utilized for the project?" labelParent="{!this}" /><nttdcore:DLabel name="DL89" default="Document Naming Conventions" labelParent="{!this}" /><nttdcore:DLabel name="DL90" default="Will standard AECOM or client/project-specific document naming conventions be utilized for the project?" labelParent="{!this}" /><nttdcore:DLabel name="DL91" default="File Management Structure" labelParent="{!this}" /><nttdcore:DLabel name="DL92" default="Will standard AECOM or client/project-specific file management structure be utilized for the project?" labelParent="{!this}" /><nttdcore:DLabel name="DL93" default="Document Transmittals" labelParent="{!this}" /><nttdcore:DLabel name="DL94" default="Will standard AECOM or client/project-specific document transmittal protocols be utilized for the project?" labelParent="{!this}" /><nttdcore:DLabel name="DL95" default="Document Records / Archiving" labelParent="{!this}" /><nttdcore:DLabel name="DL96" default="Will standard AECOM or client/project-specific document records/archiving protocols be utilized for the project?" labelParent="{!this}" /><nttdcore:DLabel name="DL97" default="Document Other Comments / Notes" labelParent="{!this}" /><nttdcore:DLabel name="DL98" default="Electronic File Locations" labelParent="{!this}" /><nttdcore:DLabel name="DL99" default="Links to Project Network Folder or Sharepoint" labelParent="{!this}" /><nttdcore:DLabel name="DL100" default="Edit" labelParent="{!this}" /><nttdcore:DLabel name="DL101" default="Links to Project Network Folder or Sharepoint" labelParent="{!this}" /><nttdcore:DLabel name="DL102" default="View" labelParent="{!this}" />
+    <apex:pageblockbuttons location="top" >
+        <nttdcore:DLabel name="DL83" default="Save" labelParent="{!this}" /><apex:commandbutton value="{!dLabel['DL83']}" action="{!save}" />
+        <nttdcore:DLabel name="DL84" default="Return to Project" labelParent="{!this}" /><apex:commandbutton value="{!dLabel['DL84']}" action="{!cancel}" />
+        <nttdcore:DLabel name="DL85" default="AECOM Project Document &amp; Records Control Procedures" labelParent="{!this}" /><apex:commandbutton value="{!dLabel['DL85']}" onclick="myURLOpen();" />
+    </apex:pageblockbuttons>
+    
+   
+    <apex:actionfunction name="refreshInputNames" rerender="attachList" />
+    
+    
+    <c:ECO_RiskFlyout projectid="{!pse__Proj__c.Id}" planelement="Document Management" />
+    <c:ECO_AssumptionFlyout projectid="{!pse__Proj__c.Id}" planelement="" />
+    <c:ECO_ProjectTeamFlyout projectid="{!pse__Proj__c.Id}" />
+    <!-- <c:ECO_ProjectChatterFeedFlyout ProjectId="{!pse__Proj__c.Id}" PlanElement="" /> -->
+
+    <!-- <apex:outputLink value="{!URLFOR($Action.Attachment.Download, pse__Proj__c.DocumentControlSystemAttachment__c)}" target="_blank">
+        {!attachmentsMap[pse__Proj__c.DocumentControlSystemAttachment__c].Name}
+        </apex:outputLink>-->
+    
+    <apex:inputhidden value="{!pse__Proj__c.DocumentControlSystemAttachment__c}" />
+    <apex:inputhidden value="{!pse__Proj__c.DocumentNamingConventionsAttachment__c}" />
+    <apex:inputhidden value="{!pse__Proj__c.FileManagementStructureAttachment__c}" />   
+    <apex:inputhidden value="{!pse__Proj__c.DocumentTransmittalsAttachment__c}" />
+    <apex:inputhidden value="{!pse__Proj__c.DocumentRecordsArchivingAttachment__c}" />
+    <apex:inputhidden value="{!pse__Proj__c.DocumentOtherCommentsNotesAttachment__c}" />
+        
+    <apex:pageblocksection title="{!dLabel['DL86']}" collapsible="false" columns="1" id="dme" >
+        <apex:outputpanel id="outputPanelDocumentControlSystem" >
+            <table>
+                <tr>
+                    <td colspan="2" >
+                        <apex:outputtext value="{!dLabel['DL87']}" styleclass="dmeOutput" />
+                    </td>
+                </tr>
+                <tr>
+                    <td class="questionCol" >
+                        <apex:outputtext value="{!dLabel['DL88']}" />
+                    </td>
+                    <td><apex:actionregion ><apex:selectradio value="{!pse__Proj__c.DocumentControlSystemType__c}" layout="lineDirection" >
+                            <apex:selectoptions value="{!types}" />
+                            <apex:actionsupport event="onchange" action="{!setDirty}" rerender="panelDocumentControlSystem, attachList" />
+                    </apex:selectradio></apex:actionregion>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2" >     
+                        <apex:outputpanel id="panelDocumentControlSystem" >
+                        <apex:inputfield id="inputDocumentControlSystem" value="{!pse__Proj__c.DocumentControlSystem__c}" style="width: 825px; height: 40px;" rendered="{!pse__Proj__c.DocumentControlSystemType__c == null}" >
+                            <apex:actionsupport event="onchange" action="{!setDirty}" rerender="attachList" />
+                        </apex:inputfield>
+                        <script>document.getElementById('{!$Component.inputDocumentControlSystem}').disabled = {!pse__Proj__c.DocumentControlSystemType__c == null}; </script>
+                        <apex:inputfield id="inputDocumentControlSystemAECOM" value="{!pse__Proj__c.DocumentControlSystem__c}" style="width: 825px; height: 40px;" rendered="{!pse__Proj__c.DocumentControlSystemType__c == 'AECOM'}" html-placeholder="Enter the local AECOM system used for document control.  This may be a specific software  or simply the  local area network. Specialized procedures for technical deliverables, such as GIS or BIM file management, should be included as appropriate.  Attach any relevant document control or file management documents for reference." >
+                            <apex:actionsupport event="onchange" action="{!setDirty}" rerender="attachList" />
+                        </apex:inputfield>
+                        <apex:inputfield id="inputDocumentControlSystemOther" value="{!pse__Proj__c.DocumentControlSystem__c}" style="width: 825px; height: 40px;" rendered="{!pse__Proj__c.DocumentControlSystemType__c == 'Client/Project'}" html-placeholder="Enter the project or client specific document control system, such as Projectwise , that may be part of our service offering or a project requirement for a secure data room to protect sensitive or confidential information.  Client or project reference documents may be attached for reference." >
+                            <apex:actionsupport event="onchange" action="{!setDirty}" rerender="attachList" />
+                        </apex:inputfield>
+                        </apex:outputpanel><br/>
+                    </td>
+                </tr>
+            </table>   
+            
+        <apex:outputpanel ><br/></apex:outputpanel> 
+        
+        <apex:outputpanel id="outputDocumentNamingConventions" ><br/>
+            <table>
+            <tr><td colspan="2" >
+                <apex:outputtext value="{!dLabel['DL89']}" styleclass="dmeOutput" />
+            </td></tr>
+            <tr>
+            <td class="questionCol" >
+                <apex:outputtext value="{!dLabel['DL90']}" />
+                </td>
+                <td><apex:actionregion ><apex:selectradio value="{!pse__Proj__c.DocumentNamingConventionsType__c}" layout="lineDirection" >
+                        <apex:selectoptions value="{!types}" />
+                        <apex:actionsupport event="onchange" action="{!setDirty}" rerender="panelNameConventions, attachList" />
+                </apex:selectradio></apex:actionregion>
+                </td>
+            </tr>
+            <tr><td colspan="2" >
+            <apex:outputpanel id="panelNameConventions" >
+            <apex:inputfield id="inputNameConventions" value="{!pse__Proj__c.DocumentNamingConventions__c}" style="width: 825px; height: 40px" rendered="{!pse__Proj__c.DocumentNamingConventionsType__c == null}" >
+                <apex:actionsupport event="onchange" action="{!setDirty}" rerender="attachList" />
+            </apex:inputfield>            
+            <script>document.getElementById('{!$Component.inputNameConventions}').disabled = {!pse__Proj__c.DocumentNamingConventionsType__c == null}; </script>
+            <apex:inputfield id="inputNameConventionsAECOM" value="{!pse__Proj__c.DocumentNamingConventions__c}" style="width: 825px; height: 40px" rendered="{!pse__Proj__c.DocumentNamingConventionsType__c == 'AECOM'}" html-placeholder="Enter the local AECOM  document naming conventions protocol. This could include conventions around version control (e.g., V1, Draft, Draft Final), as well as file naming conventions.  These  are likely defined by the local administrative team , technical practice or business line. Attach any relevant document control or file management documents for reference." >
+                <apex:actionsupport event="onchange" action="{!setDirty}" rerender="attachList" />
+            </apex:inputfield>         
+            <apex:inputfield id="inputNameConventionsOther" value="{!pse__Proj__c.DocumentNamingConventions__c}" style="width: 825px; height: 40px" rendered="{!pse__Proj__c.DocumentNamingConventionsType__c == 'Client/Project'}" html-placeholder="Enter the project or client specific document naming conventions. This may be a requirement by your client or in your contract includes submittal of electronic deliverables or files. Client or project reference documents may be attached for reference" >
+                <apex:actionsupport event="onchange" action="{!setDirty}" rerender="attachList" />
+            </apex:inputfield>        
+        </apex:outputpanel><br/>
+            </td></tr>
+            </table>                       
+            
+            
+        </apex:outputpanel>
+        
+        <apex:outputpanel ><br/>
+    
+        </apex:outputpanel>
+    
+        <apex:outputpanel ><br/>
+            <table>
+            <tr><td colspan="2" >
+                <apex:outputtext value="{!dLabel['DL91']}" styleclass="dmeOutput" />
+            </td></tr>
+            <tr>
+            <td class="questionCol" >
+                <apex:outputtext value="{!dLabel['DL92']}" />
+                </td>
+                <td><apex:actionregion ><apex:selectradio value="{!pse__Proj__c.FileManagementStructureType__c}" layout="lineDirection" >
+                        <apex:selectoptions value="{!types}" />
+                        <apex:actionsupport event="onchange" action="{!setDirty}" rerender="panelFileManagement, attachList" />
+                </apex:selectradio></apex:actionregion>
+                </td>
+            </tr>
+            <tr><td colspan="2" >
+            
+            <apex:outputpanel id="panelFileManagement" >
+            <apex:inputfield id="inputFileManagement" value="{!pse__Proj__c.FileManagementStructure__c}" rendered="{!pse__Proj__c.FileManagementStructureType__c == null}" style="width: 825px; height: 40px" >
+            <apex:actionsupport event="onchange" action="{!setDirty}" rerender="attachList" />
+            </apex:inputfield>
+            <script>document.getElementById('{!$Component.inputFileManagement}').disabled = {!pse__Proj__c.FileManagementStructureType__c == null}; </script>
+            <apex:inputfield id="inputFileManagementAECOM" value="{!pse__Proj__c.FileManagementStructure__c}" rendered="{!pse__Proj__c.FileManagementStructureType__c == 'AECOM'}" style="width: 825px; height: 40px" html-placeholder="Enter the local AECOM  file management structure.  This includes where and how electronic and hard copy documents are filed and maintained. These  are likely defined by your local IT department or administrative team but may be business line or practice area specific. Attach any relevant document control or file management documents for reference." >
+            <apex:actionsupport event="onchange" action="{!setDirty}" rerender="attachList" />
+            </apex:inputfield>
+            <apex:inputfield id="inputFileManagementOther" value="{!pse__Proj__c.FileManagementStructure__c}" rendered="{!pse__Proj__c.FileManagementStructureType__c == 'Client/Project'}" style="width: 825px; height: 40px" html-placeholder="Enter the project or client specific file management structure. This may be a requirement by your client or in your contract includes submittal of electronic deliverables or files. Client or project reference documents may be attached for reference." >
+            <apex:actionsupport event="onchange" action="{!setDirty}" rerender="attachList" />
+            </apex:inputfield>
+            </apex:outputpanel><br/>
+            </td></tr>
+            </table>        
+        </apex:outputpanel>     
+        <apex:outputpanel ><br/>
+        </apex:outputpanel>
+        
+        <apex:outputpanel ><br/>
+            
+            <table>
+            <tr><td colspan="2" >
+                <apex:outputtext value="{!dLabel['DL93']}" styleclass="dmeOutput" />
+            </td></tr>
+            <tr>
+            <td class="questionCol" >
+                <apex:outputtext value="{!dLabel['DL94']}" />
+                </td>
+                <td><apex:actionregion ><apex:selectradio value="{!pse__Proj__c.DocumentTransmittalsType__c}" layout="lineDirection" >
+                        <apex:selectoptions value="{!types}" />
+                        <apex:actionsupport event="onchange" action="{!setDirty}" rerender="panelTransmittals, attachList" />
+                </apex:selectradio></apex:actionregion>
+                </td>
+            </tr>
+            <tr><td colspan="2" >
+            
+            <apex:outputpanel id="panelTransmittals" >
+            <apex:inputfield id="inputTransmittals" value="{!pse__Proj__c.DocumentTransmittals__c}" rendered="{!pse__Proj__c.DocumentTransmittalsType__c == null}" style="width: 825px; height: 40px" >
+            <apex:actionsupport event="onchange" action="{!setDirty}" rerender="attachList" />
+            </apex:inputfield>
+            <script>document.getElementById('{!$Component.inputTransmittals}').disabled = {!pse__Proj__c.DocumentTransmittalsType__c == null}; </script>
+            <apex:inputfield id="inputTransmittalsAECOM" value="{!pse__Proj__c.DocumentTransmittals__c}" rendered="{!pse__Proj__c.DocumentTransmittalsType__c == 'AECOM'}" style="width: 825px; height: 40px" html-placeholder="Enter the local AECOM document transmittals protocol. This could include how to track transmittals and/or the format the use of transmittal logs or cover sheets.  These are likely defined by your administrative team, business line or practice area. Attach any relevant document control or file management documents for reference." >
+            <apex:actionsupport event="onchange" action="{!setDirty}" rerender="attachList" />
+            </apex:inputfield>
+            <apex:inputfield id="inputTransmittalsOther" value="{!pse__Proj__c.DocumentTransmittals__c}" rendered="{!pse__Proj__c.DocumentTransmittalsType__c == 'Client/Project'}" style="width: 825px; height: 40px" html-placeholder="Enter the project or client specific document transmittals protocols.  This may be a requirement by your client or in your contract on how deliverables will be transmitted to the client or other stakeholders. Client or project reference documents may be attached for reference." >
+            <apex:actionsupport event="onchange" action="{!setDirty}" rerender="attachList" />
+            </apex:inputfield>
+            </apex:outputpanel><br/>
+            </td></tr>
+            </table>               
+            
+        </apex:outputpanel>    
+        <apex:outputpanel ><br/>
+            <table>
+            <tr><td colspan="2" >
+                <apex:outputtext value="{!dLabel['DL95']}" styleclass="dmeOutput" />
+            </td></tr>
+            <tr>
+            <td class="questionCol" >
+                <apex:outputtext value="{!dLabel['DL96']}" />
+                </td>
+                <td><apex:actionregion ><apex:selectradio value="{!pse__Proj__c.DocumentRecordsArchivingType__c}" layout="lineDirection" >
+                        <apex:selectoptions value="{!types}" />
+                        <apex:actionsupport event="onchange" action="{!setDirty}" rerender="panelArchiving, attachList" />
+                </apex:selectradio></apex:actionregion>
+                </td>
+            </tr>
+            <tr><td colspan="2" >
+            <apex:outputpanel id="panelArchiving" >
+            
+            <apex:inputfield id="inputArchiving" value="{!pse__Proj__c.DocumentRecordsArchiving__c}" rendered="{!pse__Proj__c.DocumentRecordsArchivingType__c == null}" style="width: 825px; height: 40px" >
+            <apex:actionsupport event="onchange" action="{!setDirty}" rerender="attachList" />
+            </apex:inputfield>
+            <script>document.getElementById('{!$Component.inputArchiving}').disabled = {!pse__Proj__c.DocumentRecordsArchivingType__c == null}; </script>
+            <apex:inputfield id="inputArchivingAECOM" value="{!pse__Proj__c.DocumentRecordsArchiving__c}" rendered="{!pse__Proj__c.DocumentRecordsArchivingType__c == 'AECOM'}" style="width: 825px; height: 40px" html-placeholder="Enter the local AECOM record retention or archiving protocol. This includes the location (on site or off site) and archive duration. These are likely defined by your administrative team, business line or practice area. Attach any relevant document control or file management documents, such as directions on how to request document archiving services, for reference." >
+            <apex:actionsupport event="onchange" action="{!setDirty}" rerender="attachList" />
+            </apex:inputfield>
+            <apex:inputfield id="inputArchivingOther" value="{!pse__Proj__c.DocumentRecordsArchiving__c}" rendered="{!pse__Proj__c.DocumentRecordsArchivingType__c == 'Client/Project'}" style="width: 825px; height: 40px" html-placeholder="Enter the project or client specific record retention or archiving protocol.  This may be a requirement by your client or in your contract on how long project documents and deliverables must be archived. Client or project reference documents may be attached for reference." >
+            <apex:actionsupport event="onchange" action="{!setDirty}" rerender="attachList" />
+            </apex:inputfield>
+            </apex:outputpanel><br/>
+            </td></tr>
+            </table>                           
+            
+            
+        </apex:outputpanel> 
+        <apex:outputpanel ><br/></apex:outputpanel>
+                
+        <apex:outputpanel ><br/>
+            <table>
+            <tr><td>
+            <apex:outputtext value="{!dLabel['DL97']}" styleclass="dmeOutput" /><br/> 
+            <apex:inputfield id="inputComments" value="{!pse__Proj__c.DocumentOtherCommentsNotes__c}" style="width: 825px; height: 40px" >
+            <apex:actionsupport event="onchange" action="{!setDirty}" rerender="attachList" />
+            </apex:inputfield>
+            <br/>
+            </td></tr>
+            </table>   
+        </apex:outputpanel>     
+        
+        </apex:outputpanel>
+    </apex:pageblocksection>
+    <apex:pageblocksection title="{!dLabel['DL98']}" collapsible="false" columns="1" id="efl" >
+        
+        <apex:outputpanel id="outputlinks" rendered="{!bViewLinks}" >
+            <br/>
+            <table style="width: 825px;" >
+            <tr><td colspan="2" >
+            <apex:outputtext value="{!dLabel['DL99']}" styleclass="dmeOutput" />
+            &nbsp;&nbsp;
+            <apex:commandlink value="{!dLabel['DL100']}" action="{!EditLinks}" rerender="efl" />
+            <br/>
+            </td></tr>
+            <tr><td colspan="2" >
+            <apex:repeat value="{!lstLinks}" var="sLink" >
+                <tr>
+                    <td>
+                        <apex:outputlink value="{!sLink}" target="_blank" >{!sLink}</apex:outputlink>
+                    </td>
+                </tr>
+                                               
+            </apex:repeat>
+            </td></tr>
+            </table> 
+        </apex:outputpanel>  
+
+        <apex:outputpanel rendered="{!not(bViewLinks)}" >
+            <br/>
+            <table>
+            <tr><td colspan="2" >
+            <apex:outputtext value="{!dLabel['DL101']}" styleclass="dmeOutput" />
+            &nbsp;&nbsp;
+            <apex:commandlink value="{!dLabel['DL102']}" action="{!ViewLinks}" rerender="efl" />
+            <br/> 
+            <div/>
+            <apex:inputfield id="inputSharepoint" value="{!pse__Proj__c.DocumentControlLinks__c}" style="width: 825px;" >
+            <apex:actionsupport event="onchange" action="{!setDirty}" rerender="attachList" />
+            </apex:inputfield>
+            <br/>
+            </td></tr>
+            </table>   
+        </apex:outputpanel>  
+    </apex:pageblocksection>
+        
+    <apex:pageblockbuttons location="bottom" >
+        <nttdcore:DLabel name="DL103" default="Save" labelParent="{!this}" /><apex:commandbutton value="{!dLabel['DL103']}" action="{!save}" />
+        <nttdcore:DLabel name="DL104" default="Return to Project" labelParent="{!this}" /><apex:commandbutton value="{!dLabel['DL104']}" action="{!cancel}" />
+        <nttdcore:DLabel name="DL105" default="AECOM Project Document &amp; Records Control Procedures" labelParent="{!this}" /><apex:commandbutton value="{!dLabel['DL105']}" onclick="myURLOpen();" />
+    </apex:pageblockbuttons>        
+</apex:pageblock>
+
+</apex:form>
+<!--<apex:outputPanel id="attachList">
+    <apex:outputPanel rendered="{!bAttachAvail}">
+        <apex:relatedList subject="{!pse__Proj__c}" list="CombinedAttachments" />
+    </apex:outputPanel>
+</apex:outputPanel>-->
+     <apex:form id="frmId1" >  
+        <nttdcore:DLabel name="DL106" default="Attachments" labelParent="{!this}" /><apex:pageblock title="{!dLabel['DL106']}" >         
+            <div class="ouputPanelSep" >
+                <div class="fileList" ><nttdcore:DLabel name="DL107" default="Action" labelParent="{!this}" /><nttdcore:DLabel name="DL108" default="Remove" labelParent="{!this}" /><nttdcore:DLabel name="DL109" default="Remove" labelParent="{!this}" /><nttdcore:DLabel name="DL110" default="File Name" labelParent="{!this}" />
+                    <apex:pageblocktable value="{!DocM_AttachmentFiles}" var="attachedDocMFile" style="width: 825px;" rendered="{!pse__Proj__c.DocManAttachment__c != null}" >
+                        <apex:column headervalue="{!dLabel['DL107']}" >
+                            <apex:commandlink style="text-decoration: none;" value="{!dLabel['DL108']}" action="{!removeattachment}" title="{!dLabel['DL109']}" >
+                              <apex:param name="attachID" value="{!attachedDocMFile.Id}" assignto="{!sTargetAttachment}" />
+                           </apex:commandlink>
+                       </apex:column>
+                        <apex:column headervalue="{!dLabel['DL110']}" >
+                            <apex:outputlink value="{!URLFOR($Action.Attachment.Download, attachedDocMFile.Id)}" target="_blank" >
+                                <apex:outputtext value="{!attachedDocMFile.Name}" />
+                            </apex:outputlink>
+                        </apex:column>
+                        <apex:column value="{!attachedDocMFile.ContentType}" /> 
+                        <apex:column value="{!attachedDocMFile.LastModifiedDate}" />    
+                        <apex:column value="{!attachedDocMFile.LastModifiedById}" />
+                    </apex:pageblocktable></div>
+                    <apex:inputfile id="DocMgmtAttachment" value="{!newDocM_Attachment.Body}" contenttype="{!newDocM_Attachment.ContentType}" filename="{!newDocM_Attachment.Name}" onchange="fileChosen('{!$Component.DocMAttachment}', this, '{!$Component.overrideDocMName}'); return false;" />
+                    <apex:inputtext id="overrideDocMName" value="{!overrideDocMName}" maxlength="80" html-placeholder="Override File Name" styleclass="attachNewFile" />
+                    <nttdcore:DLabel name="DL111" default="Attach" labelParent="{!this}" /><apex:commandbutton id="DocMAttachment" value="{!dLabel['DL111']}" action="{!saveDocM_AttachmentAndProject}" styleclass="attachNewFile" /><br/>
+                <br/>
+            </div>            
+        </apex:pageblock>
+     </apex:form>
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

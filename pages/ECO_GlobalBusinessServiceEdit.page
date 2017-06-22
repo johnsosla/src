@@ -1,0 +1,66 @@
+<apex:page standardcontroller="SharedServicesRequest__c" extensions="ECO_GBSEditController,nttdcore.DLabelParentController" >
+	<apex:messages />
+	<apex:sectionHeader title="{!$Label.EcoGBSTitle}" subtitle="{!$Label.EcoGBSSubTitle}" />
+	<apex:pagemessages id="messages" />
+    <apex:form id="theForm" >
+
+	<apex:pageBlock ><nttdcore:DLabel name="DL2" default="Information" labelParent="{!this}" /><nttdcore:DLabel name="DL3" default="Owner" labelParent="{!this}" /><nttdcore:DLabel name="DL4" default="Address 1" labelParent="{!this}" /><nttdcore:DLabel name="DL5" default="Remit-To Address (VENDOR ONLY)" labelParent="{!this}" />
+		<apex:pageBlockButtons location="top" >
+            <nttdcore:DLabel name="DL1" default="Save" labelParent="{!this}" /><apex:commandButton action="{!save}" value="{!dLabel['DL1']}" />
+			<apex:commandButton action="{!cancel}" value="{!$Label.ECOGBSRecordTypeCancel}" />
+		</apex:pageBlockButtons>
+		<apex:detail subject="{!SharedServicesRequest__c.Owner.Id}" relatedlist="false" />
+		<apex:pageBlockSection columns="2" title="{!dLabel['DL2']}" >
+		    <apex:inputField value="{!SharedServicesRequest__c.Geography__c}" />
+		    <apex:inputField value="{!SharedServicesRequest__c.Urgent__c}" />
+		    <apex:inputField value="{!SharedServicesRequest__c.ERPSystem__c}" />
+		    <apex:inputField value="{!SharedServicesRequest__c.Status__c}" />
+		    <apex:inputField value="{!SharedServicesRequest__c.OUName__c}" />
+		    <apex:outputField value="{!SharedServicesRequest__c.Owner.Name}" label="{!dLabel['DL3']}" />
+		    <apex:inputField value="{!SharedServicesRequest__c.Account__c}" />
+		    <apex:inputField value="{!SharedServicesRequest__c.Requestor__c}" />
+	    </apex:pageBlockSection>
+		<apex:pageBlockSection columns="2" title="{!dLabel['DL4']}" >
+		    <apex:inputField value="{!SharedServicesRequest__c.SiteAddressType__c}" />
+		    <apex:inputField value="{!SharedServicesRequest__c.OfficeEmail__c}" />
+		    <apex:inputField value="{!SharedServicesRequest__c.Address1StreetPOBox__c}" />
+		    <apex:inputField value="{!SharedServicesRequest__c.OfficePhone__c}" />
+		    <apex:inputField value="{!SharedServicesRequest__c.Address2StreetPOBox__c}" />
+		    <apex:inputField value="{!SharedServicesRequest__c.OfficeFax__c}" />
+		    <apex:inputField value="{!SharedServicesRequest__c.Address3StreetPOBox__c}" />
+		    <apex:pageBlockSectionItem />
+		    <apex:inputField value="{!SharedServicesRequest__c.Address4StreetPOBox__c}" />
+		    <apex:inputField value="{!SharedServicesRequest__c.AddressIsPrimary__c}" />
+		    <apex:inputField value="{!SharedServicesRequest__c.City__c}" />
+		    <apex:inputField value="{!SharedServicesRequest__c.AlternateName__c}" />
+		    <apex:inputField value="{!SharedServicesRequest__c.StateProvinceEmirate__c}" />
+		    <apex:inputField value="{!SharedServicesRequest__c.ReferenceSiteID__c}" />
+		    <apex:inputField value="{!SharedServicesRequest__c.ZipPostalCode__c}" />
+		    <apex:inputField value="{!SharedServicesRequest__c.ReferenceSite__c}" />
+		    <apex:inputField value="{!SharedServicesRequest__c.Country__c}" />
+	    </apex:pageBlockSection>
+		<apex:pageBlockSection columns="2" title="{!dLabel['DL5']}" >
+		    <apex:inputField value="{!SharedServicesRequest__c.RemitToAddressLine1__c}" />
+		    <apex:inputField value="{!SharedServicesRequest__c.RemitToOfficeEmail__c}" />
+		    <apex:inputField value="{!SharedServicesRequest__c.RemitToAddressLine2__c}" />
+		    <apex:inputField value="{!SharedServicesRequest__c.RemitToOfficePhone__c}" />
+		    <apex:inputField value="{!SharedServicesRequest__c.RemitToCity__c}" />
+		    <apex:inputField value="{!SharedServicesRequest__c.RemitToOfficeFax__c}" />
+		    <apex:inputField value="{!SharedServicesRequest__c.RemitToStateProvinceEmirate__c}" />
+		    <apex:inputField value="{!SharedServicesRequest__c.SiteNameRomaniaAddress__c}" />
+		    <apex:inputField value="{!SharedServicesRequest__c.RemitToZipPostalCode__c}" />
+		    <apex:pageBlockSectionItem />
+		    <apex:inputField value="{!SharedServicesRequest__c.RemitToCountry__c}" />
+		    <apex:inputField value="{!SharedServicesRequest__c.RemitIsPrimaryAddress__c}" />
+		    <apex:pageBlockSectionItem />
+		    <apex:inputField value="{!SharedServicesRequest__c.ReferenceRemitSiteID__c}" />
+		    <apex:pageBlockSectionItem />
+		    <apex:inputField value="{!SharedServicesRequest__c.ReferenceRemitSite__c}" />
+
+	    </apex:pageBlockSection>
+	</apex:pageBlock>
+
+
+    </apex:form>
+
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

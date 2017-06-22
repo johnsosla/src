@@ -1,0 +1,12 @@
+<apex:component language="{!theLanguage}" controller="nttdcore.DLabelChildController" access="global" ><apex:attribute name="theLanguage" type="String" required="true" description="language" access="global" /><apex:attribute name="theRecipient" type="Contact" required="true" description="recipient" access="global" /><apex:attribute name="theRelatedTo" type="Project_Site__c" required="true" description="related to" access="global" />
+    <apex:outputpanel ><nttdcore:DLabel name="DL1" default="{{1}} has been identified with a credit rating of" labelParent="{!this}" componentContext="EcoSevere_Credit_Rating_VF_1" p1="{!theRelatedTo.Account_Name__c}" /><nttdcore:DLabel name="DL3" default=".  Please contact the requestor to discuss alternative payment strategy options." labelParent="{!this}" componentContext="EcoSevere_Credit_Rating_VF_1" />
+        {!dlRoot.dLabel['DL1']} <b><nttdcore:DLabel name="DL2" default="SEVERE" labelParent="{!this}" componentContext="EcoSevere_Credit_Rating_VF_1" />{!dlRoot.dLabel['DL2']}</b>{!dlRoot.dLabel['DL3']} 
+        <br/>
+        <b><nttdcore:DLabel name="DL4" default="Project Name:" labelParent="{!this}" componentContext="EcoSevere_Credit_Rating_VF_1" />{!dlRoot.dLabel['DL4']}</b> {!theRelatedTo.Project__r.Name}
+        <br/>
+        <b><nttdcore:DLabel name="DL5" default="Credit Rating:" labelParent="{!this}" componentContext="EcoSevere_Credit_Rating_VF_1" />{!dlRoot.dLabel['DL5']} </b> {!theRelatedTo.CreditRiskRating__c}
+        <br/>
+        <br/>
+        <a href="{!theRelatedTo.ProjectLink__c}" ><nttdcore:DLabel name="DL6" default="Link to Project" labelParent="{!this}" componentContext="EcoSevere_Credit_Rating_VF_1" />{!dlRoot.dLabel['DL6']}</a>
+    </apex:outputpanel>
+<nttdcore:DLabelInit language="{!theLanguage}" labelParentInit="{!this}" /></apex:component>

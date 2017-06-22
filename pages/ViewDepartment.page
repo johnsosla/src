@@ -1,0 +1,31 @@
+<apex:page standardController="Opportunity" extensions="ModifyDepartmentController" id="pg" showHeader="false" sidebar="false">
+<apex:form id="frm">
+    <apex:pageblock id="pb" title="Opportunity Departments">         
+        <apex:pageblockButtons Location="top">
+            <input type="button" class="btn" onclick="window.top.location.href='/apex/ModifyDepartment?oppid={!opp.id}';"  value="New/Edit Opportunity Departments"/>
+        </apex:pageblockButtons>
+        <apex:pageBlockTable value="{!lstDept}" var="cur">
+            <apex:column >
+                <apex:facet name="header">Department</apex:facet>
+                <apex:outPutField value="{!cur.dept.AECOM_Department__c}"/>
+            </apex:column>
+            <apex:column >
+                <apex:facet name="header">Primary</apex:facet>
+                <apex:outputField value="{!cur.dept.Primary__c}"/>
+            </apex:column>
+            <apex:column >
+                <apex:facet name="header">Split %</apex:facet>
+                <apex:outputField value="{!cur.dept.split__c}"/>
+            </apex:column>
+            <apex:column >
+                <apex:facet name="header">TO/Project Revenue Split</apex:facet>
+                <apex:outputField value="{!cur.dept.Revenue_Split_TO_Proj__c}"/>
+            </apex:column>
+             <apex:column >
+                 <apex:facet name="header">Program Revenue Split</apex:facet>
+                <apex:outputField value="{!cur.dept.Revenue_Split_Program__c}"/>
+            </apex:column>
+        </apex:pageBlockTable>
+    </apex:pageblock>
+</apex:form>
+</apex:page>

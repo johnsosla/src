@@ -1,0 +1,496 @@
+<apex:page tabstyle="Packages__c" controller="ECO_ProjectScopeController" showheader="true" sidebar="true" extensions="nttdcore.DLabelParentController" >
+    <apex:includescript value="{!$Resource.ECO_jQuery_1_11_2_min_js}" />
+    <apex:includescript value="{!URLFOR($Resource.ECO_jQueryUI_1_11_2, 'jquery-ui.min.js')}" />
+    <apex:includescript value="/soap/ajax/24.0/connection.js" />   
+    <apex:includescript value="/soap/ajax/24.0/apex.js" />   
+
+    <style> 
+#rcorners1 {
+    border-radius: 2px;
+    background: #73AD21;
+    padding: 20px; 
+    width: 200px;
+    height: 150px;    
+}
+
+.rcorners2 {
+    border-radius: 2px;
+    border: 4px solid #EE2421;
+    padding: 2px; 
+    width: 420px;
+    height: 19px;    
+}
+
+#rcorners3 {
+    border-radius: 25px;
+    background: url(paper.gif);
+    background-position: left top;
+    background-repeat: repeat;
+    padding: 20px; 
+    width: 200px;
+    height: 150px;    
+}
+</style>
+    <style>
+
+        /* CUSTOM HELP / GUIDANCE TEXT BOX 
+        .customHelpText{
+            padding:7px;
+            border:1px solid #85B3CE;
+            min-height:30px;
+            display:block;
+            width:auto;
+            margin:0;
+            background-color:#E3F0F8;
+            border-radius:4px;
+            margin-bottom:15px;
+        }
+        .customHelpBody{
+            color:#;
+            max-width:95%;
+        }    */
+        .customHelpText{
+            padding: 7px;
+            border: 1px solid #85B3CE;
+            min-height: 30px;
+            display: block;
+            width: auto;
+            margin: 0 0 5px 0;
+            background-repeat: no-repeat;
+            border-radius: 4px;
+            background-color: #A2D3F1;
+            
+        }
+        .customHelpBody{
+            display:inline-block;
+            color:#;
+            max-width:95%;
+        }
+        .searchText{
+            text-align:center;
+            font-weight:bold;
+            font-size:20px;
+        }
+
+        .flyout .body label{
+            margin:0 3px 0 8px;
+        }
+        .flyout .body input{
+            margin-top:8px;
+            display:block;
+        }
+        .flyout table th:first{
+            width:100px;
+        }
+        .mouseOverInfo {
+            position: absolute;
+            display: none;
+            left: 05px;
+            bottom: 0px;
+            width: 69em;
+            background-color: #fefdb9;
+            padding: 2px;
+            border: 1px solid black;
+            z-index: 9999;
+            opacity: 0;
+            white-space: normal;
+            font-weight: normal;
+            color: #000;
+        }
+
+        .helpIcon{
+            width: 24px;
+            height: 24px;
+        }
+
+         .pbsAssignedDeliverables{
+            font-weight: bold;
+            width:100%;
+            min-height: 25px;
+            margin-left:12px;
+
+        }
+
+    </style>
+  
+    <script>
+
+
+    function handleScopeDelete(selectedScope)
+    {
+        deleteScope(selectedScope);
+    }
+    
+
+    
+    </script>
+
+    <nttdcore:DLabel name="DL39" default="Scope &amp; Packages" labelParent="{!this}" /><apex:sectionheader title="{!dLabel['DL39']}" subtitle="{!theProject.ProjectSectionHeaderName__c}" />
+    
+    <apex:outputpanel id="all" >
+    <apex:form >  
+        <apex:pagemessages id="messages" />
+
+        <!-- Action function for the rerendering -->
+        <apex:actionfunction name="saving" action="{!SavePackages}" />
+        <apex:inputhidden value="{!selectedTab}" id="myHiddenField" />
+
+        <div style="visibility: hidden;" >
+        <apex:inputfield value="{!oProjectPackage.Scope__c}" style="visibility: hidden;" />
+        </div>
+        
+        <c:ECO_CollapsibleSection sectiontitle="General Guidance Information" ><nttdcore:DLabel name="DL40" default="Provide a brief summary of the overall scope of work and proposed approach for the project.  Detailed scope packages may be added if additional detail or delineation of AECOMs services is required.  Scope packages may include specific project activities or tasks, phases of work, interdisciplinary deliverables, change orders or variations, or packages &ldquo;owned&rdquo; by another organization to support an intercompany agreement.  Enough detail should be provided to support development of the schedule, required resources and cost estimate.   It is best practice to also capture any risks or assumptions identified during development of the project scope and approach." labelParent="{!this}" />  
+            {!dLabel['DL40']}
+        </c:ECO_CollapsibleSection>
+
+
+        <nttdcore:DLabel name="DL41" default="Project Scope" labelParent="{!this}" /><apex:pageblock title="{!dLabel['DL41']}" mode="edit" >
+
+            <apex:pageblockbuttons location="top" >
+                <nttdcore:DLabel name="DL42" default="Add Detailed Scope Packages" labelParent="{!this}" /><apex:commandbutton action="{!AddScopePackage}" value="{!dLabel['DL42']}" />
+                <!--<apex:commandButton action="{!SavePackages}" value="Save"/>-->
+                <nttdcore:DLabel name="DL43" default="Save" labelParent="{!this}" /><apex:commandbutton action="{!SavePackages}" value="{!dLabel['DL43']}" />
+                <nttdcore:DLabel name="DL44" default="Return to Project" labelParent="{!this}" /><apex:commandbutton action="{!Cancel}" value="{!dLabel['DL44']}" immediate="true" />
+            </apex:pageblockbuttons>
+            <c:Tabpanel >
+            <c:Tab title="{!oProjectPackage.PackageTitle__c}" ><nttdcore:DLabel name="DL45" default="Project Scope Detail" labelParent="{!this}" />
+            <!-- Project Scope Section -->
+            <apex:pageblocksection title="{!dLabel['DL45']}" columns="2" collapsible="false" >
+                <apex:outputtext value="{!oProjectPackage.PackageTitle__c}" />
+                <apex:inputfield id="first" value="{!oProjectPackage.Scope_Owner__c}" />
+                <apex:inputfield value="{!oProjectPackage.Status__c}" />
+                
+                <apex:inputfield id="CancelReason" value="{!oProjectPackage.CancelledReason__c}" rendered="{!theProject.pse__Stage__c = 'Execution'}" />
+                <!--<apex:inputField id="CancelReason" value="{!oProjectPackage.CancelledReason__c}"/> -->
+                
+            </apex:pageblocksection>
+            <apex:pageblocksection columns="1" >
+                <apex:pageblocksectionitem helptext="{!$ObjectType.Packages__c.Fields.Scope_Details__c.inlineHelpText}" >
+                    <apex:outputtext value="{!$ObjectType.Packages__c.Fields.Scope_Details__c.Label}" />
+                    <apex:inputfield value="{!oProjectPackage.Scope_Details__c}" />
+                </apex:pageblocksectionitem>
+            </apex:pageblocksection>
+            <apex:pageblocksection columns="1" >
+                <apex:pageblocksectionitem helptext="{!$ObjectType.Packages__c.Fields.Scope_Approach__c.inlineHelptext}" >
+                    <apex:outputtext value="{!$ObjectType.Packages__c.Fields.Scope_Approach__c.Label}" />
+                    <apex:inputfield value="{!oProjectPackage.Scope_Approach__c}" />
+                </apex:pageblocksectionitem>            
+            </apex:pageblocksection>
+            
+            <br/><br/>
+            <div style="font-weight:bold;padding:20px 10px 4px 10px;" ><nttdcore:DLabel name="DL46" default="BIM" labelParent="{!this}" />{!dLabel['DL46']}</div>
+            <apex:actionregion immediate="true" >                 
+                <div style="padding:10px" >
+                    <apex:panelgrid columns="4" style="float:left;" ><nttdcore:DLabel name="DL47" default="This project will use Digital Production Tools, or manage information in a common Data Environment." labelParent="{!this}" />
+                    {!dLabel['DL47']}
+                    <!--<c:ECO_HelpIcon helpText="{!$ObjectType.Packages__c.fields.Utilize_BMI_Technology__c.inlineHelpText}" />-->
+                    &nbsp;&nbsp;
+                    <!--<apex:selectRadio value="{!oProjectPackage.Utilize_BMI_Technology__c}" onchange="setInner(this)" >-->
+                    <apex:panelgroup >
+                        <apex:outputpanel >
+                        <div class="requiredInput" >
+                            <div class="requiredBlock" />
+                             <apex:selectradio value="{!UtilizeBMI}" id="BMISelect" >
+                                <apex:selectoptions value="{!yesNoBIM}" />
+                                <apex:actionsupport event="onchange" rerender="Panel" action="{!checkBIMChoice}" />
+                                <!-- <apex:commandButton value="Test" action="{!test}" rerender="out" status="status"/> -->
+                             </apex:selectradio>
+                        </div>
+                        </apex:outputpanel>
+                    </apex:panelgroup>
+                    </apex:panelgrid>
+                    <br/>
+                </div>
+
+                <div style="padding:10px" >
+                   <br/>
+                   <apex:outputpanel id="Panel" >
+                       <apex:outputpanel id="YesMessage" rendered="{!if((UtilizeBMI=='true'), true, false)}" >
+                    
+                        <div class="customHelpText" >
+                            <div class="customHelpBody" ><nttdcore:DLabel name="DL48" default="Projects answering YES will need to provide additional 
+                                                                                      data to determine if a BIM Healthy Start review is required.  
+                                                                                      Initiate a BIM Healthy Start screening using the button below.  
+                                                                                      Screening results will be provided when you submit the form.  
+                                                                                      For more information on BIM Healthy Start, see the" labelParent="{!this}" />
+                                {!dLabel['DL48']}
+                                <a href="https://myecosystem.aecom.com/dept/it/businesstechnologysolutions/pt/Pages/210BH-BIM_Healthy_Start-Screening.aspx" target="_blank" ><nttdcore:DLabel name="DL49" default="BIM Healthy Start overview page" labelParent="{!this}" />{!dLabel['DL49']}</a>
+                            </div>
+                        </div>
+                           
+                        <div style="padding:10px" >
+                            <apex:outputlink styleclass="btn" style="text-decoration:none" value="https://jonanunson.typeform.com/to/Fovnuf?EpMId={!theProject.pse__Project_ID__c}" target="_blank" ><nttdcore:DLabel name="DL50" default="Initiate BIM Healthy Start Screening" labelParent="{!this}" />{!dLabel['DL50']}</apex:outputlink>
+                        </div>                           
+
+                       </apex:outputpanel>
+                       
+                   </apex:outputpanel>
+                   
+                </div>     
+            </apex:actionregion>
+            
+            <div style="font-weight:bold;padding:20px 10px 4px 10px;" ><nttdcore:DLabel name="DL51" default="Project Quality Audit" labelParent="{!this}" />{!dLabel['DL51']}</div>
+            <apex:actionregion immediate="true" >                 
+                <div style="padding:10px" >
+                    <apex:panelgrid columns="4" style="float:left;" ><nttdcore:DLabel name="DL52" default="The client will require or has requested a Project Quality Audit." labelParent="{!this}" />
+                    {!dLabel['DL52']}
+                     &nbsp;&nbsp;
+                    <apex:panelgroup >
+                        <apex:outputpanel >
+                        <div class="requiredInput" >
+                            <div class="requiredBlock" />
+
+                                <apex:selectradio value="{!ProjectQualityAudit}" id="PQASelect" >
+                                <apex:selectoptions value="{!yesNo}" />
+                                <apex:actionsupport event="onchange" rerender="projectQualityAuditPanel" />
+                             </apex:selectradio>
+                        </div>
+                        </apex:outputpanel>
+                    </apex:panelgroup>
+                    </apex:panelgrid>
+                    <br/>
+                </div>
+                <div style="padding:10px" >
+                   <br/>
+                   <apex:outputpanel id="projectQualityAuditPanel" >
+                        <!--<apex:outputpanel rendered="{!if(oProjectPackage.ProjectQualityAudit__c, true, false)}" >US-06619-->
+                        <apex:outputpanel rendered="{!if(ProjectQualityAudit=='true', true, false)}" >
+                        <div class="customHelpText" style="min-height: 15px;" ><nttdcore:DLabel name="DL53" default="A member of the Global Quality team will contact the Project Manager for further information and to coordinate the Project Quality Audit." labelParent="{!this}" />
+                                {!dLabel['DL53']}
+                        </div>                           
+                       </apex:outputpanel>                       
+                   </apex:outputpanel>                   
+                </div>     
+            </apex:actionregion>
+
+            <div style="font-weight:bold;padding:20px 10px 4px 10px;" ><nttdcore:DLabel name="DL54" default="Safety in Design" labelParent="{!this}" />{!dLabel['DL54']}</div>
+            <apex:actionregion immediate="true" >
+                <div style="padding:10px" >
+                    <apex:panelgrid columns="4" style="float:left;" ><nttdcore:DLabel name="DL55" default="Project scope includes design where we need to incorporate Safety in Design (SiD)." labelParent="{!this}" />
+                    {!dLabel['DL55']}
+                    <!--<c:ECO_HelpIcon helpText="Safety in Design (SiD) legislation generally requires all parties to do ‘what is practicable’ to reduce health and safety risks and applies to all designers and design activities regardless of discipline. This implies a duty on clients to participate in, or provide information for, design activities relevant to identifying and reducing safety risks at the planning and design stage. It is implicit that staff, at all levels, take action to design out safety and health risks that are readily identifiable.<br/><br/> 
+                                              “Design” includes drawings, design details, specifications and bills of quantities (including specification of articles or substances) relating to a structure, and calculations prepared for the purpose of a design.<br/><br/> 
+                                              “Designer” means any person (including a client, contractor or other person referred to in these Regulations) who in the course or furtherance of a business - (a) prepares or modifies a design; or (b) arranges for, or instructs, any person under their control to do so, relating to a structure, or to a product or mechanical or electrical system intended for a particular structure, and a person is deemed to prepare a design where a design is prepared by a person under their control." /> -->               
+                    &nbsp;&nbsp;
+                    <apex:panelgroup >
+                        <apex:outputpanel >
+                    <div class="requiredInput" >
+                    <div class="requiredBlock" />
+                    <apex:selectradio value="{!SafetyInDesign}" id="SIDSelect" >
+                        <apex:selectoptions value="{!yesNo}" />
+                        <apex:actionsupport event="onchange" rerender="Panel2" />
+                     </apex:selectradio>
+                     </div>
+                        </apex:outputpanel>
+                    </apex:panelgroup>
+                    </apex:panelgrid>
+                </div>
+                <div style="padding:10px" >
+                    <br/>
+                    <apex:outputpanel id="Panel2" >
+                        <!--<apex:outputpanel id="YesMessage2" rendered="{!if(oProjectPackage.SafetyInDesign__c, true, false)}" >US-06619-->
+                        <apex:outputpanel id="YesMessage2" rendered="{!if(SafetyInDesign=='true', true, false)}" >
+                             <apex:inputfield style="width:50%; height:50px;" value="{!oProjectPackage.Safety_In_Design_Description__c}" html-placeholder="Please provide details of relevant SiD requirements. Ensure relevant legislative requirements are incorporated." />
+                        </apex:outputpanel>
+                    </apex:outputpanel>
+                </div>   
+            </apex:actionregion>
+
+            <div style="font-weight:bold;padding:10px 10px 4px 10px;" ><nttdcore:DLabel name="DL56" default="Package Attachments" labelParent="{!this}" />{!dLabel['DL56']}</div>
+            <apex:outputpanel rendered="{!oProjectPackage.Attachments.size == 0}" layout="block" style="padding:10px" >
+                 <nttdcore:DLabel name="DL57" default="Package has no attachments" labelParent="{!this}" /><apex:pagemessage severity="info" summary="{!dLabel['DL57']}" />
+            </apex:outputpanel>
+            <apex:outputpanel rendered="{!oProjectPackage.Attachments.size > 0}" layout="block" style="padding:10px" >
+                 <div style="padding:10px" ><nttdcore:DLabel name="DL58" default="View" labelParent="{!this}" /><nttdcore:DLabel name="DL59" default="Delete" labelParent="{!this}" />
+                     <apex:pageblocktable rendered="{!oProjectPackage.Attachments.size > 0}" value="{!oProjectPackage.Attachments}" var="attachment" >
+                         <apex:column width="80px" >
+                             <a href="/servlet/servlet.FileDownload?file={!attachment.Id}" target="_blank" >{!dLabel['DL58']}</a>
+                             &nbsp;<apex:commandlink action="{!deleteAttachment}" value="{!dLabel['DL59']}" >
+                                 <apex:param assignto="{!AttachmentId}" value="{!attachment.Id}" name="AttachmentId" />
+                             </apex:commandlink>
+                         </apex:column>
+                         <apex:column value="{!attachment.Name}" />
+                         <apex:column value="{!attachment.ContentType}" />
+                     </apex:pageblocktable>
+                 </div>
+            </apex:outputpanel>
+             <div style="text-align:center" >
+                 <nttdcore:DLabel name="DL60" default="Attach File to Package" labelParent="{!this}" /><nttdcore:DLabel name="DL61" default="User must Save the record prior to adding attachments." labelParent="{!this}" /><apex:commandbutton value="{!dLabel['DL60']}" action="{!AttachFile}" rerender="messages" title="{!dLabel['DL61']}" >
+                     <apex:param assignto="{!sSelectedPackageId}" name="sSelectedPackageId" value="{!oProjectPackage.Id}" />
+                     <apex:param assignto="{!sSelectedPackageName}" name="sSelectedPackageName" value="{!oProjectPackage.PackageTitle__c}" />
+                 </apex:commandbutton>              
+             </div>
+
+
+            <apex:outputpanel rendered="{!IF(oProjectPackage.Id ==null, false, true)}" >
+
+            <apex:variable value="{!lstMapAssignedDeliverables[oProjectPackage.Id]}" var="myMap" />
+
+            <apex:outputpanel >
+
+                <div style="font-weight:bold;padding:20px 10px 4px 10px;" >
+                <nttdcore:DLabel name="DL62" default="Deliverables cannot be assigned until all packages are saved" labelParent="{!this}" /><apex:pagemessage severity="info" summary="{!dLabel['DL62']}" rendered="{!booNewProjectInPlay}" />
+                </div>
+
+                <apex:outputpanel ><nttdcore:DLabel name="DL64" default="No Results Were Found." labelParent="{!this}" /><nttdcore:DLabel name="DL65" default="Name" labelParent="{!this}" /><nttdcore:DLabel name="DL66" default="Assigned Scope" labelParent="{!this}" />
+                    <apex:outputpanel styleclass="pbsAssignedDeliverables" ><nttdcore:DLabel name="DL63" default="Assigned Deliverables" labelParent="{!this}" />
+                                    {!dLabel['DL63']}
+                                    <c:ECO_HelpIcon helptext="A list of Project Deliverables will appear here once added to the project.  Select the Scope Package to which the deliverable belongs to add the deliverable to that scope package." />
+                    </apex:outputpanel>
+                    <apex:pageblocksection columns="1" collapsible="false" >
+                        
+                        <apex:outputtext value="{!dLabel['DL64']}" rendered="{!IF(myMap.size > 0, false, true)}" />
+
+                        <apex:pageblocktable value="{!lstMapAssignedDeliverables[oProjectPackage.Id]}" var="aRow" rendered="{!IF(myMap.size > 0, true, false)}" >
+                            <apex:column headervalue="{!dLabel['DL65']}" >
+                                <apex:outputfield value="{!aRow.oDeliverable.name}" />
+                            </apex:column>
+                            <apex:column headervalue="{!dLabel['DL66']}" >
+                            <apex:selectlist value="{!aRow.oDeliverable.Project_Scope__c}" size="1" disabled="{!booNewProjectInPlay}" >
+                                <apex:selectoptions value="{!lstScopeOptions}" />
+                            </apex:selectlist>                       
+                            </apex:column>
+                            <apex:repeat value="{!$ObjectType.Deliverable__c.FieldSets.Scope_Assigned_View}" var="Field" >
+                                <apex:column headervalue="{!Field.Label}" >
+                                    <apex:outputfield value="{!aRow.oDeliverable[Field]}" />
+                                </apex:column>
+                            </apex:repeat>
+                        </apex:pageblocktable>
+                    </apex:pageblocksection>
+                    <br/><br/>
+
+                </apex:outputpanel>
+
+            </apex:outputpanel>
+            </apex:outputpanel>
+
+            </c:Tab>
+            <!-- Scope Package Section -->
+            <apex:repeat value="{!lstPackages}" var="ScopePackage" >
+                <c:Tab title="{!IF(ScopePackage.PackageTitle__c=='', 'New Scope Package', ScopePackage.PackageTitle__c)}" >
+
+                <apex:actionfunction name="deleteScope" action="{!DeleteSelectedScope}" rerender="hiddenBlock" >     
+                    <apex:param name="pSelectePackage" value="" assignto="{!sSelectedPackageId}" />
+                </apex:actionfunction>
+
+                <div style="text-align:center" >
+                <nttdcore:DLabel name="DL67" default="Delete Package" labelParent="{!this}" /><apex:commandbutton rendered="{!theProject.pse__Stage__c =='Planning' ||  theProject.pse__Stage__c == 'Pending Go/No Go'  && ScopePackage.PackageTitle__c !=''}" onclick="deleteScope('{!ScopePackage.Id}'); return false;" value="{!dLabel['DL67']}" />
+                </div>
+
+                <apex:pageblocksection title="{!IF(ScopePackage.PackageTitle__c=='', 'New Scope Package', ScopePackage.PackageTitle__c)} " columns="2" collapsible="false" >    
+                    <apex:inputfield value="{!ScopePackage.PackageTitle__c}" required="true" />
+                    <apex:inputfield value="{!ScopePackage.Scope_Owner__c}" />
+                    <apex:inputfield value="{!ScopePackage.Status__c}" />
+                    <apex:inputfield value="{!ScopePackage.CancelledReason__c}" rendered="{!theProject.pse__Stage__c = 'Execution'}" />
+                    <!--<apex:inputField value="{!ScopePackage.CancelledReason__c}" /> -->
+                </apex:pageblocksection>
+                <apex:pageblocksection columns="1" >
+                    <apex:pageblocksectionitem helptext="{!$ObjectType.Packages__c.Fields.Scope_Details__c.inlineHelpText}" >
+                        <apex:outputtext value="{!$ObjectType.Packages__c.Fields.Scope_Details__c.Label}" />
+                        <apex:inputfield value="{!ScopePackage.Scope_Details__c}" />
+                    </apex:pageblocksectionitem>
+                </apex:pageblocksection>
+
+                <br/>
+                <apex:pageblocksection columns="1" >
+                    <apex:pageblocksectionitem helptext="{!$ObjectType.Packages__c.Fields.Scope_Approach__c.inlineHelpText}" >
+                        <apex:outputtext value="{!$ObjectType.Packages__c.Fields.Scope_Approach__c.Label}" />
+                        <apex:inputfield value="{!ScopePackage.Scope_Approach__c}" />
+                    </apex:pageblocksectionitem>
+                </apex:pageblocksection>
+                <br/><br/>
+
+            <apex:outputpanel id="scopePackageAttachments" >
+                <div style="font-weight:bold;padding:20px 10px 20px 10px;" ><nttdcore:DLabel name="DL68" default="Package Attachments" labelParent="{!this}" />{!dLabel['DL68']}</div>
+                <apex:outputpanel rendered="{!ScopePackage.Attachments.size == 0}" layout="block" style="padding:10px" >
+                    <nttdcore:DLabel name="DL69" default="Package has no attachments" labelParent="{!this}" /><apex:pagemessage severity="info" summary="{!dLabel['DL69']}" />
+                </apex:outputpanel>
+
+                <div style="padding:10px" ><nttdcore:DLabel name="DL70" default="View" labelParent="{!this}" />
+                    <apex:pageblocktable rendered="{!ScopePackage.Attachments.size > 0}" value="{!ScopePackage.Attachments}" var="attachment" >
+                        <apex:column width="60px" >
+                            <a href="/servlet/servlet.FileDownload?file={!attachment.Id}" >{!dLabel['DL70']}</a>
+                        </apex:column>
+                        <apex:column value="{!attachment.Name}" />
+                        <apex:column value="{!attachment.ContentType}" />
+                    </apex:pageblocktable>
+                </div>
+                
+                <nttdcore:DLabel name="DL71" default="Attach File to Package" labelParent="{!this}" /><apex:commandbutton value="{!dLabel['DL71']}" action="{!AttachFile}" rerender="hiddenBlock" >
+                    <apex:param assignto="{!sSelectedPackageId}" name="sSelectedPackageId" value="{!ScopePackage.Id}" />
+                    <apex:param assignto="{!sSelectedPackageName}" name="sSelectedPackageName" value="{!ScopePackage.PackageTitle__c}" />
+                </apex:commandbutton>
+            </apex:outputpanel>
+
+
+                <apex:outputpanel rendered="{!IF(ScopePackage.Id ==null, false, true)}" >
+                <apex:outputpanel >
+
+                <div style="font-weight:bold;padding:20px 10px 4px 10px;" >
+                    <nttdcore:DLabel name="DL72" default="Deliverables cannot be assigned until all packages are saved" labelParent="{!this}" /><apex:pagemessage severity="info" summary="{!dLabel['DL72']}" rendered="{!booNewProjectInPlay}" />
+                </div>
+
+                        <apex:outputpanel >
+                            <apex:outputpanel styleclass="pbsAssignedDeliverables" ><nttdcore:DLabel name="DL73" default="Assigned Deliverables" labelParent="{!this}" />
+                                    {!dLabel['DL73']}
+                                    <c:ECO_HelpIcon helptext="A list of Project Deliverables will appear here once added to the project.  Select the Scope Package to which the deliverable belongs to add the deliverable to that scope package." />
+                            </apex:outputpanel>
+                            <apex:outputpanel id="assignedDeliverables" ><nttdcore:DLabel name="DL74" default="No Results Were Found." labelParent="{!this}" /><nttdcore:DLabel name="DL75" default="Name" labelParent="{!this}" /><nttdcore:DLabel name="DL76" default="Assigned Scope" labelParent="{!this}" />
+                            <apex:pageblocksection columns="1" collapsible="false" >
+                                <apex:outputpanel rendered="true" >
+                                </apex:outputpanel>
+                                <apex:outputtext value="{!dLabel['DL74']}" rendered="{!IF(MapRenderAssigned[ScopePackage.Id], false, true)}" />
+
+                                <apex:pageblocktable value="{!lstMapAssignedDeliverables[ScopePackage.Id]}" var="aRow" rendered="{!IF(MapRenderAssigned[ScopePackage.Id], true, false)}" >
+                                    <apex:column headervalue="{!dLabel['DL75']}" >
+                                        <apex:outputfield value="{!aRow.oDeliverable.name}" />
+                                    </apex:column>
+                                    <apex:column headervalue="{!dLabel['DL76']}" >
+                                    <apex:selectlist value="{!aRow.oDeliverable.Project_Scope__c}" size="1" disabled="{!booNewProjectInPlay}" >
+                                        <apex:selectoptions value="{!lstScopeOptions}" />
+                                    </apex:selectlist>                       
+                                    </apex:column>
+                                    <apex:repeat value="{!$ObjectType.Deliverable__c.FieldSets.Scope_Assigned_View}" var="Field" >
+                                        <apex:column headervalue="{!Field.Label}" >
+                                            <apex:outputfield value="{!aRow.oDeliverable[Field]}" />
+                                        </apex:column>
+                                    </apex:repeat>
+                                </apex:pageblocktable>
+                            </apex:pageblocksection>
+                            </apex:outputpanel>
+                            <br/><br/>
+
+                        </apex:outputpanel>
+
+                </apex:outputpanel>
+                </apex:outputpanel>
+
+                </c:Tab>
+            </apex:repeat>
+
+            </c:Tabpanel>
+
+            <input id="hiddenElementId" type="hidden" />
+            <a id="placeholder" name="placeholder" />
+        </apex:pageblock>
+
+        
+        <apex:pageblock id="hiddenBlock" rendered="false" />
+        <a id="dplaceholder" name="dplaceholder" />
+        <c:ECO_RiskFlyout projectid="{!sProjectId}" planelement="Scope" />
+        <c:ECO_AssumptionFlyout projectid="{!sProjectId}" planelement="Scope" />
+        <c:ECO_ProjectTeamFlyout projectid="{!sProjectId}" />
+        <!--c:ECO_DeliverableFlyout ProjectId="{!sProjectId}"  /-->
+        
+    </apex:form>
+        
+    </apex:outputpanel>
+
+    <apex:outputpanel rendered="{!not(selectedTab == null)}" >
+        <script type="text/javascript" >
+            $k = jQuery.noConflict();
+            $k("#tabs").tabs({active: {!selectedTab}});
+
+        </script>
+    </apex:outputpanel>
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

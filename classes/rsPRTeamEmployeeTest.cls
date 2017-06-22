@@ -1,0 +1,71 @@
+/*************************************************************************
+*
+* PURPOSE: Test Class for Controller for PR Team Employee model class
+*
+* CREATED: 2014 Ethos Solutions - www.ethos.com
+* AUTHOR: Alex Molina
+***************************************************************************/
+@isTest
+private class rsPRTeamEmployeeTest {
+    private static testmethod void testPRTeamEmployeeDataAccess() {
+        Test.startTest();
+        rsPRTeamEmployee testPR = new rsPRTeamEmployee(UserInfo.getUserId(), rsPRTeamEmployee.RT_AECOMPROJECT);
+        testPr.getProjectId();
+        testPr.setProjectId(null);
+        testPr.getDateInvolvementStarted();
+        testPr.setDateInvolvementStarted('');
+        testPr.getDateInvolvementEnded();
+        testPr.setDateInvolvementEnded('');
+        testPr.getProjectRole();
+        testPr.setProjectRole('');
+        testPr.getRoleDescription();
+        testPr.setRoleDescription('');
+        testPr.getOutputOnResume();
+        testPr.setOutputOnResume(true);
+        testPr.getNextProjectPart();
+        testPr.setNextProjectPart(null);
+        testPr.getPreviousProjectPart();
+        testPr.setPreviousProjectPart(null);
+        testPr.getDateTimeSentForReview();
+        testPr.setDateTimeSentForReview(DateTime.now());
+        testPr.getStatus();
+        testPr.setStatus(rsPRTeamEmployee.S_PENDING);
+        testPr.getProjectName();
+        testPr.getLocationCountry();
+        testPr.getLocationStateProvince();
+        testPr.getLocationCity();
+        testPr.getProjectNumber();
+        testPr.getClientName();
+        testPr.getInitialLocale();
+        testPr.setInitialLocale('');
+        testPr.getUser();
+        testPr.setUser(null);
+        testPr.getRecordTypeId();
+        testPr.getProjectNameEditable();
+        testPr.setProjectNameEditable('');
+        testPr.getProjectGroup();
+        testPr.setProjectGroup('');
+        testPr.getLocationCityEditable();
+        testPr.setLocationCityEditable('');
+        testPr.getClientNameEditable();
+        testPr.setClientNameEditable('');
+        testPr.getProjectNumberEditable();
+        testPr.setProjectNumberEditable('');
+        testPr.getLocationCountryEditable();
+        testPr.setLocationCountryEditable('');
+        testPr.getLocationStateProvinceEditable();
+        testPr.setLocationStateProvinceEditable('');
+        testPr.getWorkHistory();
+        testPr.setWorkHistory(null);
+        testPr.getAddedByEmployee();
+        testPr.setAddedByEmployee(true);
+        testPr.getGroupSequence();
+        testPr.setGroupSequence(0);
+        testPr.getProjectSequence();
+        testPr.setProjectSequence(0);
+        testPr.getIsPendingOrInReview();
+        testPr.getIsNonAECOMProject();
+        testPr.save();
+        Test.stopTest();
+    }
+}

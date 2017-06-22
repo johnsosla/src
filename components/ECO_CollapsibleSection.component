@@ -1,0 +1,74 @@
+<apex:component layout="none">
+<style>
+ /* CUSTOM HELP / GUIDANCE TEXT BOX */
+        .customHelpText{
+            padding: 7px;
+            border: 1px solid #85B3CE;
+            min-height: 30px;
+            display: block;
+            width: auto;
+            margin: 0 0 5px 0;
+            background-repeat: no-repeat;
+            border-radius: 4px;
+            background-color: #A2D3F1;
+            
+        }
+        .customHelpBody{
+            display:inline-block;
+            /*color:#;*/
+            max-width:95%;
+        }
+        .customHelpTitleContainer{
+            vertical-align: middle;
+            padding: 5px;
+        }
+        .arrow-down {
+            width: 0; 
+            height: 0; 
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;            
+            border-top: 6px solid #000; 
+            float: left;        
+        }
+
+        .arrow-right {
+            width: 0; 
+            height: 0; 
+            border-top: 6px solid transparent;
+            border-bottom: 6px solid transparent;           
+            border-left: 6px solid #000;
+            float: left;
+        }
+</style>   
+<apex:attribute name="sectionTitle" description="Section Title" type="String" required="true" />  
+<apex:attribute name="uniqueId" description="ID for mulitple components on the same page" type="String" required="false" />  
+ <!--<apex:pageBlock >-->
+    <div class="customHelpTitleContainer">
+        <span id="customHelpTitle{!uniqueId}" class="customHelpTitle">
+            <div id="customHelpArrow{!uniqueId}" class="arrow-down" />&nbsp;{!sectionTitle}&nbsp;<small>{!$Label.Collapsible_Section_Click_To_Hide}</small>
+        </span>
+    </div>
+    <div id="customHelpText{!uniqueId}"  class="customHelpText">
+        <div class="customHelpBody">
+            <apex:componentBody />
+        </div>
+    </div>
+<script>
+    document.getElementById('customHelpTitle{!uniqueId}').onclick = function(ev) {
+        console.log(this);
+        var el = this.parentElement.nextSibling.nextSibling;
+        var ar = this.children[0];
+        var sp = this;
+        if(el.style.display=='none'){       
+            el.style.display='block';
+            ar.className='arrow-down';
+            sp.innerHTML=sp.innerHTML.replace('show','hide');
+        }else{
+            el.style.display='none';
+            ar.className='arrow-right';
+            sp.innerHTML=sp.innerHTML.replace('hide','show');
+        }
+    };
+</script>     
+  <!-- </apex:pageBlock> -->
+</apex:component>

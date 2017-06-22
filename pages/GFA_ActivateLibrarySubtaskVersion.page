@@ -1,0 +1,1 @@
+<apex:page showHeader="true" sidebar="true" standardController="GFA_Library_Subtask_Version__c" extensions="GFA_ActivateLibrarySubtaskVerController" action="{!activateLibrarySubtaskVersion}"/>

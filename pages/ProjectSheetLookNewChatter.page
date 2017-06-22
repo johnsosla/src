@@ -1,0 +1,46 @@
+<apex:page standardController="Project__c" showheader="false"  standardstylesheets="false" Sidebar="false" cache="true" > 
+<style> body {
+  font: 100.1%/1.2 Arial, Helvetica, sans-serif;
+  background: #FFF; 
+  color: #000; 
+}</style>
+<apex:variable value="{!Project__c}" var="prj"/>
+<b><apex:outputField value="{!prj.Owner_Client_Output__c}"/></b><br/>
+<b><apex:outputField value="{!prj.Project_Name__c}"/></b><br/>
+<b><apex:outputField value="{!prj.Location_Output__c}"/></b> 
+<br/>
+<b>
+<apex:outputField value="{!prj.Client_contract__c}" rendered="{!prj.RecordType.name=='Program'}"/>
+<apex:outputField value="{!prj.Program_Master_Contract_Name__r.Client_contract__c}" rendered="{!AND(NOT(ISBLANK(prj.Program_Master_Contract_Name__r.Client_contract__c)), prj.RecordType.name=='Task Order')}" /> 
+<apex:outputText value=", " rendered="{!AND(NOT(ISBLANK(prj.Program_Master_Contract_Name__r.Client_contract__c)), prj.RecordType.name=='Task Order')}" /> 
+<apex:outputField value="{!prj.DO_TO_Number__c}" rendered="{!AND(NOT(ISBLANK(prj.DO_TO_Number__c)), prj.RecordType.name=='Task Order')}" /> 
+</b><p/>
+<apex:outputField styleclass="bodyText" value="{!prj.Project_Description__c}"/>    
+<p/>
+<table > <tr> 
+            <td><b> <apex:outputText value="Owners Total Cost:   "/></b></td>
+                                 <td align="right"> <apex:outputText value="{0,number,###,###,###,###,###}"> 
+                  <apex:param value="{!prj.Owners_Total_cost__c}"/>
+                  </apex:outputText> </td>
+</tr>   
+<tr> 
+           <td><b> <apex:outputText value="Revenue:  "/></b></td>
+           <td align="right"> <apex:outputText value="{0,number,###,###,###,###,###}">
+              <apex:param value="{!prj.SearchFee__c}"/> </apex:outputText></td>
+</tr>   
+<tr> 
+   <td> <b><apex:outputText value="Dates of Service:  "/></b></td>
+  <td align="right"> <apex:outputText value="{!prj.Date_Started__c} - {!prj.Completion_Date__c}"/> </td>
+</tr>    
+</table>
+<b><p><apex:outputText value="Project Team"/></p> </b>
+<apex:outputText value="{!prj.Project_Mgr__c}"/>
+<apex:outputText value=" "/><apex:outputText value=" Project Manager" rendered="{!prj.Project_Manager_Status__c=='Active'}"/>
+<br/>
+<apex:repeat value="{!Project__c.PR_Team_Employees__r}" var="pt">
+<apex:outputPanel rendered="{!pt.PRStatusEmployee__c=='Active'}"> {!pt.Employee__r.Name} <br/></apex:outputPanel>
+
+</apex:repeat>
+
+    
+</apex:page>

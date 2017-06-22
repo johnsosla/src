@@ -1,0 +1,77 @@
+<apex:component controller="rsAssignContentManagerController" allowDML="true" layout="block">
+    <apex:attribute name="rsProfile" assignTo="{!profile}" description="" type="rsProfile" required="true"/>
+    <apex:attribute name="reRender" description="" type="String" required="false"/>
+
+    <script type="text/javascript">
+        $ = jQuery.noConflict();
+
+        function confirmRemoveAssignedContentManager() {
+            return confirm('{!$Label.Confirm_Remove_Content_Manager}');
+        }
+    </script>
+
+    <div class="panel panel-default">
+        <div class="panel-heading clearfix">
+            <h5 class="panel-title has-spinner" id="assignCMHeader">
+                {!$Label.Assign_Content_Manager}
+                <img src="{!URLFOR($Resource.rs_bundle, '/images/loading.gif')}" height="15" width="15" class="spinner" alt="loading" title="loading"/>
+            </h5>
+            <apex:commandLink rendered="{!!HasContentManagerAssigned && IsListMode}" value="{!$Label.Assign}" styleClass="pull-right btn btn-sm brandStyledBtn" reRender="{!reRender}" action="{!editPart}" onclick="if(!inProgress) showSectionSpinner('assignCMHeader'); if(inProgress) return false; inProgress = true;" oncomplete="resetProgress(); focusField('editAssignedCM');">
+                <span title="labelADDCM" class="glyphicon glyphicon-plus"></span>
+            </apex:commandLink>
+        </div>
+
+        <div class="panel-body">
+            <apex:outputPanel layout="none" rendered="{!IsEditMode}">
+                <table class="table">
+                    <tr>
+                        <td colspan="2" style="border-top:none;">
+                            <apex:inputField id="editAssignedCM" value="{!CurrentUser.Assigned_Content_Manager__c}" onkeypress="return onEnter(event);" styleClass="aecom-input--limited"/>
+                        </td>
+                    </tr>
+                </table>
+
+                <div class="col-md-4 text-center">
+                    <apex:commandLink action="{!savePart}" value="{!$Label.Save}" styleClass="btn btn-sm brandStyledBtn" reRender="{!reRender}" onclick="if(inProgress) return false; showSectionSpinner('assignCMHeader'); inProgress = true;" oncomplete="resetProgress();">
+                        <span class="glyphicon glyphicon-ok-circle" />
+                    </apex:commandLink>
+                    &nbsp;
+                    <apex:commandLink action="{!cancelPart}" immediate="true" value="{!$Label.Cancel}" styleClass="btn btn-sm btn--neutral" reRender="{!reRender}" onclick="if(inProgress) return false; showSectionSpinner('assignCMHeader'); inProgress = true;" oncomplete="resetProgress();">
+                         <span class="glyphicon glyphicon-remove-circle" />
+                    </apex:commandLink>
+                </div>
+            </apex:outputPanel>
+
+            <apex:outputPanel layout="none" rendered="{!IsListMode}">
+                <table width="100%">
+                    <tr>
+                        <td colspan="2">
+                            <apex:outputPanel layout="none" rendered="{!HasContentManagerAssigned}">
+                                <apex:outputLink id="AssignedCM" value="/{!CurrentUser.Assigned_Content_Manager__c}" target="_blank" style="text-decoration: none">
+                                    <span class="" style="margin-right: 10px;">
+                                        <apex:image value="{!CMPhotoURL}"/>
+                                    </span>
+                                    <span class="">
+                                        {!CurrentUser.Assigned_Content_Manager__r.Name}
+                                    </span>
+                                </apex:outputLink>
+
+                                <div class="pull-right">
+                                    <apex:commandLink onclick="if(inProgress) return false; showSectionSpinner('assignCMHeader'); inProgress = true;" oncomplete="resetProgress();" value="{!$Label.Reassign_Content_Manager}" styleClass="btn brandStyledBtn {!IF(canEdit, '','disabled')}" reRender="{!reRender}" action="{!editPart}" rendered="{!canEdit}">
+                                        <span class="glyphicon glyphicon-edit" />
+                                    </apex:commandLink>
+                                    <apex:commandLink onclick="if(inProgress) return false; if(!confirmRemoveAssignedContentManager()) return false; showSectionSpinner('assignCMHeader'); inProgress = true;" oncomplete="resetProgress();" value="{!$Label.Remove_Content_Manager}" styleClass="btn btn--neutral {!IF(canEdit, '','disabled')}" reRender="{!reRender}" action="{!removeAssignedContentManger}" rendered="{!canEdit}">
+                                        <span class="glyphicon glyphicon-remove" />
+                                    </apex:commandLink>
+                                </div>
+                            </apex:outputPanel>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2"> </td>
+                    </tr>
+                </table>
+            </apex:outputPanel>
+        </div>
+    </div>
+</apex:component>

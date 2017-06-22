@@ -1,0 +1,9 @@
+<apex:component language="{!theLanguage}" controller="nttdcore.DLabelChildController" access="global" ><nttdcore:DLabel name="DL1" default="A non-accredited PM has been added to {{1}}
+    
+    Project Manager:{{2}} 
+    Account: {{3}}" labelParent="{!this}" componentContext="Eco_Non_Accredited_PM_Notification206_3" p1="{!theRelatedTo.Name}" p2="{!theRelatedTo.pse__Project_Manager__r.Name}" p3="{!theRelatedTo.pse__Account__r.Name}" /><apex:attribute name="theLanguage" type="String" required="true" description="language" access="global" /><apex:attribute name="theRecipient" type="User" required="true" description="recipient" access="global" /><apex:attribute name="theRelatedTo" type="pse__Proj__c" required="true" description="related to" access="global" />
+    {!dlRoot.dLabel['DL1']}
+    
+    <!--{!theRelatedTo.Link}-->
+    {!LEFT($Api.Partner_Server_URL_290,FIND('services',$Api.Partner_Server_URL_290)-1)}{!theRelatedTo.Id}
+<nttdcore:DLabelInit language="{!theLanguage}" labelParentInit="{!this}" /></apex:component>

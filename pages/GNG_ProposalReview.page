@@ -1,0 +1,270 @@
+<apex:page sidebar="false" standardController="Go_No_Go_Conversation__c" extensions="GNG_CommercialAnalysisController" >
+  
+    <apex:form >
+        <apex:commandButton action="{!SaveIt}" value="Save"   rendered="{!saveMode}"/>
+        <apex:commandButton value="Cancel" action="{!cancel}" rendered="{!saveMode}"/>
+            <apex:pagemessages />
+        <style> 
+            table {
+                border-collapse: collapse;
+            }
+            
+            table, td, th {
+                border: 1px solid lightgrey;
+                
+                
+            }
+            table{ width: 100%;}
+               
+            thead th 
+            {
+                text-align:center;
+                background-color: #FC9F1A;
+            }
+            tbody th {text-align:left; padding-right: 10px;width: 120px;}
+            td {
+                /*text-align:right;*/
+                width: 100px;}
+            table#ca td {
+                text-align:right;
+            }
+            tfoot td {font-weight:bold;}
+            td.total {background-color: #FED9A3;}  
+            th.bidtotal {background-color: rgb(23, 151, 192)} 
+            td.bidtotal {background-color: rgb(207, 238, 248)} 
+            .inputField{text-align:right;width: 92px;}
+            .inputComment{text-align:left;width: 95%; height: 40px;}
+            .standout{color: red} 
+            .qNo {text-align:center; width: 10px;}
+            .subqNo {text-align:right; width: 10px;margin-left: 40px; }
+            .qestion {text-align:left; width: 250px}
+            .subqestion {text-align:left; width: 250px;padding-left: 30px;}
+            .truefalse{text-align:center; width: 50px;}
+            .risklevel{text-align:center; width: 70px;}
+            .CommercialViability {text-align:left}
+            .High{background-color: red;text-align:center;}
+            .Medium{background-color: yellow;text-align:center;}    
+            .Low{background-color: lightgreen;text-align:center;} 
+            .Poor{background-color: red;text-align:center;}
+            .Neutral{background-color: yellow;text-align:center;}    
+            .Good{background-color: lightgreen;text-align:center;}    
+        </style>
+        <apex:pageBlock >
+      <table>
+      <thead>
+        <tr>
+          <th colspan="2">Proposal Review</th>
+          <th>True/False</th>    
+        </tr>
+       
+      </thead>
+      <tbody>
+          <tr>
+              <th class='qNo'>1.</th>
+              <td class='qestion'>
+                  <apex:outputText value="{!$ObjectType.Go_No_Go_Conversation__c.fields.Prop_Rev_Q1__c.inlineHelpText}"/>   
+              </td>
+              <td class='truefalse'>
+                 <apex:outputText rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.Prop_Rev_Q1__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.Prop_Rev_Q1__c}"  rendered="{!saveMode}" required="true"></apex:inputField>
+              </td>
+              
+        </tr>
+         <tr>
+              <th class='qNo'>2.</th>
+              <td class='qestion'>
+                  <apex:outputText value="{!$ObjectType.Go_No_Go_Conversation__c.fields.Prop_Rev_Q2__c.inlineHelpText}"/>   
+              </td>
+              <td class='truefalse'>
+                 <apex:outputText rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.Prop_Rev_Q2__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.Prop_Rev_Q2__c}"  rendered="{!saveMode}"  required="true"></apex:inputField>
+              </td>
+              
+            </tr>
+           <tr>
+              <th class='qNo'>3.</th>
+              <td class='qestion'>
+                 One of the following statements must be True:
+              </td>
+              <td class='truefalse'>
+                
+              </td>
+              
+            </tr>
+            <tr>
+              <th class='subqNo'>a.</th>
+              <td class='subqestion'>
+                  <apex:outputText value="{!$ObjectType.Go_No_Go_Conversation__c.fields.Prop_Rev_Q3a__c.inlineHelpText}"/>   
+              </td>
+              <td class='truefalse'>
+                 <apex:outputText rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.Prop_Rev_Q3a__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.Prop_Rev_Q3a__c}"  rendered="{!saveMode}"  required="true"></apex:inputField>
+              </td>
+              
+            </tr>
+            <tr>
+              <th class='subqNo'>b.</th>
+              <td class='subqestion'>
+                  <apex:outputText value="{!$ObjectType.Go_No_Go_Conversation__c.fields.Prop_Rev_Q3b__c.inlineHelpText}"/>   
+              </td>
+              <td class='truefalse'>
+                 <apex:outputText rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.Prop_Rev_Q3b__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.Prop_Rev_Q3b__c}"  rendered="{!saveMode}"  required="true"></apex:inputField>
+              </td>
+              
+            </tr>
+            <tr>
+              <th class='subqNo'>c.</th>
+              <td class='subqestion'>
+                  <apex:outputText value="{!$ObjectType.Go_No_Go_Conversation__c.fields.Prop_Rev_Q3c__c.inlineHelpText}"/>   
+              </td>
+              <td class='truefalse'>
+                 <apex:outputText rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.Prop_Rev_Q3c__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.Prop_Rev_Q3c__c}"  rendered="{!saveMode}"  required="true"></apex:inputField>
+              </td>
+              
+            </tr>
+            <tr>
+              <th class='subqNo'>d.</th>
+              <td class='subqestion'>
+                  <apex:outputText value="{!$ObjectType.Go_No_Go_Conversation__c.fields.Prop_Rev_Q3d__c.inlineHelpText}"/>   
+              </td>
+              <td class='truefalse'>
+                 <apex:outputText rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.Prop_Rev_Q3d__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.Prop_Rev_Q3d__c}"  rendered="{!saveMode}"  required="true"></apex:inputField>
+              </td>
+              
+            </tr>
+                  <tr>
+              <th class='qNo'>4.</th>
+              <td class='qestion'>
+                  <apex:outputText value="{!$ObjectType.Go_No_Go_Conversation__c.fields.Prop_Rev_Q4__c.inlineHelpText}"/>   
+              </td>
+              <td class='truefalse'>
+                 <apex:outputText rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.Prop_Rev_Q4__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.Prop_Rev_Q4__c}"  rendered="{!saveMode}" required="true"></apex:inputField>
+              </td>
+             
+        </tr>
+                  <tr>
+              <th class='qNo'>5.</th>
+              <td class='qestion'>
+                  <apex:outputText value="{!$ObjectType.Go_No_Go_Conversation__c.fields.Prop_Rev_Q5__c.inlineHelpText}"/>   
+              </td>
+              <td class='truefalse'>
+                 <apex:outputText rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.Prop_Rev_Q5__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.Prop_Rev_Q5__c}"  rendered="{!saveMode}" required="true"></apex:inputField>
+              </td>
+              
+        </tr>
+                  <tr>
+              <th class='qNo'>6.</th>
+              <td class='qestion'>
+                  <apex:outputText value="{!$ObjectType.Go_No_Go_Conversation__c.fields.Prop_Rev_Q6__c.inlineHelpText}"/>   
+              </td>
+              <td class='truefalse'>
+                 <apex:outputText rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.Prop_Rev_Q6__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.Prop_Rev_Q6__c}"  rendered="{!saveMode}" required="true"></apex:inputField>
+              </td>
+              
+        </tr>
+                  <tr>
+              <th class='qNo'>7.</th>
+              <td class='qestion'>
+                  <apex:outputText value="{!$ObjectType.Go_No_Go_Conversation__c.fields.Prop_Rev_Q7__c.inlineHelpText}"/>   
+              </td>
+              <td class='truefalse'>
+                 <apex:outputText rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.Prop_Rev_Q7__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.Prop_Rev_Q7__c}"  rendered="{!saveMode}" required="true"></apex:inputField>
+              </td>
+             
+        </tr>
+                  <tr>
+              <th class='qNo'>8.</th>
+              <td class='qestion'>
+                  <apex:outputText value="{!$ObjectType.Go_No_Go_Conversation__c.fields.Prop_Rev_Q8__c.inlineHelpText}"/>   
+              </td>
+              <td class='truefalse'>
+                 <apex:outputText rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.Prop_Rev_Q8__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.Prop_Rev_Q8__c}"  rendered="{!saveMode}" required="true"></apex:inputField>
+              </td>
+            
+        </tr>
+                  <tr>
+              <th class='qNo'>9.</th>
+              <td class='qestion'>
+                  <apex:outputText value="{!$ObjectType.Go_No_Go_Conversation__c.fields.Prop_Rev_Q9__c.inlineHelpText}"/>   
+              </td>
+              <td class='truefalse'>
+                 <apex:outputText rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.Prop_Rev_Q9__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.Prop_Rev_Q9__c}"  rendered="{!saveMode}" required="true"></apex:inputField>
+              </td>
+             
+        </tr>
+                  <tr>
+              <th class='qNo'>10.</th>
+              <td class='qestion'>
+                  <apex:outputText value="{!$ObjectType.Go_No_Go_Conversation__c.fields.Prop_Rev_Q10__c.inlineHelpText}"/>   
+              </td>
+              <td class='truefalse'>
+                 <apex:outputText rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.Prop_Rev_Q10__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.Prop_Rev_Q10__c}"  rendered="{!saveMode}" required="true"></apex:inputField>
+              </td>
+              
+        </tr>
+         <tr>
+              <th class='qNo'>11.</th>
+              <td class='qestion'>
+                  <apex:outputText value="{!$ObjectType.Go_No_Go_Conversation__c.fields.Prop_Rev_Q11__c.inlineHelpText}"/>   
+              </td>
+              <td class='truefalse'>
+                 <apex:outputField rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.Prop_Rev_Q11__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.Prop_Rev_Q11__c}"  rendered="{!saveMode}" required="true"></apex:inputField>
+              </td>
+             
+        </tr>
+         <tr>
+              <th class='qNo'>12.</th>
+              <td class='qestion'>
+                  <apex:outputText value="{!$ObjectType.Go_No_Go_Conversation__c.fields.Prop_Rev_Q12__c.inlineHelpText}"/>   
+              </td>
+              <td class='truefalse'>
+                 <apex:outputField rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.Prop_Rev_Q12__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.Prop_Rev_Q12__c}"  rendered="{!saveMode}" required="true"></apex:inputField>
+              </td>
+            
+            </tr>
+           
+      </tbody>
+    </table>
+   
+    <apex:pageBlockSection >        
+    <apex:outputField rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.Prop_Rev_Comments__c}"/>
+    <apex:inputField styleClass="inputComment" rendered="{!saveMode}" value="{!Go_No_Go_Conversation__c.Prop_Rev_Comments__c}" required="true"></apex:inputField>
+    <br/>
+    
+    
+     <apex:outputField rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.Prop_Rev_Decision__c}"/>
+    <apex:inputField styleClass="inputComment" rendered="{!saveMode}" value="{!Go_No_Go_Conversation__c.Prop_Rev_Decision__c}"  required="true"></apex:inputField>
+    </apex:pageBlockSection>
+    
+        <!--
+    Prop_Rev_Decision__c
+    <br/>
+    <b><apex:outputLabel value="{!$ObjectType.Go_No_Go_Conversation__c.Fields.Prop_Rev_Analysis_Notes__c.Label}"></apex:outputLabel></b>
+    <br/>
+    <apex:outputField rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.Prop_Rev_Analysis_Notes__c}"/>
+    <apex:inputField styleClass="inputComment" rendered="{!saveMode}" value="{!Go_No_Go_Conversation__c.Prop_Rev_Analysis_Notes__c}"></apex:inputField>
+    <br/>
+    <b><apex:outputLabel value="{!$ObjectType.Go_No_Go_Conversation__c.Fields.Strategic_Reasons_to_Go__c.inlineHelpText}"></apex:outputLabel></b>
+    <br/>
+    <apex:outputField rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.Strategic_Reasons_to_Go__c}"/>
+    <apex:inputField styleClass="inputComment" rendered="{!saveMode}" value="{!Go_No_Go_Conversation__c.Strategic_Reasons_to_Go__c}" required="true" ></apex:inputField>
+   -->
+    </apex:pageBlock>
+         <apex:pagemessages />
+     <apex:commandButton action="{!SaveIt}" value="Save"   rendered="{!saveMode}"/>
+     <apex:commandButton value="Cancel" action="{!cancel}" rendered="{!saveMode}"/>
+    </apex:form>
+
+</apex:page>

@@ -1,0 +1,414 @@
+<apex:page id="ParentPage" extensions="ECO_ClientFinderController,nttdcore.DLabelParentController" standardcontroller="pse__Proj__c" showheader="true" sidebar="true" doctype="html-5.0" >
+
+	<apex:includescript value="{!$Resource.ECO_jQuery_1_11_2_min_js}" />
+	<apex:includescript value="{!URLFOR($Resource.ECO_jQueryUI_1_11_2, 'jquery-ui.min.js')}" />
+
+	<style>
+
+		.searchText{
+			text-align:center;
+			font-weight:bold;
+			font-size:20px;
+		}
+
+		.pbSubExtra{
+			visibility: hidden !important;
+		}
+		.customHelpText{
+			padding:20px 25px;
+			border:1px solid #85B3CE;
+			min-height:30px;
+			display:block;
+			width:auto;
+			margin:20px 25px;
+			background-color:#E3F0F8;
+		}
+		.customHelpIcon{
+			display:inline-block;
+			margin:0 15px 0 0;
+			width:24px;
+			height:24px;
+			vertical-align:top !important;
+		}
+		.customHelpBody{
+			display:inline-block;
+			color:#;
+			max-width:95%;
+		}
+		.fixedPickList{
+			width: 350px;
+		}
+		.fixedName{
+			width: 345px;
+		}
+		/*
+		.activeTab {
+			background-color:#236FBD; 
+			color:white; 
+			tab-color:yellow;
+			background-image:none
+          }
+      	.inactiveTab {
+			background-color:white; 
+			color:black; 
+			background-image:none
+        }
+
+      	.disabledTab {
+			background-color:grey; 
+			color:grey; 
+			background-image:none
+        }
+        */
+        .rich-tabpanel{
+        	margin:10px 10px 0 10px;
+        	width:98.5%;
+        }
+        .pbBody .rich-tabpanel .rich-tab-header{
+			border: 1px solid #d3d3d3 !important;
+			background: ;
+			color: #555 !important;
+			border-top-right-radius: 4px !important;
+			border-top-left-radius: 4px !important;
+			padding: 7px 12px;
+			text-decoration:none;
+			font-size:13px;
+			background: #999999; /* Old browsers */
+			/* IE9 SVG, needs conditional override of 'filter' to 'none' */
+			background: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/Pgo8c3ZnIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgdmlld0JveD0iMCAwIDEgMSIgcHJlc2VydmVBc3BlY3RSYXRpbz0ibm9uZSI+CiAgPGxpbmVhckdyYWRpZW50IGlkPSJncmFkLXVjZ2ctZ2VuZXJhdGVkIiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgeDE9IjAlIiB5MT0iMCUiIHgyPSIwJSIgeTI9IjEwMCUiPgogICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzk5OTk5OSIgc3RvcC1vcGFjaXR5PSIxIi8+CiAgICA8c3RvcCBvZmZzZXQ9IjUxJSIgc3RvcC1jb2xvcj0iI2Q2ZDZkNiIgc3RvcC1vcGFjaXR5PSIxIi8+CiAgICA8c3RvcCBvZmZzZXQ9IjUxJSIgc3RvcC1jb2xvcj0iIzIwN2NjYSIgc3RvcC1vcGFjaXR5PSIxIi8+CiAgICA8c3RvcCBvZmZzZXQ9IjUxJSIgc3RvcC1jb2xvcj0iI2Q2ZDZkNiIgc3RvcC1vcGFjaXR5PSIxIi8+CiAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNlNWU1ZTUiIHN0b3Atb3BhY2l0eT0iMSIvPgogIDwvbGluZWFyR3JhZGllbnQ+CiAgPHJlY3QgeD0iMCIgeT0iMCIgd2lkdGg9IjEiIGhlaWdodD0iMSIgZmlsbD0idXJsKCNncmFkLXVjZ2ctZ2VuZXJhdGVkKSIgLz4KPC9zdmc+);
+			background: -moz-linear-gradient(top,  #999999 0%, #d6d6d6 51%, #207cca 51%, #d6d6d6 51%, #e5e5e5 100%); /* FF3.6+ */
+			background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#999999), color-stop(51%,#d6d6d6), color-stop(51%,#207cca), color-stop(51%,#d6d6d6), color-stop(100%,#e5e5e5)); /* Chrome,Safari4+ */
+			background: -webkit-linear-gradient(top,  #999999 0%,#d6d6d6 51%,#207cca 51%,#d6d6d6 51%,#e5e5e5 100%); /* Chrome10+,Safari5.1+ */
+			background: -o-linear-gradient(top,  #999999 0%,#d6d6d6 51%,#207cca 51%,#d6d6d6 51%,#e5e5e5 100%); /* Opera 11.10+ */
+			background: -ms-linear-gradient(top,  #999999 0%,#d6d6d6 51%,#207cca 51%,#d6d6d6 51%,#e5e5e5 100%); /* IE10+ */
+			background: linear-gradient(to bottom,  #999999 0%,#d6d6d6 51%,#207cca 51%,#d6d6d6 51%,#e5e5e5 100%); /* W3C */
+			filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#999999', endColorstr='#e5e5e5',GradientType=0 ); /* IE6-8 */
+        }
+        .rich-tab-active{
+        	background: #f1f1f1 !important;
+        	font-weight:bold !important;
+        }
+        .pbBody .rich-tabpanel .rich-tab-header.activeTab{
+        	border-bottom:none !important;
+        }
+        .pbBody .rich-tabpanel .disabledTab{
+        	opacity:0.45 !important;
+        }
+        .rich-tabhdr-side-border, .rich-tabhdr-side-border{
+        	background:none !important;
+        	display:none;
+        }
+        .rich-tabhdr-side-cell{
+        	border-top:none;
+        }
+        
+		.infoTable {
+			background: #f5f5f5;
+			border-collapse: separate;
+			font-size: 12px;
+			line-height: 24px;
+			text-align: left;
+			margin:5px 14px 0 14px;
+		}	
+		.infoTable table{
+			width:100%;
+		}
+		.infoTable th {
+			background-color: #a6afa2 !important;
+			color: #fff;
+	  		font-weight: bold;
+			padding: 3px 9px;
+			position: relative;
+			border:none !important;
+		}
+		.infoTable th:first-child{
+			border-right:1px solid #fff !important;
+		}
+
+		.infoTable th:after {
+			content: '';
+			display: block;
+			height: 25%;
+			left: 0;
+			margin: 1px 0 0 0;
+			position: absolute;
+			top: 25%;
+			width: 100%;
+		}
+		.infoTable td {
+			border-right: 1px solid #fff;
+			border-left: 1px solid #e8e8e8;
+			border-top: 1px solid #fff;
+			border-bottom: 1px solid #e8e8e8;
+			padding: 3px 9px;
+			position: relative;
+			transition: all 300ms;
+		}
+		.rich-tab-header:hover{
+			cursor:pointer !important;
+		}
+		.rich-tab-disabled:hover{
+			cursor:auto !important;
+		}
+		.infoTable td:first-child {
+			box-shadow: inset 1px 0 0 #fff;
+		}	
+
+		.infoTable td:last-child {
+			border-right: 1px solid #e8e8e8;
+			box-shadow: inset -1px 0 0 #fff;
+		}	
+
+		.infoTable tr {
+		}
+
+		.infoTable tr:nth-child(odd) td {
+			background: #f1f1f1;	
+		}
+
+		.infoTable tr:last-of-type td {
+			box-shadow: inset 0 -1px 0 #fff; 
+		}
+
+		.infoTable tr:last-of-type td:first-child {
+			box-shadow: inset 1px -1px 0 #fff;
+		}	
+
+		.infoTable tr:last-of-type td:last-child {
+			box-shadow: inset -1px -1px 0 #fff;
+		}	
+
+		.infoTable tbody:hover td {
+		}
+
+		.infoTable tbody:hover tr:hover td {
+			color: #444;
+			text-shadow: 0 1px 0 #fff;
+		}
+		body .bEditBlock .pbBody .pbSubheader, body .bWizardBlock .pbBody .pbSubheader{
+			background-image:none !important;
+			margin:10px 12px 5px 12px;
+			color:#27282e;
+		}
+		body .bPageBlock .pbBody .pbSubheader h3{
+			color:#fff;
+		}
+
+	</style>
+
+	<nttdcore:DLabel name="DL40" default="Project Accounts" labelParent="{!this}" /><nttdcore:DLabel name="DL41" default="Manage Project Accounts" labelParent="{!this}" /><apex:sectionheader title="{!dLabel['DL40']}" subtitle="{!dLabel['DL41']}" />
+
+	<apex:outputpanel id="WholeForm" >
+
+		<script type="text/javascript" >
+			$(function(){
+				$("#AddressInput input").bind('keypress', function(e){
+				        if (e.keyCode == 13) {
+				            SearchSites();
+				        }
+				});
+
+				$("#ProjectInput input").bind('keypress', function(e){
+				        if (e.keyCode == 13) {
+				            CreateProject();
+				        }
+				});
+			
+			});
+
+		</script>
+
+
+		
+
+		<apex:form >
+			<apex:pagemessages id="messages" />
+
+			<apex:outputpanel id="SelectAddressPanel" >
+				<apex:pageblock mode="edit" >
+					<apex:pageblockbuttons location="top" >
+						<nttdcore:DLabel name="DL42" default="Save" labelParent="{!this}" /><apex:commandbutton value="{!dLabel['DL42']}" action="{!stubsave}" />
+						<nttdcore:DLabel name="DL43" default="Return to Project" labelParent="{!this}" /><apex:commandbutton value="{!dLabel['DL43']}" action="{!cancel}" />
+					</apex:pageblockbuttons>
+
+					<apex:actionregion >
+
+						<apex:outputpanel id="SiteSelectPanel" ><nttdcore:DLabel name="DL44" default="Selected Accounts" labelParent="{!this}" /><nttdcore:DLabel name="DL45" default="Updating..." labelParent="{!this}" /><nttdcore:DLabel name="DL46" default="No Sites Were Selected." labelParent="{!this}" /><nttdcore:DLabel name="DL47" default="Action" labelParent="{!this}" /><nttdcore:DLabel name="DL48" default="Remove" labelParent="{!this}" /><nttdcore:DLabel name="DL49" default="Remove" labelParent="{!this}" /><nttdcore:DLabel name="DL50" default="Billing Client" labelParent="{!this}" /><nttdcore:DLabel name="DL51" default="Primary Billing" labelParent="{!this}" /><nttdcore:DLabel name="DL52" default="End Client" labelParent="{!this}" /><nttdcore:DLabel name="DL53" default="Primary End" labelParent="{!this}" /><nttdcore:DLabel name="DL54" default="Billing Contact" labelParent="{!this}" /><nttdcore:DLabel name="DL55" default="Contributions" labelParent="{!this}" /><nttdcore:DLabel name="DL56" default="Attribute" labelParent="{!this}" /><nttdcore:DLabel name="DL57" default="Definitition" labelParent="{!this}" /><nttdcore:DLabel name="DL58" default="Billing Client" labelParent="{!this}" /><nttdcore:DLabel name="DL59" default="Billing clients to whom invoices will be sent.  These clients will be available to be selected for assignment to particular tasks during project setup." labelParent="{!this}" /><nttdcore:DLabel name="DL60" default="Primary Billing" labelParent="{!this}" /><nttdcore:DLabel name="DL61" default="The client to whom invoices will be sent (typically the client on the Prime Contract).  Where multiple billing clients exists, this client will be the default client on all tasks but can be changed to one of the Other Billing clients." labelParent="{!this}" /><nttdcore:DLabel name="DL62" default="End Client" labelParent="{!this}" /><nttdcore:DLabel name="DL63" default="End Clients associated with the project (or may be intermediate clients between the contracted/billing client and the ultimate end client)" labelParent="{!this}" /><nttdcore:DLabel name="DL64" default="Primary End" labelParent="{!this}" /><nttdcore:DLabel name="DL65" default="The ultimate end Client for the project" labelParent="{!this}" />
+							<apex:pageblocksection title="{!dLabel['DL44']}" columns="1" collapsible="false" />
+							<apex:actionstatus id="SiteSelectUpdateStatus" >
+								
+								<apex:facet name="start" >
+									<p style="padding-bottom:20px;" class="searchText" ><img style="position:relative;top:12px;" src="/img/loading32.gif" /> {!dLabel['DL45']}</p>
+								</apex:facet>
+								<apex:facet name="stop" >
+									<!-- Shows search results for associated Sites (Temp holder)-->
+										<apex:outputpanel >
+											<apex:pagemessage severity="INFO" rendered="{!IF(lstProjectSites.size > 0, false, true)}" summary="{!dLabel['DL46']}" /> 
+											<apex:outputpanel id="SiteSelect" rendered="{!if(lstProjectSites.size > 0, true, false)}" >
+												<div style="padding:0 12px;margin-top:7px" >
+													<apex:variable var="rowNum" value="{!0}" />
+													<apex:pageblocktable value="{!lstProjectSites}" var="Site" rendered="{!if(lstProjectSites.size > 0, true, false)}" >
+                                                      <apex:column headervalue="{!dLabel['DL47']}" >
+
+                                                            <apex:commandlink style="text-decoration: none;" value="{!dLabel['DL48']}" action="{!RemoveSite}" title="{!dLabel['DL49']}" rerender="WholeForm" status="SiteSelectUpdateStatus" rendered="{!and(not(Site.Is_Default_Top_Task__c), not(Site.Is_Primary_End__c))}" >
+                                                              <apex:param name="rowIndex" value="{!rowNum}" assignto="{!iSiteRowDelete}" />
+                                                           </apex:commandlink>
+                                                           <apex:variable var="rowNum" value="{!rowNum + 1}" />
+                                                        </apex:column>
+														<apex:repeat value="{!$ObjectType.Project_Site__c.FieldSets.pse_ClientFinder_Display_Fieldset}" var="SearchField" >
+															<apex:column value="{!Site[SearchField]}" />
+														</apex:repeat>
+														<apex:column headervalue="{!dLabel['DL50']}" >
+															<apex:inputcheckbox value="{!Site.Is_Billing__c}" disabled="{!OR(Site.Is_Default_Top_Task__c, AND(NOT(Site.Project__r.EnableTopTaskCustomerFlag__c), Site.Project__r.pse__Stage__c = 'Execution') )}" >
+																<apex:actionsupport event="onclick" action="{!BillingSelect}" rerender="WholeForm" status="SiteSelectUpdateStatus" >
+																	<apex:param assignto="{!idSiteID}" name="SiteID" value="{!Site.id}" />
+																</apex:actionsupport>
+															</apex:inputcheckbox>
+														</apex:column>
+														<apex:column headervalue="{!dLabel['DL51']}" >
+															<apex:inputcheckbox value="{!Site.Is_Default_Top_Task__c}" disabled="{!OR(Site.Is_Default_Top_Task__c, NOT(Site.Is_Billing__c), AND(NOT(Site.Project__r.EnableTopTaskCustomerFlag__c), Site.Project__r.pse__Stage__c = 'Execution'))}" >
+																<apex:actionsupport event="onclick" action="{!DefaultTopSelect}" rerender="WholeForm" status="SiteSelectUpdateStatus" >
+																	<apex:param assignto="{!idSiteID}" name="SiteID" value="{!Site.id}" />
+																</apex:actionsupport>
+															</apex:inputcheckbox>
+														</apex:column>
+														<apex:column headervalue="{!dLabel['DL52']}" >
+															<apex:inputcheckbox value="{!Site.Is_End__c}" disabled="{!Site.Is_Primary_End__c}" >
+																<apex:actionsupport event="onclick" action="{!EndSelect}" rerender="WholeForm" status="SiteSelectUpdateStatus" >
+																	<apex:param assignto="{!idSiteID}" name="SiteID" value="{!Site.id}" />
+																</apex:actionsupport>
+															</apex:inputcheckbox>
+														</apex:column>
+														<apex:column headervalue="{!dLabel['DL53']}" >
+															<apex:inputcheckbox value="{!Site.Is_Primary_End__c}" disabled="{!OR(Site.Is_Primary_End__c, NOT(Site.Is_End__c))}" >
+																<apex:actionsupport event="onclick" action="{!PrimaryEndSelect}" rerender="WholeForm" status="SiteSelectUpdateStatus" >
+																	<apex:param assignto="{!idSiteID}" name="SiteID" value="{!Site.id}" />
+																</apex:actionsupport>
+															</apex:inputcheckbox>
+														</apex:column>
+														<apex:column headervalue="{!dLabel['DL54']}" >
+															<apex:selectlist value="{!Site.BillingContactID__c}" size="1" disabled="{!NOT(Site.Is_Billing__c)}" >
+            													<apex:selectoptions value="{!mapSiteIDtoOptions[Site.Site__c]}" />
+															</apex:selectlist>
+														</apex:column>
+                                                        <apex:column headervalue="{!dLabel['DL55']}" >
+                                                             <apex:inputfield value="{!Site.Contribution__c}" />
+                                                        </apex:column>
+														
+													</apex:pageblocktable>
+												</div>
+
+												<br/>
+
+												<div class="infoTable" >
+													<table border="1" cellpadding="0" cellspacing="0" >
+														<tr>
+															<th>{!dLabel['DL56']}</th>
+															<th>{!dLabel['DL57']}</th>
+														</tr>
+														<tr>
+															<td>{!dLabel['DL58']}</td>
+															<td>{!dLabel['DL59']}</td>
+														</tr>	
+														<tr>
+															<td>{!dLabel['DL60']}</td>
+															<td>{!dLabel['DL61']}</td>
+														</tr>
+														<tr>
+															<td>{!dLabel['DL62']}</td>
+															<td>{!dLabel['DL63']}</td>
+														</tr>	
+														<tr>
+															<td>{!dLabel['DL64']}</td>
+															<td>{!dLabel['DL65']}</td>
+														</tr>
+													</table>
+												</div>
+												<br/><br/><br/>	
+											</apex:outputpanel>
+										</apex:outputpanel>
+								</apex:facet>
+							</apex:actionstatus>	
+						</apex:outputpanel>	
+
+					</apex:actionregion>
+
+					<apex:outputpanel rendered="{!not(pse__Proj__c.pse__Stage__c = 'Closed')}" >
+						<apex:actionregion >
+
+							<apex:actionfunction action="{!SearchSites}" name="SearchSites" rerender="WholeForm" status="SiteSearchUpdateStatus" />
+
+							<div id="AddressInput" ><nttdcore:DLabel name="DL66" default="Search For Account" labelParent="{!this}" /><nttdcore:DLabel name="DL67" default="Enter client name" labelParent="{!this}" /><nttdcore:DLabel name="DL68" default="Account Name" labelParent="{!this}" /><nttdcore:DLabel name="DL69" default="City/Town" labelParent="{!this}" /><nttdcore:DLabel name="DL70" default="State/Province/Emirate" labelParent="{!this}" /><nttdcore:DLabel name="DL71" default="Country" labelParent="{!this}" />
+							<apex:pageblocksection title="{!dLabel['DL66']}" columns="2" collapsible="false" >
+	                            <apex:pageblocksectionitem helptext="{!dLabel['DL67']}" >
+	                                <apex:outputlabel value="{!dLabel['DL68']}" />
+	                                <apex:inputtext value="{!oSiteSearch.name}" />
+	                            </apex:pageblocksectionitem>
+	                            <apex:pageblocksectionitem >
+	                                <apex:outputlabel value="{!dLabel['DL69']}" />
+	                                <apex:inputtext value="{!oSiteSearch.city}" />
+	                            </apex:pageblocksectionitem>
+	                             <apex:pageblocksectionitem >
+	                                <apex:outputlabel value="{!dLabel['DL70']}" />
+	                                <apex:inputtext value="{!oSiteSearch.province}" />
+	                            </apex:pageblocksectionitem>
+	                            <apex:pageblocksectionitem >
+	                                <apex:outputlabel value="{!dLabel['DL71']}" />
+	                                <apex:inputtext value="{!oSiteSearch.country}" />
+	                            </apex:pageblocksectionitem>   
+							</apex:pageblocksection>
+							</div>
+							<div style="text-align:center;" >
+	                            <nttdcore:DLabel name="DL72" default="Show me clients that are not in my Operating Unit" labelParent="{!this}" /><apex:outputlabel value="{!dLabel['DL72']}" />&nbsp;
+	                            <c:ECO_HelpIcon helptext="Check the box to search for clients with physical or billing locations outside of the users operating unit (region/geography)" />
+	                            <apex:inputcheckbox value="{!bSearchOutsideUserOrg}" />
+	                            <br/><br/>
+								<nttdcore:DLabel name="DL73" default="Search" labelParent="{!this}" /><apex:commandbutton id="SearchButton" action="{!SearchSites}" value="{!dLabel['DL73']}" rerender="WholeForm" status="SiteSearchUpdateStatus" />
+							</div>
+						</apex:actionregion>
+						<br/><br/><br/>
+
+						<apex:actionregion >
+							<apex:outputpanel id="SiteSearch" ><nttdcore:DLabel name="DL74" default="Updating..." labelParent="{!this}" /><nttdcore:DLabel name="DL75" default="Search Results" labelParent="{!this}" /><nttdcore:DLabel name="DL76" default="No Results Where Found." labelParent="{!this}" /><nttdcore:DLabel name="DL77" default="Action" labelParent="{!this}" /><nttdcore:DLabel name="DL78" default="Select" labelParent="{!this}" />						
+								<apex:actionstatus id="SiteSearchUpdateStatus" >
+									<apex:facet name="start" >
+										<p style="padding-bottom:20px;" class="searchText" ><img style="position:relative;top:12px;" src="/img/loading32.gif" /> {!dLabel['DL74']}</p>
+									</apex:facet>
+									<apex:facet name="stop" >
+										<apex:outputtext value="{!strSearchResults}" />
+
+										<apex:outputpanel id="SiteSearchResult" rendered="{!booDisplaySiteSearchResult}" >
+											<apex:pageblocksection title="{!dLabel['DL75']}" columns="1" collapsible="false" />
+												<div style="padding:0 12px;margin-top:7px" >
+
+													<apex:outputtext value="{!dLabel['DL76']}" rendered="{!IF(lstSitesSearchResults.size > 0, false, true)}" />
+
+													<apex:pageblocktable value="{!lstSitesSearchResults}" rendered="{!IF(lstSitesSearchResults.size > 0, true, false)}" var="Site" >
+														<apex:column width="35" >
+															<apex:facet name="header" >{!dLabel['DL77']}</apex:facet>
+											            	<apex:commandlink action="{!SelectSite}" value="{!dLabel['DL78']}" rerender="WholeForm" status="SiteSelectUpdateStatus" >
+											            		<apex:param assignto="{!idSiteID}" name="SiteID" value="{!Site.id}" />
+											            	</apex:commandlink>&nbsp;&nbsp;
+														</apex:column>
+														<apex:repeat value="{!$ObjectType.Site__c.FieldSets.pse_ClientFinder_Search_Result_Fieldset}" var="SearchField" >
+															<apex:column value="{!Site[SearchField]}" />
+														</apex:repeat>
+													</apex:pageblocktable>
+												</div>
+												<br/><br/>
+												<div style="text-align:center;" >
+													<apex:commandbutton value="{!showMoreSiteText}" action="{!toggleSiteShow}" rerender="WholeForm" status="SiteSearchUpdateStatus" rendered="{!bShowMoreButtonSite}" />
+												</div>
+												<br/><br/><br/>
+										</apex:outputpanel>
+									</apex:facet>
+								</apex:actionstatus>
+							</apex:outputpanel>		
+
+						</apex:actionregion>
+					</apex:outputpanel>
+				</apex:pageblock>
+			</apex:outputpanel>
+		</apex:form>
+	</apex:outputpanel>
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

@@ -1,0 +1,735 @@
+<apex:page standardcontroller="pse__Proj__c" extensions="ECO_TaskDetailController" showheader="false" id="idpage" title="Budget Task Manager: {!pse__Proj__c.Name}" >
+<apex:composition template="ECO_BudgetFrame" >
+<apex:define name="budgetScreen" >
+
+<apex:includeScript value="{!$Resource.ECO_jQuery_1_11_2_min_js}" />
+<apex:includeScript value="{!URLFOR($Resource.ECO_jQueryUI_1_11_2, 'jquery-ui.min.js')}" />
+<apex:includeScript value="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.12.0/moment-with-locales.min.js" />
+
+<script type="text/javascript" >
+    (function($){
+
+        $.fn.autoGrowInput = function(o) {
+
+            o = $.extend({
+                maxWidth: 1000,
+                minWidth: 0,
+                comfortZone: 70
+            }, o);
+
+            this.filter('input:text').each(function(){
+
+                var minWidth = o.minWidth || $(this).width(),
+                val = '',
+                input = $(this),
+                testSubject = $('<tester/>').css({
+                    position: 'absolute',
+                    top: -9999,
+                    left: -9999,
+                    width: 'auto',
+                    fontSize: input.css('fontSize'),
+                    fontFamily: input.css('fontFamily'),
+                    fontWeight: input.css('fontWeight'),
+                    letterSpacing: input.css('letterSpacing'),
+                    whiteSpace: 'nowrap'
+                }),
+                check = function() {
+
+                    if (val === (val = input.val())) {return;}
+
+                    // Enter new content into testSubject
+                    var escaped = val.replace(/&/g, '&').replace(/\s/g,' ').replace(/</g, '<').replace(/>/g, '>');
+                    testSubject.html(escaped);
+
+                    // Calculate new width + whether to change
+                    var testerWidth = testSubject.width(),
+                    newWidth = (testerWidth + o.comfortZone) >= minWidth ? testerWidth + o.comfortZone : minWidth,
+                    currentWidth = input.width(),
+                    isValidWidthChange = (newWidth < currentWidth && newWidth >= minWidth)
+                    || (newWidth > minWidth && newWidth < o.maxWidth);
+
+                    // Animate width
+                    if (isValidWidthChange) {
+                        input.width(newWidth);
+                    }
+
+                };
+
+                testSubject.insertAfter(input);
+
+                $(this).bind('keyup keydown blur update', check);
+
+            });
+
+            return this;
+
+        };
+
+    })(jQuery);
+
+    $b = jQuery.noConflict();
+
+    function showHide(elem, elemid) {
+        current = $b(elem).html();
+
+            if (current == '-') {  // currently open, close
+                $b(elem).html('+');
+
+                $b('.' + elemid).hide(250);
+            } else if (current == '+') {  // currently closed, open
+                $b(elem).html('-');
+
+                $b('.' + elemid).show(250);
+            } else {  // ALERT - oops
+                //alert('hello');
+            }
+        }
+
+        $b(document).ready(function() {
+            $b('.dateFormat').css('display','none');
+
+            $b('.taskNumberText').autoGrowInput({minWidth:45,comfortZone:10});
+            /*
+            $b('.taskNumberText').each(function() {
+                var defw = $b(this).width();
+                var scrollw = this.scrollWidth;
+                var aw = scrollw > defw ? scrollw : defw;
+                $b(this).width(aw);
+            });
+            */
+
+            /*
+            $b('.taskNumberText').keypress(function() {
+                w = $b(this).width();
+
+                if (this.scrollWidth+8 > w)
+                {
+                    $b(this).width(this.scrollWidth+8);
+                }
+            });
+            */
+        });
+
+    </script>
+    <style>
+        th, td {
+            border-top: 1px solid black;
+            border-bottom: 1px solid black;
+            border-left: 1px solid black;
+            border-right: 1px solid black;
+            border-collapse: collapse;
+            padding: 5px;
+            text-align: left;
+        }
+        table {
+            border: none;
+            border-collapse: collapse;
+        }
+
+        .taskNumberText {
+            width: 45px;
+        }
+        .dollarAmount {
+            text-align:right;
+        }
+
+        .percentAmount {
+            text-align:center;
+        }
+
+        .rightBlue {
+            background-color:#0070C0;color:white;text-align:right
+        }
+
+        .centerBlue {
+            background-color:#0070C0;color:white;text-align:center
+        }
+
+        .rightGreen {
+            background-color:#76933C;color:white;text-align:right
+        }
+
+        .centerGreen {
+            background-color:#76933C;color:white;text-align:center
+        }
+
+        .rightPurple {
+            background-color:#60497A;color:white;text-align:right
+        }
+
+        .centerPurple {
+            background-color:#60497A;color:white;text-align:center
+        }
+
+        .rightOrange {
+            background-color:#FF9900;color:white;text-align:right
+        }
+
+        .centerOrange {
+            background-color:#FF9900;color:white;text-align:center
+        }
+
+        .lightBlue {
+            background-color:#DCE6F1;
+        }
+
+        .lightGreen {
+            background-color:#EBF1DE;
+        }
+
+        .lightPurple {
+            background-color:#E4DFEC;
+        }
+
+        .lightOrange {
+            background-color:#FDE9D9;
+        }
+
+        .bold {
+            font-weight:bold;
+        }
+
+        .Processing
+        {
+            position: fixed;
+            background-color: white;
+            background: url('/img/loading32.gif');
+            background-repeat: no-repeat !important;
+            background-position: center;
+            z-index: 1000;
+            width: 100%;
+            height: 100%;
+            z-index: 1004;
+            opacity: 0.7;
+            left: 0%;
+            top: 0%;
+        }
+        .headerth{
+            background-color:#ACACA8;
+        }
+        .openClose {
+            text-align: center;
+            font-size: 12pt;
+            background-color: white;
+            min-width: 13px;
+        }
+
+        h1 {
+            font-size: 16pt;
+            display: block;
+        }
+
+        .burdenSchedule {
+            {!IF(showBurdenSchedule,'','display: none;')}
+        }
+    </style>
+
+    <script>
+        moment.locale('{!UserLocale}');
+
+        var isActive = true;
+        function upsertTasks(projectTasks) {
+            try {
+            Visualforce.remoting.Manager.invokeAction(
+                '{!$RemoteAction.ECO_TaskDetailController.updateTasks}',
+                projectTasks,
+                function(jobId, event) {
+                    if (event.status) {
+                        console.log(jobId);
+                        console.log(event);
+                        pollServer(jobId);
+                    } else if (event.type === 'exception') {
+                        document.getElementById("responseErrors").innerHTML =
+                            event.message + "<br/>\n<pre>" + event.where + "</pre>";
+                        $b('span[id$="idStatus.start"]').hide();
+                    } else {
+                        document.getElementById("responseErrors").innerHTML = event.message;
+                        $b('span[id$="idStatus.start"]').hide();
+                    }
+                },
+                {escape: true}
+                );
+            } catch(ex) {
+                console.log(ex);
+            }
+
+        }
+
+        function pollServer(jobId)
+        {
+            if (isActive)
+            {
+                window.setTimeout(function () {
+                    try {
+                        Visualforce.remoting.Manager.invokeAction(
+                            '{!$RemoteAction.ECO_TaskDetailController.pollAsyncUpdate}',
+                            jobId,
+                            function(result, event) {
+                                if (event.status) {
+                                    console.log(result);
+                                    console.log(event);
+                                    // Check if it still hasnt finished the job yet then repoll after timeout
+                                    if (result.length > 0 && result[0].rowNum == -1337) {
+                                        pollServer(jobId);
+                                    } else {
+                                        isActive = false;
+                                        handleErrors(result);
+                                    }
+                                } else if (event.type === 'exception') {
+                                    document.getElementById("responseErrors").innerHTML =
+                                        event.message + "<br/>\n<pre>" + event.where + "</pre>";
+                                    $b('span[id$="idStatus.start"]').hide();
+                                } else {
+                                    document.getElementById("responseErrors").innerHTML = event.message;
+                                    $b('span[id$="idStatus.start"]').hide();
+                                }
+                            },
+                            {escape: true}
+                        );
+                    } catch(ex) {
+                        console.log(ex);
+                    }
+                }, 1500);
+            }
+        }
+
+        function handleErrors(result) {
+            $b('tr.errorRow').hide();
+            $actionStatus.hide();
+            if (result.length == 0) {
+                reloadTable();
+                return;
+            }
+
+            $b.each(result, function() {
+                $b('tr.errorRow[data-rownum="' + this.rowNum + '"]')
+                    .show()
+                    .find('td').text(this.errorMessage);
+            });
+        }
+    </script>
+    <apex:form id="idfrm" >
+    <apex:actionFunction action="{!reload}" name="reloadTable" rerender="pnl,innerPnl" status="idStatus" />
+    <apex:inputHidden value="{!intRowNo}" id="hdnINPUT" />
+    <apex:actionStatus id="idStatus" startstyleclass="Processing" onstop="reprocess();"/>
+    <apex:actionFunction action="{!manageRows}" name="manageRowsJS" rerender="pnl,innerPnl" status="idStatus" >
+        <apex:param name="selectedAction" assignto="{!strSelectedAction}" value="" />
+    </apex:actionFunction>
+    <apex:actionFunction name="refreshData" action="{!refreshData}" />
+    <apex:outputPanel id="pnl" >
+
+    <script>
+    (function($) {
+
+        function onSave() {
+            console.log('In onSave');
+            $actionStatus = $('span[id$="idStatus.start"]').show();
+            // Initialize array to save
+            var projectTasks = [];
+            // find dirty rows
+            $rowsToUpdate = $('tr.taskRow[data-isChanged="1"]');
+
+            $rowsToUpdate.each(function() {
+                projectTasks.push(newProjectTask($(this)));
+            });
+            /*
+            projectTasks = [{}];
+            projectTasks[0].Name = 'ptTest';
+            projectTasks[0].DummyStartDate__c = Date.parse("2016-03-03");
+            */
+
+            upsertTasks(projectTasks);
+        }
+
+        /****** JS REMOTING SETUP ********/
+        $(function() {
+            // Save old values on all data fields
+            $('.js-onsave').each(function() { $(this).data('oldValue', getFieldValue($(this))); });
+
+            // find all data fields and attach listener to mark rows as dirty for Save
+            $('.js-onsave').change(function() {markRowDirty($(this));});
+
+            $('.js-remoteSave').click(function() { onSave(); });
+        });
+
+        function getFieldValue(field) {
+            var fieldType = field.attr('type');
+
+            if (fieldType == 'checkbox' || fieldType == 'radio') {
+                return field.is(':checked');
+            }
+
+            return field.val();
+        }
+
+        function markRowDirty(field) {
+            row = field.closest('tr');
+            console.log('changed');
+            try {
+                if (getFieldValue(field) != field.data('oldValue')) {
+                    row.attr('data-isChanged', "1");
+                } else {
+                    // row.data('isChanged', "0");
+                }
+            } catch (e) {
+                console.log('New ' + field);
+                console.log('Old ' + field.data('oldValue'));
+                console.log(e);
+            }
+        }
+
+        function parseDate(dateStr) {
+            return moment.utc(dateStr,'L').valueOf();
+        }
+
+        function parseDateTime(dateStr) {
+            return moment(dateStr,'L h:mm A').valueOf();
+        }
+
+        function newProjectTask(row) {
+            var taskWrapper = new Object();
+            taskWrapper.task = new Object();
+            taskWrapper.fieldsToNull = [];
+            taskWrapper.rowNum = row.data('rownum');
+            var pt = taskWrapper.task;
+
+            pt.pse__Project__c = '{!pse__Proj__c.Id}';
+            // pt.sObjectType = 'pse__Project_Task__c';
+
+            row.find('[data-fieldname]').each(function() {
+
+                var fieldName = $(this).data('fieldname');
+                var fieldType = $(this).data('fieldtype');
+                var value = getFieldValue($(this));
+
+                if(value === null || value === "" || value === undefined) {
+                    taskWrapper.fieldsToNull.push(fieldName);
+                } else {
+                    if (fieldType == 'Date') {
+                        value = parseDate(value);
+                    } else if(fieldType == 'DateTime') {
+                        value = parseDateTime(value);
+                    } else if (fieldType == 'jsdate') {
+                        value = Date.parse(value);
+                    }
+
+                    pt[fieldName] = value;
+                }
+            });
+
+            // pt.sobjectType = 'pse__Project_Task__c';
+            return taskWrapper;
+        }
+
+    })(jQuery);
+    </script>
+
+    <script type="text/javascript" >
+        function manageRows(line, linenum)
+        {
+            //idpage:j_id0:idfrm:j_id39:0:selectId
+            var e = $b(line)
+            var str = e.val();
+
+            $b("[id$='hdnINPUT']").val(linenum);
+            //document.getElementById('idpage:j_id0:idfrm:hdnINPUT').value = linenum;
+            //alert(document.getElementById('idpage:j_id0:idfrm:hdnINPUT'));
+            console.log('linenum: ' + linenum + ' - ' + str);
+            if(str == 'DeleteTask')
+            {
+                if(confirm('Are you sure?'))
+                {
+                    manageRowsJS(str);
+                }
+            }
+            else
+            {
+                manageRowsJS(str);
+            }
+reprocess();
+        }
+
+    </script>
+
+        <h1><!--<nttdcore:DLabel name="DL1" default="{{1}} ({{2}})" labelParent="{!this}" p1="{!pse__Proj__c.Name}" p2="{!pse__Proj__c.OracleProjectnumber__c}" />-->{!pse__Proj__c.Name}</h1>
+        <h1><!--<nttdcore:DLabel name="DL2" default="Budget Task Manager" labelParent="{!this}" />-->{!pse__Proj__c.OracleProjectnumber__c}</h1>
+        <p/>
+
+    <apex:pageMessages />
+    <span id="responseErrors" />
+    <!--apex:outputPanel-->
+    <table>
+     <tr>
+            <td class="summaryLabelCell2" ><!--<nttdcore:DLabel name="DL3" default="Filter by Parent Task" labelParent="{!this}" />-->{!$Label.Filter_by_Parent_Task}</td>
+            <td class="numberCellWidth2" >
+                <apex:selectList value="{!parentTaskFilter}" multiselect="false" size="1" onchange="refreshData();" id="parentTaskFilter" >
+                    <apex:selectOptions value="{!taskFilterOptions}" />
+                    <apex:selectOptions value="{!taskFilterOptions2}" rendered="{!taskFilterOptions2.size > 0}"/>
+                    <apex:selectOptions value="{!taskFilterOptions3}" rendered="{!taskFilterOptions3.size > 0}"/>
+                    <apex:selectOptions value="{!taskFilterOptions4}" rendered="{!taskFilterOptions4.size > 0}"/>
+                    <apex:selectOptions value="{!taskFilterOptions5}" rendered="{!taskFilterOptions5.size > 0}"/>
+                </apex:selectList>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div class="taskRangeFilter" >
+                    <apex:outputPanel rendered="{!parentTaskFilter!='-1'}" ><!--<nttdcore:DLabel name="DL95" default="Select Current Task Range:" labelParent="{!this}" />-->
+                     {!$Label.Select_Current_Task_Range}&nbsp;
+                      <apex:selectList value="{!taskRange}" multiselect="false" size="1" onchange="refreshData();" id="taskRange" >
+                        <apex:selectOptions value="{!taskPageOptions}" />
+                      </apex:selectList>
+                    </apex:outputPanel>
+                </div>
+            </td>
+        </tr>
+       </table>
+       <!--<apex:outputPanel rendered="{!NOT(tooManyTasks)}" id="innerPnl" >-->
+       <apex:outputPanel id="innerPnl" >
+    <table width="100%" border="1px solid black" id="task-table" >
+
+        <tr>
+            <td colspan="14" >
+                <!--<nttdcore:DLabel name="DL4" default="New Task" labelParent="{!this}" />--><apex:commandButton value="{!$Label.New_Task}" action="{!addNewRowTask}" rendered="{!boolShowNewBtn}" status="idStatus" rerender="pnl,innerPnl" />
+                <!--apex:commandButton value="Save" action="{!mySave}"  status="idStatus" reRender="pnl"/-->
+                <input type="button" value="Save" id="remoteSave" class="btn js-remoteSave" />
+            </td>
+        </tr>
+        <tr>
+            <th class="headerth" >&nbsp;</th>
+            <th class="headerth" ><!--<nttdcore:DLabel name="DL5" default="Task#" labelParent="{!this}" />-->{!$Label.TaskNum}</th>
+            <th class="headerth" ><!--<nttdcore:DLabel name="DL6" default="Task Name" labelParent="{!this}" />-->{!$Label.Task_Name_Budget}</th>
+            <th class="headerth" ><!--<nttdcore:DLabel name="DL7" default="Action" labelParent="{!this}" />-->{!$Label.Action_Budget}</th>
+            <th class="headerth" ><!--<nttdcore:DLabel name="DL8" default="Generate" labelParent="{!this}" />--><!--<nttdcore:DLabel name="DL9" default="Charge Code" labelParent="{!this}" />-->{!$Label.Generate_Budget} <br/>{!$Label.Charge_Code}
+                <c:ECO_HelpText helpid="Task Detail Generate Charge Code" />
+            </th>
+            <th class="headerth" ><!--<nttdcore:DLabel name="DL10" default="Available for" labelParent="{!this}" />--><!--<nttdcore:DLabel name="DL11" default="Cost Charging" labelParent="{!this}" />-->{!$Label.Available_for}<br/> {!$Label.Cost_Charging}
+                <c:ECO_HelpText helpid="Task Detail Available for Cost Charging" />
+            </th>
+            <th class="headerth" ><!--<nttdcore:DLabel name="DL12" default="Billable to" labelParent="{!this}" />--><!--<nttdcore:DLabel name="DL13" default="Client" labelParent="{!this}" />-->{!$Label.Billable_to} <br/>{!$Label.Client_Budget}
+                <c:ECO_HelpText helpid="Task Detail Billable to Client" />
+            </th>
+            <th class="headerth" ><!--<nttdcore:DLabel name="DL14" default="Work Plan" labelParent="{!this}" />--><!--<nttdcore:DLabel name="DL15" default="Task" labelParent="{!this}" />-->{!$Label.Work_Plan}<br/>{!$Label.Task_Budget}
+                <c:ECO_HelpText helpid="Task Detail is a Work Plan Task" />
+            </th>
+            <th class="headerth" ><!--<nttdcore:DLabel name="DL16" default="Approved Start" labelParent="{!this}" />--><!--<nttdcore:DLabel name="DL17" default="Date &amp; Time" labelParent="{!this}" />-->{!$Label.Approved_Start} <br/>{!$Label.Date_Budget}</th>
+            <th class="headerth" ><!--<nttdcore:DLabel name="DL18" default="Approved End" labelParent="{!this}" />--><!--<nttdcore:DLabel name="DL19" default="Date &amp; Time" labelParent="{!this}" />-->{!$Label.Approved_End} <br/>{!$Label.Date_Budget}</th>
+            <th class="headerth" ><!--<nttdcore:DLabel name="DL20" default="Duration" labelParent="{!this}" />--><!--<nttdcore:DLabel name="DL21" default="(days)" labelParent="{!this}" />-->{!$Label.Duration_Budget}<br/>{!$Label.days_budget}</th>
+            <th class="headerth" ><!--<nttdcore:DLabel name="DL22" default="Forecast" labelParent="{!this}" />--><!--<nttdcore:DLabel name="DL23" default="Start Date" labelParent="{!this}" />-->{!$Label.Forecast} <br/> {!$Label.Start_Date_Budget}</th>
+            <th class="headerth" ><!--<nttdcore:DLabel name="DL24" default="Forecast" labelParent="{!this}" />--><!--<nttdcore:DLabel name="DL25" default="End Date" labelParent="{!this}" />-->{!$Label.Forecast} <br/> {!$Label.End_Date_Budget}</th>
+            <th class="headerth" ><!--<nttdcore:DLabel name="DL26" default="Work Type" labelParent="{!this}" />--><!--<nttdcore:DLabel name="DL27" default="Name" labelParent="{!this}" />-->{!$Label.Work_Type_Budget} <br/>{!$Label.Name_Budget}
+                <c:ECO_HelpText helpid="Task Detail Work Type Name" />
+            </th>
+            <th class="headerth" ><!--<nttdcore:DLabel name="DL28" default="Cost Spread" labelParent="{!this}" />-->{!$Label.Cost_Spread}
+                <c:ECO_HelpText helpid="Task Detail Cost Spread" />
+            </th>
+            <th class="headerth burdenSchedule" ><!--<nttdcore:DLabel name="DL29" default="Burden Schedule" labelParent="{!this}" />-->{!$Label.Burden_Schedule}
+                <c:ECO_HelpText helpid="Task Detail Burden Schedule" />
+            </th>
+        </tr>
+        <apex:variable var="b" value="{!0}" />
+
+        <apex:repeat value="{!lstTaskDetailWrapper}" var="task" >
+        <tr style="{!IF(task.isErrorRow = true,"display:table-row !important;","display:none !important;")}" ><td colspan="14" >{!task.strErrorMsg}</td></tr>
+        <tr class="errorRow" data-rownum="{!b}" style="display:none;" ><td colspan="14" /></tr>
+        <tr class="{!task.objEPT.parentClasses} taskRow" style="{!IF(task.isErrorRow = true,"background-color:red !important;","")}" data-ischanged="{!IF(OR(task.hasChanged,task.boolShowInput),'1','0')}" data-rownum="{!b}" >
+
+            <td class="openClose" >
+                <input type="hidden" value="{!task.objEPT.oprojectTask.Id}" data-fieldname="Id" class="js-onsave" />
+                <input type="hidden" value="{!task.objEPT.oprojectTask.pse__Parent_Task__c}" data-fieldname="pse__Parent_Task__c" class="js-onsave" />
+                <input type="hidden" value="{!task.objEPT.oprojectTask.pse__Order__c}" data-fieldname="pse__Order__c" class="js-onsave" />
+                <!--input type="hidden" value="{!task.objEPT.oprojectTask.pse__Start_Date__c}"  data-fieldname="pse__Start_Date__c" data-fieldtype="jsdate" class="js-onsave" />
+                <input type="hidden" value="{!task.objEPT.oprojectTask.pse__End_Date__c}"  data-fieldname="pse__End_Date__c" data-fieldtype="jsdate" class="js-onsave" />
+                <input type="hidden" value="{!task.objEPT.oprojectTask.pse__Start_Date_Time__c}"  data-fieldname="pse__Start_Date_Time__c" data-fieldtype="jsdate" class="js-onsave" />
+                <input type="hidden" value="{!task.objEPT.oprojectTask.pse__End_Date_Time__c}"  data-fieldname="pse__End_Date_Time__c" data-fieldtype="jsdate" class="js-onsave" /-->
+                <apex:outputPanel id="parentIndicator" rendered="{!task.objEPT.children.size > 0}" onclick="showHide(this, '{!task.objEPT.id}');" ><!--<nttdcore:DLabel name="DL30" default="-" labelParent="{!this}" />-->-</apex:outputPanel>
+            </td>
+            <td style="color:red;" >
+                <div style="margin-left: {!task.objEPT.indentLevel * 13}px;" >
+                    <!--{!task.objEPT.taskNumber} (level {!task.objEPT.indentLevel}) style="{!IF(task.isErrorRow,"background-color:red;","")}"-->
+
+                </div>
+                <apex:inputField value="{!task.objEPT.oprojectTask.ProjectTaskNumber__c}" html-data-fieldname="ProjectTaskNumber__c" styleclass="js-onsave taskNumberText" />
+            </td>
+            <td>
+                <div style="margin-left: {!task.objEPT.indentLevel * 13}px;" >
+                    <apex:outputText value="{!task.objEPT.Name}" rendered="{!AND(false,NOT(task.boolShowInput))}" />
+                    <apex:inputField value="{!task.objEPT.oprojectTask.Name}" html-data-fieldname="Name" styleclass="js-onsave Name" rendered="{!OR(true,task.boolShowInput)}" />
+                </div>
+            </td>
+            <td>
+                <apex:outputText value="{!task.strSub_PeerTask}" rendered="{!task.boolShowInput}" />
+                <apex:selectList value="{!task.strSelectedAction}" size="1" onchange="manageRows(this,{!b});" id="selectId" rendered="{!NOT(task.boolShowInput)}" >
+                <apex:selectOptions value="{!IF(task.objEPT.oprojectTask.IsWorkPlanTask__c, lstWPTActions, lstActions)}" />
+            </apex:selectList>
+        </td>
+
+        <td>
+            <apex:inputField value="{!task.objEPT.oprojectTask.FinancialTask__c}" html-data-fieldname="FinancialTask__c" styleclass="js-onsave" id="gencode" onchange="disableCheckboxes();"/>
+        </td>
+        <td>
+            <apex:inputField value="{!task.objEPT.oprojectTask.IsChargeable__c}" html-data-fieldname="IsChargeable__c" styleclass="js-onsave" id="availforcost" onchange="disableCheckboxes();"/>
+        </td>
+        <td>
+            <apex:inputField value="{!task.objEPT.oprojectTask.IsBillable__c}" html-data-fieldname="IsBillable__c" styleclass="js-onsave" id="billtoclient" onchange="disableCheckboxes();" />
+        </td>
+        <td>
+            <apex:inputField value="{!task.objEPT.oprojectTask.IsWorkPlanTask__c}" html-data-fieldname="IsWorkPlanTask__c" styleclass="js-onsave" id="workplan" onchange="disableCheckboxes();disableWorkTypeName();" />
+        </td>
+
+        <td>
+                    <!--<apex:outputText value="{0, date, MMM d','  yyyy}">
+                        <apex:param value="{!task.oprojectTask.pse__Start_Date_Time__c}"/>
+                    </apex:outputText>-->
+                    <apex:inputField id="startDateTime" value="{!task.objEPT.oprojectTask.pse__Start_Date_Time__c}" html-data-fieldname="pse__Start_Date_Time__c" html-data-fieldtype="DateTime" styleclass="js-onsave" />
+                </td>
+                <td>
+                    <!--<apex:outputText value="{0, date, MMM d','  yyyy}">
+                        <apex:param value="{!task.oprojectTask.pse__End_Date_Time__c}"/>
+                    </apex:outputText>-->
+                    <apex:inputField id="endDateTime" value="{!task.objEPT.oprojectTask.pse__End_Date_Time__c}" html-data-fieldname="pse__End_Date_Time__c" html-data-fieldtype="DateTime" styleclass="js-onsave" />
+                </td>
+                <td>{!task.objEPT.oprojectTask.Duration__c}</td>
+                <td>
+                   <!-- <apex:outputText value="{0, date, MMM d','  yyyy}">
+                        <apex:param value="{!task.oprojectTask.ForecastStartDate__c}"/>
+                    </apex:outputText>-->
+                    <apex:inputField value="{!task.objEPT.oprojectTask.ForecastStartDate__c}" html-data-fieldname="ForecastStartDate__c" html-data-fieldtype="Date" styleclass="js-onsave" rendered="{!pse__Proj__c.pse__Stage__c = 'Execution'}" />
+                    <apex:outputfield value="{!task.objEPT.oprojectTask.ForecastStartDate__c}" rendered="{!pse__Proj__c.pse__Stage__c != 'Execution'}" />
+                </td>
+                <td>
+                   <!-- <apex:outputText value="{0, date, MMM d','  yyyy}">
+                        <apex:param value="{!task.oprojectTask.ForecastEndDate__c}"/>
+                    </apex:outputText>-->
+                    <apex:inputField value="{!task.objEPT.oprojectTask.ForecastEndDate__c}" html-data-fieldname="ForecastEndDate__c" html-data-fieldtype="Date" styleclass="js-onsave" rendered="{!pse__Proj__c.pse__Stage__c = 'Execution'}" />
+                    <apex:outputfield value="{!task.objEPT.oprojectTask.ForecastEndDate__c}" rendered="{!pse__Proj__c.pse__Stage__c != 'Execution'}" />
+                </td>
+                <td>
+                    <apex:inputField value="{!task.objEPT.oprojectTask.WorkTypeName__c}" html-data-fieldname="WorkTypeName__c" styleclass="js-onsave" id="workname"/>
+
+                   <!--apex:selectList value="{!task.strSelectedWorkTypeName}" size="1" >
+                        <apex:selectOptions value="{!lstWorkTypeName}" ></apex:selectOptions>
+                    </apex:selectList-->
+                </td>
+
+                <td>
+                    <apex:inputField id="earnedValueCurve" value="{!task.objEPT.oprojectTask.EarnedValueCurve__c}" html-data-fieldname="EarnedValueCurve__c" styleclass="js-onsave" />
+                </td>
+                <td class="burdenSchedule" >
+                <!-- Burden_Reference_Schedule_Name__c -->
+                    <apex:selectList value="{!task.objEPT.oprojectTask.OracleRateScheduleName__c}" multiselect="false" size="1" id="burdenSchedule" html-data-fieldname="OracleRateScheduleName__c" styleclass="js-onsave" rendered="{!showBurdenSchedule}" >
+                        <apex:selectOptions value="{!burdenSchedules}" />
+                    </apex:selectList>
+                    <!--apex:inputField value="{!task.objEPT.oprojectTask.Burden_Reference_Schedule_Name__c}" html-data-fieldname="Burden_Reference_Schedule_Name__c" styleClass="js-onsave"/-->
+                </td>
+            </tr>
+            <apex:variable var="b" value="{!b+1}" />
+        </apex:repeat>
+
+    </table>
+    </apex:outputPanel>
+</apex:outputPanel>
+</apex:form>
+
+    <c:ECO_HelpTextRender ready="1" />
+
+</apex:define>
+</apex:composition>
+    <script>
+
+        function reprocess() {
+            disableCheckboxes();
+            disableWorkTypeName();
+            disableEVandDates();
+        }
+
+        // Disable EV Curve and Dates for parent tasks
+        function disableEVandDates(){
+          
+            //Find parent tasks
+            var parents = [];
+            $b("[id*='parentIndicator']").each(function(index, value) {
+                var tokens = $b(this).prop("id").split(":");
+                parents.push(tokens[4]);
+            });
+
+           //Disable Cost Spread
+            $b("[id*='earnedValueCurve']").each(function(index, value) {
+                var tokens = $b(this).prop("id").split(":");
+                if (parents.indexOf(tokens[4]) > -1) {
+                    $b(this).val("");
+                    $b(this).prop("disabled",true);
+                }
+            });
+
+           //Disable Approved Start Date & Time
+            $b("[id*='startDateTime']").each(function(index, value) {
+                var tokens = $b(this).prop("id").split(":");
+                if (parents.indexOf(tokens[4]) > -1) {
+                    $b(this).prop("disabled",true);
+                }
+            });
+
+            //Disable Approved End Date & Time
+            $b("[id*='endDateTime']").each(function(index, value) {
+                var tokens = $b(this).prop("id").split(":");
+                if (parents.indexOf(tokens[4]) > -1) {
+                    $b(this).prop("disabled",true);
+                }
+            });
+
+        }
+
+        // Disable Work Type Name for Workplan tasks
+        function disableWorkTypeName(){
+            $b("[id*='workplan']").each(function(index, value) {
+                if ($b("[id*='"+index+":workplan']").prop("checked")) {
+                    $b("[id*='"+index+":workname']").val("");
+                    $b("[id*='"+index+":workname']").prop("disabled",true);
+                }
+                else {
+                    $b("[id*='"+index+":workname']").prop("disabled",false);
+                }
+            });
+        }
+
+        //Disable Generate Charge Code, Available for Cost Charging or Billable to Client
+        // if Work Plan Task is selected and vice versa.
+        function disableCheckboxes(){
+            $b("[id*='gencode']").each(function(index, value) {
+                var cVals = new Array(4);
+                var n = 0;
+                $b(this).parent().parent().find('input').each(function(iindex, ivalue) {
+                    if ($b(this).prop("type") == "checkbox") {
+                        cVals[n] = $b(this).prop("checked");
+                        n++;
+                    }
+                });
+
+                if (cVals[0]==true || cVals[1]==true || cVals[2]==true) {
+                    $b("[id*='"+index+":workplan']").prop("disabled",true);
+                }
+                if (cVals[3]==true) {
+                    $b("[id*='"+index+":gencode']").prop("disabled",true);
+                    $b("[id*='"+index+":availforcost']").prop("disabled",true);
+                    $b("[id*='"+index+":billtoclient']").prop("disabled",true);
+                }
+                if (cVals[0]==false && cVals[1]==false && cVals[2]==false && cVals[3]==false) {
+                    $b("[id*='"+index+":workplan']").prop("disabled",false);
+                    $b("[id*='"+index+":gencode']").prop("disabled",false);
+                    $b("[id*='"+index+":availforcost']").prop("disabled",false);
+                    $b("[id*='"+index+":billtoclient']").prop("disabled",false);
+                }
+
+            });
+
+        }
+
+        $b(document).ready(function() {
+            disableCheckboxes();
+            disableWorkTypeName();
+            disableEVandDates();
+        });
+
+    </script>
+<!--<nttdcore:DLabelInit labelParentInit="{!this}" />--></apex:page>

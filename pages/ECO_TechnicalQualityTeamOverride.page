@@ -1,0 +1,244 @@
+<apex:page standardcontroller="Deliverable__c" showheader="true" sidebar="true" extensions="ECO_DeliverableADDTQReviewersController,nttdcore.DLabelParentController" >
+<apex:form >
+ 	  <style>
+ 	    .ErrorRow{
+ 	    	background-color: #FFFF00;
+ 	    }
+
+ 	    .tableclass{
+ 	    	border: 1px solid black; border-collapse: collapse; padding: 30px;
+ 	    }
+		
+ 	    .borderclass{
+ 	    	 border: 1px solid black;padding: 10px;
+ 	    }
+
+		.customHelpText{
+			padding: 7px;
+		    border: 1px solid #85B3CE;
+		    min-height: 30px;
+		    display: block;
+		    width: auto;
+		    margin: 0 0 5px 0;
+		    background-repeat: no-repeat;
+		    border-radius: 4px;
+		    background-color: #A2D3F1;
+		    
+		}
+		.customHelpBody{
+			display:inline-block;
+			color:#;
+            max-width:95%;
+		}
+        
+          
+        .oRight .infoTable td, .oRight .infoTable th {
+          	white-space: normal !important;
+        }
+          
+		.infoTable {
+			background: #f5f5f5;
+			border-collapse: separate;
+			font-size: 12px;
+			line-height: 24px;
+			text-align: left;
+			margin:5px 14px 0 14px;
+          	
+		}	
+		.infoTable table{
+            width:100%;
+		}
+		.infoTable th {
+			background-color: #008cb2 !important;
+			color: #fff;
+	  		font-weight: bold;
+			padding: 3px 9px;
+			position: relative;
+			border:none !important;
+                  
+		}
+		.infoTable th:first-child{
+			border-right:1px solid #fff !important;
+		}
+
+		.infoTable th:after {
+			content: '';
+			display: block;
+			height: 25%;
+			left: 0;
+			margin: 1px 0 0 0;
+			position: absolute;
+			top: 25%;
+            width: 100%;
+		}
+		.infoTable td {
+			border-right: 1px solid #fff;
+			border-left: 1px solid #e8e8e8;
+			border-top: 1px solid #fff;
+			border-bottom: 1px solid #e8e8e8;
+			padding: 3px 9px;
+			position: relative;
+			transition: all 300ms;
+            min-width: 90px;
+		}
+		.rich-tab-header:hover{
+			cursor:pointer !important;
+		}
+		.rich-tab-disabled:hover{
+			cursor:auto !important;
+		}
+		.infoTable td:first-child {
+			box-shadow: inset 1px 0 0 #fff;
+		}	
+
+		.infoTable td:last-child {
+			border-right: 1px solid #e8e8e8;
+			box-shadow: inset -1px 0 0 #fff;
+		}	
+
+		.infoTable tr {
+		}
+
+		.infoTable tr:nth-child(odd) td {
+			background: #f1f1f1;	
+		}
+
+		.infoTable tr:last-of-type td {
+			box-shadow: inset 0 -1px 0 #fff; 
+		}
+
+		.infoTable tr:last-of-type td:first-child {
+			box-shadow: inset 1px -1px 0 #fff;
+		}	
+
+		.infoTable tr:last-of-type td:last-child {
+			box-shadow: inset -1px -1px 0 #fff;
+		}	
+
+		.infoTable tbody:hover td {
+		}
+
+		.infoTable tbody:hover tr:hover td {
+			color: #444;
+			text-shadow: 0 1px 0 #fff;
+		}
+		body .bEditBlock .pbBody .pbSubheader, body .bWizardBlock .pbBody .pbSubheader{
+			background-image:none !important;
+			color:#27282e;
+		}
+
+ 	  </style>
+      <nttdcore:DLabel name="DL36" default="Build Technical Quality Team" labelParent="{!this}" /><nttdcore:DLabel name="DL37" default="Deliverable" labelParent="{!this}" /><apex:sectionheader subtitle="{!dLabel['DL36']}" title="{!dLabel['DL37']}" >
+      </apex:sectionheader>
+      <nttdcore:DLabel name="DL38" default="Add Members to Technical Quality Team" labelParent="{!this}" /><apex:pageblock mode="Readonly" id="TQTPB" title="{!dLabel['DL38']}" ><nttdcore:DLabel name="DL45" default="Available Team Members" labelParent="{!this}" /><nttdcore:DLabel name="DL46" default="No valid team members found." labelParent="{!this}" /><nttdcore:DLabel name="DL47" default="Select" labelParent="{!this}" /><nttdcore:DLabel name="DL48" default="Select user to add to team." labelParent="{!this}" /><nttdcore:DLabel name="DL49" default="Select Technical Quality Team" labelParent="{!this}" /><nttdcore:DLabel name="DL50" default="Select" labelParent="{!this}" /><nttdcore:DLabel name="DL51" default="Select user to remove from team." labelParent="{!this}" /><nttdcore:DLabel name="DL52" default="Name" labelParent="{!this}" /><nttdcore:DLabel name="DL53" default="Role" labelParent="{!this}" /><nttdcore:DLabel name="DL54" default="PickList1" labelParent="{!this}" />
+      <apex:pageblockbuttons location="top" >
+
+	   	     <nttdcore:DLabel name="DL39" default="Add New Member" labelParent="{!this}" /><apex:commandbutton value="{!dLabel['DL39']}" action="{!addNewMemberNotInTeam}" rerender="ProTeamInformationPBS,TQTInformationPBS" >
+ 	   	     </apex:commandbutton> 	
+
+ 	   	     <nttdcore:DLabel name="DL40" default="Add Selected Members" labelParent="{!this}" /><apex:commandbutton value="{!dLabel['DL40']}" action="{!moveMembersDown}" rerender="ProTeamInformationPBS,TQTInformationPBS" >
+ 	   	     </apex:commandbutton>
+ 	   	     <nttdcore:DLabel name="DL41" default="Remove Selected Member" labelParent="{!this}" /><apex:commandbutton value="{!dLabel['DL41']}" action="{!removeSelectedMembers}" rerender="ProTeamInformationPBS,TQTInformationPBS" >
+ 	   	     </apex:commandbutton>
+
+      		 <nttdcore:DLabel name="DL42" default="Save" labelParent="{!this}" /><apex:commandbutton value="{!dLabel['DL42']}" action="{!SaveChanges}" rerender="TQTPB,TQTInformationPBS" />
+ 	   		 <nttdcore:DLabel name="DL43" default="Return to Deliverable" labelParent="{!this}" /><apex:commandbutton value="{!dLabel['DL43']}" action="{!Cancel}" >
+ 	   		 </apex:commandbutton>
+
+ 	  </apex:pageblockbuttons>
+      <apex:pagemessages />
+      <!--<apex:pageMessage severity="info" summary="Reminder: Consider SiD when selecting reviewers for deliverable technical quality reviews." />-->
+
+	  <div class="customHelpText" >
+			<div class="customHelpBody" ><nttdcore:DLabel name="DL44" default="Assign the appropriate technical reviewers for the project deliverable.  Reference the global quality review policy and procedure for guidance when selecting roles.  This section must be completed prior to initiating and scheduling a quality review.  If applicable, consider Safety in Design (SiD) requirements when selecting the team." labelParent="{!this}" />
+				{!dLabel['DL44']} 
+			</div>
+	  </div>	
+
+      <apex:pageblocksection id="ProTeamInformationPBS" title="{!dLabel['DL45']}" columns="1" collapsible="false" >
+      	<apex:pagemessage severity="INFO" rendered="{!IF(ListDisplayTeamKeys.size > 0, false, true)}" summary="{!dLabel['DL46']}" /> 
+ 	   	<apex:pageblocktable value="{!ListDisplayTeamKeys}" var="avaRow" rendered="{!IF(ListDisplayTeamKeys.size > 0, true, false)}" >
+ 	   	  <apex:column headervalue="{!dLabel['DL47']}" title="{!dLabel['DL48']}" width="40" >
+ 	   	     	<!--<apex:inputcheckbox value="{!mapDisplayTeamAvailable[avaRow].bSelected}" disabled="{!OR(NOT(mapDisplayTeamAvailable[avaRow].bCanBeUser), mapDisplayTeamAvailable[avaRow].oProjectTeamMember.Contact__c == Deliverable__c.DeliverablesOwner__c)}" >
+ 	   	  		</apex:inputcheckbox>-->
+ 	   	  		<apex:inputCheckbox value="{!mapDisplayTeamAvailable[avaRow].bSelected}" disabled="{!OR(NOT(mapDisplayTeamAvailable[avaRow].bCanBeUser))}">
+ 	   	  		</apex:inputCheckbox>
+ 	   	  </apex:column>
+ 	   	  <apex:column value="{!mapDisplayTeamAvailable[avaRow].oProjectTeamMember.Contact__r.Name}" >
+ 	   	  </apex:column>
+ 	   	  <apex:column value="{!mapDisplayTeamAvailable[avaRow].oProjectTeamMember.ProjectRole__r.Name}" >
+ 	   	  </apex:column>
+ 	   	  <!--<apex:column Headervalue="Can be Approver" width="300">
+ 	   	  	<apex:inputCheckbox value="{!mapDisplayTeamAvailable[avaRow].bCanBeUser}" disabled="true" rendered="{!mapDisplayTeamAvailable[avaRow].bCanBeUser}" />
+ 	   	  	<apex:outputText value="{!mapDisplayTeamAvailable[avaRow].approvalMessage}" rendered="{!NOT(mapDisplayTeamAvailable[avaRow].bCanBeUser)}" />
+ 	   	  </apex:column>-->
+ 	   	</apex:pageblocktable>
+ 	   </apex:pageblocksection>
+
+ 	   <apex:pageblocksection id="TQTInformationPBS" title="{!dLabel['DL49']}" columns="1" collapsible="false" >
+ 	   	<apex:pageblocktable value="{!mapDisplayTQTExisting}" var="extsRow" >
+ 	   		<apex:column headervalue="{!dLabel['DL50']}" title="{!dLabel['DL51']}" width="40" >
+ 	   	    	<!--<apex:inputCheckbox value="{!mapDisplayTQTExisting[extsRow].bSelected}" disabled="{!Not(mapDisplayTQTExisting[extsRow].bNewRecord)}">-->
+                <apex:inputcheckbox value="{!mapDisplayTQTExisting[extsRow].bSelected}" >
+ 	   	  		</apex:inputcheckbox>
+	 	   	  </apex:column>
+	 	   	  <apex:column headervalue="{!dLabel['DL52']}" styleclass="{!IF((mapDisplayTQTExisting[extsRow].bHasError),"ErrorRow","")}" > 
+	 	   		<apex:outputlabel value="{!mapDisplayTQTExisting[extsRow].sUserName}" rendered="{!mapDisplayTQTExisting[extsRow].oTechnicalQualityTeam.TechnicalQualityTeamMember__c != null}" />
+	 	   	  	<apex:inputfield value="{!mapDisplayTQTExisting[extsRow].oPTM.Contact__c}" rendered="{!mapDisplayTQTExisting[extsRow].oTechnicalQualityTeam.TechnicalQualityTeamMember__c = null}" required="true" />
+	 	   	  </apex:column>
+	 	   	  <apex:column headervalue="{!dLabel['DL53']}" styleclass="{!IF((mapDisplayTQTExisting[extsRow].bHasError),"ErrorRow","")}" >
+	 	   	  	<!--<apex:inputField value="{!mapDisplayTQTExisting[extsRow].oTechnicalQualityTeam.Role__c}" required="true"/>-->
+                  <apex:selectlist title="{!dLabel['DL54']}" size="1" value="{!mapDisplayTQTExisting[extsRow].oTechnicalQualityTeam.Role__c}" required="true" >
+                      <apex:selectoptions value="{!TQTRoles}" />
+                  </apex:selectlist>
+	 	   	  </apex:column>
+	 	   	  <!--<apex:column Headervalue="Required Date" styleClass="{!IF((mapDisplayTQTExisting[extsRow].bHasError),"ErrorRow","")}">
+	 	   	  	<apex:inputField value="{!mapDisplayTQTExisting[extsRow].oTechnicalQualityTeam.RequiredDate__c}" required="true"/>
+	 	   	  </apex:column>
+	 	   	  <apex:column Headervalue="Status" styleClass="{!IF((mapDisplayTQTExisting[extsRow].bHasError),"ErrorRow","")}">
+	 	   	  	<apex:OutputField value="{!mapDisplayTQTExisting[extsRow].oTechnicalQualityTeam.Status__c}"/>
+	 	   	  </apex:column>-->
+ 	   	</apex:pageblocktable>
+ 	   </apex:pageblocksection>
+ 	  </apex:pageblock>
+
+ 	   <br/><br/><br/>
+
+ 	   	<table class="infoTable" >
+ 	   		<tr>
+ 	   			<th class="borderclass" ><nttdcore:DLabel name="DL55" default="Name" labelParent="{!this}" />{!dLabel['DL55']}</th>
+ 	   			<th class="borderclass" ><nttdcore:DLabel name="DL56" default="Definition" labelParent="{!this}" />{!dLabel['DL56']}</th>
+ 	   		</tr>
+ 	   		<tr>
+ 	   			<td class="borderclass" ><nttdcore:DLabel name="DL57" default="Originator" labelParent="{!this}" />{!dLabel['DL57']}</td>
+ 	   			<td class="borderclass" ><nttdcore:DLabel name="DL58" default="Person who initiates project work and takes it to an appropriate level of completion prior to checking and verification." labelParent="{!this}" />{!dLabel['DL58']}</td>
+ 	   		</tr>
+ 	   		<tr>
+ 	   			<td class="borderclass" ><nttdcore:DLabel name="DL59" default="Reviewer (or Checker)" labelParent="{!this}" />{!dLabel['DL59']}</td>
+ 	   			<td class="borderclass" ><nttdcore:DLabel name="DL60" default="The person responsible for performing the technical accuracy check of the deliverable. This person must be qualified based on discipline, experience and registration/certification OR as approved by BL. The Reviewer checks to ensure that work is technically correct and complete, as well as determining that spelling, grammar, and calculations are correct.  There may be multiple reviewers depending upon the breadth and scope of the deliverable.  This must be a different person from the originator." labelParent="{!this}" />{!dLabel['DL60']}</td>
+ 	   		</tr>
+            <tr>
+ 	   			<td class="borderclass" ><nttdcore:DLabel name="DL61" default="Independent Reviewer" labelParent="{!this}" />{!dLabel['DL61']}</td>
+ 	   			<td class="borderclass" ><nttdcore:DLabel name="DL62" default="This person conducts a special independent review of work product for compliance with scope, meeting regulatory requirements, and consistency with accepted professional practice above and beyond the normal check and verification process. This is required only when identified for high risk projects, and again must be different than the originator." labelParent="{!this}" />{!dLabel['DL62']}</td>
+ 	   		</tr>
+            <tr>
+ 	   			<td class="borderclass" ><nttdcore:DLabel name="DL63" default="Interdisciplinary Reviewer" labelParent="{!this}" />{!dLabel['DL63']} </td>
+ 	   			<td class="borderclass" ><nttdcore:DLabel name="DL64" default="A reviewer that checks for interdisciplinary interfaces for potential conflicts, interferences, gaps, incompatibilities, and avoidance of design conflicts in engineering design or construction projects." labelParent="{!this}" />{!dLabel['DL64']}</td>
+ 	   		</tr>
+            <tr>
+ 	   			<td class="borderclass" ><nttdcore:DLabel name="DL65" default="Lead Verifier" labelParent="{!this}" />{!dLabel['DL65']}</td>
+ 	   			<td class="borderclass" ><nttdcore:DLabel name="DL66" default="The person who determines if the work product is correct and complete through a higher-level examination. This person is also authorized to verify that reviews of deliverables have followed the technical quality review process.  This person must also be different from the originator." labelParent="{!this}" />{!dLabel['DL66']}</td>
+ 	   		</tr>
+            <tr>
+ 	   			<td class="borderclass" ><nttdcore:DLabel name="DL67" default="Project Quality Manager" labelParent="{!this}" />{!dLabel['DL67']}</td>
+ 	   			<td class="borderclass" ><nttdcore:DLabel name="DL68" default="As required by some clients or as requested by the Project Manager, a Project Quality Manager is a project team member who can perform deliverable reviews as part of the Technical Quality Review workflow to make sure that the QMS is being appropriately implemented." labelParent="{!this}" />{!dLabel['DL68']}</td>
+ 	   		</tr>
+ 	   		<tr>
+ 	   			<td class="borderclass" ><nttdcore:DLabel name="DL69" default="Approver" labelParent="{!this}" />{!dLabel['DL69']}</td>
+ 	   			<td class="borderclass" ><nttdcore:DLabel name="DL70" default="The person identified in the Project Plan who is responsible for the approval and release of deliverables (typically the PM). Approval follows the review and verification steps and is confirmation that project work is ready for delivery." labelParent="{!this}" />{!dLabel['DL70']}</td>
+ 	   		</tr>
+ 	   	</table>
+
+ 	   	<br/><br/><br/>
+ </apex:form>
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

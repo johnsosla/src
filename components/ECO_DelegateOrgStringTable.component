@@ -1,0 +1,188 @@
+<apex:component controller="ECO_DelegateOrgStringTableController" access="global">
+	<apex:attribute name="DelegateID" description="Delegate ID" type="String" assignTo="{!delID}" />
+	<apex:attribute name="StepMessage" description="Step" type="String" />
+
+	<br /><br /><b>Delegation To:</b><br />   
+	&nbsp;&nbsp;&nbsp;{!relatedTo.Delegate__r.firstname}&nbsp;{!relatedTo.Delegate__r.lastname}<br />
+	&nbsp;&nbsp;&nbsp;{!relatedTo.Delegate_Business_Title__c}<br />
+	&nbsp;&nbsp;&nbsp;{!relatedTo.Delegate_Job_Name__c}<br /><br />
+	                
+	<b>HR Supervisor:</b>   {!relatedTo.Delegate_HR_Supervisor__c}<br /><br />
+	<b>Key Member Role:</b> {!relatedTo.Key_Member_Role__c}<br /><br />
+	<b>Effective From:</b> &nbsp;<apex:outputField value="{!relatedTo.Start_Date__c}" />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+	<b>Effective To:</b>   &nbsp;<apex:outputField value="{!relatedTo.End_Date__c}" /><br /><br />
+	<b>Delegation Conditions/Comments:</b>  <br />{!relatedTo.Notes__c}
+
+	<br /><br /><br />
+
+	<apex:outputPanel rendered="{!if(relatedTo.Recordtype.name = 'Key Roles', true, false)}">
+	<b>APPROVAL LIMITS BEING DELEGATED:</b><br />
+
+	<table border="1" style="width:75%">
+	  <tr>
+	    <th>Delegation Criteria</th>
+	    <th ALIGN="Center" COLSPAN="2">Delegation Limit</th>
+	    <th WIDTH="30%" >ByPass Delegate?</th>
+	  </tr>
+
+	  <tr>
+	    <td rowspan="2">Agreement Amount (Estimated)</td>
+	    <td>Greater Than</td>
+	    <td ALIGN="Center">{!relatedTo.Agreement_Amount_estimated__c}</td>
+	    <td align="center">{!if(relatedTo.Agreement_Amount_estimated_Bypass__c, 'Yes', 'No')}</td>
+	  </tr>
+
+	 <tr>
+	    <td>Less Than</td>
+	    <td ALIGN="Center">{!relatedTo.Agreement_Amount_estimated_lt__c}</td>
+	    <td align="center">{!if(relatedTo.Agreement_Amount_estimated_Bypass_lt__c, 'Yes', 'No')}</td>
+	  </tr>
+
+	  <tr>
+	    <td rowspan="2">Project Revenue Budget</td>
+	    <td>Greater Than</td>
+	    <td ALIGN="Center">{!relatedTo.Project_Revenue_Budget__c} </td>
+	    <td align="center">{!if(relatedTo.Project_Revenue_Budget_Bypass__c, 'Yes', 'No')}</td>
+	  </tr>
+
+	  <tr>
+	     <td>Less Than</td>
+	    <td ALIGN="Center">{!relatedTo.Project_Revenue_Budget_lt__c} </td>
+	    <td align="center">{!if(relatedTo.Project_Revenue_Budget_Bypass_lt__c, 'Yes', 'No')}</td>
+	  </tr>
+
+	  <tr>
+	    <td rowspan="2">Backlog Value</td>
+	    <td>Greater Than</td>
+	    <td ALIGN="Center">{!relatedTo.Backlog_Value__c} </td>
+	    <td align="center">{!if(relatedTo.Backlog_Value_Bypass__c, 'Yes', 'No')}</td>
+	  </tr>
+	 <tr>
+	    <td>Less Than</td>
+	    <td ALIGN="Center">{!relatedTo.Backlog_Value_lt__c} </td>
+	    <td align="center">{!if(relatedTo.Backlog_Value_Bypass_lt__c, 'Yes', 'No')}</td>
+	  </tr>
+
+	  <tr>
+	    <td rowspan="2">Project Net Margin (value)</td>
+	    <td>Greater Than</td>
+	    <td ALIGN="Center">{!relatedTo.Project_Net_Margin_Value__c}</td>
+	    <td align="center">{!if(relatedTo.Project_Net_Margin_Value_Bypass__c, 'Yes', 'No')}</td>
+	  </tr>
+	 <tr>
+	      <td>Less Than</td>
+	    <td ALIGN="Center">{!relatedTo.Project_Net_Margin_Value_lt__c}</td>
+	    <td align="center">{!if(relatedTo.Project_Net_Margin_Value_Bypass_lt__c, 'Yes', 'No')}</td>
+	  </tr>
+
+	  <tr>
+	    <td rowspan="2">Project Net Margin (%age of NSR)</td>
+	    <td>Greater Than</td>
+	    <td ALIGN="Center">{!relatedTo.Project_Net_Margin_age_of_NSR__c} </td>
+	    <td align="center">{!if(relatedTo.Project_Net_Margin_age_of_NSR_Bypass__c, 'Yes', 'No')}</td>
+	  </tr>
+	 <tr>
+	    <td>Less Than</td>
+	    <td ALIGN="Center">{!relatedTo.Project_Net_Margin_age_of_NSR_lt__c} </td>
+	    <td align="center">{!if(relatedTo.Project_Net_Margin_of_NSR_Bypass_lt__c, 'Yes', 'No')}</td>
+	  </tr>
+
+	  <tr>
+	    <td  rowspan="2">%age Change in Forecast Net Margin</td>
+	    <td>Greater Than</td>
+	    <td ALIGN="Center">{!relatedTo.age_Change_in_Forecast_Net_Margin__c}</td>
+	    <td align="center">{!if(relatedTo.age_Change_in_Forecast_Net_Margin_Bypass__c, 'Yes', 'No')}</td>
+	  </tr>
+
+	 <tr>
+	    <td>Less Than</td>
+	    <td ALIGN="Center">{!relatedTo.age_Change_in_Forecast_Net_Margin_lt__c}</td>
+	    <td align="center">{!if(relatedTo.age_Change_in_Forecast_Net_Margin_Byp_lt__c, 'Yes', 'No')}</td>
+	  </tr>
+
+	  <tr>
+	    <td  rowspan="2">Value Change in Forecast Net Margin</td>
+	    <td>Greater Than</td>
+	    <td ALIGN="Center">{!relatedTo.Value_change_in_Forecast_Net_Margin__c}</td>
+	    <td align="center">{!if(relatedTo.Value_change_in_Forecast_Net_Margin_Byps__c, 'Yes', 'No')}</td>
+	  </tr>
+
+	 <tr>
+	    <td>Less Than</td>
+	    <td ALIGN="Center">{!relatedTo.Value_change_in_Forecast_Net_Margin_lt__c}</td>
+	    <td align="center">{!if(relatedTo.Value_change_Forecast_Nt_Margn_Byps_lt__c, 'Yes', 'No')}</td>
+	  </tr>
+	  
+	<tr>
+	    <td rowspan="5">Project Review Category</td>
+	    <td>C-0</td>
+	    <td align="center">{!if(relatedTo.Project_Review_Category_C_0__c, 'Yes', 'No')}</td>
+	    <td align="center">{!if(relatedTo.Project_Review_Category_C_0_Bypass__c, 'Yes', 'No')}</td>
+	  </tr>  
+
+	<tr>
+	    <td>C-1</td>
+	    <td align="center">{!if(relatedTo.Project_Review_Category_C_1__c, 'Yes', 'No')}</td>
+	    <td align="center">{!if(relatedTo.Project_Review_Category_C_1_Bypass__c, 'Yes', 'No')}</td>
+	  </tr>  
+	<tr>
+	     <td>C-2</td>
+	    <td align="center">{!if(relatedTo.Project_Review_Category_C_2__c, 'Yes', 'No')}</td>
+	    <td align="center">{!if(relatedTo.Project_Review_Category_C_2_Bypass__c, 'Yes', 'No')}</td>
+	  </tr>  
+
+	<tr>
+	    <td>C-3</td>
+	    <td align="center">{!if(relatedTo.Project_Review_Category_C_3__c, 'Yes', 'No')}</td>
+	    <td align="center">{!if(relatedTo.Project_Review_Category_C_3_Bypass__c, 'Yes', 'No')}</td>
+	  </tr>
+	<tr>
+	     <td>C-4</td>
+	    <td align="center">{!if(relatedTo.Project_Review_Category_C_4__c, 'Yes', 'No')}</td>
+	    <td align="center">{!if(relatedTo.Project_Review_Category_C_4_Bypass__c, 'Yes', 'No')}</td>
+	  </tr>
+
+	</table>
+	<br /><br />
+
+
+	<table border="1" style="width:75%">
+		<tr>
+			<apex:repeat value="{!$ObjectType.OrganizationString__c.Fieldsets.Email_Owning_Organization_Table}" var="orgField" >
+				<th>
+					{!orgField.label}            
+				</th>
+			</apex:repeat>			
+			<th>
+				Office
+			</th>
+		</tr>
+		<apex:repeat value="{!Orgs}" var="owningOrganization" >
+			<tr>
+				<apex:repeat value="{!$ObjectType.OrganizationString__c.Fieldsets.Email_Owning_Organization_Table}" var="orgField" >
+					<td>
+						{!owningOrganization[orgField]}            
+					</td>            
+				</apex:repeat>
+				<td>
+					{!owningOrganization.LocationName__c}            
+				</td>    
+
+			</tr>
+		</apex:repeat>
+	</table>		
+	<br /><br />
+
+	</apex:outputPanel>
+
+	<apex:outputPanel rendered="{!StepMessage != 'Rejected'}">
+	<br />
+	Please approve or reject this item via clicking on the link below. Or, <b>non-Geo-Admin Users</b> can reply to this email with the words "approve • approved • yes • reject • rejected • no"; any additional comments to be recorded can be added in a second line of the email reply. 
+	</apex:outputPanel>
+
+
+	<br /><br /><a href="{!LEFT($Api.Partner_Server_URL_140,FIND('.com',$Api.Partner_Server_URL_140)+4)+relatedTo.Id}">Click here to review the full delegation record in the Ecosystem</a><br />
+	<br/>
+	<!--<a href = "{!ApprovalRequest.Internal_URL}" > Click Here to go to Approval Page </a> -->
+
+</apex:component>

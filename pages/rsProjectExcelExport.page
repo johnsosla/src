@@ -1,0 +1,46 @@
+<apex:page sidebar="false" showHeader="false"  controller="rsProjectExcelExportController" applyhtmltag="false" contentType="txt/xml#SearchResults.xls" cache="true" action="{!deleteSearchRecord}">
+<apex:outputText value="{!xlsHeader}"/>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+    xmlns:o="urn:schemas-microsoft-com:office:office"
+    xmlns:x="urn:schemas-microsoft-com:office:excel"
+    xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
+    xmlns:html="http://www.w3.org/TR/REC-html40">
+    <Styles>
+        <Style ss:ID="s1">
+        <Alignment/>
+        <Borders/>
+        <Font ss:Bold="1"/>
+        <Interior/>
+        <NumberFormat/>
+        <Protection/>
+        </Style>
+    </Styles>
+    <Worksheet ss:Name="Projects">
+        <Table x:FullColumns="1" x:FullRows="1">
+
+            <Row>
+                <Cell ss:StyleID="s1"><Data ss:Type="String" >{!$ObjectType['PR_Team_Employee__c'].fields['Project_ID__c'].Label}</Data></Cell>
+                <Cell ss:StyleID="s1"><Data ss:Type="String" >{!$Label.Project_Number}</Data></Cell>
+                <Cell ss:StyleID="s1"><Data ss:Type="String" >{!$Label.Location_Country}</Data></Cell>
+                <Cell ss:StyleID="s1"><Data ss:Type="String" >{!$Label.Location_City}</Data></Cell>
+                <Cell ss:StyleID="s1"><Data ss:Type="String" >{!$Label.Client_Name}</Data></Cell>
+                <Cell ss:StyleID="s1"><Data ss:Type="String" >{!$ObjectType['PR_Team_Employee__c'].fields['Project_Group__c'].Label}</Data></Cell>
+                <Cell ss:StyleID="s1"><Data ss:Type="String" >{!$Label.Date_Involvement_Ended}</Data></Cell>
+            </Row>
+
+            <apex:repeat value="{!searchResults}" var="result">
+                <Row>
+                    <Cell><Data ss:Type="String">{!result.ProjectName}</Data></Cell>
+                    <Cell><Data ss:Type="String">{!result.ProjectNumber}</Data></Cell>
+                    <Cell><Data ss:Type="String">{!result.LocationCountry}</Data></Cell>
+                    <Cell><Data ss:Type="String">{!result.LocationCity}</Data></Cell>
+                    <Cell><Data ss:Type="String">{!result.ClientName}</Data></Cell>
+                    <Cell><Data ss:Type="String">{!result.ProjectGroup}</Data></Cell>
+                    <Cell><Data ss:Type="String">{!result.DateInvolvementEnded}</Data></Cell>
+                </Row>
+            </apex:repeat>
+        </Table>
+    </Worksheet>
+</Workbook>
+
+</apex:page>

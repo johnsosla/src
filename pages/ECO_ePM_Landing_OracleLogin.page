@@ -1,0 +1,97 @@
+<apex:page controller="ECO_ePM_Landing_OracleLoginController" extensions="nttdcore.DLabelParentController" >
+    <script>
+    function closeAuthenticationModal(){
+        window.location.reload();
+        closeModal('modalDialogOracleLogin');
+        closeAuthenticationWindow();
+        return false;
+    }
+
+    function cancelModal(dialogWindow)
+    {
+        closeModal(dialogWindow);  
+        //closeModal('modalDialogOracleLogin');  
+    }
+
+    function authenticate()
+    {
+        authenticateCredentials($x('[id$=username]').val(), $x('[id$=password]').val());
+    }
+    
+    function handleEnter(e){
+        if(e.keyCode === 13){
+            e.preventDefault();
+            authenticate();
+        }
+        return false;
+    }
+
+    </script>
+    <apex:form >
+        
+        <!-- <apex:outputText value="{!$User.ValidOracleTokenIcon__c}" escape="false"  /> does not render correctly -->
+        <apex:image height="20" rendered="{!$User.IsValidOracleToken__c}" url="/resource/1435520899000/ECO_ValidToken" />
+        <apex:outputText rendered="{!$User.IsValidOracleToken__c}" value="Oracle Token is Valid" />
+        <apex:commandLink rendered="{!$User.IsValidOracleToken__c}" onclick="openModal('modalDialogOracleLogin');return false;" value="Refresh token for 24hrs" />
+        
+        <apex:image height="20" rendered="{!NOT($User.IsValidOracleToken__c)}" url="/resource/1435520899000/ECO_InvalidToken" />
+        <apex:outputText rendered="{!NOT($User.IsValidOracleToken__c)}" value="Is Oracle Token Valid?" />
+        <apex:commandLink rendered="{!NOT($User.IsValidOracleToken__c)}" onclick="openModal('modalDialogOracleLogin');return false;" value="Click here to login to Oracle" />
+        
+        <c:ECO_ModalDialog width="350" padding="0px 0px 0px 0px" name="modalDialogOracleLogin" >
+            <apex:pageBlock title="{!$Label.Oracle_Authentication}" ><!--<nttdcore:DLabel name="DL14" default="Authenticating..." labelParent="{!this}" />-->
+            <div>
+                <apex:outputText >{!$Label.ExpiredOracleToken}</apex:outputText>
+            <br/><br/>
+            </div>
+            <div align="center" >
+            <apex:outputText style="font-weight:bold" value="{!$Label.Oracle_Username}" />
+            <apex:inputText label="Username:" value="{!OracleUserName}" id="username" onkeypress="handleEnter(event)" /><br/>
+           <!-- <apex:inputText label="Username:" value="{!OracleUserName}" id="username" rendered="{!changeManager.IsSystemAdmin__c}" />
+            <apex:inputText label="Username:" value="{!OracleUserName}" id="usernameRO" rendered="{!NOT(changeManager.IsSystemAdmin__c)}" html-readonly="true"/><br/>
+            -->
+            <apex:outputText style="font-weight:bold" value="{!$Label.Oracle_Password}" />
+            <apex:inputSecret label="Password" value="{!OraclePassword}" id="password" onkeypress="handleEnter(event)" /><br/><br/>
+            </div>
+
+            <apex:outputPanel id="btn1" >
+                <apex:outputPanel rendered="{!authenticationResult != 'SUCCESS'}" >
+                    <div align="center" >
+                        <apex:outputPanel layout="inline" styleclass="btn" onclick="authenticate()" >{!$Label.Login}</apex:outputPanel>
+                        <apex:outputPanel layout="inline" styleclass="btn" onclick="cancelModal('modalDialogOracleLogin')" >{!$Label.Cancel}</apex:outputPanel>
+                    </div>
+                </apex:outputPanel>
+            </apex:outputPanel>
+
+            <apex:outputPanel id="btn2" >
+                <apex:outputPanel rendered="{!authenticationResult == 'SUCCESS'}" >
+                    <div align="center" >
+                        <apex:outputPanel layout="inline" styleclass="btn" onclick="closeAuthenticationModal()">{!$Label.Close}</apex:outputPanel>
+                    </div>
+                </apex:outputPanel>
+            </apex:outputPanel>
+
+            <apex:outputPanel id="result" >
+                <apex:outputPanel rendered="{!authenticationResult != null}" ><br/>
+                    <b>Result: </b><apex:outputText value="{!authenticationResult}" id="authenticationResult" />
+                </apex:outputPanel>
+            </apex:outputPanel>
+
+            <apex:actionStatus id="queryStatus" >
+                <apex:facet name="start" >
+                    <p style="padding-bottom:20px;text-align:center;" class="searchText" ><img style="position:relative;top:24px;" src="/img/loading32.gif" />{!$Label.Authenticating}...</p>
+                </apex:facet>
+            </apex:actionStatus>
+            </apex:pageBlock>
+        </c:ECO_ModalDialog> 
+        
+ <apex:actionFunction name="authenticateCredentials" action="{!authenticateCredentials}" rerender="result, btn1, btn2" status="queryStatus" immediate="true" >
+            <apex:param name="username" value="" />
+            <apex:param name="password" value="" />
+        </apex:actionFunction>
+
+    
+        </apex:form>
+  
+    
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

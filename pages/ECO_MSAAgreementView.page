@@ -1,0 +1,880 @@
+<apex:page showHeader="true" sidebar="true" standardController="Agreement__c" extensions="ECO_AgreementController" action="{!initMSA}">
+
+<apex:includeScript value="{!$Resource.ECO_jQuery_1_11_2_min_js}"/>
+<apex:pageMessages id="pageMessages" escape="false" rendered="{!NOT(modalError)}"/>
+
+    <style>
+        .attachNewFile{
+            visibility: hidden;
+        }
+        
+        .tempAlert{
+            text-align:center;
+            padding:10px 15px;
+            background-color:#fff996;
+            font-size:13px;
+            font-weight:bold;
+            border:1px solid #FFDC48;
+        }
+        
+        .tableStyle {border-collapse: collapse; border-spacing: 1px 1px; }
+        .colStyle1 { width: 50%; padding: 2px 2px 2px 2px;  }
+        .colStyle2 { width: 50%; padding: 0px 0px 0px 0px;                  }
+        .rowstyle { border-bottom-style:solid; border-bottom-width:0px; border-bottom-color:#E8E8E8 }
+        
+        body .bPageBlock .pbBody .labelCol{
+            padding-top: 3px !important;
+            padding-bottom: 5px;
+            vertical-align: middle;
+        }       
+       
+        .halfWidthWrapper {
+            width:50%;
+            display:inline-block;
+            float:left;
+        }
+        
+        #notifications{
+            margin-left:50%;
+            padding-left:20px;
+        }
+                
+        .customHelpIcon
+        {
+            display:inline-block;
+            margin:0 5px 0 0;
+            width:24px;
+            height:24px;
+            vertical-align:top !important;
+        }
+        /* CUSTOM HELP / GUIDANCE TEXT BOX */
+        .customHelpText{
+            padding: 7px;
+            border: 1px solid #85B3CE;
+            min-height: 10px;
+            display: block;
+            width: auto;
+            margin: 0 0 5px 0;
+            background-repeat: no-repeat;
+            border-radius: 4px;
+            background-color: #A2D3F1;
+            
+        }
+        .customHelpBody{
+            display:inline-block;
+            color:#;
+            max-width:95%;
+        }           
+        
+        .infoTable {
+            background: #f5f5f5;
+            border-collapse: separate;
+            font-size: 12px;
+            line-height: 24px;
+            text-align: left;
+            margin:5px 14px 0 14px;
+        }   
+        .infoTable table{
+            width:100%;
+        }
+        .infoTable th {
+            background-color: #a6afa2 !important;
+            color: #fff;
+            font-weight: bold;
+            padding: 3px 9px;
+            position: relative;
+            border:none !important;
+        }
+        .infoTable th:first-child{
+            border-right:1px solid #fff !important;
+        }
+
+        .infoTable th:after {
+            content: '';
+            display: block;
+            height: 25%;
+            left: 0;
+            margin: 1px 0 0 0;
+            position: absolute;
+            top: 25%;
+            width: 100%;
+        }
+        .infoTable td {
+            border-right: 1px solid #fff;
+            border-left: 1px solid #e8e8e8;
+            border-top: 1px solid #fff;
+            border-bottom: 1px solid #e8e8e8;
+            padding: 3px 9px;
+            position: relative;
+            transition: all 300ms;
+            min-width: 90px;
+        }   
+        .printAgreement{
+            padding:4px !important;
+        } 
+
+        .billRateTable {
+          font-family: 'Arial';
+          margin: 25px auto;
+          border-collapse: collapse;
+          /*border: 0px solid #eee;*/
+          box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.1), 0px 10px 20px rgba(0, 0, 0, 0.05), 0px 20px 20px rgba(0, 0, 0, 0.05), 0px 30px 20px rgba(0, 0, 0, 0.05);
+          width: 100%
+        }
+
+        .billRateTable tr{
+          border-bottom: 1px solid #f2f3f3;
+        }
+
+        .billRateTable tr:hover {
+          background: #e8f4f8;
+        }
+
+        .billRateTable tr:hover td {
+            background: #e8f4f8;
+        }
+
+        .billRateTable th, .billRateTable td {
+          border: 0px solid #eee;
+          /*padding: 8px 2px 8px 5px;*/
+          border-collapse: collapse;
+        }
+
+        .billRateTable td {
+          background: #fff;
+        }
+
+        .billRateTable th {
+
+          background:  #f2f3f3;
+          font-size: .9em;
+          font-weight: bold;  
+          border: 0px solid #D3D3D3;
+        }
+
+        .billRateTable th.last {
+          border-right: none;
+        }
+                 
+        tr.dataRow {
+           background-color:white;
+         }
+        
+        tr.dataRow:hover {
+           background-color: #e3f3ff;
+         }
+
+        .warningHelpText{
+            padding: 7px;
+            border: 1px solid #85B3CE;
+            min-height: 30px;
+            display: block;
+            width: auto;
+            margin: 0 0 5px 0;
+            background-repeat: no-repeat;
+            border-radius: 4px;
+            background-color: yellow;            
+        }
+    </style>
+
+<script>
+    var $x = jQuery.noConflict();
+
+    $x(document).ready(function(){
+        init();
+    })
+
+    function init(){
+    }
+
+    function updateRequired(){
+        //enableRequired($x('.required'));
+    }
+
+    function addRequiredClasses(inputField) {
+        inputField.prev().removeClass('requiredBlock').addClass('requiredBlock');
+        inputField.parent().removeClass('requiredInput').addClass('requiredInput');
+    }
+
+
+    //function fileChosen(attachButton,documentField,overrideField)
+    function fileChosen(attachButton,documentField)
+    {
+        if(documentField.value != '')
+        {
+            document.getElementById(attachButton).style.visibility = 'visible';         
+            //document.getElementById(overrideField).value = '';
+            //document.getElementById(overrideField).style.visibility = 'visible';
+                        
+        }
+        else
+        {
+            document.getElementById(attachButton).style.visibility= 'hidden';
+            //document.getElementById(overrideField).style.visibility= 'hidden';          
+        }       
+    }
+    
+    //function fileChosen2(attachButton,documentField,overrideField,comments)
+    function fileChosen2(attachButton,documentField,comments)
+    {
+        if(documentField.value != '')
+        {
+            document.getElementById(attachButton).style.visibility = 'visible';         
+            //document.getElementById(overrideField).value = '';
+            //document.getElementById(overrideField).style.visibility = 'visible';
+            document.getElementById(comments).style.visibility = 'visible';
+                        
+        }
+        else
+        {
+            document.getElementById(attachButton).style.visibility= 'hidden';
+            //document.getElementById(overrideField).style.visibility= 'hidden'; 
+            document.getElementById(comments).style.visibility= 'hidden';                    
+        }       
+    } 
+    
+    //function fileChosen3(attachButton,documentField,overrideField,picklist, comments)
+    function fileChosen3(attachButton,documentField,picklist, comments)
+    {
+        if(documentField.value != '')
+        {
+            document.getElementById(attachButton).style.visibility = 'visible';         
+            //document.getElementById(overrideField).value = '';
+            //document.getElementById(overrideField).style.visibility = 'visible';
+            document.getElementById(picklist).style.visibility = 'visible';
+            document.getElementById(comments).style.visibility = 'visible';
+                        
+        }
+        else
+        {
+            document.getElementById(attachButton).style.visibility= 'hidden';
+            //document.getElementById(overrideField).style.visibility= 'hidden'; 
+            document.getElementById(picklist).style.visibility= 'hidden'; 
+            document.getElementById(comments).style.visibility = 'hidden';                   
+        }       
+    }   
+
+    function scopeChanged(scopeField, editField)
+    {
+        if(scopeField.value == '')
+        {
+            alert('Empty');
+            document.getElementById(editField).style.visibility= 'hidden';
+        }
+        else
+        {
+            alert('Not Empty');
+            document.getElementById(editField).style.visibility = 'visible';
+        }
+    }
+
+    
+    function primeScopeChanged()
+    {
+        primeScopeChanged();
+    }
+    
+    function subScopeChanged()
+    {
+        subScopeChanged();
+    }
+
+    function changedAgreementStatus()
+    {
+        agreementStatusChanged();
+    }
+    
+    function paymentTermChanged()
+    {
+        paymentTermChanged();
+    }
+
+    /*window.onload = function() {
+
+        if(('{!projectId}' == ''|| '{!projectId}' == null) && '{!Agreement__c.RelatedProjectCount__c}' > 1 && '{!Agreement__c.IsMSA__c}' == "false") {
+            openModal('modalProjectSelector');
+            return false;
+        }
+    }*/
+
+    function selectedProject()
+    {
+        relatedProjectSelected();
+    }
+
+    function cancelProjectSelect()
+    {
+       cancelProjectSelection();
+    }
+    
+</script>
+
+    <apex:outputText value="{!Agreement__c.SectionHeaderSubtitle__c}" rendered="false"/>
+
+    <apex:outputPanel rendered="{!agreementRecordType =='PrimeMSA'}">
+        <apex:sectionHeader title="{!$Label.Prime_MSA_Edit}" subtitle="{!sectionHeaderSubtitle}" rendered="{!mode!= ''}"/>
+        <apex:sectionHeader title="{!$Label.Master_Services_Agreement}" subtitle="{!agreement.ContractTitle__c}({!agreement.AgreementNumber__c})" rendered="{!mode = ''}"/>
+    </apex:outputPanel>
+
+    <apex:outputPanel rendered="{!agreementRecordType =='PrimeMSA'}">
+        <div class="customHelpText">
+            <div class="customHelpBody">{!$Label.MSA_Help_Text_1}</div>
+        </div> 
+        <div class="warningHelpText">{!$Label.MSA_Warning_Text_1}</div>
+    </apex:outputPanel>
+
+	<apex:outputPanel rendered="{!agreementRecordType =='PrimeMSA'}">
+
+    <apex:form > 
+        
+        <apex:pageBlock mode="{!pageBlockMode}" title="{!$Label.Master_Service_Agreement + ' ' + mode}">        
+            <apex:pageBlockButtons >
+                <apex:commandButton value="{!$Label.Save}" action="{!save}" rendered="{!mode !=''}"/>
+                <apex:commandButton value="{!$Label.Edit}" action="{!editAgreement}" rendered="{!mode ==''}" immediate="true"/>
+                <apex:commandButton value="{!$Label.Segmentation}" action="{!launchSegmentationQuestionnaire}" rendered="{!mode == ''}" />
+                <apex:commandButton value="{!$Label.MSA_Project_Portfolio}" action="{!msaProjectSnapshot}" rendered="{!mode == '' && relAgreements != null && relAgreements.size > 0}" />
+                <apex:commandButton value="{!$Label.Return_To_MSA}" action="{!cancel}" rendered="{!mode =='Edit'}"/>             
+            </apex:pageBlockButtons>
+                <div class="halfWidthWrapper">
+                    <apex:pageBlockSection columns="1" title="{!$Label.Contract_Details}" collapsible="false">
+                        <apex:inputField value="{!agreement.Account__c}" rendered="{!mode!=''}" required="true"/>
+                        <apex:inputField value="{!agreement.ContractTitle__c}" rendered="{!mode!=''}" required="true"/>
+                        <apex:inputField value="{!agreement.Description__c}" rendered="{!mode!=''}" style="width: 400px; height: 40px" required="true"/>
+                        <apex:inputField value="{!agreement.AgreementNumber__c}" rendered="{!mode!=''}"/>
+                        <apex:pageBlockSectionItem helptext="{!$ObjectType.Agreement__c.Fields.Name.inlineHelpText}">
+                            <apex:outputText value="{!$Label.ePM_Agreement_Number}"/>
+                            <apex:outputPanel >
+                                <apex:outputField value="{!agreement.Name}" rendered="{!mode != ''}"/>
+                                <apex:outputField value="{!agreement.Name}" rendered="{!mode == ''}"/>
+                            </apex:outputPanel>
+                        </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem helptext="{!$Label.Enter_the_start_and_end_dates_of_the_contract}" rendered="{!mode != ''}">
+                            <apex:outputLabel value="{!$Label.Ordering_Period}" rendered="{!mode!=''}"/>
+                            <apex:outputPanel >
+                                <apex:inputField value="{!agreement.OrderingPeriodStart__c}" rendered="{!mode!=''}" html-placeholder="{!$Label.Start_Date}"/>
+                                <apex:outputText value=" - " rendered="{!mode!=''}"/>
+                                <apex:inputField value="{!agreement.OrderingPeriodEnd__c}" rendered="{!mode!=''}" html-placeholder="{!$Label.End_Date_Field_Label}"/>
+                            </apex:outputPanel>
+                        </apex:pageBlockSectionItem>
+                        <apex:inputField value="{!agreement.ContractingAgency__c}" rendered="{!mode!=''}"/>
+                        <apex:inputField value="{!agreement.AgreementType__c}" rendered="{!mode!=''}" required="true"/>
+                        <apex:inputField value="{!agreement.PaymentTerms__c}" rendered="{!mode!=''}" required="true"/>
+                        <apex:inputField value="{!agreement.ProfIndemnityLiabilityAmt__c}" rendered="{!mode!=''}"/>
+                        <apex:inputField value="{!agreement.PublicGeneralLiabilityAmt__c}" rendered="{!mode!=''}"/>
+                        <apex:inputField value="{!agreement.TotalContractValue__c}" rendered="{!mode!=''}"/>
+                        <apex:pageBlockSectionItem helptext="{!$ObjectType.Agreement__c.Fields.FundingCurrencyCode__c.inlineHelpText}" rendered="{!mode != ''}">
+                            <apex:outputText value="{!$Label.Agreement_Currency}" rendered="{!mode != ''}"/>
+                                 <apex:outputPanel >
+                                    <apex:inputField value="{!agreement.FundingCurrencyCode__c}" rendered="{!mode != ''}" required="true"/>
+                                </apex:outputPanel>         
+                        </apex:pageBlockSectionItem> 
+                        <apex:pageBlockSectionItem helpText="{!$Label.Detailed_Description_Of_Scope_Services}" rendered="{!mode != ''}">
+                            <apex:outputText value="{!$Label.Scope_of_Services}"/>
+                            <apex:inputField value="{!agreement.ScopeOfServices__c}" style="width: 400px; height: 40px" rendered="{!mode!=''}"/> 
+                        </apex:pageBlockSectionItem>
+                        <apex:outputField value="{!agreement.Account__c}" rendered="{!mode==''}"/>                      
+                        <apex:outputField value="{!agreement.ContractTitle__c}" rendered="{!mode==''}"/>
+                        <apex:outputField value="{!agreement.Description__c}" rendered="{!mode==''}" style="width: 400px; height: 40px"/>
+                        <apex:outputField value="{!agreement.AgreementNumber__c}" rendered="{!mode==''}"/>
+                        <apex:pageBlockSectionItem helptext="{!$Label.Enter_the_start_and_end_dates_of_the_contract}" rendered="{!mode == ''}">
+                            <apex:outputLabel value="{!$Label.Ordering_Period}" rendered="{!mode==''}"/>
+                            <apex:outputPanel >
+                                <apex:outputField value="{!agreement.OrderingPeriodStart__c}" rendered="{!mode==''}" html-placeholder="{!$Label.Start_Date}"/>
+                                <apex:outputText value=" - " rendered="{!mode==''}"/>
+                                <apex:outputField value="{!agreement.OrderingPeriodEnd__c}" rendered="{!mode==''}" html-placeholder="{!$Label.End_Date_Field_Label}"/>
+                            </apex:outputPanel>
+                        </apex:pageBlockSectionItem>
+                        <apex:outputField value="{!agreement.ContractingAgency__c}" rendered="{!mode==''}"/>
+                        <apex:outputField value="{!agreement.AgreementType__c}" rendered="{!mode==''}"/>
+                        <apex:outputField value="{!agreement.PaymentTerms__c}" rendered="{!mode==''}"/> 
+                        <apex:outputField value="{!agreement.ProfIndemnityLiabilityAmt__c}" rendered="{!mode==''}"/>
+                        <apex:outputField value="{!agreement.PublicGeneralLiabilityAmt__c}" rendered="{!mode==''}"/>
+                        <apex:outputField value="{!agreement.TotalContractValue__c}" rendered="{!mode==''}"/>
+                        <apex:outputField value="{!agreement.TotalTaskOrdersValue__c}" rendered="{!mode ==''}"/>
+                        <apex:pageBlockSectionItem helptext="{!$ObjectType.Agreement__c.Fields.FundingCurrencyCode__c.inlineHelpText}" rendered="{!mode == ''}">
+                            <apex:outputText value="{!$Label.Agreement_Currency}" rendered="{!mode == ''}"/>
+                                 <apex:outputPanel >
+                                    <apex:outputField value="{!agreement.FundingCurrencyCode__c}" rendered="{!mode == ''}"/>    
+                                </apex:outputPanel>         
+                        </apex:pageBlockSectionItem> 
+                        <apex:pageBlockSectionItem >
+                          <apex:outputText value="{!$Label.Contract_Review_Status_Field_Label}"/>
+                          <apex:outputPanel >
+                            <apex:outputText value="{!ContractReviewStatus}" rendered="{!mode == ''}"/> 
+                          </apex:outputPanel>                                                 
+                        </apex:pageBlockSectionItem> 
+
+                         <apex:outputField value="{!agreement.ScopeOfServices__c}" style="width: 400px; height: 40px" rendered="{!mode==''}"/>                            
+                    </apex:pageBlockSection>
+                </div>
+                <div id="notifications">
+                <!--<apex:outputPanel rendered="{!mode == ''}" >-->
+                <apex:outputPanel >
+                    <apex:pageBlockSection columns="1" title="{!$Label.Management_Team_Members}" collapsible="false">
+                       
+                        <apex:pageBlockSectionItem helptext="{!$Label.Agreement_Owner_Help_Text}">
+                            <apex:outputText value="{!$Label.Agreement_Owner_Label}"/>
+                            <apex:outputPanel >
+                                <!-- <apex:inputField value="{!agreement.ProjectTeamMember__c}" rendered="{!mode != ''}" required="true"/>
+                                <apex:outputField value="{!agreement.ProjectTeamMember__c}" rendered="{!mode == ''}"/>   -->
+                                <apex:inputField value="{!agreement.AgreementOwner__c}" rendered="{!mode != ''}" required="true"/>
+                                <apex:outputField value="{!agreement.AgreementOwner__c}" rendered="{!mode == ''}"/>  
+                            </apex:outputPanel>         
+                        </apex:pageBlockSectionItem>      
+                        <br /> <br/>
+
+                        
+                        <apex:outputPanel rendered="{!mode == ''}">
+                        <c:ECO_HelpIcon helpText="{!$Label.Management_Team_Help_Text}"/>       
+                        <apex:commandButton value="{!$Label.New_Team_Member}" action="{!newManagementTeamMember}" immediate="true"/>
+
+                        </apex:outputPanel>
+
+
+                        <apex:outputPanel rendered="{!and(managementTeamMembers.size != null, managementTeamMembers.size > 0 , mode == '')}">
+                        <apex:pageBlockTable value="{!managementTeamMembers}" var="managementTeamMember">
+                            <apex:column style="width:80px" headervalue="{!$Label.ECO_Action}">
+                            <apex:commandLink style="color:#015ba7;" action="{!URLFOR($Action.ManagementTeam__c.edit, managementTeamMember.Id, ['retURL'='/apex/ECO_AgreementView?id='&agreement.Id])}">{!$Label.Edit}</apex:commandLink><apex:outputText value=" | "/>
+                            <apex:commandLink style="color:#015ba7;" action="{!URLFOR($Action.ManagementTeam__c.delete, managementTeamMember.Id, ['retURL'='/apex/ECO_AgreementView?id='&agreement.Id])}" onclick="return window.confirm('{!$Label.Are_you_sure}?');">{!$Label.Del}</apex:commandLink></apex:column>
+                            <apex:column headervalue="{!$Label.ECO_Role}"><apex:outputField value="{!managementTeamMember.TeamMemberRole__c}"/></apex:column>                   
+                            <apex:column headervalue="{!$Label.ECO_Name}"><apex:outputField value="{!managementTeamMember.TeamMemberName__c}"/></apex:column>
+                            <apex:column headervalue="{!$Label.Organization}">
+                                <apex:outputField value="{!managementTeamMember.Organization__c}"/>
+                            </apex:column>
+                            <apex:column headervalue="{!$Label.ECO_Phone}"><apex:outputField value="{!managementTeamMember.Phone__c}"/></apex:column>                  
+                            <apex:column headervalue="{!$Label.ECO_Email}"><apex:outputField value="{!managementTeamMember.Email__c}"/></apex:column>
+                        </apex:pageBlockTable>
+                        </apex:outputPanel>
+                        <apex:outputPanel rendered="{!managementTeamMembers.size == 0}">
+                            <apex:outputText value="{!$Label.NoRecordsToDisplay}"/>
+                        </apex:outputPanel>     
+                    </apex:pageBlockSection>
+
+                </apex:outputPanel>
+                </div>
+                <div style="clear:both;"></div><br/>
+        <!--    </apex:panelGrid> -->
+        </apex:pageBlock>
+
+        <apex:pageBlock title="{!$Label.List_of_Projects_Task_Orders}" rendered="{!mode == ''}" >
+            <apex:outputPanel rendered="{!relAgreements != null && relAgreements.size > 0}">
+            <div class="customHelpText">
+                <div class="customHelpBody">{!$Label.MSATaskOrders}</div>
+            </div>             
+            <apex:pageBlockTable value="{!relAgreements}" var="relAgreement">
+                <apex:column headervalue="{!$Label.Oracle_Project_Number}"><apex:outputField value="{!relAgreement.agreement.Project__r.OracleProjectnumber__c}"/></apex:column>                   
+                <apex:column headervalue="{!$Label.Project_Name}"><apex:outputField value="{!relAgreement.agreement.Project__c}"/></apex:column>
+                <apex:column headervalue="{!$Label.Project_Manager}"><apex:outputField value="{!relAgreement.agreement.Project__r.pse__Project_Manager__c}"/></apex:column>
+                
+                <apex:column headervalue="{!$Label.Contract_Value_MSA_Currency}">
+                    <apex:outputText value="{!relAgreement.agreement.Project__r.ProjectFunctionalCurrencyCode__c} "/>
+                    <apex:outputtext value="{0, number}"> 
+                        <apex:param value="{!relAgreement.projectConfirmedValueConverted}"/>&nbsp;
+                    </apex:outputText>
+                    <apex:outputText value=" ({!agreement.FundingCurrencyCode__c}" />&nbsp;
+                    <apex:outputText value="{0, number}">
+                        <apex:param value="{!relAgreement.msaConfirmedValueConverted}"/>
+                    </apex:outputText>
+                    <apex:outputText value=")"/>
+                </apex:column>
+
+                <apex:column headervalue="{!$Label.Approved_Cost_Budget_MSA_Currency}">
+                    <apex:outputText value="{!relAgreement.agreement.Project__r.ProjectFunctionalCurrencyCode__c} "/>
+                    <apex:outputtext value="{0, number}"> 
+                        <apex:param value="{!relAgreement.projectApprovedCostConverted}"/>
+                    </apex:outputText>
+                    <apex:outputText value=" ({!agreement.FundingCurrencyCode__c}"/>&nbsp;
+                    <apex:outputText value="{0, number}">
+                         <apex:param value="{!relAgreement.msaApprovedCostConverted}"/>
+                    </apex:outputText>
+                    <apex:outputText value=")"/>
+                </apex:column>   
+                 
+                <apex:column headervalue="{!$Label.Cost_Complete}"><apex:outputField value="{!relAgreement.agreement.Project__r.CostComplete__c}"/></apex:column>               
+                <apex:column headervalue="{!$Label.Billed_To_Date}"><apex:outputField value="{!relAgreement.agreement.Project__r.pse__Billing_Eligible_Last_Updated__c}"/></apex:column>
+            </apex:pageBlockTable>      
+        </apex:outputPanel>
+        
+        <apex:outputPanel rendered="{!relAgreements.size == 0}">
+            <apex:outputText value="{!$Label.NoRecordsToDisplay}"/>
+        </apex:outputPanel> 
+        </apex:pageBlock>                
+     
+        <apex:pageBlock title="{!$Label.Contract_Documents}" rendered="{!mode == ''}">
+                <apex:outputPanel rendered="{!AttachedContractFiles.size > 0}">
+                    <div class="fileList">
+                    <apex:pageBlockTable value="{!AttachedContractFiles}" var="attachedContractFile" style="width: 100%;" rendered="{!agreement.ContractAttachment__c != null}" columnsWidth="10%,20%,30%,20%,20%">
+                        <apex:column headerValue="Document Type" value="{!attachedContractFile.attachmentType}" />    
+                        <apex:column headerValue="{!$Label.File_Name}">
+                            <apex:outputLink value="{!URLFOR($Action.Attachment.Download, attachedContractFile.attachmentId)}" target="_blank">
+                                <apex:outputText value="{!attachedContractFile.attachment.Name}" />
+                            </apex:outputLink>
+                        </apex:column>
+                        <apex:column headervalue="{!$Label.Comments}" value="{!attachedContractFile.comments}" />
+                       <!-- <apex:column value="{!attachedContractFile.attachment.ContentType}" /> -->
+                        <apex:column value="{!attachedContractFile.attachment.LastModifiedDate}" />    
+                        <apex:column value="{!attachedContractFile.attachment.LastModifiedById}" />
+                    </apex:pageBlockTable>
+                    </div>      
+                </apex:outputPanel>
+                <apex:outputPanel rendered="{!AttachedContractFiles.size == 0}">
+                    <apex:outputText value="{!$Label.NoRecordsToDisplay}"/><br/><br/>
+                </apex:outputPanel>      
+                <apex:outputPanel >
+                    <apex:selectList value="{!contractDocumentType}" html-placeholder="Document Type" multiselect="false" id="contractDocumentType" styleclass="attachNewFile" size="1">
+                        <apex:selectOptions value="{!ContractDocumentTypes}"/>
+                    </apex:selectList>
+                    <apex:inputText id="cmdContractComments" value="{!contractDocumentComments}"  maxlength="255" html-placeholder="{!$Label.Comments}" styleclass="attachNewFile"/>
+                    <!--<apex:inputText id="overrideContractName" value="{!overrideContractAttachmentName}"  maxlength="80" html-placeholder="Override File Name" styleclass="attachNewFile"/>-->
+                    <apex:commandButton id="cmdContractAttachment" value="Attach" action="{!saveContractAttachment}" styleclass="attachNewFile"/>   
+               </apex:outputPanel>
+                <br/>                           
+                <apex:outputText value="{!$Label.ECO_Attachment}"/><apex:inputFile id="contractAttachment" value="{!contractAttach.Body}" contentType="{!contractAttach.ContentType}" fileName="{!contractAttach.Name}" onchange="fileChosen3('{!$Component.cmdContractAttachment}', this, '{!$Component.contractDocumentType}', '{!$Component.cmdContractComments}'); return false;"/>
+        
+        </apex:pageBlock>               
+
+        <apex:pageBlock title="{!$Label.Program_Plans}" rendered="{!mode == ''}">
+        <div class="customHelpText">
+            <div class="customHelpBody">{!$Label.ProgramPlansHelpText}</div>
+        </div>          
+            <apex:outputPanel rendered="{!AttachedProgramPlanFiles.size > 0}">
+                <div class="fileList">
+                <apex:pageBlockTable value="{!AttachedProgramPlanFiles}" var="attachedProgramPlanFile" style="width: 100%;" rendered="{!agreement.ProgramPlanAttachment__c != null}" columnsWidth="5%,20%,35%,20%,20%">
+                <apex:column style="width:80px" headerValue="Action">
+                    <apex:commandLink style="color:#015ba7;" action="{!URLFOR($Action.Attachment.delete, attachedProgramPlanFile.Attachment.Id, ['retURL'='/apex/ECO_AgreementView?id='&agreement.Id])}">{!$Label.Del}</apex:commandLink>
+                </apex:column>
+                    <apex:commandLink style="color:#015ba7;" action="{!URLFOR($Action.Attachment.delete, attachedProgramPlanFile.Attachment.Id, ['retURL'='/apex/ECO_AgreementView?id='&agreement.Id])}">{!$Label.Del}</apex:commandLink>
+                    <apex:column headerValue="{!$Label.File_Name}">
+                        <apex:outputLink value="{!URLFOR($Action.Attachment.Download, attachedProgramPlanFile.Attachment.Id)}" target="_blank">
+                            <apex:outputText value="{!attachedProgramPlanFile.Attachment.Name}" />
+                        </apex:outputLink>
+                    </apex:column>
+                    <apex:column headervalue="{!$Label.Comments}" value="{!attachedProgramPlanFile.Comments}" /> 
+                    <!--<apex:column value="{!attachedProgramPlanFile.Attachment.ContentType}" /> --> 
+                    <apex:column value="{!attachedProgramPlanFile.Attachment.LastModifiedDate}" /> 
+                    <apex:column value="{!attachedProgramPlanFile.Attachment.LastModifiedById}" />
+                </apex:pageBlockTable>
+                </div>
+            </apex:outputPanel> 
+            <apex:outputPanel rendered="{!AttachedProgramPlanFiles.size == 0}">
+                <apex:outputText value="{!$Label.NoRecordsToDisplay}"/><br/><br/>
+            </apex:outputPanel> 
+            <apex:outputPanel >
+                <apex:inputText id="commentsProgramPlan" value="{!programPlanAttachmentComments}"  maxlength="255" html-placeholder="Comments" styleclass="attachNewFile"/>
+                <!--<apex:inputText id="overrideProgramPlanName" value="{!overrideProgramPlanAttachmentName}"  maxlength="80" html-placeholder="Override File Name" styleclass="attachNewFile"/>-->
+                <apex:commandButton id="cmdProgramPlanAttachment" value="Attach" action="{!saveProgramPlanAttachment}" styleclass="attachNewFile"/>
+            </apex:outputPanel>
+            <br/>
+            <apex:outputText value="{!$Label.ECO_Attachment}"/><apex:inputFile id="programPlanAttachment" value="{!programPlanAttach.Body}" contentType="{!programPlanAttach.ContentType}" fileName="{!programPlanAttach.Name}" onchange="fileChosen2('{!$Component.cmdProgramPlanAttachment}', this,'{!$Component.commentsProgramPlan}' ); return false;"/>
+
+        </apex:pageBlock>
+        
+        <apex:pageBlock title="{!$Label.Guidance_Documents}" rendered="{!mode == ''}">
+        <div class="customHelpText">
+          <!--  <img src="../img/icon/forecasts24.png" class="customHelpIcon"/>  -->
+            <div class="customHelpBody">{!$Label.GuidanceDocumentHelpText}</div>
+        </div>          
+            <apex:outputPanel rendered="{!AttachedGuidanceFiles.size > 0}">
+                <div class="fileList">
+                <apex:pageBlockTable value="{!AttachedGuidanceFiles}" var="attachedGuidanceFile" style="width: 100%;" rendered="{!agreement.GuidanceAttachment__c != null}" columnsWidth="5%,20%,35%,20%,20%">
+                    <apex:column style="width:80px" headerValue="Action">
+                    <apex:commandLink style="color:#015ba7;" action="{!URLFOR($Action.Attachment.delete, attachedGuidanceFile.Attachment.Id, ['retURL'='/apex/ECO_AgreementView?id='&agreement.Id])}">{!$Label.Del}</apex:commandLink>
+                </apex:column>
+                    <apex:column headerValue="{!$Label.File_Name}">
+                        <apex:outputLink value="{!URLFOR($Action.Attachment.Download, attachedGuidanceFile.Attachment.Id)}" target="_blank">
+                            <apex:outputText value="{!attachedGuidanceFile.Attachment.Name}" />
+                        </apex:outputLink>
+                    </apex:column>
+                    <apex:column headervalue="{!$Label.Comments}" value="{!attachedGuidanceFile.comments}"/>
+                    <!--<apex:column value="{!attachedGuidanceFile.Attachment.ContentType}" /> -->
+                    <apex:column value="{!attachedGuidanceFile.Attachment.LastModifiedDate}" />    
+                    <apex:column value="{!attachedGuidanceFile.Attachment.LastModifiedById}" />
+                </apex:pageBlockTable>
+                </div>
+            </apex:outputPanel>         
+            <apex:outputPanel rendered="{!AttachedGuidanceFiles.size == 0}">
+                <apex:outputText value="{!$Label.NoRecordsToDisplay}"/><br/><br/>
+            </apex:outputPanel> 
+            
+            <apex:outputPanel >
+                <apex:inputText id="commentsGuidance" value="{!guidanceAttachmentComments}"  maxlength="255" html-placeholder="Comments" styleclass="attachNewFile"/>
+                <!--<apex:inputText id="overrideGuidanceName" value="{!overrideGuidanceAttachmentName}"  maxlength="80" html-placeholder="Override File Name" styleclass="attachNewFile"/>-->
+                <apex:commandButton id="cmdGuidanceAttachment" value="Attach" action="{!saveGuidanceAttachment}" styleclass="attachNewFile"/>               
+                </apex:outputPanel>
+            <br/>
+            <apex:outputText value="{!$Label.ECO_Attachment}"/><apex:inputFile id="guidanceAttachment" value="{!guidanceAttach.Body}" contentType="{!guidanceAttach.ContentType}" fileName="{!guidanceAttach.Name}" onchange="fileChosen2('{!$Component.cmdGuidanceAttachment}', this, '{!$Component.commentsGuidance}'); return false;"/>
+        
+        </apex:pageBlock>   
+        
+        <apex:pageBlock title="{!$Label.Business_Development}" rendered="{!mode == ''}">
+        <div class="customHelpText">
+        <!--    <img src="../img/icon/forecasts24.png" class="customHelpIcon"/> -->
+            <div class="customHelpBody">{!$Label.BusinessDevelopmentHelpText}</div>        
+            
+        </div>
+            <apex:outputPanel rendered="{!AttachedBusinessDevelopmentFiles.size > 0}">
+            <div class="fileList">
+            <apex:pageBlockTable value="{!AttachedBusinessDevelopmentFiles}" var="attachedBusinessDevelopmentFile" style="width: 100%;" rendered="{!agreement.BusinessDevelopmentAttachment__c != null}" columnsWidth="5%,20%,35%,20%,20%">
+                <apex:column style="width:80px" headerValue="Action">
+                    <apex:commandLink style="color:#015ba7;" action="{!URLFOR($Action.Attachment.delete, attachedBusinessDevelopmentFile.Attachment.Id, ['retURL'='/apex/ECO_AgreementView?id='&agreement.Id])}">{!$Label.Del}</apex:commandLink>
+                </apex:column>
+                <apex:column headerValue="{!$Label.File_Name}">
+                    <apex:outputLink value="{!URLFOR($Action.Attachment.Download, attachedBusinessDevelopmentFile.Attachment.Id)}" target="_blank">
+                        <apex:outputText value="{!attachedBusinessDevelopmentFile.Attachment.Name}" />
+                    </apex:outputLink>
+                </apex:column>
+                <apex:column headervalue="{!$Label.Comments}" value="{!attachedBusinessDevelopmentFile.Comments}" />  
+                <!--<apex:column value="{!attachedBusinessDevelopmentFile.Attachment.ContentType}" />  -->
+                <apex:column value="{!attachedBusinessDevelopmentFile.Attachment.LastModifiedDate}" /> 
+                <apex:column value="{!attachedBusinessDevelopmentFile.Attachment.LastModifiedById}" />
+            </apex:pageBlockTable>
+            </div>          
+            </apex:outputPanel>
+            <apex:outputPanel rendered="{!AttachedBusinessDevelopmentFiles.size == 0}">
+                <apex:outputText value="{!$Label.NoRecordsToDisplay}"/><br/><br/>
+            </apex:outputPanel> 
+            
+            <apex:outputPanel >
+                <apex:inputText id="commentsBusinessDevelopment" value="{!businessDevelopmentAttachmentComments}"  maxlength="255" html-placeholder="Comments" styleclass="attachNewFile"/>
+                <!--<apex:inputText id="overrideBusinessDevelopmentName" value="{!overrideBusinessDevelopmentAttachmentName}"  maxlength="80" html-placeholder="Override File Name" styleclass="attachNewFile"/>-->
+                <apex:commandButton id="cmdBusinessDevelopmentAttachment" value="Attach" action="{!saveBusinessDevelopmentAttachment}" styleclass="attachNewFile"/><br/>                                
+            </apex:outputPanel>
+            <br/>
+            <apex:outputText value="{!$Label.ECO_Attachment}"/><apex:inputFile id="businessDevelopmentAttachment" value="{!businessDevelopmentAttach.Body}" contentType="{!businessDevelopmentAttach.ContentType}" fileName="{!businessDevelopmentAttach.Name}" onchange="fileChosen2('{!$Component.cmdBusinessDevelopmentAttachment}', this, '{!$Component.commentsBusinessDevelopment}'); return false;"/>
+
+        </apex:pageBlock>   
+
+        <apex:pageBlock title="{!$Label.Approved_or_Preferred_Subs_Vendors}" rendered="{!mode == ''}">
+            <apex:pageBlockButtons location="top"><!-- <apex:commandButton value="New Approved Sub" action="{!newApprovedSub}"/> -->
+             <apex:commandButton value="{!$Label.New_Approved_Sub}" action="{!URLFOR($Action.Approved_Sub__c.new, null, ['Agreement__c'=agreement.Id, 'saveURL'='/apex/ECO_AgreementView?id='&agreement.Id, 'retURL'='/apex/ECO_AgreementView?id='&agreement.Id])}"/>
+            </apex:pageBlockButtons>
+            <apex:outputPanel rendered="{!approvedSubs != null && approvedSubs.size > 0}">
+            <apex:pageBlockTable value="{!approvedSubs}" var="approvedSub" width="100%" columnsWidth="5%, 20%, 12%,15%, 10%, 15%, 23%">
+                <apex:column headervalue="{!$Label.ECO_Action}">
+                <apex:commandLink style="color:#015ba7;" action="{!URLFOR($Action.Approved_Sub__c.edit, approvedSub.Id, ['retURL'='/apex/ECO_AgreementView?id='&agreement.Id])}">{!$Label.Edit}</apex:commandLink><apex:outputText value=" | "/>
+                <apex:commandLink style="color:#015ba7;" action="{!URLFOR($Action.Approved_Sub__c.delete, approvedSub.Id, ['retURL'='/apex/ECO_AgreementView?id='&agreement.Id])}" onclick="return window.confirm('{!$Label.Are_you_sure}?');">{!$Label.Del}</apex:commandLink></apex:column>
+                <apex:column headervalue="{!$Label.ECO_Name}"><apex:outputField value="{!approvedSub.Account__r.Name}"/></apex:column>                    
+                <apex:column headervalue="{!$Label.ECO_Role}"><apex:outputField value="{!approvedSub.Role__c}"/></apex:column>
+                <apex:column headervalue="{!$Label.Contact_Name}"><apex:outputField value="{!approvedSub.Contact_Name__c}"/></apex:column>                    
+                <apex:column headervalue="{!$Label.ECO_Phone}"><apex:outputField value="{!approvedSub.Phone__c}"/></apex:column>
+                <apex:column headervalue="{!$Label.ECO_Email}"><apex:outputField value="{!approvedSub.Email__c}"/></apex:column>
+                <apex:column headervalue="{!$Label.Comments}"><apex:outputField value="{!approvedSub.Comments__c}"/></apex:column>
+            </apex:pageBlockTable>      
+            </apex:outputPanel>
+            <apex:outputPanel rendered="{!approvedSubs.size == 0}">
+                <apex:outputText value="{!$Label.NoRecordsToDisplay}"/>
+            </apex:outputPanel>         
+        </apex:pageBlock>
+            
+        <apex:pageBlock title="{!$Label.MSA_Teaming_Partners}" rendered="{!mode == ''}">
+            <apex:pageBlockButtons location="top">
+                <!-- <apex:commandButton value="New MSA Team Partner" action="{!createNewMSATeamingPartner}"/>> -->
+                <apex:commandButton value="{!$Label.New_MSA_Team_Partner}" action="{!URLFOR($Action.MSATeamingPartner__c.new, null, ['Agreement__c'=agreement.Id, 'saveURL'='/apex/ECO_AgreementView?id='&agreement.Id, 'retURL'='/apex/ECO_AgreementView?id='&agreement.Id])}"/>
+            </apex:pageBlockButtons>
+            <apex:outputPanel rendered="{!msaTeamingPartners != null && msaTeamingPartners.size > 0}">
+            <apex:pageBlockTable value="{!msaTeamingPartners}" var="msaTeamingPartner" width="100%" columnsWidth="5%, 20%, 12%,15%, 10%, 15%, 23%">
+                <apex:column headervalue="{!$Label.ECO_Action}">
+                <apex:commandLink style="color:#015ba7;" action="{!URLFOR($Action.MSATeamingPartner__c.edit, msaTeamingPartner.Id, ['retURL'='/apex/ECO_AgreementView?id='&agreement.Id])}">{!$Label.Edit}</apex:commandLink><apex:outputText value=" | "/>
+                <apex:commandLink style="color:#015ba7;" action="{!URLFOR($Action.MSATeamingPartner__c.delete, msaTeamingPartner.Id, ['retURL'='/apex/ECO_AgreementView?id='&agreement.Id])}" onclick="return window.confirm('{!$Label.Are_you_sure}?');">{!$Label.Del}</apex:commandLink></apex:column>
+                <apex:column headervalue="{!$Label.ECO_Name}"><apex:outputField value="{!msaTeamingPartner.Account__r.Name}"/></apex:column>                  
+                <apex:column headervalue="{!$Label.ECO_Role}"><apex:outputField value="{!msaTeamingPartner.Role__c}"/></apex:column>
+                <apex:column headervalue="{!$Label.Contact_Name}"><apex:outputField value="{!msaTeamingPartner.Contact_Name__c}"/></apex:column>                  
+                <apex:column headervalue="{!$Label.ECO_Phone}"><apex:outputField value="{!msaTeamingPartner.Phone__c}"/></apex:column>
+                <apex:column headervalue="{!$Label.ECO_Email}"><apex:outputField value="{!msaTeamingPartner.Email__c}"/></apex:column>
+                <apex:column headervalue="{!$Label.Comments}"><apex:outputField value="{!msaTeamingPartner.Comments__c}"/></apex:column>
+        </apex:pageBlockTable>      
+        </apex:outputPanel>
+        
+        <apex:outputPanel rendered="{!msaTeamingPartners.size == 0}">
+            <apex:outputText value="{!$Label.NoRecordsToDisplay}"/>
+        </apex:outputPanel> 
+        </apex:pageBlock>   
+        
+        <apex:pageBlock title="{!$Label.Contract_Billing_Rates}" rendered="{!mode == ''}">
+            <apex:pageBlockButtons location="top"><apex:commandButton value="{!$Label.Edit_Bill_Rates}" action="{!editBillingRates}"/></apex:pageBlockButtons>
+            <apex:outputPanel rendered="{!billingRates != null && billingRates.size > 0}">
+                <apex:outputPanel >
+                    <div>
+                    <table class="list " border="0" cellpadding="0" cellspacing="0">
+                    <tr class="headerRow">
+                        <th></th>
+                        <apex:repeat value="{!billRateController.periods}" var="period">
+                            <th class="headerRow"><span>
+<!--                            <apex:outputText value="{0,date,MM/dd/yyyy}' - '">
+                                <apex:param value="{!period.BillRateStart__c}"/>
+                            </apex:outputText>  -->
+                            <apex:outputText value="{0,date,dd-MMM-yyyy}">
+                                <apex:param value="{!period.BillRateStart__c}"/>
+                            </apex:outputText>&nbsp;-&nbsp;
+                             <apex:outputText value="{0,date,dd-MMM-yyyy}">
+                                <apex:param value="{!period.BillRateEnd__c}"/>
+                            </apex:outputText>
+ 
+                            </span></th>
+                        </apex:repeat>
+                    </tr>
+                    <apex:repeat value="{!billRateController.laborCategories}" var="laborCategory">
+                    <tr class="dataRow">
+                        <td class="dataCell"><apex:outputText value="{!billRateController.laborCategoryMap[laborCategory]}"></apex:outputText></td>
+                            <apex:repeat value="{!billRateController.periods}" var="period">
+                            <apex:variable var="key" value="{!period.Id}-{!laborCategory}"/>
+                            <td class="dataCell">
+                                <apex:outputField value="{!billRateController.billRatePeriodCategoryRateMap[key].BillRate__c}"/>                   
+                            </td>           
+                        </apex:repeat> 
+                    </tr>
+                    </apex:repeat>
+                    </table>
+                    </div>
+                </apex:outputPanel>
+  
+        </apex:outputPanel>
+        
+        <apex:outputPanel rendered="{!billingRates == null || billingRates.size == 0}">
+            <apex:outputText value="{!$Label.NoRecordsToDisplay}"/>
+        </apex:outputPanel> 
+        </apex:pageBlock>           
+                
+        <apex:pageBlock title="{!$Label.Other_Direct_Costs}" rendered="{!mode == ''}">
+            <apex:pageBlockButtons location="top">
+                <!-- <apex:commandButton value="New Other Direct Cost" action="{!URLFOR($Action.OtherDirectCost__c.new, null, ['saveURL'='/apex/ECO_AgreementView?id='&agreement.Id,'retURL'='/apex/ECO_AgreementView?id='&agreement.Id, 'CF00Ne0000001Hxnt_lktp'=agreement.Id, 'CF00Ne0000001Hxnt'=agreement.Name])}"/> -->
+                <apex:commandButton value="{!$Label.New_Other_Direct_Cost}" action="{!URLFOR($Action.OtherDirectCost__c.new, null, ['Agreement__c'=agreement.Id, 'saveURL'='/apex/ECO_AgreementView?id='&agreement.Id, 'retURL'='/apex/ECO_AgreementView?id='&agreement.Id])}"/>
+            </apex:pageBlockButtons>
+            <apex:outputPanel rendered="{!otherDirectCosts != null && otherDirectCosts.size > 0}">
+                <apex:pageBlockTable value="{!otherDirectCosts}" var="otherDirectCost">
+                    <apex:column style="width:80px" headervalue="{!$Label.ECO_Action}">
+                    <apex:commandLink style="color:#015ba7;" action="{!URLFOR($Action.OtherDirectCost__c.edit, otherDirectCost.Id, ['retURL'='/apex/ECO_AgreementView?id='&agreement.Id])}">{!$Label.Edit}</apex:commandLink><apex:outputText value=" | "/>
+                    <apex:commandLink style="color:#015ba7;" action="{!URLFOR($Action.OtherDirectCost__c.delete, otherDirectCost.Id, ['retURL'='/apex/ECO_AgreementView?id='&agreement.Id])}" onclick="return window.confirm('{!$Label.Are_you_sure}');">{!$Label.Del}</apex:commandLink></apex:column>
+                    <apex:column headervalue="{!$Label.Type}"><apex:outputField value="{!otherDirectCost.Type__c}"/></apex:column>
+                    <apex:column headervalue="{!$Label.Description}"><apex:outputField value="{!otherDirectCost.Description__c}"/></apex:column>                  
+                    <apex:column headervalue="{!$Label.Markup}"><apex:outputField value="{!otherDirectCost.Markup__c}"/></apex:column> 
+                    <apex:column headervalue="{!$Label.Allowable}"><apex:outputField value="{!otherDirectCost.Allowable__c}"/></apex:column>
+                    <apex:column headervalue="{!$Label.Comments}"><apex:outputField value="{!otherDirectCost.Comments__c}"/></apex:column>                    
+                </apex:pageBlockTable>
+            </apex:outputPanel>
+        <apex:outputPanel rendered="{!otherDirectCosts == null || otherDirectCosts.size == 0}">
+                <apex:outputText value="{!$Label.NoRecordsToDisplay}"/>
+        </apex:outputPanel>     
+        </apex:pageBlock>
+        
+       <apex:pageBlock title="{!$Label.Meeting_Minutes}" rendered="{!mode == ''}">
+            <apex:outputPanel rendered="{!AttachedMeetingMinutesFiles.size > 0}">
+                <apex:inputHidden value="{!agreement.MeetingMinutesAttachment__c}"/>
+                <div class="fileList">
+                <apex:pageBlockTable value="{!AttachedMeetingMinutesFiles}" var="attachedMeetingMinutesFile" style="width: 100%;" columnsWidth="5%,20%,35%,20%,20%">
+                <apex:column style="width:80px" headerValue="Action">
+                    <apex:commandLink style="color:#015ba7;" action="{!URLFOR($Action.Attachment.delete, attachedMeetingMinutesFile.Attachment.Id, ['retURL'='/apex/ECO_AgreementView?id='&agreement.Id])}">Del</apex:commandLink>
+                </apex:column>
+                    <apex:column headerValue="{!$Label.File_Name}">
+                        <apex:outputLink value="{!URLFOR($Action.Attachment.Download, attachedMeetingMinutesFile.Attachment.Id)}" target="_blank">
+                            <apex:outputText value="{!attachedMeetingMinutesFile.Attachment.Name}" />
+                        </apex:outputLink>
+                    </apex:column>
+                    <apex:column value="{!attachedMeetingMinutesFile.Comments}" headervalue="{!$Label.Comments}"/> 
+                    <!--<apex:column value="{!attachedMeetingMinutesFile.Attachment.ContentType}" headervalue="Content Type"/> -->
+                    <apex:column value="{!attachedMeetingMinutesFile.Attachment.LastModifiedDate}" headervalue="{!$Label.Last_Modified_Date}"/>  
+                    <apex:column value="{!attachedMeetingMinutesFile.Attachment.LastModifiedById}" headervalue="{!$Label.Last_Modified_By}"/>
+                </apex:pageBlockTable>
+                </div>          
+            </apex:outputPanel>
+            <apex:outputPanel rendered="{!AttachedMeetingMinutesFiles.size == 0}">
+                <apex:outputText value="{!$Label.NoRecordsToDisplay}"/><br/><br/>
+            </apex:outputPanel> 
+            
+            <apex:outputPanel >
+                <apex:inputText id="commentsMeetingMinutes" value="{!meetingMinutesAttachmentComments}"  maxlength="255" html-placeholder="Comments" styleclass="attachNewFile"/>
+                <!--<apex:inputText id="overrideMeetingMinutesName" value="{!overrideMeetingMinutesAttachmentName}"  maxlength="80" html-placeholder="Override File Name" styleclass="attachNewFile"/>-->
+                <apex:commandButton id="cmdMeetingMinutesAttachment" value="Attach" action="{!saveMeetingMinutesAttachment}" styleclass="attachNewFile"/><br/>                              
+           </apex:outputPanel>
+           <br/>
+            <apex:outputText value="{!$Label.ECO_Attachment}"/><apex:inputFile id="meetingMinutesAttachment" value="{!meetingMinutesAttach.Body}" contentType="{!meetingMinutesAttach.ContentType}" fileName="{!meetingMinutesAttach.Name}" onchange="fileChosen2('{!$Component.cmdMeetingMinutesAttachment}', this, '{!$Component.commentsMeetingMinutes}'); return false;"/>
+        
+        </apex:pageBlock>  
+        
+        <apex:pageBlock title="{!$Label.Program_Notes}" rendered="{!mode == ''}">
+            <apex:pageBlockButtons location="top"><apex:commandButton value="{!$Label.New_Note}" action="{!createNewNote}"/></apex:pageBlockButtons>
+            <apex:outputPanel rendered="{!notes.size > 0}">         
+                <apex:pageBlockTable value="{!notes}" var="note">
+                    <apex:column headervalue="{!$Label.Title}" value="{!note.Title}"/>
+                    <apex:column headervalue="{!$Label.Body}" value="{!note.Body}"/>      
+                </apex:pageBlockTable>
+            </apex:outputPanel>
+            <apex:outputPanel rendered="{!notes.size == 0}">
+                <apex:outputText value="{!$Label.NoRecordsToDisplay}"/><br/><br/>
+            </apex:outputPanel> 
+        </apex:pageBlock>       
+
+        <apex:pageBlock title="{!$Label.Contract_Reviews}" rendered="{!mode == ''}">
+        <apex:outputPanel rendered="{!contractReviews != null && contractReviews.size > 0}">
+            <apex:pageBlockTable value="{!contractReviews}" var="contractReview">
+    
+                <apex:column headervalue="{!$Label.Contract_Review_Id}">
+                    <apex:commandlink action="{!URLFOR($Action.Contract_Review__c.view, contractReview.Id)}"><apex:outputField value="{!contractReview.Name}"/></apex:commandLink>
+                </apex:column>          
+
+                <apex:column headervalue="{!$Label.Review_Status}">
+                    <apex:outputField value="{!contractReview.Status_Review__c}"/>
+                </apex:column>    
+                <apex:column headervalue="{!$Label.Review_Request_Type}">
+                    <apex:outputField value="{!contractReview.Review_Request_Type__c}"/>
+                </apex:column>  
+                <apex:column headervalue="{!$Label.Opportunity_Name}">
+                    <apex:outputField value="{!contractReview.Opportunity_Name__c}"/>
+                </apex:column>  
+                <apex:column headervalue="{!$Label.Date_Review_is_Required}">
+                    <apex:outputField value="{!contractReview.Date_Required__c}"/>
+                </apex:column>                                  
+                <apex:column headervalue="{!$Label.Client_Vendor}">
+                    <apex:outputField value="{!contractReview.Client_Vendor__c}"/>
+                </apex:column>  
+            </apex:pageBlockTable>
+
+        </apex:outputPanel>
+        <apex:outputPanel rendered="{!contractReviews == null && contractReviews.size == 0}">
+            <apex:outputText value="{!$Label.NoRecordsToDisplay}"/>
+        </apex:outputPanel> 
+        </apex:pageBlock>         
+
+        <apex:pageBlock title="{!$Label.DOA_Conditions_of_Approval}" rendered="{!mode == ''}">
+
+            <apex:outputPanel rendered="{!agreementRecordType =='PrimeMSA'}">
+            <div class="customHelpText">
+                <div class="customHelpBody">{!$Label.DOAConditionsOfApprovalHelpText}</div> 
+            </div>
+            </apex:outputPanel>
+
+            <apex:pageBlockButtons location="top">
+                <apex:commandButton value="{!$Label.New_DOA_Condition_of_Approval}" action="{!URLFOR($Action.DOAConditions__c.new, null, ['Agreement__c'=agreement.Id, 'saveURL'='/apex/ECO_AgreementView?id='&agreement.Id, 'retURL'='/apex/ECO_AgreementView?id='&agreement.Id])}"/>
+            </apex:pageBlockButtons>
+            <apex:outputPanel rendered="{!dOAConditions != null && dOAConditions.size > 0}">
+            <apex:pageBlockTable value="{!dOAConditions}" var="condition">
+                <apex:column style="width:80px" headervalue="{!$Label.ECO_Action}">
+                    <apex:commandLink style="color:#015ba7;" action="{!URLFOR($Action.DOAConditions__c.edit, condition.Id, ['retURL'='/apex/ECO_AgreementView?id='&agreement.Id])}">{!$Label.Edit}</apex:commandLink><apex:outputText value=" | "/>
+                    <apex:commandLink style="color:#015ba7;" action="{!URLFOR($Action.DOAConditions__c.delete, condition.Id, ['retURL'='/apex/ECO_AgreementView?id='&agreement.Id])}" onclick="return window.confirm('{!$Label.Are_you_sure}');">{!$Label.Del}</apex:commandLink>
+                </apex:column>            
+                <apex:column headervalue="{!$Label.ECO_Name}" style="width:100px"  rendered="{!agreementRecordType !='PrimeMSA'}">
+                <apex:commandlink action="{!URLFOR($Action.DOAConditions__c.view, condition.Id, ['retURL'='/apex/ECO_AgreementView?id='&agreement.Id])}"><apex:outputField value="{!condition.Name}"/></apex:commandLink></apex:column>   
+                <apex:column headervalue="{!$Label.Condition}" rendered="{!agreementRecordType !='PrimeMSA'}"><apex:outputField value="{!condition.ConditionLongText__c}"/></apex:column> 
+                <apex:column headervalue="{!$Label.ECO_Status}"  rendered="{!agreementRecordType !='PrimeMSA'}"><apex:outputField value="{!condition.Mitigation_Plan__c}"/></apex:column> 
+                <apex:column headervalue="{!$Label.Approver}"  rendered="{!agreementRecordType !='PrimeMSA'}"><apex:outputField value="{!condition.CreatedBy__c}"/></apex:column>     
+
+                <apex:column headervalue="{!$Label.Condition_of_Approval}" rendered="{!agreementRecordType =='PrimeMSA'}"><apex:outputField value="{!condition.ConditionLongText__c}"/></apex:column> 
+                <apex:column headervalue="{!$Label.DOA_Approval_Request}"  rendered="{!agreementRecordType =='PrimeMSA'}"><apex:outputField value="{!condition.DOAApprovalRequest__c}"/></apex:column> 
+                <apex:column headervalue="{!$Label.ECO_Status}"  rendered="{!agreementRecordType =='PrimeMSA'}"><apex:outputField value="{!condition.Mitigation_Plan__c}"/></apex:column>              
+                
+            </apex:pageBlockTable>
+            </apex:outputPanel>
+            <apex:outputPanel rendered="{!dOAConditions == null || dOAConditions.size == 0}">
+                <apex:outputText value="{!$Label.NoRecordsToDisplay}"/>
+            </apex:outputPanel> 
+        </apex:pageBlock>
+
+    
+        </apex:form>    
+
+        <!--bak 4/5<c:ECO_GenericHistoryComponent recordLimit1="50" myObject1="{!Agreement__c}" rendered="{!Agreement__c.Id != null}"/>-->
+        <apex:relatedList list="OpenActivities" rendered="{!mode==''}"/> 
+        
+    </apex:outputPanel>
+
+</apex:page>

@@ -1,0 +1,195 @@
+<apex:page showHeader="true" sidebar="true" standardController="EnrollmentPlan__c" 
+extensions="INC_EnrollmentParticipantEntryController">
+<apex:form >
+<c:INC_EnrollmentParticipantComponent />
+</apex:form>
+
+<!--
+<apex:stylesheet value="https://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css"  />
+<apex:includeScript value="https://code.jquery.com/jquery-1.9.1.js" />
+<apex:includeScript value="https://code.jquery.com/ui/1.10.3/jquery-ui.js" />
+
+<style>
+  .projmessage{
+    border: 1px solid red;
+    background-color: #FFFFCC;
+  }
+  #enrollpdfdisplay{
+    position:absolute;
+    left:auto;
+    width:75%;
+    height:100%;
+    z-index: 49;
+    top: 0px;
+    border: 3px solid black;
+    background-color:white;
+  }
+  #internalPdf{
+    position: absolute;
+    z-index: 50;
+    width:100%;
+    height:97.5%;
+    border:none;
+  }
+  .hidden{
+    display:none;
+    
+  }
+  .show{
+    display:inline;
+    
+
+  }
+  #closeform{
+    height:20px; 
+    width:100px; 
+    left:40%;
+    position: absolute;
+    z-index: 100;
+  }
+
+  .pdfdisplay{
+    width:100%;
+    height:100%;
+    margin-top: 25px;
+  }
+</style>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+<script type="text/javascript">
+  $j = jQuery.noConflict();
+  $j(document).ready(function(){
+    $j("#viewpdf").click(function(){
+   //    $j('#pdfdisplay').attr('src','{!URLFOR($Resource.DTWParticipantGuide)}');
+        $j('#enrollpdfdisplay').addClass('show');
+        $j('#enrollpdfdisplay').removeClass('hidden');
+     
+    });
+     $j('#closeform').click(function(){
+     // $j('#pdfdisplay').attr('src','');
+        $j('#enrollpdfdisplay').addClass('hidden');
+        $j('#enrollpdfdisplay').removeClass('show');
+      }); 
+    
+  });
+</script>
+<apex:form >
+  
+    <apex:SectionHeader title="Enrollment Information" />
+    <apex:pageblock >
+      <apex:pageBlockSection >
+        <apex:outputField value="{!oEnrollmentPlan.Name}"/>
+        <apex:outputField value="{!oEnrollmentPlan.EnrollmentStatus__c}"/>
+        <apex:outputField value="{!oEnrollmentPlan.MaxIncentivePool__c}" />
+        <apex:outputField value="{!oEnrollmentPlan.ProjectStartDate__c}" />
+         <apex:outputField value="{!oEnrollmentPlan.EstimatedIncentivePoolEAC__c}" />
+        <apex:outputField value="{!oEnrollmentPlan.ScheduledFinishDate__c}" />
+        <apex:outputField value="{!oEnrollmentPlan.UnallocatedPercent__c}" />
+        <apex:outputField value="{!oEnrollmentPlan.NSRBudget__c}"/>
+        <apex:outputField value="{!oEnrollmentPlan.UnallocatedAmount__c}" />
+        <apex:outputField value="{!oEnrollmentPlan.MinParticipantPayout__c}" />
+      </apex:pageBlockSection>
+    </apex:pageblock>
+   <div id="enrollpdfdisplay" class="hidden">
+      <span>
+        <button type="button" id="closeform" title="Close">Close</Button>
+      </span>
+      <div>
+        <span>
+        <div id="internalPdf">
+          <object class="pdfdisplay" data="{!URLFOR($Resource.DTWParticipantGuide)}" type="application/pdf" >
+ 
+          <p>It appears you don't have a PDF plugin for this browser.
+             No biggie... you can <a href="{!URLFOR($Resource.DTWParticipantGuide)}">click here to
+             download the PDF file.</a></p>
+  
+          </object>
+        </div>
+        </span>
+      </div> 
+    </div>
+    
+    <p class="projmessage">At the time a project is enrolled in DTW, up to 60% of the incentive pool can be allocated to participants as “Target %”.  If additional employees are later identified as key project leaders, they may be added to the plan and the total allocation can exceed 60%.  The total allocation can never exceed 100%.  (Note: if the project is within several months of completion, the full pool may be allocated with exception approval.) </p>
+    <br/>
+    <a href="#" id="viewpdf">View Participant Guidelines</a>
+    
+    <apex:sectionHeader title="Add Enrollment Participants"/>
+    <apex:pageBlock Title="Participants" id="Participants">
+        <apex:pageBlockButtons location="both">
+            <apex:commandButton value="Add Row" action="{!addBlankRow}" reRender="partTable,Participants" rendered="{!editParticipants}">
+            </apex:commandButton>
+            <apex:commandButton value="Save and Recalculate" action="{!Save}">
+            </apex:commandButton>
+            <apex:commandButton value="Save and Continue" action="{!SaveAndContinue}">
+            </apex:commandButton>
+            <apex:commandButton value="Cancel" action="{!Cancel}">
+            </apex:commandButton>
+        </apex:pageBlockButtons>
+         <apex:pagemessages ></apex:pagemessages>
+        <apex:pageBlockTable value="{!listParticipant}" var="Participant" id="partTable"
+                             columnsWidth="100px,50px,50px,50px,70px,50px,50px,50px,50px"
+                             rules="all">
+           <apex:Column headervalue="Employee">
+              <apex:inputField value="{!Participant.EmployeeName__c}" rendered="{!editParticipants}"/>
+              <apex:OutputField value="{!Participant.EmployeeName__c}" rendered="{!editParticipants = false}"/>
+           </apex:Column>
+           <apex:Column headervalue="Employee Number">
+              <apex:inputField value="{!Participant.EmployeeID__c}"/>
+           </apex:Column>
+           <apex:Column headervalue="Role/Title">
+              <apex:inputField value="{!Participant.RoleTitle__c}" rendered="{!editParticipants}"/>
+              <apex:OutputField value="{!Participant.RoleTitle__c}" rendered="{!editParticipants = false}"/>
+           </apex:Column>
+           <apex:Column headervalue="Participant Category">
+              <apex:inputField value="{!Participant.ParticipantCategory__c}" rendered="{!editParticipants}"/>
+              <apex:OutputField value="{!Participant.ParticipantCategory__c}" rendered="{!editParticipants = false}"/>
+           </apex:Column>
+           <apex:Column headervalue="Target %">
+               <apex:inputField value="{!Participant.TargetIncentivePoolAllocated__c}"/>
+           </apex:Column>
+           <apex:Column headervalue="Estimated Payout" rendered="{!oEnrollmentPlan.ApplicationType__c != 'PAY'}">
+              <apex:inputField value="{!Participant.EstimatedPayout__c}" rendered="{!editParticipants}"/>
+           </apex:Column>
+           <apex:Column headervalue="Calculated Incentive" rendered="{!oEnrollmentPlan.ApplicationType__c == 'PAY'}">
+              <apex:inputField value="{!Participant.CalculatedIncentive__c}" rendered="{!editParticipants}"/>
+           </apex:Column>
+           <apex:Column headervalue="Payment Adjustments" rendered="{!oEnrollmentPlan.ApplicationType__c == 'PAY'}">
+              <apex:inputField value="{!Participant.PaymentAdjustments__c}" rendered="{!editParticipants}"/>
+              <apex:outputField value="{!Participant.PaymentAdjustments__c}" rendered="{!editParticipants = false}"/>
+           </apex:Column>
+           <apex:Column headervalue="Pmt Adj Reason" rendered="{!oEnrollmentPlan.ApplicationType__c == 'PAY'}">
+              <apex:inputField value="{!Participant.PaymentAdjReason__c}" rendered="{!editParticipants}"/>
+              <apex:outputField value="{!Participant.PaymentAdjReason__c}" rendered="{!editParticipants = false}"/>
+           </apex:Column>
+           <apex:Column headervalue="Payment Amount" rendered="{!oEnrollmentPlan.ApplicationType__c == 'PAY'}">
+              <apex:inputField value="{!Participant.PaymentAmount__c}" rendered="{!editParticipants}"/>
+              <apex:outputField value="{!Participant.PaymentAmount__c}" rendered="{!editParticipants = false}"/>
+           </apex:Column>
+           <apex:Column headervalue="Payment Date" rendered="{!oEnrollmentPlan.ApplicationType__c == 'PAY'}">
+              <apex:inputField value="{!Participant.PaymentDate__c}" rendered="{!editParticipants}"/>
+              <apex:outputField value="{!Participant.PaymentDate__c}" rendered="{!editParticipants = false}"/>
+           </apex:Column>
+           <apex:Column headervalue="Start Date on Project">
+              <apex:inputField value="{!Participant.StartDateonProject__c}" rendered="{!editParticipants}"/>
+              <apex:outputField value="{!Participant.StartDateonProject__c}" rendered="{!editParticipants = false}"/>
+           </apex:Column>
+           <apex:Column headervalue="End Date on Project" rendered="{!bChangeRequest && oEnrollmentPlan.ApplicationType__c != 'PAY'}">
+              <apex:inputField value="{!Participant.EndDateonProject__c}" rendered="{!editParticipants}"/>
+              <apex:outputField value="{!Participant.EndDateonProject__c}" rendered="{!editParticipants = false}"/>
+           </apex:Column>
+           <apex:Column headervalue="Employee Status">
+              <apex:inputField value="{!Participant.EmployeeStatus__c}"/>
+           </apex:Column>
+          <apex:Column headervalue="">
+               <apex:inputField value="{!Participant.EmployeeStatusAlert__c}"/>
+           </apex:Column>
+          </apex:pageBlockTable>
+          <apex:pageBlockSection >
+          <apex:pageBlockSectionItem >
+             <apex:Outputlabel value="Comments" />
+             <apex:inputTextarea value="{!partComments}" rows="5" cols="100"/>
+          </apex:pageBlockSectionItem>
+          </apex:pageBlockSection>
+    </apex:pageBlock>
+</apex:form> -->
+</apex:page>

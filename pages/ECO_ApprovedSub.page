@@ -1,0 +1,78 @@
+<apex:page standardcontroller="Approved_Sub__c" action="{!init}" extensions="ECO_ApprovedSubController,nttdcore.DLabelParentController" >
+
+	<style>
+        .customHelpIcon
+        {
+            display:inline-block;
+            margin:0 5px 0 0;
+            width:24px;
+            height:24px;
+            vertical-align:top !important;
+        }
+        /* CUSTOM HELP / GUIDANCE TEXT BOX */
+        .customHelpText{
+            padding: 7px;
+            border: 1px solid #85B3CE;
+            min-height: 10px;
+            display: block;
+            width: auto;
+            margin: 0 0 5px 0;
+            background-repeat: no-repeat;
+            border-radius: 4px;
+            background-color: #A2D3F1;
+            
+        }
+        .customHelpBody{
+            display:inline-block;
+            color:#;
+            max-width:95%;
+        }   
+
+	</style>
+
+
+<apex:form >
+
+
+
+<nttdcore:DLabel labelparent="{!this}" name="DL1" default="Approved or Preferred Subs/Vendors Edit" /><nttdcore:DLabel labelparent="{!this}" name="DL2" default="{{1}}({{2}})" p1="{!agreement.ContractTitle__c}" p2="{!agreement.AgreementNumber__c}" /><apex:sectionheader title="{!dLabel['DL1']}" subtitle="{!dLabel['DL2']}" />
+
+
+        <div class="customHelpText" >
+            <div class="customHelpBody" ><nttdcore:DLabel labelparent="{!this}" name="DL3" default="If applicable, add any vendors, subconsultants or subcontractors (subs) that have been approved or are preferred for use on the MSA task order projects.  This could include vendors /subs that were included as part of the proposal during pursuit of the MSA and have been approved by the client, or vendors/subs that have special pricing/rates that were negotiated for the MSA." /><nttdcore:DLabel labelparent="{!this}" name="DL4" default="Attach any executed agreements or blanket orders for each vendor or sub, specific to the MSA, to the Contracts section on the home page.   Agreements specific to each task order should be attached to the respective project record." />
+{!dLabel['DL3']}<br/><br/>
+
+{!dLabel['DL4']}
+            </div>
+        </div> 
+<nttdcore:DLabel labelparent="{!this}" name="DL5" default="Approved or Preferred Subs/Vendors Edit" /><apex:pageblock title="{!dLabel['DL5']}" ><nttdcore:DLabel labelparent="{!this}" name="DL8" default="Contact Information" />
+
+<apex:pageblockbuttons >
+	<nttdcore:DLabel labelparent="{!this}" name="DL6" default="Save" /><apex:commandbutton value="{!dLabel['DL6']}" action="{!save}" />
+	<nttdcore:DLabel labelparent="{!this}" name="DL7" default="Return to MSA" /><apex:commandbutton value="{!dLabel['DL7']}" action="{!cancel}" />
+</apex:pageblockbuttons>
+
+<apex:pageblocksection collapsible="false" >
+	<apex:inputfield value="{!Approved_Sub__c.Account__c}" />
+	<apex:inputfield style="width: 500px" value="{!Approved_Sub__c.Comments__c}" />
+</apex:pageblocksection>
+
+<apex:pageblocksection title="{!dLabel['DL8']}" collapsible="false" >
+	<apex:inputfield value="{!Approved_Sub__c.Contact_Name__c}" />
+	<apex:inputfield value="{!Approved_Sub__c.Role__c}" />
+	<apex:inputfield value="{!Approved_Sub__c.Phone__c}" />
+	<apex:inputfield value="{!Approved_Sub__c.Email__c}" />
+</apex:pageblocksection>
+
+<apex:inputhidden value="{!Approved_Sub__c.Agreement__r.ContractTitle__c}" />
+<apex:inputhidden value="{!Approved_Sub__c.Agreement__c}" />
+<apex:inputhidden value="{!Approved_Sub__c.Agreement__r.Id}" />
+<!--<apex:pageBlockSection title="System Information" collapsible="false">
+	<apex:outputField value="{!approvedSub.Agreement__c}"/>
+</apex:pageBlockSection>-->
+
+</apex:pageblock>
+
+</apex:form>
+
+<nttdcore:DLabelInit labelparentinit="{!this}" /><nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

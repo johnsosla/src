@@ -1,0 +1,623 @@
+<apex:page standardcontroller="SharedServicesRequest__c" extensions="ECO_GBSEditController,nttdcore.DLabelParentController" >
+<apex:includeScript value="{!$Resource.ECO_jQuery_1_11_2_min_js}" />
+    <style type="text/css" >
+
+        .span2col{
+            width: 80%;
+
+        }
+
+    </style>
+
+    <script type="text/javascript" >
+        var $x = jQuery.noConflict();
+
+        $x(document).ready(function(){
+            init();
+        })
+
+        function init(){
+            updateRequired();
+            setGBSAdminOnlyFields();
+            disable($x('.geo'));
+            hideEmptyRows();
+            initPrimaryState();
+        }
+
+        function initPrimaryState(){
+            if($x('.address').is(':checked') ||
+                $x('.remit').is(':checked') ||
+                $x('.billing').is(':checked')){ 
+                    if($x('.address').is(':not(:checked)')){
+                        removeRequiredClasses($x('.address'));
+                    }
+                    if($x('.remit').is(':not(:checked)')){
+                        removeRequiredClasses($x('.remit'));
+                    }
+                    if($x('.billing').is(':not(:checked)')){
+                        removeRequiredClasses($x('.billing'));
+                    }
+            }
+        }
+
+        function hideEmptyRows(){
+            $x("tr").not(":has('th')").has('.dataCol').hide();
+        }
+
+        function updateRequired(){
+            var paymentMethod = $x('.paymentMethod').val();
+            var geo = $x('.geo').val();
+            var requestType = '{!requestType}';
+            var siteAddressType = '{!SharedServicesRequest__c.SiteAddressType__c}';
+
+            //requstType
+            if(requestType == 'CreateCustomer'){
+                $x("div[id$='address1']").find('h3').html('{!$Label.EcoGbsJqCustAddress}');
+                $x("div[id$='info']").find('h3').html('{!$Label.EcoGbsJqInfo}');
+            }
+
+            if(requestType == 'CreateVendor'){
+                $x("div[id$='address1']").find('h3').html('{!$Label.EcoGbsJqVenAddress}');
+            }
+
+            if(requestType == 'CreateSub'){
+                $x("div[id$='address1']").find('h3').html('{!$Label.EcoGbsJqVenAddress}');
+            }
+
+            if((requestType == 'AddSite' || requestType == 'UpdateSite') && siteAddressType == 'Vendor Account Site'){
+                $x("div[id$='address1']").find('h3').html('Vendor Address');
+            }
+            if((requestType == 'AddSite' || requestType == 'UpdateSite') && siteAddressType == 'Customer Account Site'){
+                $x("div[id$='address1']").find('h3').html('New Billing Address');
+            }
+
+            //Banking
+            if(paymentMethod == 'EFT' || paymentMethod == 'Wire'){
+                enableRequired($x('.bankName'));
+                enableRequired($x('.accountNumber'));
+                enable($x('.bankInfoField'));
+            }
+            else{
+                disableRequired($x('.bankName'));
+                disableRequired($x('.accountNumber'));
+                disable($x('.bankInfoField'));
+            }
+        }
+
+        function setGBSAdminOnlyFields(){
+            var userIsGBSAdmin = {!UserIsGBSAdmin};
+
+            if (!userIsGBSAdmin)
+                disable($x('.gbsAdminField'));
+        }
+
+        function enableRequired(inputField) {
+            addRequiredClasses(inputField);
+            enable(inputField);
+        }
+
+        function disableRequired(inputField) {
+            removeRequiredClasses(inputField);
+            removeErrorMarkup(inputField);
+            disable(inputField);
+        }
+
+        function enable(inputField){
+            inputField.prop('disabled', false);
+        }
+
+        function disable(inputField){
+            inputField.prop('disabled', true);
+        }
+
+        function addRequiredClasses(inputField) {
+            inputField.prev().removeClass('requiredBlock').addClass('requiredBlock');
+            inputField.parent().removeClass('requiredInput').addClass('requiredInput');
+        }
+
+        function removeRequiredClasses(inputField) {
+            inputField.prev().removeClass('requiredBlock');
+            inputField.parent().removeClass('requiredInput');
+        }
+
+        function removeErrorMarkup(inputField) {
+            inputField.removeClass('error');
+            inputField.next().remove();
+        }
+
+        var primaryState = new function(){
+            address = false;
+            remit = false;
+            billing = false;
+            
+            this.update = function(clicked){
+                updateState(clicked);
+                updateUI();
+            }
+
+            somethingChecked = function() {
+                return address + remit + billing;
+            }
+
+            function updateState(clicked){
+                address = (clicked.className == 'address' && clicked.checked);
+                remit = (clicked.className == 'remit' && clicked.checked);
+                billing = (clicked.className == 'billing' && clicked.checked);
+            }
+
+            function updateUI(){
+                $x('.address').attr('checked', address);
+                $x('.remit').attr('checked', remit);
+                $x('.billing').attr('checked', billing);
+
+                if(somethingChecked && address){
+                    addRequiredClasses($x('.address'));
+                    removeRequiredClasses($x('.remit'));
+                    removeRequiredClasses($x('.billing'));
+                }
+                else if(somethingChecked && remit){
+                    removeRequiredClasses($x('.address'));
+                    addRequiredClasses($x('.remit'));
+                    removeRequiredClasses($x('.billing'));
+                }
+                else if(somethingChecked && billing){
+                    removeRequiredClasses($x('.address'));
+                    removeRequiredClasses($x('.remit'));
+                    addRequiredClasses($x('.billing'));
+                }
+                else{
+                    addRequiredClasses($x('.address'));
+                    addRequiredClasses($x('.remit'));
+                    addRequiredClasses($x('.billing'));
+                }
+            }
+        }
+
+        function intercompany(inputField){
+            if($x('.intercompany').val() == 'Yes'){
+                $x('.customerClassification').val('Intercompany');
+                $x('.clientGroup').val('Intercompany');
+            }
+        }
+
+        //I was not able to get the conditionally required zip code to funciton, on save would indicate all zip codes were required ignoring class removal in javascript.
+        function initZipRequired(){
+            isZipRequired($x('select.zip'));
+            isZipRequired($x('select.remitZip'));
+            isZipRequired($x('select.billingZip'));
+        }
+
+        //usage, add the same style class to the zip and country fields, on the country field, on change call this function
+        //also mark the zip as required and update initZipRequired
+        function isZipRequired(countryField){
+            /*
+            var className = $x(countryField).attr('class');
+            if($x(countryField).val() == 'United States'){
+                addRequiredClasses($x(':input.' + className));
+            }
+            else{
+                removeRequiredClasses($x(':input.' + className));
+            }
+            */
+        }
+
+    </script>
+
+    <nttdcore:DLabel name="DL1" default="{{1}} - {{2}}" labelParent="{!this}" p1="{!$Label.EcoGBSSubTitle}" p2="{!actionName}" /><apex:sectionHeader title="{!$Label.EcoGBSTitle}" subtitle="{!dLabel['DL1']}" />
+    <apex:pagemessages id="messages" />
+    <apex:form id="theForm" >
+
+    <apex:pageBlock mode="edit" id="pageBlockProcessing" rendered="{!ShowEditFieldsProcessingOnly == true}" >
+        <apex:pageBlockButtons location="top" >
+            <apex:commandButton action="{!cancel}" value="{!$Label.ECOGBSRecordTypeCancel}" />
+            <apex:commandButton action="{!save}" value="{!$Label.Save}" />
+        </apex:pageBlockButtons>
+
+        <apex:pageBlockSection columns="2" title="{!$Label.EcoGbsInfo}" id="infoProcessing" >
+            <apex:outputField value="{!SharedServicesRequest__c.Name}" />
+            <apex:pageBlockSectionItem />
+
+            <apex:inputField value="{!SharedServicesRequest__c.Status__c}" />
+            <apex:inputField value="{!SharedServicesRequest__c.OwnerId}" />
+        </apex:pageBlockSection>        
+    </apex:pageBlock>
+
+    <apex:pageBlock mode="edit" id="thePageBlock" rendered="{!ShowEditFieldsProcessingOnly == false}" >
+        <apex:pageBlockButtons location="both" >
+            <apex:commandButton action="{!back}" value="{!$Label.Back}" html-fomrnovalidate="formonvalidate" immediate="true" rendered="{!isNewRequest}" />
+            <apex:commandButton action="{!cancel}" value="{!$Label.ECOGBSRecordTypeCancel}" />
+            <apex:commandButton action="{!save}" value="{!$Label.Save}" />
+        </apex:pageBlockButtons>
+
+        <apex:outputPanel ><nttdcore:DLabel name="DL2" default="Selected Site" labelParent="{!this}" />
+
+        <!--  Information -->       
+        <apex:variable var="sI" value="12" />
+        <apex:pageBlockSection columns="2" title="{!$Label.EcoGbsInfo}" id="info" >
+            
+            <apex:pageBlockSectionItem rendered="{!isNewRequest}" />
+            <apex:outputField value="{!SharedServicesRequest__c.Name}" rendered="{!isNewRequest == false}" />
+
+            <!--<apex:inputField value="{!SharedServicesRequest__c.CustomerStatus__c}" taborderhint="{!sI}13" required="true" rendered="{!show.CustomerStatus}" />-->
+            <!--<apex:pageBlockSectionItem rendered="{!show.CustomerStatus == false}" />-->
+            <apex:pageBlockSectionItem />
+
+            <apex:inputField value="{!SharedServicesRequest__c.Geography__c}" taborderhint="{!sI}01" styleclass="geo" rendered="{!ERPSystemIsOracle}" />
+            <apex:outputField value="{!SharedServicesRequest__c.Geography__c}" rendered="{!ERPSystemIsOracle == false}" />
+
+            <apex:inputField value="{!SharedServicesRequest__c.Urgent__c}" taborderhint="{!sI}14" />
+            <apex:outputField value="{!SharedServicesRequest__c.ERPSystem__c}" />
+            <apex:outputField value="{!SharedServicesRequest__c.Status__c}" rendered="{!!UserIsGBSAdmin}" />
+            <apex:inputField value="{!SharedServicesRequest__c.Status__c}" taborderhint="{!sI}15" rendered="{!UserIsGBSAdmin}" />
+            
+            <apex:inputField value="{!SharedServicesRequest__c.OUName__c}" taborderhint="{!sI}02" rendered="{!ERPSystemIsOracle}" required="true" />
+            <apex:pageBlockSectionItem rendered="{!ERPSystemIsOracle == false}" />
+
+            <apex:outputText value="{!OwnerName}" label="{!$Label.EcoGbsOwner}" rendered="{!!UserIsGBSAdmin}" />
+            <apex:inputField value="{!SharedServicesRequest__c.OwnerId}" label="{!$Label.EcoGbsOwner}" taborderhint="{!sI}16" rendered="{!UserIsGBSAdmin}" />
+            
+            <apex:inputField value="{!SharedServicesRequest__c.Account__c}" taborderhint="{!sI}03" required="{!required.Account}" rendered="{!show.Account}" />
+            <apex:pageBlockSectionItem rendered="{!show.Account == false}" />
+
+            <apex:outputField value="{!SharedServicesRequest__c.Requestor__c}" />
+
+            <apex:inputField value="{!SharedServicesRequest__c.CustomerName__c}" taborderhint="{!sI}04" required="true" rendered="{!show.CustomerName}" />
+            <apex:pageBlockSectionItem rendered="{!show.CustomerName == false}" />
+
+            <apex:inputField value="{!SharedServicesRequest__c.ParentAccount__c}" taborderhint="{!sI}17" required="{!required.ParentAccount}" rendered="{!show.ParentAccount}" />
+            <apex:pageBlockSectionItem rendered="{!show.ParentAccount == false}" />
+
+            <!-- Removed ReferenceAccount__c taborder 05 -->
+            <apex:pageBlockSectionItem rendered="true" />
+
+            <apex:inputField value="{!SharedServicesRequest__c.AccountNameChinese__c}" taborderhint="{!sI}18" rendered="{!show.CustomerNameLocalized}" />
+            <apex:pageBlockSectionItem rendered="{!show.CustomerNameLocalized == false}" />
+
+            <apex:outputField value="{!SharedServicesRequest__c.VendorType__c}" rendered="{!show.VendorType}" />
+            <apex:pageBlockSectionItem rendered="{!show.VendorType == false}" />
+
+            <apex:inputField value="{!SharedServicesRequest__c.OrganizationType__c}" taborderhint="{!sI}19" rendered="{!show.OrganizationType}" />
+            <apex:pageBlockSectionItem rendered="{!show.OrganizationType == false}" />
+
+            <apex:inputField value="{!SharedServicesRequest__c.CompanyRegistrationNo__c}" taborderhint="{!sI}06" rendered="{!show.CompanyRegistrationNo}" />
+            <apex:pageBlockSectionItem rendered="{!show.CompanyRegistrationNo == false}" />
+
+            <apex:inputField value="{!SharedServicesRequest__c.BusinessRegistrationCertificateAsia__c}" taborderhint="{!sI}20" rendered="{!show.BusinessRegistrationCertificateAsia}" />
+            <apex:pageBlockSectionItem rendered="{!show.BusinessRegistrationCertificateAsia == false}" />
+
+            <apex:inputField value="{!SharedServicesRequest__c.PaymentTerms__c}" taborderhint="{!sI}08" required="{!required.PaymentTerms}" rendered="{!show.PaymentTerms}" />
+            <apex:pageBlockSectionItem rendered="{!show.PaymentTerms == false}" />
+
+            <apex:inputField value="{!SharedServicesRequest__c.ProfileClass__c}" taborderhint="{!sI}21" rendered="{!show.ProfileClass}" />
+            <apex:pageBlockSectionItem rendered="{!show.ProfileClass == false}" />
+
+            <apex:inputField value="{!SharedServicesRequest__c.IntercompanyCustomer__c}" taborderhint="{!sI}09" styleclass="intercompany" onchange="intercompany(this);" rendered="{!show.Intercompany}" />
+            <apex:pageBlockSectionItem rendered="{!show.Intercompany == false}" />
+
+            <apex:inputField value="{!SharedServicesRequest__c.Site__c}" taborderhint="{!sI}22" rendered="{!show.Site}" />
+            <apex:pageBlockSectionItem rendered="{!show.Site == false}" />
+
+            <apex:inputField value="{!SharedServicesRequest__c.Contact__c}" taborderhint="{!sI}10" rendered="{!show.Contact}" />
+            <apex:pageBlockSectionItem rendered="{!show.Contact == false}" />
+
+            <apex:inputField value="{!SharedServicesRequest__c.BillingContactLookup__c}" taborderhint="{!sI}23" rendered="{!show.BillingContact}" />
+            <apex:pageBlockSectionItem rendered="{!show.BillingContact == false}" />
+
+            <apex:inputField value="{!SharedServicesRequest__c.Contact1Lookup__c}" taborderhint="{!sI}11" rendered="{!show.ContactName}" />
+            <apex:pageBlockSectionItem rendered="{!show.ContactName == false}" />
+
+            <apex:pageBlockSectionItem />
+
+            <apex:inputField value="{!SharedServicesRequest__c.SicCode__c}" taborderhint="{!sI}07" rendered="{!show.SicCode}" />
+            <apex:pageBlockSectionItem rendered="{!show.SicCode == false}" />
+
+            <apex:pageBlockSectionItem />
+
+            <apex:inputField value="{!SharedServicesRequest__c.SicDescription__c}" taborderhint="{!sI}12" rendered="{!show.SicDescription}" />
+            <apex:pageBlockSectionItem rendered="{!show.SicDescription == false}" />
+
+            <apex:inputField value="{!SharedServicesRequest__c.Aboriginal__c}" taborderhint="{!sI}25" rendered="{!show.Aboriginal}" />
+            <apex:pageBlockSectionItem rendered="{!show.Aboriginal == false}" />
+        </apex:pageBlockSection>
+
+        <!--  Additional Sub Information -->        
+        <apex:variable var="sSi" value="13" />
+        <apex:pageBlockSection columns="2" title="{!$Label.EcoGbsAdditionalSubSection}" rendered="{!show.AdditionalSubSection}" >
+            <apex:inputField value="{!SharedServicesRequest__c.SubconsultSubContractForProject__c}" taborderhint="{!sSi}01" />
+            <apex:pageBlockSectionItem />
+            <apex:inputField value="{!SharedServicesRequest__c.SubNotProjectRelatedDOAobtained__c}" taborderhint="{!sSi}02" />
+            <apex:pageBlockSectionItem />
+            <apex:inputField value="{!SharedServicesRequest__c.SubApprovedonRegister__c}" taborderhint="{!sSi}03" />
+            <apex:pageBlockSectionItem />
+            <apex:inputField value="{!SharedServicesRequest__c.SubAgreementinplace__c}" taborderhint="{!sSi}04" />
+            <apex:pageBlockSectionItem />
+        </apex:pageBlockSection>
+
+        <!--  Select Account/Site/Contact to be updated -->     
+        <apex:variable var="sAsc" value="14" />
+        <apex:pageBlockSection columns="2" title="{!$Label.EcoGbsTobeUpdatedSection}" id="selectSiteSection" rendered="{!show.TobeUpdatedSection}" >
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="{!$ObjectType.SharedServicesRequest__c.fields.Site__c.label}" for="selectSite" />
+            <apex:actionRegion >
+                    <apex:inputField value="{!SharedServicesRequest__c.Site__c}" id="selectSite" taborderhint="{!sAsc}01" required="true" >
+                        <apex:actionSupport event="onchange" rerender="selectSiteSection" />
+                    </apex:inputField>
+            </apex:actionRegion>
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="{!dLabel['DL2']}" for="selectedSite" />
+                    <apex:outputField value="{!SharedServicesRequest__c.Site__c}" id="selectedSite" />
+                </apex:pageBlockSectionItem>
+        </apex:pageBlockSection>
+
+        <!--  Tax Details -->       
+        <apex:variable var="sTd" value="15" />
+        <apex:pageBlockSection columns="2" title="{!$Label.EcoGbsTaxSection}" rendered="{!show.TaxSection}" >
+            <apex:inputField value="{!SharedServicesRequest__c.TaxReference__c}" taborderhint="{!sTd}01" />
+            <apex:inputField value="{!SharedServicesRequest__c.VAT_RegistrationNumber__c}" taborderhint="{!sTd}03" />
+            <apex:inputField value="{!SharedServicesRequest__c.WithholdingTaxEnabled__c}" taborderhint="{!sTd}02" />
+            <apex:inputField value="{!SharedServicesRequest__c.FiscalIDTaxRegNoorVATNoSpain__c}" taborderhint="{!sTd}04" rendered="{!show.FiscalId}" />
+        </apex:pageBlockSection>
+
+        <!--  Customer Classification -->       
+        <apex:variable var="sCc" value="16" />
+        <apex:pageBlockSection columns="2" title="{!$Label.EcoGbsCustomerSection}" rendered="{!show.CustomerSection}" >
+            <apex:inputField value="{!SharedServicesRequest__c.CustomerClassification__c}" taborderhint="{!sCc}01" styleclass="customerClassification" required="true" />
+            <apex:inputField value="{!SharedServicesRequest__c.Reach__c}" taborderhint="{!sCc}04" />
+            <apex:inputField value="{!SharedServicesRequest__c.ClientGroup__c}" taborderhint="{!sCc}02" styleclass="clientGroup" required="true" />
+            <apex:inputField value="{!SharedServicesRequest__c.USFederalGovernment__c}" taborderhint="{!sCc}05" rendered="{!show.USFedGov}" />
+            <apex:inputField value="{!SharedServicesRequest__c.ClientSubgroup__c}" taborderhint="{!sCc}03" required="true" />
+        </apex:pageBlockSection>
+
+        <!--  Address -->       
+        <apex:variable var="sA" value="17" />
+        <apex:pageBlockSection columns="2" title="{!$Label.EcoGbsAddressSection}" id="address1" rendered="{!show.AddressSection}" >
+            <apex:outputField value="{!SharedServicesRequest__c.SiteAddressType__c}" rendered="{!show.SiteAddressType}" />
+            <apex:pageBlockSectionItem rendered="{!show.SiteAddressType == false}" />
+
+            <apex:inputField value="{!SharedServicesRequest__c.OfficeEmail__c}" taborderhint="{!sA}10" required="{!required.AddressRequired}" />
+            <apex:inputField value="{!SharedServicesRequest__c.Address1StreetPOBox__c}" taborderhint="{!sA}02" required="{!required.AddressRequired}" />
+            <apex:inputField value="{!SharedServicesRequest__c.OfficePhone__c}" taborderhint="{!sA}11" />
+            <apex:inputField value="{!SharedServicesRequest__c.Address2StreetPOBox__c}" taborderhint="{!sA}03" />
+            <apex:inputField value="{!SharedServicesRequest__c.OfficeFax__c}" taborderhint="{!sA}12" />
+            <apex:inputField value="{!SharedServicesRequest__c.Address3StreetPOBox__c}" taborderhint="{!sA}04" />
+            <apex:pageBlockSectionItem />
+            <apex:inputField value="{!SharedServicesRequest__c.Address4StreetPOBox__c}" taborderhint="{!sA}05" />
+            <apex:inputField value="{!SharedServicesRequest__c.AddressIsPrimary__c}" taborderhint="{!sA}13" styleclass="address" rendered="{!show.PrimaryAddress}" required="true" onchange="primaryState.update(this);" />
+            <apex:pageBlockSectionItem rendered="{!show.PrimaryAddress == false}" />
+            <apex:inputField value="{!SharedServicesRequest__c.City__c}" taborderhint="{!sA}06" required="{!required.AddressRequired}" />
+            <apex:inputField value="{!SharedServicesRequest__c.AlternateName__c}" taborderhint="{!sA}14" />
+            <apex:inputField value="{!SharedServicesRequest__c.StateProvinceEmirate__c}" taborderhint="{!sA}07" required="{!required.AddressRequired}" />
+            <apex:inputField value="{!SharedServicesRequest__c.ReferenceSiteID__c}" taborderhint="{!sA}15" rendered="{!show.ReferenceSite}" />
+            <apex:pageBlockSectionItem rendered="{!show.ReferenceSite == false}" />
+
+            <apex:inputField value="{!SharedServicesRequest__c.ZipPostalCode__c}" styleclass="zip" taborderhint="{!sA}08" required="false" />
+            <apex:inputField value="{!SharedServicesRequest__c.ReferenceSite__c}" taborderhint="{!sA}16" rendered="{!show.ReferenceSite}" />
+            <apex:pageBlockSectionItem rendered="{!show.ReferenceSite == false}" />
+
+            <apex:inputField value="{!SharedServicesRequest__c.Country__c}" styleclass="zip" taborderhint="{!sA}09" required="{!required.AddressRequired}" onchange="isZipRequired(this);" />
+        </apex:pageBlockSection>
+
+        <!--  Remit-To Address -->      
+        <apex:variable var="sRa" value="18" />
+        <apex:pageBlockSection columns="2" title="{!$Label.EcoGbsRemitSection}" id="remitSection" rendered="{!show.RemitSection}" >
+            <apex:inputField value="{!SharedServicesRequest__c.RemitToAddressLine1__c}" styleclass="remitRequired" taborderhint="{!sRa}01" />
+            <apex:inputField value="{!SharedServicesRequest__c.RemitToOfficeEmail__c}" taborderhint="{!sRa}07" />
+            <apex:inputField value="{!SharedServicesRequest__c.RemitToAddressLine2__c}" taborderhint="{!sRa}02" />
+            <apex:inputField value="{!SharedServicesRequest__c.RemitToOfficePhone__c}" taborderhint="{!sRa}08" />
+            <apex:inputField value="{!SharedServicesRequest__c.RemitToCity__c}" styleclass="remitRequired" taborderhint="{!sRa}03" />
+            <apex:inputField value="{!SharedServicesRequest__c.RemitToOfficeFax__c}" taborderhint="{!sRa}09" />
+            <apex:inputField value="{!SharedServicesRequest__c.RemitToStateProvinceEmirate__c}" styleclass="remitRequired" taborderhint="{!sRa}04" />
+            <apex:inputField value="{!SharedServicesRequest__c.SiteNameRomaniaAddress__c}" taborderhint="{!sRa}10" />
+            <apex:inputField value="{!SharedServicesRequest__c.RemitToZipPostalCode__c}" styleclass="remitZip" taborderhint="{!sRa}05" required="false" />
+            <apex:pageBlockSectionItem />
+            <apex:inputField value="{!SharedServicesRequest__c.RemitToCountry__c}" styleclass="remitRequired" taborderhint="{!sRa}06" onchange="isZipRequired(this);" />
+            <apex:inputField value="{!SharedServicesRequest__c.RemitIsPrimaryAddress__c}" taborderhint="{!sRa}11" styleclass="remit" required="true" onchange="primaryState.update(this);" />
+            <apex:pageBlockSectionItem />
+            <apex:inputField value="{!SharedServicesRequest__c.ReferenceRemitSiteID__c}" taborderhint="{!sRa}12" />
+            <apex:pageBlockSectionItem />
+        </apex:pageBlockSection>
+
+        <!--  Billing Address -->       
+        <apex:variable var="sBa" value="19" />
+        <apex:pageBlockSection columns="2" title="{!$Label.EcoGbsBillingAddressSection}" id="billingSection" rendered="{!show.BillingAddressSection}" >
+            <apex:inputField value="{!SharedServicesRequest__c.BillingStreetPOBox__c}" taborderhint="{!sBa}01" />
+            <apex:inputField value="{!SharedServicesRequest__c.BillingOfficeEmail__c}" taborderhint="{!sBa}09" />
+            <apex:inputField value="{!SharedServicesRequest__c.BillingAddress2StreetPOBox__c}" taborderhint="{!sBa}02" />
+            <apex:inputField value="{!SharedServicesRequest__c.BillingOfficePhone__c}" taborderhint="{!sBa}10" />
+            <apex:inputField value="{!SharedServicesRequest__c.BillingAddress3StreetPOBox__c}" taborderhint="{!sBa}03" />
+            <apex:inputField value="{!SharedServicesRequest__c.BillingOfficeFax__c}" taborderhint="{!sBa}11" />
+            <apex:inputField value="{!SharedServicesRequest__c.BillingAddress4StreetPOBox__c}" taborderhint="{!sBa}04" />
+            <apex:inputField value="{!SharedServicesRequest__c.AlternateNameBilling__c}" taborderhint="{!sBa}12" />
+            <apex:inputField value="{!SharedServicesRequest__c.BillingAddressCity__c}" taborderhint="{!sBa}05" />
+            <apex:inputField value="{!SharedServicesRequest__c.BillingAddress1isPrimary__c}" taborderhint="{!sBa}13" styleclass="billing" required="true" onchange="primaryState.update(this);" />
+            <apex:inputField value="{!SharedServicesRequest__c.BillingStateProvinceEmirate__c}" taborderhint="{!sBa}06" />
+            <!--<apex:outputField value="{!SharedServicesRequest__c.ReferenceBillingSiteID__c}"/>-->
+            <apex:pageBlockSectionItem />
+            <apex:inputField value="{!SharedServicesRequest__c.BillingZipPostalCode__c}" styleclass="billingZip" taborderhint="{!sBa}07" required="false" />
+            <apex:pageBlockSectionItem />
+            <apex:inputField value="{!SharedServicesRequest__c.BillingAddressCountry__c}" styleclass="billingZip" taborderhint="{!sBa}08" onchange="isZipRequired(this);" />
+        </apex:pageBlockSection>
+
+        <!--  Billing Contact Information -->       
+        <apex:variable var="sBc" value="20" />
+        <apex:pageBlockSection columns="2" title="{!$Label.EcoGbsBillingContactSection}" rendered="{!show.BillingContactSection}" >
+            <apex:inputField value="{!SharedServicesRequest__c.BillingContactFirstName__c}" taborderhint="{!sBc}01" required="{!required.BillingContact}" />
+            <apex:inputField value="{!SharedServicesRequest__c.BillingContactEmail_1__c}" taborderhint="{!sBc}03" />
+            <apex:inputField value="{!SharedServicesRequest__c.BillingContactLastName__c}" taborderhint="{!sBc}02" required="{!required.BillingContact}" />
+            <apex:inputField value="{!SharedServicesRequest__c.BillingContactPhone__c}" taborderhint="{!sBc}04" />
+            <apex:pageBlockSectionItem rendered="true" />
+            <apex:outputField value="{!SharedServicesRequest__c.BillingContactID__c}" />
+        </apex:pageBlockSection>
+
+        <!--  Advantage Vendors -->     
+        <apex:variable var="sAv" value="21" />
+        <apex:pageBlockSection columns="2" title="{!$Label.EcoGbsAdvantageSection}" rendered="{!Show.advantageSection}" >
+            <apex:inputField value="{!SharedServicesRequest__c.AdvantageEnabled__c}" taborderhint="{!sAv}01" />
+            <apex:pageBlockSectionItem />
+            <apex:inputField value="{!SharedServicesRequest__c.AdvantageEmailAddress__c}" taborderhint="{!sAv}02" />
+            <apex:pageBlockSectionItem />
+        </apex:pageBlockSection>
+
+        <!--  Payment Details -->
+        <apex:variable var="sPd" value="22" />
+        <apex:pageBlockSection columns="2" title="{!$Label.EcoGbsPaymentDetailsSection}" rendered="{!show.PaymentDetailsSection}" >
+            <apex:inputField value="{!SharedServicesRequest__c.PaymentTerms__c}" taborderhint="{!sPd}01" required="true" />
+            <apex:pageBlockSectionItem />
+            <apex:inputField value="{!SharedServicesRequest__c.InvoicePaymentCurrency__c}" taborderhint="{!sPd}02" required="true" />
+            <apex:pageBlockSectionItem />
+            <apex:inputField value="{!SharedServicesRequest__c.PaymentMethod__c}" taborderhint="{!sPd}03" required="true" styleclass="paymentMethod" onchange="updateRequired();" />
+            <apex:pageBlockSectionItem />
+        </apex:pageBlockSection>
+
+        <!--  Banking Information -->       
+        <apex:variable var="sBi" value="23" />
+        <apex:pageBlockSection columns="2" title="{!$Label.EcoGbsBankingInformationSection}" rendered="{!show.BankingInformationSection}" id="banking" >
+            <apex:inputField value="{!SharedServicesRequest__c.NameofFinancialInstitution__c}" taborderhint="{!sBi}01" styleclass="bankName" required="true" />
+            <apex:inputField value="{!SharedServicesRequest__c.FinancialInstitutionAccountNumber__c}" taborderhint="{!sBi}08" styleclass="accountNumber" required="true" />
+            <apex:inputField value="{!SharedServicesRequest__c.BranchName__c}" taborderhint="{!sBi}02" styleclass="bankInfoField" />
+            <apex:inputField value="{!SharedServicesRequest__c.NameonAccount__c}" taborderhint="{!sBi}09" styleclass="bankInfoField" />
+            <apex:inputField value="{!SharedServicesRequest__c.ABARoutingNumberofAboveAccount__c}" taborderhint="{!sBi}03" styleclass="bankInfoField" />
+            <apex:inputField value="{!SharedServicesRequest__c.BankIBAN__c}" taborderhint="{!sBi}10" styleclass="bankInfoField" />
+            <apex:inputField value="{!SharedServicesRequest__c.BranchType__c}" taborderhint="{!sBi}04" styleclass="bankInfoField" />
+            <apex:inputField value="{!SharedServicesRequest__c.BankSwift__c}" taborderhint="{!sBi}11" styleclass="bankInfoField" />
+            <apex:inputField value="{!SharedServicesRequest__c.BankContact__c}" taborderhint="{!sBi}05" styleclass="bankInfoField" />
+            <apex:inputField value="{!SharedServicesRequest__c.BankContactEmailAddress__c}" taborderhint="{!sBi}12" styleclass="bankInfoField" />
+            <apex:inputField value="{!SharedServicesRequest__c.BankDate__c}" taborderhint="{!sBi}06" styleclass="bankInfoField" />
+            <apex:inputField value="{!SharedServicesRequest__c.BankContactPhoneNumber__c}" taborderhint="{!sBi}13" styleclass="bankInfoField" />
+            <apex:inputField value="{!SharedServicesRequest__c.BankTypeofAccount__c}" taborderhint="{!sBi}07" styleclass="bankInfoField" />
+        </apex:pageBlockSection>
+
+        <!--  Equal Opportunity -->     
+        <apex:variable var="sEo" value="24" />
+        <apex:pageBlockSection columns="2" title="{!$Label.EcoGbsEqualOpp}" rendered="{!show.EqualOppSection}" >
+            <apex:inputField value="{!SharedServicesRequest__c.BBBEEStatus__c}" taborderhint="{!sEo}01" />
+            <apex:inputField value="{!SharedServicesRequest__c.BBBEEType__c}" taborderhint="{!sEo}05" />
+            <apex:inputField value="{!SharedServicesRequest__c.SABBBEE30BlackFemale__c}" taborderhint="{!sEo}02" />
+            <apex:inputField value="{!SharedServicesRequest__c.SABBBEE50Black__c}" taborderhint="{!sEo}06" />
+            <apex:inputField value="{!SharedServicesRequest__c.SABBBEESMEQSE__c}" taborderhint="{!sEo}03" />
+            <apex:inputField value="{!SharedServicesRequest__c.SABBBEECertificationDate__c}" taborderhint="{!sEo}07" />
+            <apex:inputField value="{!SharedServicesRequest__c.SABBBEERating__c}" taborderhint="{!sEo}04" />
+            <apex:inputField value="{!SharedServicesRequest__c.SABBBEEValueAdding__c}" taborderhint="{!sEo}08" />
+        </apex:pageBlockSection>
+
+        <!--  Socio Economic -->        
+        <apex:variable var="sSe" value="25" />
+        <apex:pageBlockSection columns="2" title="{!$Label.EcoGbsSocioSection}" rendered="{!show.SocioSection}" >
+            <apex:inputField value="{!SharedServicesRequest__c.SocioMinorityOwned__c}" taborderhint="{!sSe}01" />
+            <apex:inputField value="{!SharedServicesRequest__c.SocioNonProfit__c}" taborderhint="{!sSe}08" />
+            <apex:inputField value="{!SharedServicesRequest__c.SocioHUBZone__c}" taborderhint="{!sSe}02" />
+            <apex:inputField value="{!SharedServicesRequest__c.SocioSmallBusinessSB__c}" taborderhint="{!sSe}09" />
+            <apex:inputField value="{!SharedServicesRequest__c.SocioLargeBusiness__c}" taborderhint="{!sSe}03" />
+            <apex:inputField value="{!SharedServicesRequest__c.SocioVeteranOwnedVO__c}" taborderhint="{!sSe}10" />
+            <apex:inputField value="{!SharedServicesRequest__c.SocioWomenOwnedWO__c}" taborderhint="{!sSe}04" />
+            <apex:inputField value="{!SharedServicesRequest__c.SocioServiceDisabledVeteranOwnedSDVO__c}" taborderhint="{!sSe}11" />
+            <apex:inputField value="{!SharedServicesRequest__c.Socio8aCertifiedFirms8a__c}" taborderhint="{!sSe}05" />
+            <apex:inputField value="{!SharedServicesRequest__c.SocioAbilityOne__c}" taborderhint="{!sSe}12" />
+            <apex:inputField value="{!SharedServicesRequest__c.SocioAlaskaNativeCorpandTriballyOwned__c}" taborderhint="{!sSe}06" />
+            <apex:inputField value="{!SharedServicesRequest__c.EcoEconomicallyDisadvantagedWomanOwned__c}" taborderhint="{!sSe}13" />
+            <apex:inputField value="{!SharedServicesRequest__c.SocioHistoricallyBlackCollegesandUniv__c}" taborderhint="{!sSe}07" />
+            <apex:inputField value="{!SharedServicesRequest__c.SocioSmallDisadvantagedBusinessSDB__c}" taborderhint="{!sSe}14" />
+        </apex:pageBlockSection>
+
+        <!--  Primary Contact -->       
+        <apex:variable var="sPc" value="26" />
+        <apex:pageBlockSection columns="2" title="{!$Label.EcoGbsPrimaryContactSection}" rendered="{!show.PrimaryContactSection}" >
+            <apex:inputField value="{!SharedServicesRequest__c.PrimaryContactFirstName__c}" taborderhint="{!sPc}01" />
+            <apex:inputField value="{!SharedServicesRequest__c.PrimaryContactEmail__c}" taborderhint="{!sPc}03" />
+            <apex:inputField value="{!SharedServicesRequest__c.PrimaryContactLastName__c}" taborderhint="{!sPc}02" />
+            <apex:inputField value="{!SharedServicesRequest__c.PrimaryContactPhone__c}" taborderhint="{!sPc}04" />
+            <apex:pageBlockSectionItem rendered="true" />
+            <apex:outputField value="{!SharedServicesRequest__c.PrimaryContactID__c}" />
+        </apex:pageBlockSection>
+
+        <!--  Additional Contact 1 -->      
+        <apex:variable var="sAc1" value="27" />
+        <apex:pageBlockSection columns="2" title="{!$Label.EcoGbsAdditionalContactSection1}" rendered="{!show.AdditionalContactSection}" >
+            <apex:inputField value="{!SharedServicesRequest__c.Contact1FirstName__c}" taborderhint="{!sAc1}01" />
+            <apex:inputField value="{!SharedServicesRequest__c.Contact1EmailAddress__c}" taborderhint="{!sAc1}04" />
+            <apex:inputField value="{!SharedServicesRequest__c.Contact1LastName__c}" taborderhint="{!sAc1}02" />
+            <apex:inputField value="{!SharedServicesRequest__c.Contact1Phone__c}" taborderhint="{!sAc1}05" />
+            <apex:inputField value="{!SharedServicesRequest__c.CustomerContact1Role__c}" taborderhint="{!sAc1}03" />
+            <apex:outputField value="{!SharedServicesRequest__c.Contact1Id__c}" />
+        </apex:pageBlockSection>
+
+        <!--  Additional Contact 2 -->      
+        <apex:variable var="sAc2" value="28" />
+        <apex:pageBlockSection columns="2" title="{!$Label.EcoGbsAdditionalContactSection2}" rendered="{!show.AdditionalContactSection}" >
+            <apex:inputField value="{!SharedServicesRequest__c.Contact2FirstName__c}" taborderhint="{!sAc2}01" />
+            <apex:inputField value="{!SharedServicesRequest__c.Contact2Email__c}" taborderhint="{!sAc2}04" />
+            <apex:inputField value="{!SharedServicesRequest__c.Contact2LastName__c}" taborderhint="{!sAc2}02" />
+            <apex:inputField value="{!SharedServicesRequest__c.Contact2Phone__c}" taborderhint="{!sAc2}05" />
+            <apex:inputField value="{!SharedServicesRequest__c.CustomerContact2Role__c}" taborderhint="{!sAc2}03" />
+            <apex:outputField value="{!SharedServicesRequest__c.Conact2ID__c}" />
+        </apex:pageBlockSection>
+
+        <!--  GBS Checklist -->     
+        <apex:variable var="sGc" value="29" />
+        <apex:pageBlockSection columns="2" title="{!$Label.EcoGbsGbsChecklistSection}" rendered="{!show.GbsChecklistSection}" >
+            <apex:inputField value="{!SharedServicesRequest__c.DuplicateCheck__c}" taborderhint="{!sGc}01" styleclass="gbsAdminField" />
+            <apex:inputField value="{!SharedServicesRequest__c.MKDenialStatus__c}" taborderhint="{!sGc}10" styleclass="gbsAdminField" />
+            <apex:inputField value="{!SharedServicesRequest__c.DecisionPointAsia__c}" taborderhint="{!sGc}02" styleclass="gbsAdminField" />
+            <apex:inputField value="{!SharedServicesRequest__c.DBNumberDUNS__c}" taborderhint="{!sGc}11" styleclass="gbsAdminField" />
+            <apex:inputField value="{!SharedServicesRequest__c.DBRating__c}" taborderhint="{!sGc}03" styleclass="gbsAdminField" />
+            <apex:inputField value="{!SharedServicesRequest__c.DBReportDate__c}" taborderhint="{!sGc}12" styleclass="gbsAdminField" />
+            
+            <apex:inputField value="{!SharedServicesRequest__c.AGISnotification__c}" taborderhint="{!sGc}04" rendered="{!show.Agis}" styleclass="gbsAdminField" />
+            <apex:pageBlockSectionItem rendered="{!show.Agis == false}" />
+
+            <apex:inputField value="{!SharedServicesRequest__c.TINCheckUS__c}" taborderhint="{!sGc}13" rendered="{!show.Tin}" styleclass="gbsAdminField" />
+            <apex:pageBlockSectionItem rendered="{!show.Tin == false}" />
+
+            <apex:inputField value="{!SharedServicesRequest__c.W9orW8US__c}" taborderhint="{!sGc}05" rendered="{!show.W9}" styleclass="gbsAdminField" />
+            <apex:pageBlockSectionItem rendered="{!show.W9 == false}" />
+
+            <!--<apex:inputField value="{!SharedServicesRequest__c.SubsContractorQuestionnaireANZ__c}" taborderhint="{!sGc}14" rendered="{!show.Subs}" styleclass="gbsAdminField" />-->
+            <apex:pageBlockSectionItem rendered="true" />
+
+            <apex:inputField value="{!SharedServicesRequest__c.TaxRegistration__c}" taborderhint="{!sGc}06" rendered="{!show.TaxReg}" styleclass="gbsAdminField" />
+            <apex:pageBlockSectionItem rendered="{!show.TaxReg == false}" />
+
+            <apex:inputField value="{!SharedServicesRequest__c.VAT__c}" taborderhint="{!sGc}15" rendered="{!show.Vat}" styleclass="gbsAdminField" />
+            <apex:pageBlockSectionItem rendered="{!show.Vat == false}" />
+
+            <apex:inputField value="{!SharedServicesRequest__c.CompanyRegistrationSAfrica__c}" taborderhint="{!sGc}07" rendered="{!show.CompanyReg}" styleclass="gbsAdminField" />
+            <apex:pageBlockSectionItem rendered="{!show.CompanyReg == false}" />
+
+            <apex:inputField value="{!SharedServicesRequest__c.BankingInfo__c}" taborderhint="{!sGc}16" rendered="{!show.BankInfo}" styleclass="gbsAdminField" />
+            <apex:pageBlockSectionItem rendered="{!show.BankInfo == false}" />
+
+            <apex:inputField value="{!SharedServicesRequest__c.Biz_Registration_Cert_with_CHOP_Asia__c}" taborderhint="{!sGc}08" rendered="{!show.BizReg}" styleclass="gbsAdminField" />
+            <apex:pageBlockSectionItem rendered="{!show.BizReg == false}" />
+
+            <apex:inputField value="{!SharedServicesRequest__c.IDCopyforIndividualAsia__c}" taborderhint="{!sGc}17" rendered="{!show.IdCopy}" styleclass="gbsAdminField" />
+            <apex:pageBlockSectionItem rendered="{!show.IdCopy == false}" />
+            <apex:inputField value="{!SharedServicesRequest__c.DesktopCheckAsia__c}" taborderhint="{!sGc}09" rendered="{!show.DesktopCheck}" styleclass="gbsAdminField" />
+            <apex:pageBlockSectionItem rendered="{!show.DesktopCheck == false}" />
+        </apex:pageBlockSection>
+
+        <!--  Payment Details (GBS Only) -->        
+        <apex:variable var="sPd" value="30" />
+        <apex:pageBlockSection columns="2" title="{!$Label.EcoGbsPaymentDetailsSectionGbsOnly}" rendered="{!show.PaymentDetailsGBSSection}" >
+            <apex:inputField value="{!SharedServicesRequest__c.PayAloneFlag__c}" taborderhint="{!sPd}01" />
+            <apex:inputField value="{!SharedServicesRequest__c.PayGroup__c}" taborderhint="{!sPd}03" />
+            <apex:inputField value="{!SharedServicesRequest__c.PriorityNumber__c}" taborderhint="{!sPd}02" />
+        </apex:pageBlockSection>
+
+        <!--  Additional Information -->        
+        <apex:variable var="sAi" value="31" />
+        <apex:pageBlockSection columns="1" title="{!$Label.EcoGbsAdditionalInfoSection}" rendered="{!show.AdditionalInfoSection}" >
+            <apex:inputField value="{!SharedServicesRequest__c.AdditionalComments__c}" styleclass="span2col" taborderhint="{!sAi}01" />
+        </apex:pageBlockSection>
+
+        <!--  Request Notes -->     
+        <apex:variable var="sRn" value="32" />
+        <apex:pageBlockSection columns="1" title="{!$Label.EcoGbsRequestNotesSection}" rendered="{!show.RequestNotesSection}" >
+            <apex:inputField value="{!SharedServicesRequest__c.GeneralRequestNotes__c}" styleclass="span2col" taborderhint="{!sRn}01" required="true" />
+        </apex:pageBlockSection>
+
+        </apex:outputPanel>
+    </apex:pageBlock>
+    </apex:form>
+
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

@@ -1,0 +1,146 @@
+<apex:component controller="Service_Catalog_categorycontroller" >    
+    <script type="text/javascript">
+    
+        j$ = jQuery.noConflict();
+    
+    	j$('#linkCatEntries').css({backgroundColor: "#333", color: "#FFF"});
+    
+    	//j$("#the_item_id").css({backgroundColor: "#333", color: "#FFF"});
+    
+    	var catalogEntryUrlConst = '{!catalogEntryUrlConst}';
+        var leftNavStatus = 0;
+        var $currentElementExp; 
+    
+        j$(document).ready(function() {            
+            loadMenu();
+         });
+    
+        function loadMenu()
+        {            
+            var $current= j$('.leftnavcategory');        
+        
+            function openSubMenu() {                
+                if (leftNavStatus==0)
+                {
+                    loadSubMenu(j$(this));                    
+                }
+                else
+                {
+                    j$(".sub").remove(); 
+                    
+                    if (j$(this).is($currentElementExp))
+                    {
+                        var firstChildEl =  j$(this).children(":first");
+                        firstChildEl.attr("src", "{!URLFOR($Resource.Service_Catalog_Main,'ServicesCatalog/images/plus.gif')}" );
+                        leftNavStatus=0;
+                    }
+                    else
+                    {
+                        var firstChildEl =  j$($currentElementExp).children(":first");
+                        firstChildEl.attr("src", "{!URLFOR($Resource.Service_Catalog_Main,'ServicesCatalog/images/plus.gif')}" ); 
+                        
+                        loadSubMenu(j$(this));
+                    }
+                }
+            }
+            
+            $current.on( "click", openSubMenu );
+        }
+    
+        function loadSubMenu(element)
+        {
+            var selectedCategory = element.text();
+            
+            queryAndAppendServiceEntry(element,selectedCategory);             
+            
+            var firstChildEl =  element.children(":first");
+            firstChildEl.attr("src", "{!URLFOR($Resource.Service_Catalog_Main,'ServicesCatalog/images/minus.gif')}" ); 
+            
+            leftNavStatus=1;
+        }
+
+        function queryAndAppendServiceEntry(element,selectedCategory)
+        {
+            try
+            { 
+                var query = "SELECT Id, Name, Category__c FROM Service_Catalog_Entry__c WHERE Category__c INCLUDES ('" + selectedCategory + "') and Status__c='Published'";
+                
+                sforce.connection.sessionId = "{!$Api.Session_ID}"; 
+                
+                var queryResult = sforce.connection.query(query); 
+                
+                if (queryResult.size > 0) 
+                {
+                    var output = "";
+                    var records = queryResult.getArray('records');
+                    var catalogentrylink = "";
+                    
+                    for (var i = 0; i <records.length; i++) 
+                    {
+                        var catalogentry = records[i];
+                        var catalogentryname = catalogentry.Name;
+                        
+                        catalogentrylink = catalogEntryUrlConst + catalogentry.Id;
+                        
+                        output += catalogentry.Id + " [Catalog Entry - " + catalogentry.Category__c + "]" + " [Name - " + catalogentry.Name + "]<BR>";
+                        
+                        var firstChildEl =  element.children(":first");
+                        firstChildEl.attr("src", "{!URLFOR($Resource.Service_Catalog_Main,'ServicesCatalog/images/minus.gif')}" );                        
+
+                        element.parent().append("<ul class='sub' style='margin-bottom:0px'><li class='menuTitle'><a class='linkEntry' href='" + catalogentrylink + "'>" + catalogentryname + "</a>" + "</li></ul>");                        
+                    }
+                } 
+                else 
+                {
+                    output = "No records returned.";
+                }
+            }
+            catch(e)
+            { 
+                //alert('Error:' + e); 
+            }
+            
+            $currentElementExp = j$(element);
+        }
+    
+    </script>
+    
+    <style>
+        .LeftNavHeaderClass {
+            FONT-FAMILY:Arial, Helvetica, sans-serif;
+        
+            /*color:RGB(51,102,153);*/
+            font-size: 16px;
+        
+            color: #006f9a;
+        }   
+    </style>
+    <h3 id="LeftNavheader" class="LeftNavHeaderClass">AECOM Technology Capability Catalog</h3>
+
+    <ul class="sideNav" >
+    <apex:repeat value="{!Categories}" var="c" id="CategoriesTable"  >
+        <li class='menuTitle' style="margin-left:0px!important">
+            <div id="mainCatLink" class="leftnavcategory">
+                <img width="10" height="10" class="showImg" id="plus" src="{!URLFOR($Resource.Service_Catalog_Main,'ServicesCatalog/images/plus.gif')}" style="float:right" />
+                <apex:outputText value="{!c}" style="width:80%" />
+            </div>
+        </li>
+    </apex:repeat> 
+    </ul>
+    
+    <apex:outputlink id="linkMyCatEntries" value="{!linkMyCatEntriesURL}" title="All Service Catalog Entries">
+        <span style="color: #006f9a;"><b>View All Capabilities</b></span>
+    </apex:outputlink>
+    
+    <!--
+    <br></br>
+
+    <br></br>
+    
+    <apex:outputlink id="linkAllCatEntries" value="/apex/Service_Catalog_categorySEsPage" title="Click to view all Service Catalog Entries"> 
+        <apex:param name="catParam" value=""/>
+        <span style="color: #006f9a;">All Service Catalog Entries</span>
+    </apex:outputlink>
+	-->
+
+</apex:component>

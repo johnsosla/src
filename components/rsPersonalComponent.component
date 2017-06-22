@@ -1,0 +1,196 @@
+<apex:component controller="rsPersonalController" allowDML="true">
+     <apex:attribute name="rsProfile" assignTo="{!profile}" description="" type="rsProfile" required="true"/>
+
+     <apex:attribute name="reRender" description="" type="String" required="false"/>
+
+     <script type="text/javascript">
+        var $j = jQuery.noConflict();
+        var tdArray = [];
+        var startingInt = 0;
+        $j(document).ready(function() {
+            $j( "#pInfoTabs").tabs({active: getTab('pInfoSubTab')});
+            //Function to reorder table caused by hidden td's in HR Data
+            $j('#hrDataTable > tbody > tr').each(function() {
+                $j(this).children().each(function() {
+                    if($j(this).children().first().css('display') != 'none') {
+                        tdArray.push($j(this));
+                    }
+                    $j(this).remove();
+                });
+                $j(this).remove();
+            });
+            if(tdArray.length % 4 != 0) {
+                tdArray[tdArray.length-1].attr('colspan',3);
+            }
+            for(var i = 0; i < tdArray.length; i += 4) {
+                var tr = $j('<tr></tr>');
+                tr.append(tdArray[i]);
+                if(i == 0) {
+                    tdArray[i].attr('width','20%');
+                }
+                if(tdArray[i+1]) {
+                    tr.append(tdArray[i+1]);
+                    if(i+1 == 1) {
+                        tdArray[i+1].attr('width','30%');
+                    }
+                }
+                if(tdArray[i+2]) {
+                    tr.append(tdArray[i+2]);
+                    if(i+2 == 1) {
+                        tdArray[i+2].attr('width','20%');
+                    }
+                }
+                if(tdArray[i+3]) {
+                    tr.append(tdArray[i+3]);
+                    if(i+3 == 1) {
+                        tdArray[i+3].attr('width','30%');
+                    }
+                }
+                tr.appendTo('#hrDataTable > tbody');
+            }
+            helpTextSetup();
+
+            $j('[id$="yearsWithOtherFirmsEdit"]').keypress(function () {
+                if (this.value != this.value.replace(/[^0-9\.]/g, '') ) {
+                       this.value = this.value.replace(/[^0-9\.]/g, '');
+                }
+                if(this.value.length > 1) {
+                    this.value = this.value.substring(0,1);
+                }
+            });
+        });
+     </script>
+
+
+
+
+     <div class="panel panel-default" >
+        <div class="panel-heading">
+            <h5 class="panel-title has-spinner" id="personalHeader">{!$Label.Personal_Data} <img height="15" width="15" class="spinner" src="{!URLFOR($Resource.rs_bundle, '/images/loading.gif')}" alt="loading" title="loading"/></h5>
+            <apex:commandLink rendered="{!IsListMode && canEdit}" value="" styleClass="pull-right {!IF(canEdit, '','disabled')}" reRender="{!reRender}" action="{!editPart}" onclick="if(inProgress) return false; showSectionSpinner('personalHeader'); inProgress = true;" oncomplete="resetProgress(); focusField('resumeNameEdit');">
+                <img src="/img/func_icons/util/pencil12.gif" alt="{!$Label.Edit}" title="{!$Label.Edit}"/>
+            </apex:commandLink>
+        </div>
+            <apex:outputPanel layout="none" rendered="{!IsEditMode}">
+                <table class="table">
+                    <tr>
+                        <td><apex:outputLabel for="resumeNameEdit" styleClass="helpButton" value="{!$ObjectType['User'].fields['Resume_Name__c'].Label}"><img id="resumeNameEditImg" src="/s.gif" class="helpOrb" title="{!$ObjectType['User'].fields['Resume_Name__c'].inlineHelpText}"/></apex:outputLabel></td>
+                        <td ><apex:inputText id="resumeNameEdit" value="{!ListHead.ResumeName}"/></td>
+                        <td><apex:outputLabel for="resumeTitleEdit" value="{!$ObjectType['User'].fields['Resume_Title__c'].Label}"/></td>
+                        <td><apex:inputText id="resumeTitleEdit" value="{!ListHead.ResumeTitle}"/></td>
+                    </tr>
+                    <tr>
+                        <td><apex:outputLabel for="yearsWithOtherFirmsEdit" styleClass="helpButton" value="{!$ObjectType['User'].fields['Years_with_Other_Firms__c'].Label}" ><img src="/s.gif" class="helpOrb" title="{!$ObjectType['User'].fields['Years_with_Other_Firms__c'].inlineHelpText}"/></apex:outputLabel></td>
+                        <td><apex:inputText id="yearsWithOtherFirmsEdit" value="{!ListHead.YearsWithOtherFirms}"/></td>
+                        <td><apex:outputLabel for="hrLastCMProfileUpdateEdit" rendered="{!IsContentManager || $ObjectType['User'].fields['Last_CM_Profile_Update__c'].Accessible}" value="{!$ObjectType['User'].fields['Last_CM_Profile_Update__c'].Label}"></apex:outputLabel></td>
+                        <td><apex:inputField id="hrLastCMProfileUpdateEdit" rendered="{!IsContentManager || $ObjectType['User'].fields['Last_CM_Profile_Update__c'].Accessible}" value="{!profile.Obj['Last_CM_Profile_Update__c']}"></apex:inputField></td>
+                    </tr>
+                    <tr>
+                        <td><apex:outputLabel for="bioEdit" value="{!$ObjectType['User'].fields['Bio__c'].Label}"/></td>
+                        <td colspan="3">
+                            <apex:inputTextArea rows="15" id="bioEdit" style="width:500px" value="{!ListHead.Bio}"/>
+                        </td>
+                    </tr>
+
+                </table>
+
+                <div class="col-md-4 text-center" style="padding-top:15px; padding-bottom:15px;">
+                   <apex:commandLink styleClass="btn brandStyledBtn" style="text-decoration:none;" action="{!savePart}" value="{!$Label.Save}" reRender="{!reRender}" onclick="if(inProgress) return false; showSectionSpinner('personalHeader'); inProgress = true;" oncomplete="resetProgress();">
+                        <span class="glyphicon glyphicon-ok-circle"></span>
+                    </apex:commandLink>
+                    &nbsp;
+                   <apex:commandLink styleClass="btn brandStyledBtn" style="text-decoration:none;" action="{!saveAndApprove}" value="{!$Label.Save_And_Approve}" reRender="{!reRender}" onclick="if(inProgress) return false; showSectionSpinner('personalHeader'); inProgress = true;" oncomplete="resetProgress();" rendered="{!isApprovable && ListHead.IsPendingOrInReview}">
+                        <apex:param value="{!ListHead.Id}" name="partId"/>
+                        <span class="glyphicon glyphicon-ok-circle"></span>
+                    </apex:commandLink>
+                    &nbsp;
+                    <apex:commandLink immediate="true" styleClass="btn btn--neutral" style="text-decoration:none;" action="{!cancelPart}" value="{!$Label.Cancel}" onclick="if(inProgress) return false; showSectionSpinner('personalHeader'); inProgress = true;" oncomplete="resetProgress();"  reRender="{!reRender}">
+                        <span class="glyphicon glyphicon-remove-circle"></span>
+                    </apex:commandLink>
+                </div>
+
+            </apex:outputPanel>
+
+            <apex:outputPanel layout="none" rendered="{!IsListMode}">
+
+                <table id="personalTable" class="table" width="100%">
+                    <tbody>
+                    <tr>
+                        <td width="25%"><apex:outputLabel for="hrFullName" value="{!$ObjectType['User'].fields['HR_Full_Name__c'].Label}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['User'].fields['HR_Full_Name__c'].inlineHelpText}"/></apex:outputLabel></td>
+                        <td width="25%"><apex:outputText id="hrFullName" value="{!CurrentUser.HR_Full_Name__c}"/></td>
+                        <td width="25%" ><apex:outputLabel for="resumeName" styleClass="helpButton" value="{!$ObjectType['User'].fields['Resume_Name__c'].Label}" ><img src="/s.gif" class="helpOrb" title="{!$ObjectType['User'].fields['Resume_Name__c'].inlineHelpText}"/></apex:outputLabel> </td>
+                        <td width="25%" style="background-color:{!IF(ListHead.IsPendingOrInReview, 'LightYellow', 'white')};"><apex:outputText id="resumeName" value="{!Listhead.ResumeName}"/></td>
+                    </tr>
+                    <tr>
+                       <td><apex:outputLabel for="hrJobTitle" value="{!$ObjectType['User'].fields['Title'].Label}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['User'].fields['Title'].inlineHelpText}"/></apex:outputLabel></td>
+                           <td><apex:outputText id="hrJobTitle" value="{!CurrentUser.Title}"/></td>
+                        <td><apex:outputLabel for="resumeTitle" value="{!$ObjectType['User'].fields['Resume_Title__c'].Label}" /> </td>
+                        <td style="background-color:{!IF(ListHead.IsPendingOrInReview, 'LightYellow', 'white')};"><apex:outputText id="resumeTitle" value="{!Listhead.ResumeTitle}"/></td>
+                    </tr>
+                    <tr>
+                        <td><apex:outputLabel for="yearsWithAECOM" value="{!$ObjectType['User'].fields['Years_with_AECOM__c'].Label}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['User'].fields['Years_with_AECOM_Num__c'].inlineHelpText}"/></apex:outputLabel></td>
+                        <td><apex:outputField id="yearsWithAECOM" value="{!CurrentUser.Years_With_AECOM__c}"/></td>
+                        <td><apex:outputLabel for="yearsWithOtherFirms" value="{!$ObjectType['User'].fields['Years_with_Other_Firms__c'].Label}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['User'].fields['Years_with_Other_Firms__c'].inlineHelpText}"/></apex:outputLabel></td>
+                        <td style="background-color:{!IF(ListHead.IsPendingOrInReview, 'LightYellow', 'white')};"><apex:outputText id="yearsWithOtherFirms" value="{!Listhead.YearsWithOtherFirms}"/></td>
+                    </tr>
+                    <tr>
+                        <td><apex:outputLabel for="totalYears" styleClass="helpButton" value="{!$ObjectType['User'].fields['Years_Of_Experience__c'].Label}" ><img src="/s.gif" class="helpOrb" title="{!$ObjectType['User'].fields['Years_Of_Experience__c'].inlineHelpText}"/></apex:outputLabel></td>
+                        <td><apex:outputField id="totalYears" value="{!CurrentUser.Years_Of_Experience__c}"/></td>
+                        <td><apex:outputLabel rendered="{!IsOwnerOrContentManager || $ObjectType['User'].fields['Cisco_IP_Phone__c'].Accessible}" for="ciscoIPPhone" value="{!$ObjectType['User'].fields['Cisco_IP_Phone__c'].Label}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['User'].fields['Cisco_IP_Phone__c'].inlineHelpText}"/></apex:outputLabel></td>
+                        <td>
+                            <apex:outputText rendered="{!IsOwnerOrContentManager || $ObjectType['User'].fields['Cisco_IP_Phone__c'].Accessible}" id="ciscoIPPhone" value="{!profile.CiscoIPPhone}"/>
+                        </td>
+                    </tr>
+                    <tr>
+                          <td>
+                            <apex:outputLabel rendered="{!IsOwnerOrContentManager || $ObjectType['User'].fields['TrackingId__c'].Accessible}" for="trackingId" value="{!$ObjectType['User'].fields['TrackingId__c'].Label}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['User'].fields['TrackingId__c'].inlineHelpText}"/></apex:outputLabel>
+                          
+                        </td>
+                        
+                         <td >
+                                 <apex:outputText rendered="{!IsOwnerOrContentManager || $ObjectType['User'].fields['TrackingId__c'].Accessible}" id="trackingId" value="{!profile.TrackingId}"/>
+                        </td>
+                        <td>
+                            <apex:outputLabel for="personalEmployeeNumber" rendered="{!IsOwnerOrContentManager || $ObjectType['User'].fields['EmployeeNumber'].Accessible}" value="{!$ObjectType['User'].fields['EmployeeNumber'].Label}"></apex:outputLabel>
+                        </td>
+                        <td >
+                            <apex:outputText id="personalEmployeeNumber" rendered="{!IsOwnerOrContentManager || $ObjectType['User'].fields['EmployeeNumber'].Accessible}" value="{!profile.EmployeeNumber}"></apex:outputText>
+                        </td>
+                    </tr>
+                    <apex:outputPanel layout="none" rendered="{!IsContentManager}">
+                    <tr>
+                        <td>
+                            <apex:outputLabel for="hrLastUserProfileUpdate" rendered="{!IsContentManager || $ObjectType['User'].fields['Last_User_Profile_Update__c'].Accessible}" value="{!$ObjectType['User'].fields['Last_User_Profile_Update__c'].Label}"></apex:outputLabel>
+                        </td>
+                        <td >
+                            <apex:outputText id="hrLastUserProfileUpdate" rendered="{!IsContentManager || $ObjectType['User'].fields['Last_User_Profile_Update__c'].Accessible}" value="{!profile.LastUserProfileUpdate}"></apex:outputText>
+                        </td>
+                        <td>
+                            <apex:outputLabel for="hrLastCMProfileUpdate" rendered="{!IsContentManager || $ObjectType['User'].fields['Last_CM_Profile_Update__c'].Accessible}" value="{!$ObjectType['User'].fields['Last_CM_Profile_Update__c'].Label}"></apex:outputLabel>
+                        </td>
+                        <td >
+                            <apex:outputText id="hrLastCMProfileUpdate" rendered="{!IsContentManager || $ObjectType['User'].fields['Last_CM_Profile_Update__c'].Accessible}" value="{!profile.LastCMProfileUpdate}"></apex:outputText>
+                        </td>
+                        </tr>
+                    </apex:outputPanel>
+                    </tbody>
+                </table>
+
+            </apex:outputPanel>
+    </div>
+
+    <apex:outputPanel layout="none" rendered="{!IsListMode}">
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h5 class="panel-title">Bio</h5>
+            </div>
+            <div style="background-color:{!IF(ListHead.IsPendingOrInReview, 'LightYellow', 'white')};">
+                <br/>
+                <apex:outputText id="bio" value="{!Listhead.Bio}" />
+            </div>
+        </div>
+
+    </apex:outputPanel>
+
+</apex:component>

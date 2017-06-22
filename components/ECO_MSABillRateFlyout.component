@@ -1,0 +1,273 @@
+<apex:component controller="ECO_MSABillRateFlyoutController" extensions="nttdcore.DLabelChildController" >
+	<apex:attribute name="ProjectId" description="Parent Project ID" type="ID" assignto="{!sProjectId}" required="true" />
+
+	<apex:stylesheet value="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/css/font-awesome.min.css')}" />
+
+	<apex:includeScript value="{!$Resource.ECO_jQuery_1_11_2_min_js}" />
+	<apex:includeScript value="{!URLFOR($Resource.ECO_jQueryUI_1_11_2, 'jquery-ui.min.js')}" />
+	
+	<script>
+
+		$q = jQuery.noConflict();
+	
+		var MSABillRateFlyout = {
+			init : function(){
+				$q('body').on('click', MSABillRateFlyout.hideContentFlyout);
+	       		
+	       		$q('#msaPane').on('click', function(event) { 
+  					event.stopPropagation();
+	       		});
+	       		
+	       		$q('#msaPane .tab').on('click', MSABillRateFlyout.showContentFlyout);
+	       		
+	       		$q('#msaPane .close').click(function(){
+	       			MSABillRateFlyout.hideContentFlyout();
+	       		});
+			},
+
+			hideContentFlyout : function(){
+	       		var width = $q('#msaPane').outerWidth() * -1 + 'px';
+	       		
+	       		$q('#msaPane').animate({
+		       		right : width
+				  }, 550, 'easeInCubic');
+	        },
+	       
+	        showContentFlyout : function(event){
+	       		event.stopPropagation();
+	       		
+	       		if($q('#msaPane').css('right') == '0px'){
+	       			MSABillRateFlyout.hideContentFlyout();
+	       		}else{
+	       			$q('#msaPane').animate({
+			       		right : 0
+					  }, 550, 'easeOutCubic');
+	       		}
+	        }
+	    }
+
+	    $q(document).ready(function (){
+	    	MSABillRateFlyout.init();
+	    });
+    </script>	
+    
+    <style>
+    	/*
+				FLYOUT STYLES
+		*/
+
+		#msaPane.MSABillRateFlyout {
+			background-color:#f3f3f3;
+			position: fixed;
+			width: 725px;
+			right: -747px;
+			top: 275px;
+			padding: 10px 0 20px 20px;
+			border-right: none;
+			-webkit-border-top-left-radius: 20px;
+			-webkit-border-bottom-left-radius: 20px;
+			-moz-border-radius-topleft: 20px;
+			-moz-border-radius-bottomleft: 20px;
+			border-top-left-radius: 20px;
+			border-bottom-left-radius: 20px;
+			z-index: 5000;
+			margin-left: 42px;
+			min-height: 400px;
+			box-shadow: 0 0 10px #787878;
+			border: 1px solid #DEDEDE;
+		}
+
+		#msaPane.MSABillRateFlyout .tab {
+			position: absolute;
+			border-right: none;
+			background-color: #f3f3f3;
+			
+			-webkit-border-top-left-radius: 10px;
+			-webkit-border-top-right-radius: 10px;
+			-moz-border-radius-topleft: 10px;
+			border-top-left-radius: 10px;
+			cursor: pointer;
+			padding:7px 8px;
+			box-shadow:0 -3px 4px #959595;
+
+			top:100px;
+			left: -57px;
+
+			-webkit-transform: rotate(-90deg); 
+			-moz-transform: rotate(-90deg);	
+		}
+
+		#msaPane.MSABillRateFlyout .close {
+			color: #D6D6D6;
+			cursor: pointer;
+			display: block;
+			float: right;
+			font-family: 'Platform-Font', Helvetica, Arial, sans-serif;
+			padding-left: 25px;
+			padding-right: 20px;
+			text-align: right;
+			text-transform: uppercase;
+		}
+
+		#msaPane.MSABillRateFlyout .delete{
+			position: absolute;
+			top: 12px;
+			right: 7px;
+			padding: 6px 8px;
+		}
+
+		#msaPane.MSABillRateFlyout .delete:hover{
+			text-decoration:underline;
+		}
+
+		#msaPane.MSABillRateFlyout .header {
+			color: #333;
+			font-size: 25px;
+			padding-bottom: 15px;
+			padding-top: 10px;
+		}
+		
+		#msaPane.MSABillRateFlyout .body {
+			padding-right: 20px;
+		}
+
+		#msaPane.MSABillRateFlyout select{
+			margin:2px 0 5px 0;
+		}
+
+		#msaPane.MSABillRateFlyout .table{
+			width: 100%;
+			max-width: 100%;
+			margin-bottom: 20px;
+			margin-top:15px;
+		}
+
+		#msaPane.MSABillRateFlyout .table th{
+			font-size: 1.05em;
+			font-weight: 600;
+			border-bottom: 2px solid rgba(0, 0, 0, 0.14);
+		}
+
+		#msaPane.MSABillRateFlyout .table-striped > tbody > tr:nth-child(4n), #riskPane.riskFlyout .table-striped > tbody > tr:nth-child(4n-1){
+			background-color: #f6f8fa;
+		}
+
+		#msaPane.MSABillRateFlyout .table td{
+			border-top: 1px solid rgba(0, 0, 0, 0.05);
+		}
+
+		#msaPane.MSABillRateFlyout .table>tbody>tr>td, .flyout .table>tbody>tr>th, .flyout .table>tfoot>tr>td, .flyout .table>tfoot>tr>th, .flyout .table>thead>tr>td, .flyout .table>thead>tr>th{
+			padding: 8px;
+			line-height: 1.42857143;
+			vertical-align: top;
+		}
+
+		#msaPane.MSABillRateFlyout .label-table{
+			display: inline-block;
+			width: 80%;
+			min-width: 8ex;
+			font-size: 1em;
+			max-width: 100px;
+			padding: 5px;
+			text-overflow: ellipsis;
+			overflow: hidden;
+		}
+
+		/* tables */
+		#msaPane.MSABillRateFlyout table.tablesorter {
+			font-family:arial;
+			background-color: #CDCDCD;
+			margin:10px 0pt 15px;
+			font-size: 8pt;
+			width: 100%;
+			text-align: left;
+		}
+
+		#msaPane.MSABillRateFlyout table.tablesorter thead tr th, table.tablesorter tfoot tr th {
+			background-color: #aebdee;
+			border: 1px solid #FFF;
+			font-size: 8pt;
+			padding: 4px;
+		}
+
+		#msaPane.MSABillRateFlyout table.tablesorter thead tr .header {
+			background-image: url(bg.gif);
+			background-repeat: no-repeat;
+			background-position: center right;
+			cursor: pointer;
+		}
+
+		#msaPane.MSABillRateFlyout table.tablesorter tbody td {
+			color: #3D3D3D;
+			padding: 4px;
+			background-color: #FFF;
+			vertical-align: top;
+			height: 20px;
+		}
+
+		#msaPane.MSABillRateFlyout table.tablesorter tbody tr.odd td {
+			background-color:#F0F0F6;
+		}
+
+		#msaPane.MSABillRateFlyout table.tablesorter thead tr .headerSortUp {
+			background-image: url(asc.gif);
+		}
+
+		#msaPane.MSABillRateFlyout table.tablesorter thead tr .headerSortDown {
+			background-image: url(desc.gif);
+		}
+
+		#msaPane.MSABillRateFlyout table.tablesorter thead tr .headerSortDown, table.tablesorter thead tr .headerSortUp {
+		background-color: #8dbdd8;
+		}
+
+		.noteText{
+			color:#818181;
+			font-style: italic;
+		}
+
+    </style>    
+    <div id="msaPane" class="MSABillRateFlyout flyout" >
+		<div class="close" >
+			<i class="fa fa-arrow-right" style="color:#333;" />
+		</div>
+		<div class="tab" ><nttdcore:DLabel name="DL1" default="MSA Bill Rates" labelParent="{!this}" componentContext="ECO_MSABillRateFlyout" />
+			{!dlRoot.dLabel['DL1']}
+		</div>
+		<div class="header" ><nttdcore:DLabel name="DL2" default="MSA Bill Rates" labelParent="{!this}" componentContext="ECO_MSABillRateFlyout" />
+			{!dlRoot.dLabel['DL2']}
+		</div>
+		<apex:outputPanel id="msaBillRatePanel" >
+		<apex:pageBlock >		
+		<div class="list" >		
+ 		<table cellpadding="0" cellspacing="0" width="100%" >
+			<tr>
+				<th><nttdcore:DLabel name="DL3" default="Labor Category" labelParent="{!this}" componentContext="ECO_MSABillRateFlyout" />{!dlRoot.dLabel['DL3']}</th>
+					<apex:repeat value="{!BillRates.periods}" var="period" >
+				<th><span>
+					<apex:outputText value="{0,date,MM/dd/yyyy}' - '" >
+						<apex:param value="{!period.BillRateStart__c}" />
+					</apex:outputText>
+					<apex:outputText value="{0,date,MM/dd/yyyy}" >
+						<apex:param value="{!period.BillRateEnd__c}" />
+					</apex:outputText>
+				</span></th>
+				</apex:repeat>
+			</tr>
+ 	 		<apex:repeat value="{!BillRates.laborCategories}" var="laborCategory" >
+			<tr>
+				<td><apex:outputText value="{!laborCategory}" /></td>
+  					<apex:repeat value="{!BillRates.periods}" var="period" >
+ 					<apex:variable var="key" value="{!period.Id}-{!laborCategory}" />
+ 					<td>
+ 						<apex:outputField value="{!BillRates.billRatePeriodCategoryRateMap[key].BillRate__c}" html-placeholder="{!period.Id}-{!laborCategory}" />					
+ 					</td>			
+				</apex:repeat>  
+			</tr>
+			</apex:repeat>
+		</table>
+		</div>
+		</apex:pageBlock>
+	 	</apex:outputPanel>
+	</div>
+</apex:component>

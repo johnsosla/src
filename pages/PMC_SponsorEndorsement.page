@@ -1,0 +1,73 @@
+<apex:page showHeader="true" sidebar="true" standardController="PMCertReq__c" action="{!checkUserIsSponsor}" extensions="PMC_SponsorEndorsementController">
+	<style type="text/css">
+		.requiredField {
+			border-left: 3px solid #f00;
+		}	
+
+	</style>
+
+
+	<apex:form >
+
+	<apex:pageMessages />
+
+	<span style="font-size: 2em; font-weight: bold; margin:10px">{!$Label.PMCAP_Sponsor_Endorsement_Page_Header}</span>
+		<apex:pageBlock rendered="{!!userIsNotSponsor}">
+			<apex:pageBlockButtons style="float: right">
+				<apex:commandButton value="{!$Label.Next}" action="{!next}" />
+			</apex:pageBlockButtons>
+
+			<b><u>{!$Label.PMCAP_Sponsor_Endorsement_Title}</u></b>
+
+			<p>{!$Label.PMCAP_Sponsor_Endorsement_IVerify_1}. <a href="{!$Label.PMCAP_Sponsor_Endorsement_CompetenciesBehaviorsLink}">{!$Label.PMCAP_Click_Here}</a> {!$Label.PMCAP_Sponsor_Endorsement_IVerify_2}.</p>
+
+			<p>
+			{!$Label.PMCAP_Sponsor_Endorsement_CandidateName}- &nbsp; <apex:outputField value="{!certReq.Candidate__c}" />
+			<br/>
+		{!$Label.PMCAP_Sponsor_Endorsement_CandidateTitle}- &nbsp; <apex:outputField value="{!certReq.Candidate_Title__c}" />
+			<br/>
+			{!$Label.PMCAP_Sponsor_Endorsement_CandidateSuper}- &nbsp; <apex:outputField value="{!certReq.Candidate_Supervisor__c}" />
+			<br/>
+			{!$Label.PMCAP_Sponsor_Endorsement_CandidateRes}- &nbsp; <apex:outputField value="{!certReq.CandidatesResume__c}" />
+			</p>
+
+			<br/><br/>
+
+			<apex:pageBlockSection columns="1">
+
+				<apex:pageBlockSectionItem helpText="{!$Label.PMCAP_Sponsor_Endorsement_EndorseHelp}">
+					<apex:outputLabel value="{!$ObjectType.PMCertReq__c.fields.Sponsor_Endorsement__c.Label}" />
+					<apex:selectRadio value="{!certReq.Sponsor_Endorsement__c}" layout="pageDirection" required="true" styleClass="requiredField">
+						<apex:selectOptions value="{!endorsementOptions}" />
+					</apex:selectRadio>
+				</apex:pageBlockSectionItem>
+
+			</apex:pageBlockSection>
+
+			<p>
+
+				*{!$Label.PMCAP_Sponsor_Endorsement_LimitNote}
+
+			</p>
+
+			<apex:outputPanel rendered="{!lengthExceeded}">
+				<p style="font-weight: bold; color: #f00">
+					{!$Label.PMCAP_Sponsor_Endorsement_LimitError1} <apex:outputText value="{!LEN(certReq.Sponsor_Comments__c)}" />). {!$Label.PMCAP_Sponsor_Endorsement_LimitError2}.
+				</p>
+			</apex:outputPanel>
+
+			<br/>
+
+			<apex:pageBlockSection columns="1">
+				<apex:pageBlockSectionItem helpText="{!$Label.PMCAP_Sponsor_Endorsement_CommentsHelp}.">
+					<apex:outputLabel value="{!$ObjectType.PMCertReq__c.fields.Sponsor_Comments__c.Label}" />
+					<apex:outputPanel styleClass="requiredInput" layout="block">
+						<div class="requiredBlock" />
+						<apex:inputTextarea rows="8" cols="80" value="{!certReq.Sponsor_Comments__c}" required="true" />
+					</apex:outputPanel>
+				</apex:pageBlockSectionItem>
+			</apex:pageBlockSection>
+
+		</apex:pageBlock>
+	</apex:form>
+</apex:page>

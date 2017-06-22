@@ -1,0 +1,12 @@
+<apex:component language="{!theLanguage}" controller="nttdcore.DLabelChildController" access="global" ><nttdcore:DLabel name="DL1" default="{{1}} has been rejected for project {{2}}.
+    
+    Comments:" labelParent="{!this}" componentContext="EcoPurchase_Order_Request_Rejected059_3" p1="{!theRelatedTo.Name}" p2="{!theRelatedTo.Project__r.Name}" /><nttdcore:DLabel name="DL2" default="Purchase Order No: {{1}}
+    Project No: {{2}}
+    Project Name: {{3}}
+    Vendor: {{4}}
+    Amount: {{5}}
+    
+    PO Link: {{6}}{{7}}" labelParent="{!this}" componentContext="EcoPurchase_Order_Request_Rejected059_3" p1="{!theRelatedTo.Name}" p2="{!theRelatedTo.ProjectNumber__c}" p3="{!theRelatedTo.Project__r.Name}" p4="{!theRelatedTo.VendorName__c}" p5="{!theRelatedTo.Total__c}" p6="{!LEFT($Api.Partner_Server_URL_290,FIND('services',$Api.Partner_Server_URL_290)-1)}" p7="{!theRelatedTo.Id}" /><apex:attribute name="theLanguage" type="String" required="true" description="language" access="global" /><apex:attribute name="theRecipient" type="Contact" required="true" description="recipient" access="global" /><apex:attribute name="theRelatedTo" type="POHeader__c" required="true" description="related to" access="global" />
+    {!dlRoot.dLabel['DL1']} <c:ECO_ApprovalRequestComments relatedtoid="{!theRelatedTo.id}" />
+    {!dlRoot.dLabel['DL2']}
+<nttdcore:DLabelInit language="{!theLanguage}" labelParentInit="{!this}" /></apex:component>

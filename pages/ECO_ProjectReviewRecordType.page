@@ -1,0 +1,246 @@
+<apex:page standardcontroller="pse__Proj__c" tabstyle="ProjectReview__c" extensions="ECO_ProjectReviewRecordTypeController,nttdcore.DLabelParentController" action="{!init}" >
+<apex:messages />
+    <style>
+
+        .recordTypeTable{
+            border-collapse:collapse;
+        }
+
+        .recordTypeTable th, .recordTypeTable td {
+          padding: 8px 2px 8px 5px;
+          border: 1px solid #dbdbdb;;
+          border-collapse: collapse;
+        }
+        
+        .recordTypeTable tr {
+          border: 1px solid #dbdbdb;;
+          border-collapse: collapse;
+        }
+        
+        .recordTypeTable td {
+            background-color: white;
+        }
+         /* CUSTOM HELP / GUIDANCE TEXT BOX */
+        .customHelpText{
+            padding: 7px;
+            border: 1px solid #85B3CE;
+            min-height: 30px;
+            display: block;
+            width: auto;
+            margin: 0 0 5px 0;
+            background-repeat: no-repeat;
+            border-radius: 4px;
+            background-color: #A2D3F1;
+            
+        }
+        .customHelpBody{
+            display:inline-block;
+            color:#;
+            max-width:95%;
+        }
+
+
+        
+    </style>
+    <script type="text/javascript" >
+        function recordTypeSelected(recordType)
+        {
+            createNewReview(recordType);
+        }
+
+        function disableAfterSubmit(id) {
+            //alert(id);
+            var toDisable = document.getElementById( id );
+            toDisable.disabled = 'disabled';
+            // Use the Salesforce CSS style to make the button appear disabled
+            toDisable.className = 'btnDisabled';
+            //toDisable.value = "Saving..."
+        }
+    </script>
+<apex:form >
+<nttdcore:DLabel name="DL1" default="Project Reviews" labelParent="{!this}" /><apex:sectionHeader title="{!dLabel['DL1']}" subtitle="{!pse__Proj__c.Name + "(" + pse__Proj__c.EcoSystemReferenceNumber__c + ")"}" /> <!-- need to add {!theProject.Name} -->
+
+    <c:ECO_CollapsibleSection sectiontitle="General Guidance Information" ><nttdcore:DLabel name="DL2" default="Project reviews are design to assist the project manager to manage the project and minimise project risks. Project reviews provide a platform for the project manager to seek approval to proceed through distinct approval gates, provide regular updates to stakeholders on the financial health of the project and to seek advice and guidance to manage project issues." labelParent="{!this}" />  
+        {!dLabel['DL2']} 
+    </c:ECO_CollapsibleSection>
+                   
+ <nttdcore:DLabel name="DL3" default="Project Reviews" labelParent="{!this}" /><apex:pageBlock title="{!dLabel['DL3']}" ><nttdcore:DLabel name="DL5" default="Existing Project Reviews" labelParent="{!this}" /><nttdcore:DLabel name="DL6" default="Action" labelParent="{!this}" /><nttdcore:DLabel name="DL7" default="Del" labelParent="{!this}" /><nttdcore:DLabel name="DL8" default="Name" labelParent="{!this}" /><nttdcore:DLabel name="DL9" default="Review Status" labelParent="{!this}" /><nttdcore:DLabel name="DL10" default="Record Type" labelParent="{!this}" /><nttdcore:DLabel name="DL11" default="Scheduled Date" labelParent="{!this}" /><nttdcore:DLabel name="DL12" default="Completed Date" labelParent="{!this}" /><nttdcore:DLabel name="DL13" default="Responsible Person" labelParent="{!this}" /><nttdcore:DLabel name="DL14" default="No records to display" labelParent="{!this}" /><nttdcore:DLabel name="DL15" default="Create New Project Review" labelParent="{!this}" /><nttdcore:DLabel name="DL16" default="Record Type Name" labelParent="{!this}" /><nttdcore:DLabel name="DL17" default="Record Type Description" labelParent="{!this}" /><nttdcore:DLabel name="DL18" default="Project Kickoff (Client)" labelParent="{!this}" /><nttdcore:DLabel name="DL19" default="Project Kickoff meetings with the client(s) are used to review essential project information at the beginning of the project with the client to foster mutual understanding of and clarify the client&rsquo;s expectations, project goals, project approach and requirements.  Information gathered from the meeting should be used to further inform the Project Plan." labelParent="{!this}" /><nttdcore:DLabel name="DL20" default="Select" labelParent="{!this}" /><nttdcore:DLabel name="DL21" default="BIM Healthy Start/Restart" labelParent="{!this}" /><nttdcore:DLabel name="DL22" default="BIM Healthy Start is designed to provide the project pursuit or project management 
+                    team full access to AECOM BIM experts to better understand, plan, 
+                    respond, and deliver BIM projects to our clients.  
+                    This review is required anytime a project is executed or planned to be executed utilizing 
+                    BIM technologies (whether contractually required or not)." labelParent="{!this}" /><nttdcore:DLabel name="DL23" default="Select" labelParent="{!this}" /><nttdcore:DLabel name="DL24" default="Healthy Start/Restart" labelParent="{!this}" /><nttdcore:DLabel name="DL25" default="The Healthy Start Review is to assure that a project is initiated in an appropriate manner to promote the greatest potential for success during its execution. 
+                    The Healthy Restart Review is to assure that a project that has been identified as either exposing or potentially exposing AECOM to unnecessary risk 
+                    is re-planned in an appropriate manner to promote the greatest potential for success during the remainder of its execution. 
+                    This review is mandatory for those projects and proposals identified as requiring either a Healthy Start Review or a Healthy Restart Review." labelParent="{!this}" /><nttdcore:DLabel name="DL26" default="Select" labelParent="{!this}" /><nttdcore:DLabel name="DL27" default="Monthly Project Review" labelParent="{!this}" /><nttdcore:DLabel name="DL28" default="A financial health check of the project each month, at a minimum, is mandatory for all AECOM projects, regardless of project category.  
+                    This review is conducted by the Project Manager and involves assessment of the project against predetermined predictive criteria.  
+                    Detailed Project Performance Reviews may be requested for projects that trigger the criteria." labelParent="{!this}" /><nttdcore:DLabel name="DL29" default="Select" labelParent="{!this}" /><nttdcore:DLabel name="DL30" default="Project Performance Review" labelParent="{!this}" /><nttdcore:DLabel name="DL31" default="Project Performance Reviews are used for C-0, C-1, Tier 1 or Tier 2 projects to fully assess the financial 
+                    health of the project and adherence to scope, schedule, budget and other issues commensurate with the risk 
+                    inherent in the project.  C-0 and C-1 projects represent the highest financial, legal and/or technical 
+                    risk to AECOM and require monthly Project Performance Reviews.  Tier 1 projects are selected when a project 
+                    meets specific financial thresholds. Tier 2 projects are all other projects randomly selected for a review.  
+                    The Project Manager will be notified if their projects fall into the Tier 1 or Tier 2 criteria and require a review." labelParent="{!this}" /><nttdcore:DLabel name="DL32" default="Select" labelParent="{!this}" /><nttdcore:DLabel name="DL33" default="Technical Approach Review" labelParent="{!this}" /><nttdcore:DLabel name="DL34" default="The Technical Approach Review is used to plan the technical quality approach for the project deliverables and/or services. The review is performed by the PM, Project Approver and appropriate Technical Leads to ensure the correct technical solution is being proposed or designed to meet client contract requirements and expectations. &nbsp;The outcomes of the meeting support preparation and successful technical execution of the Project Plan." labelParent="{!this}" /><nttdcore:DLabel name="DL35" default="Select" labelParent="{!this}" /><nttdcore:DLabel name="DL36" default="Project Kickoff (Project Team)" labelParent="{!this}" /><nttdcore:DLabel name="DL37" default="The Project Kickoff meeting reviews essential project information at the beginning of the project with the project team, including subs and/or partners.  
+                    A separate meeting may also be conducted with the client to foster mutual understanding of and clarify the client&rsquo;s expectations, project goals, project approach and requirements. 
+                    Kickoff meetings may also occur more than once during the project, for example at the beginning of significant milestones, addition of new scope of work, change in PM, 
+                    project staff, disciplines or subs, or after projects become reactivated after a significant &ldquo;on hold&rdquo; period." labelParent="{!this}" /><nttdcore:DLabel name="DL38" default="Select" labelParent="{!this}" /><nttdcore:DLabel name="DL39" default="Other" labelParent="{!this}" /><nttdcore:DLabel name="DL40" default="Any other reviews or meetings identified by the PM, project team or client throughout the life of the project." labelParent="{!this}" /><nttdcore:DLabel name="DL41" default="Select" labelParent="{!this}" />
+
+    
+    <apex:pageBlockButtons location="top" >
+        <nttdcore:DLabel name="DL4" default="Return to Project" labelParent="{!this}" /><apex:commandButton action="{!cancel}" value="{!dLabel['DL4']}" immediate="true" />
+    </apex:pageBlockButtons>
+    
+    <apex:pageBlockSection title="{!dLabel['DL5']}" columns="1" collapsible="false" >
+        <apex:pageBlockTable value="{!ProjectReviews}" var="projectReview" rendered="{!ProjectReviews.size > 0}" >
+            <apex:column style="width:60px" headervalue="{!dLabel['DL6']}" >
+                <apex:outputPanel rendered="{!(NOT(projectReview.IsPerformanceReview__c) && projectReview.CompletedDate__c == null) || (projectReview.IsPerformanceReview__c && projectReview.Status__c != 'Approved')}" >
+                    <apex:commandLink style="color:#015ba7;" action="{!URLFOR($Action.ProjectReview__c.delete, projectReview.Id, ['retURL'='/apex/ECO_ProjectReviewRecordType?id='&pse__Proj__c.Id])}" >{!dLabel['DL7']}</apex:commandLink>
+                </apex:outputPanel>
+            </apex:column>
+            <apex:column headervalue="{!dLabel['DL8']}" >
+                <apex:outputPanel rendered="{!NOT(projectReview.IsPerformanceReview__c)}" >
+                    <apex:commandLink action="{!URLFOR($Action.ProjectReview__c.view, projectReview.Id, ['retURL'='/apex/ECO_ProjectReviewRecordType?id='&pse__Proj__c.Id])}" >
+                        <apex:outputField value="{!projectReview.Name}" />
+                    </apex:commandLink>
+                </apex:outputPanel>
+                <apex:outputPanel rendered="{!projectReview.IsPerformanceReview__c}" >
+                    <apex:outputLink value="{!URLFOR('/apex/ECO_ProjectPerformanceReviews?id=' + projectReview.Id, null, ['retURL'='/apex/ECO_ProjectReviewRecordType?id='&pse__Proj__c.Id])}" >
+                        <apex:outputField value="{!projectReview.Name}" />
+                    </apex:outputLink>
+                </apex:outputPanel>
+            </apex:column>
+            <apex:column headervalue="{!dLabel['DL9']}" ><apex:outputField value="{!projectReview.Status__c}" /></apex:column>
+            <apex:column headervalue="{!dLabel['DL10']}" ><apex:outputField value="{!projectReview.RecordType.Name}" /></apex:column>
+            <apex:column headervalue="{!dLabel['DL11']}" ><apex:outputField value="{!projectReview.ScheduledDate__c}" /></apex:column>
+            <apex:column headervalue="{!dLabel['DL12']}" ><apex:outputField value="{!projectReview.CompletedDate__c}" /></apex:column>
+            <apex:column headervalue="{!dLabel['DL13']}" ><apex:outputField value="{!projectReview.Responsible_Person__c}" /></apex:column>
+        </apex:pageBlockTable>  
+        <apex:outputPanel rendered="{!ProjectReviews.size == 0}" >
+            <apex:outputText value="{!dLabel['DL14']}" />
+        </apex:outputPanel> 
+        
+            
+    </apex:pageBlockSection>
+    
+    <apex:pageBlockSection title="{!dLabel['DL15']}" columns="1" collapsible="false" >   
+        <apex:actionFunction action="{!createNewProjectReview}" name="createNewReview" rerender="none" >
+            <apex:param name="RecordType" value="" />
+        </apex:actionFunction>
+        
+        <apex:outputPanel >
+        <table class="recordTypeTable" >
+            <tr>
+                <th>{!dLabel['DL16']}</th>
+                <th>{!dLabel['DL17']}</th>
+                <th/>
+            </tr>
+            <tr>
+                <td><apex:outputText value="{!dLabel['DL18']}" /></td>
+                <td><apex:outputText >
+                    {!dLabel['DL19']}
+                </apex:outputText>
+                </td>
+                <td><apex:commandButton value="{!dLabel['DL20']}" onclick="disableAfterSubmit(this.id); recordTypeSelected('Project Kickoff'); return false;" id="btn1" /></td>
+            </tr>
+            <tr><td width="12%" ><apex:outputText value="{!dLabel['DL21']}" /></td>
+                <td width="83%" ><apex:outputText >
+                    {!dLabel['DL22']}
+                </apex:outputText></td>
+                <td width="5%" ><apex:commandButton value="{!dLabel['DL23']}" onclick="disableAfterSubmit(this.id); recordTypeSelected('BIM Healthy Start'); return false;" id="btn2" /></td>
+            </tr>
+            <tr>
+                <td><apex:outputText value="{!dLabel['DL24']}" /></td>
+                <td><apex:outputText >
+                    {!dLabel['DL25']} 
+                </apex:outputText></td>
+                <td><apex:commandButton value="{!dLabel['DL26']}" onclick="disableAfterSubmit(this.id); recordTypeSelected('Healthy Start/Restart'); return false;" id="btn3" /></td>
+            </tr>   
+            
+            <tr>
+                <td><apex:outputText value="{!dLabel['DL27']}" /></td>
+                <td><apex:outputText >
+                    {!dLabel['DL28']}</apex:outputText></td>
+                <td><apex:commandButton value="{!dLabel['DL29']}" onclick="disableAfterSubmit(this.id); recordTypeSelected('Monthly Project Review'); return false;" id="btn4" /></td>
+            </tr>
+            <tr>
+                <td><apex:outputText value="{!dLabel['DL30']}" /></td>
+                <td><apex:outputText >
+                    {!dLabel['DL31']}            
+                </apex:outputText>
+                </td>
+                <td><apex:commandButton value="{!dLabel['DL32']}" onclick="disableAfterSubmit(this.id); recordTypeSelected('Project Performance Review'); return false;" id="btn5" /></td>
+            </tr>        
+            <tr>
+                <td><apex:outputText value="{!dLabel['DL33']}" /></td>
+                <td><apex:outputText >
+                {!dLabel['DL34']}             
+                </apex:outputText>
+                </td>
+                <td><apex:commandButton value="{!dLabel['DL35']}" onclick="disableAfterSubmit(this.id); recordTypeSelected('Technical Approach Review'); return false;" id="btn6" /></td>
+            </tr>  
+            <tr>
+                <td><apex:outputText value="{!dLabel['DL36']}" /></td>
+                <td><apex:outputText >
+                    {!dLabel['DL37']}                            
+                </apex:outputText>
+                </td>
+                <td><apex:commandButton value="{!dLabel['DL38']}" onclick="disableAfterSubmit(this.id); recordTypeSelected('Project Kickoff (Project Team)'); return false;" id="btn7" /></td>
+            </tr> 
+            
+            <!--<tr>
+                <td><apex:outputText value="Project Closeout"/></td>
+                <td><apex:outputText >
+                    The Project Closeout review verifies that all project and performance goals and requirements have been successfully achieved, ensures mandatory project delivery 
+                    requirements have been properly completed, and derives any lessons learned to apply to future projects. 
+                </apex:outputText>
+                </td>
+                <td><apex:commandButton value="Select" onclick="recordTypeSelected('Project Closeout'); return false;"/></td>   
+            </tr>-->
+            <tr>
+                <td><apex:outputText value="{!dLabel['DL39']}" /></td>
+                <td><apex:outputText >{!dLabel['DL40']}</apex:outputText></td>
+                <td><apex:commandButton value="{!dLabel['DL41']}" onclick="disableAfterSubmit(this.id); recordTypeSelected('Other'); return false;" id="btn8" /></td>
+            </tr>       
+                    
+        </table></apex:outputPanel>
+    </apex:pageBlockSection>
+<!--    
+
+
+    <apex:commandButton value="Select"></apex:commandButton>
+    
+    <apex:outputText value="Other"/>
+    <apex:outputText>Any other reviews or meetings identified by the PM, project team or client throughout the life of the project.</apex:outputText>
+    <apex:commandButton value="Select"></apex:commandButton>
+    
+    <apex:outputText value="Performance Review"/>
+    <apex:outputText>
+        The Performance Review assesses the financial health of the project and adherence to scope, schedule, budget and other issues commensurate with the risk inherent in the project.  
+        AECOM assigns a Project Review Category to each project based on the level of risk to AECOM: C-0, C-1, C-2 and C-3.  C-0 projects represent the highest financial, 
+        legal and/or technical risk to AECOM while C-3 represents the lowest risk to AECOM.  The Project Review Category determines the type of reporting and review 
+        requirements for the project.  At a minimum, review of project performance on a monthly basis is mandatory for all AECOM projects.
+    </apex:outputText>
+    <apex:commandButton value="Select"></apex:commandButton>
+        
+    <apex:outputText value="Project Closeout"/>
+    <apex:outputText>
+        The Project Closeout review verifies that all project and performance goals and requirements have been successfully achieved, ensures mandatory project delivery 
+        requirements have been properly completed, and derives any lessons learned to apply to future projects. 
+    </apex:outputText>
+    <apex:commandButton value="Select"></apex:commandButton>    
+    
+    <apex:outputText value="Project Kickoff"/>
+    <apex:outputText>
+        The Project Kickoff meeting reviews essential project information at the beginning of the project with the project team, including subs and/or partners.  
+        A separate meeting may also be conducted with the client to foster mutual understanding of and clarify the client’s expectations, project goals, project approach and requirements. 
+        Kickoff meetings may also occur more than once during the project, for example at the beginning of significant milestones, addition of new scope of work, change in PM, 
+        project staff, disciplines or subs, or after projects become reactivated after a significant “on hold” period.  
+    </apex:outputText>
+    <apex:commandButton value="Select"></apex:commandButton>    
+    </table>     -->
+</apex:pageBlock>
+
+<c:ECO_RiskFlyout projectid="{!pse__Proj__c.Id}" rendered="{!pse__Proj__c != null}" planelement="" />
+<c:ECO_AssumptionFlyout projectid="{!pse__Proj__c.Id}" rendered="{!pse__Proj__c != null}" planelement="" />
+<c:ECO_ProjectTeamFlyout projectid="{!pse__Proj__c.Id}" rendered="{!pse__Proj__c != null}" />
+
+</apex:form>
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

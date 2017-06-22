@@ -1,0 +1,31 @@
+<apex:component controller="INC_EnrollmentCommentController" allowdml="true">
+<apex:outputPanel rendered="{!AND(isRejectedRecType,oEnrollmentApp.ApprovalRecentlyProcessed__c)}">
+<apex:includeScript value="{!$Resource.ECO_jQuery_1_11_2_min_js}"/>
+<apex:includeScript value="{!URLFOR($Resource.ECO_jQueryUI_1_11_2, 'jquery-ui.min.js')}" />
+<script>
+    $j = jQuery.noConflict();
+    $j(window).load(function() {
+        document.querySelector('[id*="rejectReason"]').disabled = true;
+        document.querySelector('[id*="commentType"]').disabled = true;
+    });
+</script>
+<apex:pageBlock id="fullpanel">
+          <apex:pageMessages escape="false"/>
+        <apex:pageBlockButtons location="top">
+        
+               <apex:commandButton value="{!$Label.DTWINCECSave}" action="{!SaveComments}" oncomplete="return switchPages();"/>
+            </apex:pageBlockButtons>
+            <apex:pageBlockSection columns="1">
+          <apex:outputText styleclass="message" value="{!sMessage}"/>
+                <apex:inputField value="{!oEnrollComment.Reason_Codes__c}"/>
+             <apex:pageBlockSectionItem >
+             
+                <apex:Outputlabel value="{!$Label.DTWINCECComments}" />
+                <apex:inputTextarea id="comments" value="{!oEnrollComment.Comments__c}" rows="5" cols="100"/>
+          </apex:pageBlockSectionItem>
+            <apex:inputField id="commentType" value="{!oEnrollComment.Type__c}"/>
+            <apex:inputField id="rejectReason" value="{!oEnrollComment.IsRejection__c}" />
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+</apex:outputPanel>
+</apex:component>

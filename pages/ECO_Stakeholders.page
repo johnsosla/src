@@ -1,0 +1,997 @@
+<apex:page standardcontroller="pse__Proj__c" extensions="ECO_StakeholdersController,nttdcore.DLabelParentController" showheader="true" sidebar="false" >
+<apex:includescript value="{!$Resource.ECO_jQuery_1_11_2_min_js}" />
+<apex:includescript value="{!URLFOR($Resource.jQuery_Simple_Combobox, '/js/jquery.scombobox.min.js')}" />
+<apex:stylesheet value="{!URLFOR($Resource.jQuery_Simple_Combobox, '/css/jquery.scombobox.min.css')}" />
+
+
+    <style>
+
+    
+        .panelWrapper .mainTitle {
+            color:black !important;
+            padding: 10px 10px 10px 10px !important;
+            font-size: 1.3em !important
+        }
+        
+        .bPageBlock .detailList tr td.dataCol.last, 
+        .bPageBlock .detailList tr td.labelCol.last
+        {
+            border-bottom:0px solid #dbdbdb;
+        }
+    
+        .bPageBlock .detailList tr td.dataCol, 
+        .bPageBlock .detailList tr td.labelCol
+        {
+            border-bottom:1px solid #dbdbdb;
+        }
+            
+        .meetingNotes td, .meetingNotes th{
+            padding:10px;
+        }
+
+        .meetingNotes td{
+            padding-top:2px;
+        }
+        
+        .textalign{text-align:center; } 
+
+        .meetingNotes th{
+            padding-bottom:2px;
+        }
+
+        .tableLabel{
+            font-weight:bold;
+            color: #4a4a56 !important;
+            text-align: right;
+            font-size: 91%;
+            padding-right:10px;
+        }
+
+        .setPicker{
+            position:absolute;
+            top:0;
+            right:0;
+        }
+        body .bPageBlock .pbBody .labelCol{
+            padding-top: 3px !important;
+            padding-bottom: 5px;
+            vertical-align: middle;
+        }
+
+        .riskNotifications .pbBody .redText{
+            color:red;
+        }
+        
+        .ui-widget-header{
+            background: #FFFFFF;
+        }
+        
+        .customHelpText
+        {
+            padding:20px 25px;
+            border:1px solid #85B3CE;
+            min-height:30px;
+            display:block;
+            width:auto;
+            margin:20px 25px;
+            background-color:#E3F0F8;
+        }
+        .customHelpIcon
+        {
+            display:inline-block;
+            margin:0 15px 0 0;
+            width:24px;
+            height:24px;
+            vertical-align:top !important;
+        }
+        .customHelpBody
+        {
+            display:inline-block;
+            color:#;
+            max-width:95%;
+        }
+        .bPageBlock .message{
+            padding: 7px;
+            border: 1px solid #85B3CE;
+            min-height: 30px;
+            display: block;
+            width: auto;
+            margin: 0 0 5px 0;
+            background-repeat: no-repeat;
+            border-radius: 4px;
+            background-color: #A2D3F1;
+
+        }
+
+        .linkPanel{
+            text-decoration:underline;
+            cursor: pointer;
+            display:block;
+        }
+
+        .delegateQueryTable{
+            display:block;
+            max-height: 200px;
+            overflow-y: scroll; 
+            overflow-x: scroll;
+            width:620px;
+            min-width: 620px;
+        }
+
+        .saveError{
+            visibility: hidden;
+        }
+
+        .message{
+            background-color: #A2D3F1;
+        }
+
+    </style>
+
+    <script type="text/javascript" >
+
+    $x = jQuery.noConflict();
+
+    $x(document).ready(function(){
+        initComboBox();
+        $x('.contactSelector').each(function(){
+            setVal(this);
+        })
+    })
+
+    //replaces the Enter key function when the modal is opened
+    function handleEnter(e){
+        if(e.keyCode === 13){
+            e.preventDefault();
+            searchKeyMembers();
+        }
+        return false;
+    }
+
+    //converts salesforce Ids to somethign jQuery can use
+    function esc(myid) {
+        return myid.replace(/(:|\.)/g,'\\\\$1');
+    }
+
+    //sets the project role select list on the modal when the link under key roles is clicked
+    function setRole(role, existingId, startDate){
+        $x('[id$=modalProjectRoles]').text(role);
+
+        if(role == 'Deputy Project Manager' || 
+            role == 'Project Manager' || 
+            role == 'Project Approver 2' || 
+            role == 'Project Administrator' || 
+            role == 'Project Biller' || 
+            role == 'FCAP Subcontract Administrator' ||
+            role == 'Project Management Administrator'
+
+            ){
+            
+            $x('[id$=queryTypelabel]').hide();
+            $x('[id$=queryType]').hide();
+        } else {
+            $x('[id$=queryTypelabel]').show();
+            $x('[id$=queryType]').show();            
+        }
+
+
+        if(existingId != ''){
+            $x('[id$=existingRecordId]').val(existingId);
+            findLatestDates();
+            //findLatestDate($x('[id$=modalProjectRoles]').text().trim());
+        }
+    }
+
+    //sets the project role select list on the modal when the link under key roles is clicked
+    function setRoleStartDate(role, existingId, startDate){
+        $x('[id$=modalProjectRoles]').text(role);
+
+        ECO_StakeholdersController.formatDate(
+            startDate,
+            function(result, event){
+                if(event.type == 'exception'){
+                    alert('Error retrieving proper date format : ' + event);
+                }
+                else if(event.status){
+                    $x('[id$=queryStartDate]').val(result);
+                }
+            }
+        );
+    }
+
+
+
+    function addDeputyProjectManager(){
+        $x('[id$=modalProjectRoles]').text('Deputy Project Manager');
+            $x('[id$=queryTypelabel]').hide();
+            $x('[id$=queryType]').hide();        
+        findLatestDates();
+    }
+
+    //finds the latest date for the selected key role and adds a day, sets the value in the modal date field
+    function findLatestDates(){
+        var currentRole = $x('[id$=modalProjectRoles]').text().trim();
+        var startDate;
+
+        $x('[id$=ActiveKeysTable] tr').each(function (i, row){
+            if(currentRole === $x(row).find('[id*="roleColumn"]').text().trim()){
+                if($x(row).find('[id*="roleColumn"]').text().trim() != '' && $x(row).find('[id*="roleColumn"]').text().trim() != null && $x(row).find('[id*="endDateColumn"]').text().trim() === '' && $x(row).find('[id*="startDateColumn"]').text().trim() != ''){
+                    ECO_StakeholdersController.formatDate(
+                        $x(row).find('[id*="startDateColumn"]').text().trim(),
+                        function(result, event){
+                            if(event.type == 'exception'){
+                                alert('Error retrieving proper date format : ' + event);
+                            }
+                            else if(event.status){
+                                $x('[id$=queryStartDate]').val(result);
+                            }
+                        }
+                    );
+                }
+            }
+        });
+    }
+
+    //searches for contacts/delegates and displays them in the modal table
+    function searchKeyMembers(){
+        searchForKeyMembers($x('[id$=queryContactName]').val(), findQueryType(), $x('[id$=modalProjectRoles]').text(), $x('[id$=queryStartDate]').val(), $x('[id$=queryEndDate]').val());
+    }
+
+    //checks to see if an error occurs when saving a new key role team memmber
+    function checkForError(){
+        if($x('[id$=saveError]').text() === 'false'){
+            location.reload();
+        }
+    }
+
+    //closes and resets all modal fields/errors
+    function cancelModal(){
+        var queryTypeSelectElement = $x('input[id*="queryType"]');
+        $x('[id$=queryContactName]').val('');
+        $x('[id$=queryStartDate]').val('');
+        $x('[id$=modalProjectRoles]').text('');
+        closeModal('modalDialogAddProjectMember');
+        for(i = 0; i < queryTypeSelectElement.length; i++){ 
+            if(queryTypeSelectElement[i].value === 'Delegate'){
+                queryTypeSelectElement[i].checked = 'checked';
+            }
+        }
+        resetModalValues();
+        return false;
+    }
+
+    //returns the value of the query type radio buttons from the modal
+    function findQueryType(){
+        var queryTypeSelectElement = $x('input[id*="queryType"]');
+        for(i = 0; i < queryTypeSelectElement.length; i++){ 
+            if(queryTypeSelectElement[i].checked) {
+                return queryTypeSelectElement[i].value;
+            }
+        }
+    }
+
+    //runs when the contact/delegate has been selected for the key member in the modal
+    function saveSelectedDelegate(delegateId){
+        
+        selectReplaceKeyMember(delegateId, $x('[id$=modalProjectRoles]').text(), $x('[id$=queryStartDate]').val(), $x('[id$=existingRecordId]').val(), findQueryType());
+    }
+
+    function initComboBox(counter){
+        var element
+        if(counter != undefined){
+            element = '[id*=' + esc(counter +':contactSelectList') + ']';
+            
+        }
+        else{
+            element = '.contactSelector'
+        }
+        $x(element).scombobox({
+            showDropDown: true
+        });
+    }
+
+    function setVal(element){
+        if($x(element).val() != null){
+            if($x(element).val().indexOf('&nbsp') != -1){
+                $x(element).val('');
+            }
+        }
+    }
+    
+    function cancelCAM(camType){
+        var controllerCAMId = '{!iCAMId}';
+        var controllerGNGId = '{!iGNGId}';
+        if(camType.value == controllerCAMId){
+            alert("Client Account Manager cannot be added from this screen .");//this is displyed
+            camType.value = '--None--';
+        }    
+        if(camType.value == controllerGNGId){
+            alert("Go/No Go Approver cannot be added from this screen .");//this is displyed
+            camType.value = '--None--';
+        }
+    }
+    </script>
+    
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js" >
+    $a = jQuery.noConflict();
+    $a(document).ready(function(){
+          var queryTypeSelectElement = $a('[id$=TMType]').val();
+    //    $("[id$=TMType]").change(function(){
+            if(queryTypeSelectElement=="Client Account Manager"){
+                $a('[id$=TMName]').prop("disabled",true);
+            }
+            else{
+                $a('[id$=TMName]').prop("disabled",false);
+            }               
+    //    });
+    });
+    
+    
+    </script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" />
+    
+    <apex:form id="topForm" >
+
+        <apex:outputfield value="{!pse__Proj__c.EstimatedStartDate__c}" rendered="false" />
+        <apex:outputfield value="{!pse__Proj__c.StakeholderAttachments__c}" rendered="false" />
+        <apex:outputfield value="{!pse__Proj__c.pse__Start_Date__c}" rendered="false" />
+
+        <!--<div style="position:relative; border-bottom:5px; border-top:5px; padding-bottom:5px">
+            <apex:sectionHeader title="Project Team & Stakeholders" subtitle="{!pse__Proj__c.Name}" />
+        </div>-->                
+   
+        <c:ECO_PageTitle project="{!pse__Proj__c}" title="Project Team & Stakeholders" subtitle="{!pse__Proj__c.Name}" />
+        <apex:outputpanel style="display:none;visibility:hidden" >
+           <apex:outputfield value="{!pse__Proj__c.OUID__c}" />
+        </apex:outputpanel>
+        <apex:pagemessages id="pgMessages" />
+        <c:ECO_CollapsibleSection sectiontitle="General Guidance Information" ><nttdcore:DLabel name="DL137" default="Complete this section to capture all AECOM team members, stakeholders and associated communication activities.  Non-AECOM team members, such as sub-consultants, should be identified in the Sub/Vendors section.   Stakeholders include clients but can also include an individual, group or organization who has interests that may be positively or negatively affected by the performance or completion of the project." labelParent="{!this}" /><nttdcore:DLabel name="DL138" default="Once the project team and stakeholders are defined, outline the communication activities necessary to keep all interested parties informed throughout the life of the project.  These may include best practice activities (e.g., client progress reports, project team meetings) or activities required by the contract and/or scope of services (e.g., community meetings, client briefings).  This also includes scheduled project surveys with the client should the Project Manager desire feedback beyond the random selection process." labelParent="{!this}" /> 
+                    {!dLabel['DL137']} 
+                    <br/><br/>
+                    {!dLabel['DL138']}
+        </c:ECO_CollapsibleSection>
+
+        <apex:actionregion >
+        <apex:outputpanel id="topPanel" rendered="{!NOT(ISNULL(pse__Proj__c.Id))}" >
+            <div class="projectSummary" >
+                <nttdcore:DLabel name="DL139" default="AECOM Team (Oracle Key Members)" labelParent="{!this}" /><apex:pageblock title="{!dLabel['DL139']}" ><nttdcore:DLabel name="DL142" default="Key Members" labelParent="{!this}" /><nttdcore:DLabel name="DL143" default="One or more of this project&#39;s active Key Member roles is vacant." labelParent="{!this}" /><nttdcore:DLabel name="DL144" default="Add New Deputy Project Manager" labelParent="{!this}" /><nttdcore:DLabel name="DL145" default="Action" labelParent="{!this}" /><nttdcore:DLabel name="DL146" default="Select" labelParent="{!this}" /><nttdcore:DLabel name="DL147" default="Replace" labelParent="{!this}" /><nttdcore:DLabel name="DL148" default="Replace" labelParent="{!this}" /><nttdcore:DLabel name="DL149" default="Update" labelParent="{!this}" /><nttdcore:DLabel name="DL150" default="Update" labelParent="{!this}" /><nttdcore:DLabel name="DL151" default="Remove" labelParent="{!this}" /><nttdcore:DLabel name="DL152" default="KeyMember" labelParent="{!this}" /><nttdcore:DLabel name="DL153" default="Edit" labelParent="{!this}" /><nttdcore:DLabel name="DL154" default="Role" labelParent="{!this}" /><nttdcore:DLabel name="DL155" default="Name" labelParent="{!this}" /><nttdcore:DLabel name="DL156" default="Start Date" labelParent="{!this}" /><nttdcore:DLabel name="DL157" default="End Date" labelParent="{!this}" /><nttdcore:DLabel name="DL158" default="Phone" labelParent="{!this}" /><nttdcore:DLabel name="DL159" default="Email" labelParent="{!this}" /><nttdcore:DLabel name="DL160" default="Status" labelParent="{!this}" /><nttdcore:DLabel name="DL161" default="Updating..." labelParent="{!this}" /><nttdcore:DLabel name="DL162" default="Key Member History" labelParent="{!this}" /><nttdcore:DLabel name="DL163" default="Role" labelParent="{!this}" /><nttdcore:DLabel name="DL164" default="Name" labelParent="{!this}" /><nttdcore:DLabel name="DL165" default="Start Date" labelParent="{!this}" /><nttdcore:DLabel name="DL166" default="End Date" labelParent="{!this}" /><nttdcore:DLabel name="DL167" default="Phone" labelParent="{!this}" /><nttdcore:DLabel name="DL168" default="Email" labelParent="{!this}" />
+                    <apex:pageblockbuttons location="top" >
+                        <!--<apex:commandButton action="{!SaveAll}" value="Save" rerender="pgMessages,ActiveKeysTable,InactiveKeysTable,ProjectTeamTable,VendorSubTable,StakeholderTable,CommTable" onClick="this.disabled = true;"/>--><!-- onComplete="location.reload()" -->
+                        <nttdcore:DLabel name="DL140" default="Save" labelParent="{!this}" /><apex:commandbutton action="{!SaveAll}" value="{!dLabel['DL140']}" />
+                        <nttdcore:DLabel name="DL141" default="Return to Project" labelParent="{!this}" /><apex:commandbutton action="{!ReturnToProject}" value="{!dLabel['DL141']}" />
+                    </apex:pageblockbuttons>
+                    
+                    <apex:pageblocksection columns="1" collapsible="false" >
+                        <apex:tabpanel switchtype="client" selectedtab="active" >
+                            <apex:tab id="activeKeyMembers" label="{!dLabel['DL142']}" name="active" >
+                                <apex:variable var="teamMemberCounter" value="{!0}" />
+                                <apex:pagemessage severity="info" rendered="{!showVacantKeyMemberNote}" summary="{!dLabel['DL143']}" />
+                                <apex:pageblocktable value="{!lActiveMembersKey}" var="item" width="100%" id="ActiveKeysTable" styleclass="activeKeyMembersTable" >
+                                    <apex:facet name="footer" >
+                                        <apex:outputlink onclick="openModal('modalDialogAddProjectMember', addDeputyProjectManager());return false;" >{!dLabel['DL144']}</apex:outputlink>
+                                    </apex:facet>
+                                    <apex:column >
+                                        <apex:facet name="header" >{!dLabel['DL145']}</apex:facet>
+                                        <apex:outputlink onclick="openModal('modalDialogAddProjectMember', setRole('{!item.RoleName}', '', '{!item.previousDate}'));return false;" rendered="{!AND(ISNULL(item.oPTM.Contact__c), item.canEdit)}" >{!dLabel['DL146']}</apex:outputlink>
+                                        
+                                        <apex:outputlink onclick="openModal('modalDialogAddProjectMember', setRole('{!item.RoleName}', '{!item.oPTM.Id}', '{!item.oPTM.StartDate__c}'));return false;" rendered="{!AND(AND(AND(ISNULL(item.oPTM.EndDate__c), NOT(ISNULL(item.oPTM.Contact__c))), item.canEdit), item.RoleName != 'Deputy Project Manager') && pse__Proj__c.pse__Stage__c != 'Planning' && pse__Proj__c.pse__Stage__c != 'Pending Go/No Go'}" >{!dLabel['DL147']}</apex:outputlink>
+
+                                        <apex:outputlink onclick="openModal('modalDialogAddProjectMember', setRoleStartDate('{!item.RoleName}', '{!item.oPTM.Id}', '{!item.oPTM.EndDate__c}'));return false;" rendered="{!AND(AND(AND(NOT(ISNULL(item.oPTM.EndDate__c)), NOT(ISNULL(item.oPTM.Contact__c))), item.canEdit), item.RoleName != 'Deputy Project Manager') && pse__Proj__c.pse__Stage__c != 'Planning' && pse__Proj__c.pse__Stage__c != 'Pending Go/No Go'}" >{!dLabel['DL148']}</apex:outputlink>
+
+                                        <apex:outputlink onclick="openModal('modalDialogAddProjectMember', setRole('{!item.RoleName}', '{!item.oPTM.Id}', '{!TODAY()}'));return false;" rendered="{!AND(AND(AND(ISNULL(item.oPTM.EndDate__c), NOT(ISNULL(item.oPTM.Contact__c))), item.canEdit), item.RoleName != 'Deputy Project Manager') && (pse__Proj__c.pse__Stage__c == 'Planning' || pse__Proj__c.pse__Stage__c == 'Pending Go/No Go')}" >{!dLabel['DL149']}</apex:outputlink>
+
+                                        <apex:outputlink onclick="openModal('modalDialogAddProjectMember', setRole('{!item.RoleName}', '{!item.oPTM.Id}', '{!TODAY()}'));return false;" rendered="{!AND(AND(AND(NOT(ISNULL(item.oPTM.EndDate__c)), NOT(ISNULL(item.oPTM.Contact__c))), item.canEdit), item.RoleName != 'Deputy Project Manager') && (pse__Proj__c.pse__Stage__c == 'Planning' || pse__Proj__c.pse__Stage__c == 'Pending Go/No Go')}" >{!dLabel['DL150']}</apex:outputlink>    
+
+                                        <apex:commandlink action="{!removeRecord}" value="{!dLabel['DL151']}" rerender="ActiveKeysTable" status="teamStatus" rendered="{!AND(AND(AND(ISNULL(item.oPTM.EndDate__c), NOT(ISNULL(item.oPTM.Contact__c))), item.canEdit), item.RoleName == 'Deputy Project Manager')}" >
+                                            <apex:param name="object" value="{!dLabel['DL152']}" assignto="{!recordObjectType}" />
+                                            <apex:param name="teamMemberToRemove" value="{!teamMemberCounter}" />
+                                        </apex:commandlink>                                    
+
+                                        <apex:outputpanel layout="none" rendered="{!AND(NOT(ISNULL(item.oPTM.Contact__c)), item.canEdit)}" >
+                                            &nbsp;
+                                            <!--<apex:outputLink value="/{!item.oPTM.Id}/e?nooverride=1&retURL={!returnURL}" rendered="{!$Profile.Name == 'System Administrator' || $Profile.Name == 'System Admin - No Expiration' || $Profile.Name == 'System Administrator - Consultants'}">Edit</apex:outputLink>-->
+                                            <apex:outputlink value="/{!item.oPTM.Id}/e?nooverride=1&retURL={!returnURL}" rendered="{!(pse__Proj__c.pse__Stage__c != 'Planning' && pse__Proj__c.pse__Stage__c != 'Pending Go/No Go') || ($Profile.Name == 'System Administrator' || $Profile.Name == 'System Admin - No Expiration' || $Profile.Name == 'System Administrator - Consultants')}" >{!dLabel['DL153']}</apex:outputlink>
+                                        </apex:outputpanel>
+                                    </apex:column>
+                                    <apex:column id="roleColumn" >
+                                        <apex:facet name="header" >{!dLabel['DL154']}</apex:facet>
+                                        <apex:outputlabel value="{!item.TranslatedRoleName}" rendered="{!if(item.TranslatedRoleName != null, true, false)}" />
+                                    </apex:column>
+                                    <apex:column >
+                                        <apex:facet name="header" >{!dLabel['DL155']}</apex:facet>
+                                         <!-- <apex:outputField value="{!item.oPTM.Contact__r.Name}" />  -->
+                                        <apex:outputlink value="/{!item.oPTM.Id}" >{!item.oPTM.Contact__r.Name}</apex:outputlink>
+                                    </apex:column>
+                                    <apex:column id="startDateColumn" rendered="{!pse__Proj__c.pse__Stage__c != 'Planning' && pse__Proj__c.pse__Stage__c != 'Pending Go/No Go'}" >
+                                        <apex:facet name="header" >{!dLabel['DL156']}</apex:facet>
+                                        <apex:outputfield value="{!item.oPTM.StartDate__c}" />
+                                    </apex:column>
+                                    <apex:column id="endDateColumn" rendered="{!pse__Proj__c.pse__Stage__c != 'Planning' && pse__Proj__c.pse__Stage__c != 'Pending Go/No Go'}" >
+                                        <apex:facet name="header" >{!dLabel['DL157']}</apex:facet>
+                                        <apex:outputfield value="{!item.oPTM.EndDate__c}" />
+                                    </apex:column>
+                                    <apex:column >
+                                        <apex:facet name="header" >{!dLabel['DL158']}</apex:facet>
+                                        <apex:outputfield value="{!item.oPTM.Phone__c}" />
+                                    </apex:column>
+                                    <apex:column >
+                                        <apex:facet name="header" >{!dLabel['DL159']}</apex:facet>
+                                        <apex:outputfield value="{!item.oPTM.Email__c}" />
+                                    </apex:column>
+                                    <apex:column >
+                                        <apex:facet name="header" >{!dLabel['DL160']}</apex:facet>
+                                        <apex:outputfield value="{!item.oPTM.Status__c}" />
+                                        <apex:variable var="teamMemberCounter" value="{!teamMemberCounter + 1}" />
+                                    </apex:column>
+                                </apex:pageblocktable>
+                                <apex:actionstatus id="keyStatus" >
+                                    <apex:facet name="start" >
+                                        <p style="padding-bottom:20px;text-align:center;" class="searchText" ><img style="position:relative;top:12px;" src="/img/loading32.gif" /> {!dLabel['DL161']}</p>
+                                    </apex:facet>
+                                </apex:actionstatus>
+                            </apex:tab>
+                            <apex:tab id="inActiveKeyMembers" label="{!dLabel['DL162']}" name="inactive" >
+                                <apex:pageblocktable value="{!lInactiveMembersKey}" var="item" width="100%" id="InactiveKeysTable" >
+                                    <apex:column >
+                                        <apex:facet name="header" >{!dLabel['DL163']}</apex:facet>
+                                        <apex:outputlabel value="{!item.TranslatedRoleName}" />
+                                    </apex:column>
+                                    <apex:column >
+                                        <apex:facet name="header" >{!dLabel['DL164']}</apex:facet>
+                                        <apex:outputlink value="/{!item.oPTM.Id}" >{!item.oPTM.Contact__r.Name}</apex:outputlink>   
+                                    </apex:column>
+                                    <apex:column >
+                                        <apex:facet name="header" >{!dLabel['DL165']}</apex:facet>
+                                        <apex:outputfield value="{!item.oPTM.StartDate__c}" />
+                                    </apex:column>
+                                    <apex:column >
+                                        <apex:facet name="header" >{!dLabel['DL166']}</apex:facet>
+                                        <apex:outputfield value="{!item.oPTM.EndDate__c}" />
+                                    </apex:column>
+                                    <apex:column >
+                                        <apex:facet name="header" >{!dLabel['DL167']}</apex:facet>
+                                        <apex:outputfield value="{!item.oPTM.Phone__c}" />
+                                    </apex:column>
+                                    <apex:column >
+                                        <apex:facet name="header" >{!dLabel['DL168']}</apex:facet>
+                                        <apex:outputfield value="{!item.oPTM.Email__c}" />
+                                    </apex:column>
+                                </apex:pageblocktable>
+                            </apex:tab>
+                        </apex:tabpanel>
+                    </apex:pageblocksection> 
+                </apex:pageblock>
+
+                <nttdcore:DLabel name="DL169" default="AECOM Team (Delivery/Others)" labelParent="{!this}" /><apex:pageblock title="{!dLabel['DL169']}" id="Others" ><nttdcore:DLabel name="DL170" default="Active Team Members" labelParent="{!this}" /><nttdcore:DLabel name="DL171" default="Add New Team Member" labelParent="{!this}" /><nttdcore:DLabel name="DL172" default="MembersTeam" labelParent="{!this}" /><nttdcore:DLabel name="DL173" default="Actions" labelParent="{!this}" /><nttdcore:DLabel name="DL174" default="Remove" labelParent="{!this}" /><nttdcore:DLabel name="DL175" default="Remove" labelParent="{!this}" /><nttdcore:DLabel name="DL176" default="MembersTeam" labelParent="{!this}" /><nttdcore:DLabel name="DL177" default="Role Type" labelParent="{!this}" /><nttdcore:DLabel name="DL178" default="Name" labelParent="{!this}" /><nttdcore:DLabel name="DL179" default="Project Role Title" labelParent="{!this}" /><nttdcore:DLabel name="DL180" default="Phone" labelParent="{!this}" /><nttdcore:DLabel name="DL181" default="Email" labelParent="{!this}" /><nttdcore:DLabel name="DL182" default="Updating..." labelParent="{!this}" /><nttdcore:DLabel name="DL183" default="Inactive Team Members" labelParent="{!this}" /><nttdcore:DLabel name="DL184" default="No inactive users have been found." labelParent="{!this}" /><nttdcore:DLabel name="DL185" default="Role Type" labelParent="{!this}" /><nttdcore:DLabel name="DL186" default="Name" labelParent="{!this}" /><nttdcore:DLabel name="DL187" default="Project Role Title" labelParent="{!this}" /><nttdcore:DLabel name="DL188" default="Phone" labelParent="{!this}" /><nttdcore:DLabel name="DL189" default="Email" labelParent="{!this}" />
+                    <apex:pageblocksection columns="1" collapsible="false" >
+                        <apex:outputpanel id="ProjectTeamTable" >
+                        <apex:tabpanel switchtype="client" selectedtab="ActiveTeamMember" >
+                            <apex:tab id="activeTeamMember" label="{!dLabel['DL170']}" name="ActiveTeamMember" >
+                                <apex:variable var="teamMemberCounter" value="{!0}" />
+                                <apex:pageblocktable value="{!lMembersTeam}" var="item" width="100%" columnswidth="60px" >
+                                    <apex:facet name="footer" >
+                                        <apex:commandlink action="{!addRecord}" value="{!dLabel['DL171']}" rerender="ProjectTeamTable" status="teamStatus" >
+                                            <apex:param name="object" value="{!dLabel['DL172']}" assignto="{!recordObjectType}" />
+                                        </apex:commandlink>
+                                    </apex:facet>
+                                    <apex:column >
+                                        <apex:facet name="header" >{!dLabel['DL173']}</apex:facet>
+                                        <apex:commandlink value="{!dLabel['DL174']}" onclick="return confirm('Capture Manager, Client Account Manager and Go/No Go Approver cannot be removed from Project Team Members.');" rendered="{!IF(OR(item.oPTM.ProjectRole__r.Name == 'Capture Manager', item.oPTM.ProjectRole__r.Name == 'Client Account Manager', item.oPTM.ProjectRole__r.Name == 'Go/No Go Approver'), true, false)}" />
+                                        <apex:commandlink action="{!removeRecord}" value="{!dLabel['DL175']}" rerender="ProjectTeamTable" status="teamStatus" rendered="{!IF(OR(item.oPTM.ProjectRole__r.Name == 'Capture Manager', item.oPTM.ProjectRole__r.Name == 'Client Account Manager', item.oPTM.ProjectRole__r.Name == 'Go/No Go Approver'), false, true)}" >
+                                            <apex:param name="object" value="{!dLabel['DL176']}" assignto="{!recordObjectType}" />
+                                            <apex:param name="teamMemberToRemove" value="{!teamMemberCounter}" />
+                                        </apex:commandlink>
+                                    </apex:column>
+                                    <apex:column >
+                                        <apex:facet name="header" >{!dLabel['DL177']}</apex:facet>
+                                        <apex:selectlist onchange="cancelCAM(this)" id="TMType" size="1" multiselect="false" value="{!item.RoleID}" disabled="{!IF(OR(item.oPTM.ProjectRole__r.Name == 'Capture Manager', item.oPTM.ProjectRole__r.Name == 'Client Account Manager', item.oPTM.ProjectRole__r.Name == 'Go/No Go Approver'), true, false)}" >
+                                            <apex:selectoptions value="{!item.lTeamRoleTypes}" />
+                                        </apex:selectlist>
+                                    </apex:column>
+                                    <apex:column >
+                                        <apex:facet name="header" >{!dLabel['DL178']}</apex:facet>
+                                        <apex:inputfield value="{!item.oPTM.Contact__c}" id="TMName" rendered="{!IF(OR(item.oPTM.ProjectRole__r.Name == 'Client Account Manager', item.oPTM.ProjectRole__r.Name == 'Go/No Go Approver'), false, true)}" />
+                                        <apex:outputfield value="{!item.oPTM.Contact__c}" rendered="{!IF(OR(item.oPTM.ProjectRole__r.Name == 'Client Account Manager', item.oPTM.ProjectRole__r.Name == 'Go/No Go Approver'), true, false)}" />
+                                    </apex:column>
+                                    <apex:column >
+                                        <apex:facet name="header" >{!dLabel['DL179']}</apex:facet>
+                                        <apex:inputfield value="{!item.oPTM.ProjectRoleTitle__c}" />
+                                    </apex:column>
+                                    <apex:column >
+                                        <apex:facet name="header" >{!dLabel['DL180']}</apex:facet>
+                                        <apex:outputfield value="{!item.oPTM.Phone__c}" />
+                                    </apex:column>
+                                    <apex:column >
+                                        <apex:facet name="header" >{!dLabel['DL181']}</apex:facet>
+                                        <apex:outputfield value="{!item.oPTM.Email__c}" />
+                                        <apex:variable var="teamMemberCounter" value="{!teamMemberCounter + 1}" />
+                                    </apex:column>
+                                    <!--<apex:column>
+                                        <apex:facet name="header">Access Level</apex:facet>
+                                        <apex:inputField value="{!item.oPTM.AccessLevel__c}" />
+                                    </apex:column>-->
+                                </apex:pageblocktable>
+                                <apex:actionstatus id="teamStatus" >
+                                    <apex:facet name="start" >
+                                        <p style="padding-bottom:20px;text-align:center;" class="searchText" ><img style="position:relative;top:12px;" src="/img/loading32.gif" /> {!dLabel['DL182']}</p>
+                                    </apex:facet>
+                                </apex:actionstatus>
+
+                            </apex:tab>
+                            <apex:tab id="inactiveTeamMember" label="{!dLabel['DL183']}" name="inActiveTeamMember" >
+                                <apex:pagemessage severity="info" rendered="{!if(lInactiveMembersTeam.size = 0, true, false)}" summary="{!dLabel['DL184']}" />
+                                <apex:pageblocktable value="{!lInactiveMembersTeam}" rendered="{!if(lInactiveMembersTeam.size = 0, false, true)}" var="item" width="100%" columnswidth="60px" >
+                                    <apex:column style="width:10%" >
+                                        <apex:facet name="header" >{!dLabel['DL185']}</apex:facet>
+                                        <apex:outputlabel value="{!item.TranslatedRoleName}" />
+                                    </apex:column>
+                                    <apex:column >
+                                        <apex:facet name="header" >{!dLabel['DL186']}</apex:facet>
+                                        <apex:outputfield value="{!item.oPTM.Contact__c}" />
+                                    </apex:column>
+                                    <apex:column >
+                                        <apex:facet name="header" >{!dLabel['DL187']}</apex:facet>
+                                        <apex:outputfield value="{!item.oPTM.ProjectRoleTitle__c}" />
+                                    </apex:column>
+                                    <apex:column >
+                                        <apex:facet name="header" >{!dLabel['DL188']}</apex:facet>
+                                        <apex:outputfield value="{!item.oPTM.Phone__c}" />
+                                    </apex:column>
+                                    <apex:column >
+                                        <apex:facet name="header" >{!dLabel['DL189']}</apex:facet>
+                                        <apex:outputfield value="{!item.oPTM.Email__c}" />
+                                    </apex:column>
+                                </apex:pageblocktable>                              
+
+                            </apex:tab>
+
+                        </apex:tabpanel>
+                        </apex:outputpanel>
+                    </apex:pageblocksection>
+                </apex:pageblock>
+                
+<apex:outputpanel styleclass="panelWrapper" layout="block" >
+<nttdcore:DLabel name="DL190" default="Stakeholders" labelParent="{!this}" /><nttdcore:DLabel name="DL191" default="Manage Clients" labelParent="{!this}" /><nttdcore:DLabel name="DL194" default="Clients" labelParent="{!this}" /><nttdcore:DLabel name="DL195" default="Actions" labelParent="{!this}" /><nttdcore:DLabel name="DL196" default="View" labelParent="{!this}" /><nttdcore:DLabel name="DL197" default="Billing Client" labelParent="{!this}" /><nttdcore:DLabel name="DL198" default="Primary Billing" labelParent="{!this}" /><nttdcore:DLabel name="DL199" default="End Client" labelParent="{!this}" /><nttdcore:DLabel name="DL200" default="Primary End" labelParent="{!this}" /><nttdcore:DLabel name="DL201" default="No Clients/Project Sites have been defined." labelParent="{!this}" /><nttdcore:DLabel name="DL202" default="Others" labelParent="{!this}" /><nttdcore:DLabel name="DL203" default="Add New Stakeholder" labelParent="{!this}" /><nttdcore:DLabel name="DL204" default="Stakeholder__c" labelParent="{!this}" /><nttdcore:DLabel name="DL205" default="Actions" labelParent="{!this}" /><nttdcore:DLabel name="DL206" default="Remove" labelParent="{!this}" /><nttdcore:DLabel name="DL207" default="Stakeholder__c" labelParent="{!this}" /><nttdcore:DLabel name="DL208" default="Stakeholder Type" labelParent="{!this}" /><nttdcore:DLabel name="DL209" default="Organization" labelParent="{!this}" /><nttdcore:DLabel name="DL210" default="Contact" labelParent="{!this}" /><nttdcore:DLabel name="DL211" default="Contact Phone" labelParent="{!this}" /><nttdcore:DLabel name="DL212" default="Interest" labelParent="{!this}" /><nttdcore:DLabel name="DL213" default="AECOM Contact" labelParent="{!this}" /><nttdcore:DLabel name="DL214" default="Updating..." labelParent="{!this}" />
+    <apex:pageblock >
+        
+        <apex:facet name="header" >
+            <apex:outputpanel >
+                <h2 class="mainTitle" >
+                {!dLabel['DL190']}
+                </h2><c:ECO_HelpIcon helptext="An individual, group or organization who has interests that may be positively or negatively affected by the performance or completion of the project or may exert influence over the project, its deliverables or its team members.  Stakeholders can be:  actively involved within the project (i.e., the project team), outside of the project, but within AECOM (i.e., project sponsor, operations managers, business line managers), or outside of AECOM (i.e., clients, business partners, subcontractors, end users, government regulators)." />
+                <apex:commandbutton style="margin-left:25%;" action="/apex/ECO_ClientFinder?scontrolCaching=1&id={!oProject.Id}" value="{!dLabel['DL191']}" />
+            </apex:outputpanel>
+        </apex:facet>    
+            
+
+                    
+                    
+                    
+
+                    
+                    
+                    
+<!--                            <c:ECO_HelpIcon helpText="An individual, group or organization who has interests that may be positively or negatively affected by the performance or completion of the project or may exert influence over the project, its deliverables or its team members. 
+Stakeholders can be:
+actively involved within the project (i.e., the project team),
+outside of the project, but within AECOM (i.e., project sponsor, operations managers, business line managers), or
+outside of AECOM (i.e., clients, business partners, subcontractors, end users, government regulators)."/> -->
+
+            <c:ECO_CollapsibleSection sectiontitle="General Guidance Information" ><nttdcore:DLabel name="DL192" default="1. Engage with the appropriate Client Account or Program Manager when completing this section to ensure all appropriate client-related stakeholders are recognized and any client or account-specific communication strategies or gift and entertainment policies are identified and followed." labelParent="{!this}" /><nttdcore:DLabel name="DL193" default="2. Risks are inherent when the client contact or other stakeholders change during project execution.  Consider adding
+                potential risks to the project Risk Register with proposed mitigation strategies when a new stakeholder
+                is introduced to the project, such as holding a project review or kickoff meeting with the new contact." labelParent="{!this}" /> 
+                {!dLabel['DL192']}<br/>
+                {!dLabel['DL193']}
+            </c:ECO_CollapsibleSection>
+
+
+                    <apex:pageblocksection title="{!dLabel['DL194']}" columns="1" collapsible="false" >
+
+                        <apex:pageblocktable value="{!lProjectSites}" var="item" width="100%" id="ClientsTable" columnswidth="60px" rendered="{!if(lProjectSites.size > 0, true, false)}" >
+                            <apex:column > 
+                                <apex:facet name="header" >{!dLabel['DL195']}</apex:facet>
+                                <apex:outputlink value="/{!item.Site__r.Account__c}" >{!dLabel['DL196']}</apex:outputlink>
+                            </apex:column>
+                            <apex:repeat value="{!$ObjectType.Project_Site__c.FieldSets.pse_ClientFinder_Display_Fieldset}" var="SearchField" >
+                                <apex:column value="{!item[SearchField]}" />
+                            </apex:repeat>
+                            <apex:column headervalue="{!dLabel['DL197']}" >
+                                <apex:inputcheckbox value="{!item.Is_Billing__c}" disabled="true" />
+                            </apex:column>
+                            <apex:column headervalue="{!dLabel['DL198']}" >
+                                <apex:inputcheckbox value="{!item.Is_Default_Top_Task__c}" disabled="true" />
+                            </apex:column>
+                            <apex:column headervalue="{!dLabel['DL199']}" >
+                                <apex:inputcheckbox value="{!item.Is_End__c}" disabled="true" />
+                            </apex:column>
+                            <apex:column headervalue="{!dLabel['DL200']}" >
+                                <apex:inputcheckbox value="{!item.Is_Primary_End__c}" disabled="true" />
+                            </apex:column>
+                        <!--<apex:repeat value="{!AccountBasicListFields}" var="f">
+                            <apex:column value="{!item[f.fieldPath]}" />
+                        </apex:repeat>-->
+                        </apex:pageblocktable>
+                        <apex:pagemessage severity="info" rendered="{!if(lAccounts.size = 0, true, false)}" summary="{!dLabel['DL201']}" />
+                    </apex:pageblocksection>
+
+                    <apex:pageblocksection title="{!dLabel['DL202']}" columns="1" collapsible="false" id="pbsOthers" >
+                        <apex:inputfield value="{!pse__Proj__c.MediaInvolvement__c}" />
+                        <apex:variable var="otherCounter" value="{!0}" />
+                        <apex:pageblocktable value="{!lStakeholders}" var="item" width="100%" columnswidth="60px" id="StakeholderTable" >
+                            <apex:facet name="footer" >
+                                <apex:commandlink action="{!addRecord}" value="{!dLabel['DL203']}" rerender="pbsOthers" status="stakeholderStatus" >
+                                    <apex:param name="object" value="{!dLabel['DL204']}" assignto="{!recordObjectType}" />
+                                </apex:commandlink>
+                            </apex:facet>
+                            <apex:column >
+                                <apex:facet name="header" >{!dLabel['DL205']}</apex:facet>
+                                <apex:commandlink action="{!removeRecord}" value="{!dLabel['DL206']}" rerender="pbsOthers" status="stakeholderStatus" >
+                                    <apex:param name="object" value="{!dLabel['DL207']}" assignto="{!recordObjectType}" />
+                                    <apex:param name="otherToRemove" value="{!otherCounter}" />
+                                </apex:commandlink>
+                            </apex:column>
+                            <apex:column >
+                                <apex:facet name="header" >{!dLabel['DL208']}</apex:facet>
+                                <apex:inputfield value="{!item.StakeholderType__c}" />
+                            </apex:column>
+                            <apex:column >
+                                <apex:facet name="header" >{!dLabel['DL209']}</apex:facet>
+                                <apex:inputfield value="{!item.Organization__c}" />
+                            </apex:column>
+                            <apex:column >
+                                <apex:facet name="header" >{!dLabel['DL210']}</apex:facet>
+                                <apex:inputfield value="{!item.ContactName__c}" />
+                            </apex:column>
+                            <apex:column >
+                                <apex:facet name="header" >{!dLabel['DL211']}</apex:facet>
+                                <apex:inputfield value="{!item.ContactPhone__c}" />
+                            </apex:column>
+                            <apex:column >
+                                <apex:facet name="header" >{!dLabel['DL212']}</apex:facet>
+                                <apex:inputfield value="{!item.Interest__c}" />
+                            </apex:column>
+                            <apex:column >
+                                <apex:facet name="header" >{!dLabel['DL213']}</apex:facet>
+                                <apex:inputfield value="{!item.AECOMContactlookup__c}" />
+                                <apex:variable var="otherCounter" value="{!otherCounter + 1}" />
+                            </apex:column>
+                        </apex:pageblocktable>
+                        <apex:actionstatus id="stakeholderStatus" >
+                            <apex:facet name="start" >
+                                <p style="padding-bottom:20px;text-align:center;" class="searchText" ><img style="position:relative;top:12px;" src="/img/loading32.gif" /> {!dLabel['DL214']}</p>
+                            </apex:facet>
+                        </apex:actionstatus>
+                    </apex:pageblocksection>
+                </apex:pageblock>
+            </apex:outputpanel> 
+
+            <apex:outputpanel styleclass="panelWrapper" layout="block" >
+<nttdcore:DLabel name="DL215" default="Communication Activities" labelParent="{!this}" /><nttdcore:DLabel name="DL216" default="Send Client Project Update" labelParent="{!this}" /><nttdcore:DLabel name="DL218" default="Add New Communication Activity" labelParent="{!this}" /><nttdcore:DLabel name="DL219" default="CommunicationPlan__c" labelParent="{!this}" /><nttdcore:DLabel name="DL220" default="Actions" labelParent="{!this}" /><nttdcore:DLabel name="DL221" default="Remove" labelParent="{!this}" /><nttdcore:DLabel name="DL222" default="CommunicationPlan__c" labelParent="{!this}" /><nttdcore:DLabel name="DL223" default="test" labelParent="{!this}" /><nttdcore:DLabel name="DL224" default="Activity" labelParent="{!this}" /><nttdcore:DLabel name="DL225" default="Audience" labelParent="{!this}" /><nttdcore:DLabel name="DL226" default="Responsible Person" labelParent="{!this}" /><nttdcore:DLabel name="DL227" default="Format" labelParent="{!this}" /><nttdcore:DLabel name="DL228" default="Date" labelParent="{!this}" /><nttdcore:DLabel name="DL229" default="Frequency" labelParent="{!this}" /><nttdcore:DLabel name="DL230" default="Generate Task" labelParent="{!this}" /><nttdcore:DLabel name="DL231" default="Generate Task" labelParent="{!this}" /><nttdcore:DLabel name="DL232" default="Updating..." labelParent="{!this}" />            
+                <apex:pageblock >        
+                    <apex:facet name="header" >
+                        <apex:outputpanel >
+                            <h2 class="mainTitle" >{!dLabel['DL215']}</h2>
+                            <apex:outputlink style="margin-left:25%;text-decoration:none;padding:4px;" styleclass="btn" value="mailto:?subject=AECOM Project Update {!TODAY()} - {!pse__Proj__c.Name} ({!pse__Proj__c.ProjectNumber__c})&body=Dear%20%3CENTER CLIENT NAME%3E%20%2C%0A%0APlease%20find%20below%20our%20weekly%20update%20on%20{!pse__Proj__c.Name} ({!pse__Proj__c.ProjectNumber__c})%0A%0AKey%20items%20we%20worked%20on%20this%20week%3A%20%0A%3CENTER BULLETED LIST OR NARRATIVE HERE%3E%0A%0AOngoing%20key%20items%20that%20we%20are%20working%20on%3A%20%0A%3CENTER BULLETED LIST OR NARRATIVE HERE%3E%0A%0AOutstanding%20Items%2FIssues%3A%20%0A%3CENTER BULLETED LIST OR NARRATIVE HERE%3E%0A%0ASafety%20Update%3A%20%0A%3CENTER BULLETED LIST OR NARRATIVE HERE%3E%0A%0ARegards%2C" >
+                                {!dLabel['DL216']}
+                            </apex:outputlink>
+                        </apex:outputpanel>
+                    </apex:facet>  
+
+                    <c:ECO_CollapsibleSection sectiontitle="General Guidance Information" ><nttdcore:DLabel name="DL217" default="Reminder: Check with the appropriate Client Account or Program Manager to determine if a client or program-specific communication plan exists prior to defining the communication strategy for the project.  Alternatively, go directly to the SalesForce client account to determine if an Account Plan is available." labelParent="{!this}" /> 
+                        {!dLabel['DL217']}
+                    </c:ECO_CollapsibleSection> 
+                            
+                    <apex:pageblocksection columns="1" collapsible="false" id="pbsCommunication" >
+                        <apex:variable var="planCounter" value="{!0}" />
+                        <apex:pageblocktable value="{!lCommPlans}" var="item" width="100%" columnswidth="60px" id="CommTable" >
+                            <apex:facet name="footer" >
+                                <apex:commandlink action="{!addRecord}" value="{!dLabel['DL218']}" rerender="pbsCommunication" status="commStatus" >
+                                    <apex:param name="object" value="{!dLabel['DL219']}" assignto="{!recordObjectType}" />
+                                </apex:commandlink>
+                            </apex:facet>
+                            <apex:column >
+                                <apex:facet name="header" >{!dLabel['DL220']}</apex:facet>
+                                <apex:commandlink action="{!removeRecord}" value="{!dLabel['DL221']}" rerender="pbsCommunication" status="commStatus" >
+                                    <apex:param name="object" value="{!dLabel['DL222']}" assignto="{!recordObjectType}" />
+                                    <apex:param name="planToRemove" value="{!planCounter}" />
+                                </apex:commandlink>
+                            </apex:column>
+                            <apex:column title="{!dLabel['DL223']}" >
+                                <apex:facet name="header" >
+                                    <apex:outputpanel layout="none" ><apex:outputtext value="{!dLabel['DL224']}" />&nbsp;<c:ECO_HelpIcon helptext="e.g., Client Progress Report, Community Meeting, Public Hearing, Town Hall, Team Partner Status Meeting, etc." /></apex:outputpanel>
+<!-- <apex:outputPanel>
+                                    <table>
+                                        <tr><td>Activity</td><td><c:ECO_HelpIcon helpText="e.g., Client Progress Report, Community Meeting, Public Hearing, Town Hall, Team Partner Status Meeting, etc."/></td></tr>
+                                    </table>
+                                    </apex:outputPanel> -->
+                                </apex:facet>
+                                <apex:inputfield value="{!item.Activity__c}" />
+                            </apex:column>
+                            <apex:column >
+                                <apex:facet name="header" >
+                                <apex:outputpanel layout="none" ><apex:outputtext value="{!dLabel['DL225']}" />&nbsp;<c:ECO_HelpIcon helptext="Enter the individual or group that will be receiving the communication (e.g., client, regulatory agency, community members, project team)." /></apex:outputpanel>
+                                </apex:facet>
+                                <apex:inputfield value="{!item.Audience__c}" />
+                            </apex:column>
+                            <apex:column >
+                                <apex:facet name="header" >
+                                <apex:outputpanel layout="none" ><apex:outputtext value="{!dLabel['DL226']}" />&nbsp;<c:ECO_HelpIcon helptext="Search and select the project team member who will be ultimately responsible for owning the communication activity and ensuring it is completed." /></apex:outputpanel>
+                                </apex:facet>
+                                <apex:inputfield value="{!item.ResponsiblePTM__c}" />
+                            </apex:column>
+                            <apex:column >
+                                <apex:facet name="header" >
+                                <apex:outputpanel layout="none" ><apex:outputtext value="{!dLabel['DL227']}" />&nbsp;<c:ECO_HelpIcon helptext="Identify the format of the communication (e.g., email, newsletter, press release, presentation, newspaper article)." /></apex:outputpanel>
+                                </apex:facet>
+                                <apex:inputfield value="{!item.How__c}" />
+                            </apex:column>
+                            <apex:column >
+                                <apex:facet name="header" >
+                                <apex:outputpanel layout="none" ><apex:outputtext value="{!dLabel['DL228']}" />&nbsp;<c:ECO_HelpIcon helptext="Enter the date the communication activity is due or will be completed, either as a one-time event or if the event will be recurring on that date." /></apex:outputpanel>
+                                </apex:facet>
+                                <apex:inputfield value="{!item.When__c}" />
+                            </apex:column>
+                            <apex:column >
+                                <apex:facet name="header" >
+                                <apex:outputpanel layout="none" ><apex:outputtext value="{!dLabel['DL229']}" />&nbsp;<c:ECO_HelpIcon helptext="Select the frequency in which the communication activity will be completed (e.g., one-time event, annual, bi-weekly)." /></apex:outputpanel>
+                                </apex:facet>
+                                <apex:inputfield value="{!item.Frequency__c}" />
+                            </apex:column>
+                            <apex:column >
+                                <apex:facet name="header" >{!dLabel['DL230']}
+                                <apex:outputpanel layout="none" ><apex:outputtext value="{!dLabel['DL231']}" />&nbsp;<c:ECO_HelpIcon helptext="Check this box to automatically create a Task for the responsible person to complete the communication activity." /></apex:outputpanel>
+                                </apex:facet>
+                                <apex:inputfield value="{!item.GenerateTask__c}" />
+                                <apex:variable var="planCounter" value="{!planCounter + 1}" />
+                            </apex:column>
+                        </apex:pageblocktable>
+                        <apex:actionstatus id="commStatus" >
+                            <apex:facet name="start" >
+                                <p style="padding-bottom:20px;text-align:center;" class="searchText" ><img style="position:relative;top:12px;" src="/img/loading32.gif" /> {!dLabel['DL232']}</p>
+                            </apex:facet>
+                        </apex:actionstatus>
+                    </apex:pageblocksection>
+                </apex:pageblock>
+            </apex:outputpanel>
+<!--apex:outputPanel styleClass="panelWrapper" layout="block"-->     
+            <apex:outputpanel id="survey" styleclass="panelWrapper" >
+<nttdcore:DLabel name="DL233" default="Project Survey Requests" labelParent="{!this}" /><nttdcore:DLabel name="DL234" default="Project surveys measure the client&rsquo;s overall satisfaction with AECOMs performance on a specific project. AECOM conducts monthly surveys on a 2% random sample of projects over 20% complete (of budget).  Complete this section if the Project Manager wants to request a survey of the project, schedule a survey around a specific project event (e.g., completion of key milestone or deliverable) or schedule survey intervals for long term projects (e.g., annual survey). If the desired client contact is not visible in the search field, request an update to the client record through the Global Business Services app." labelParent="{!this}" /><nttdcore:DLabel name="DL235" default="Projects with no dates identified below will be automatically subjected to the random selection process." labelParent="{!this}" /><nttdcore:DLabel name="DL236" default="Add New Survey" labelParent="{!this}" /><nttdcore:DLabel name="DL237" default="SurveySchedule__c" labelParent="{!this}" /><nttdcore:DLabel name="DL238" default="Actions" labelParent="{!this}" /><nttdcore:DLabel name="DL239" default="Remove" labelParent="{!this}" /><nttdcore:DLabel name="DL240" default="SurveySchedule__c" labelParent="{!this}" /><nttdcore:DLabel name="DL241" default="Requested Survey Date" labelParent="{!this}" /><nttdcore:DLabel name="DL242" default="Comments" labelParent="{!this}" /><nttdcore:DLabel name="DL243" default="Client" labelParent="{!this}" /><nttdcore:DLabel name="DL244" default="Survey Recipient" labelParent="{!this}" /><nttdcore:DLabel name="DL245" default="Updating..." labelParent="{!this}" />            
+                <apex:pageblock >
+                    <apex:facet name="header" >
+                        <apex:outputpanel >
+                            <h2 class="mainTitle" >{!dLabel['DL233']}</h2>
+                        </apex:outputpanel>
+                    </apex:facet>    
+
+
+                
+                    <apex:pageblocksection columns="1" collapsible="false" id="pbSurveySchedule" >
+
+                        <c:ECO_CollapsibleSection sectiontitle="General Guidance Information" > 
+                            {!dLabel['DL234']}
+                            <br/><br/>
+                            {!dLabel['DL235']} 
+                        </c:ECO_CollapsibleSection>
+                        <apex:pageblocktable value="{!lstSSW}" var="item" width="100%" columnswidth="60px" id="SurveyScheduleTable" >
+                            <apex:facet name="footer" >
+                                <apex:commandlink action="{!addRecord}" value="{!dLabel['DL236']}" rerender="SurveyScheduleTable" status="surveyStatus" oncomplete="initComboBox();" >
+                                    <apex:param name="object" value="{!dLabel['DL237']}" assignto="{!recordObjectType}" />
+                                </apex:commandlink>
+                            </apex:facet>
+                            <apex:column >
+                                <apex:facet name="header" >{!dLabel['DL238']}</apex:facet>
+                                <apex:commandlink action="{!removeRecord}" value="{!dLabel['DL239']}" rerender="SurveyScheduleTable" status="surveyStatus" oncomplete="initComboBox();" >
+                                    <apex:param name="object" value="{!dLabel['DL240']}" assignto="{!recordObjectType}" />
+                                    <apex:param name="surveyToRemove" value="{!item.Counter}" />
+                                </apex:commandlink>
+                            </apex:column>
+                            <apex:column >
+                                <apex:facet name="header" >
+                                <apex:outputpanel layout="none" ><apex:outputtext value="{!dLabel['DL241']}" />&nbsp;<c:ECO_HelpIcon helptext="Enter the date of the requested or desired survey (e.g., completion of key milestone or deliverable, project mid-point, end of project). If unknown, leave blank." /></apex:outputpanel>
+                                </apex:facet>
+                                    <apex:outputpanel layout="block" styleclass="requiredInput" >
+                                    <apex:outputpanel layout="block" styleclass="requiredBlock" />
+                                        <apex:inputfield value="{!item.ss.ScheduledDate__c}" />
+                                    </apex:outputpanel>
+                            </apex:column>
+                            <apex:column >
+                                <apex:facet name="header" >
+                                <apex:outputpanel layout="none" ><apex:outputtext value="{!dLabel['DL242']}" />&nbsp;<c:ECO_HelpIcon helptext="Provide any commentary that would be useful to the survey team, such as the reason for the survey." /></apex:outputpanel>
+                                </apex:facet>
+                                <apex:inputfield value="{!item.ss.Comments__c}" style="width: 525px; height: 32px" />
+                            </apex:column>
+                            <apex:column >
+                                <apex:facet name="header" >
+                                <apex:outputpanel layout="none" ><apex:outputtext value="{!dLabel['DL243']}" />&nbsp;<c:ECO_HelpIcon helptext="Select the client from the drop down list.  Available clients are based on the list of clients identified in the Stakeholders section." /></apex:outputpanel>
+                                </apex:facet>
+                                <apex:selectlist value="{!item.ss.Client__c}" multiselect="false" size="1" >
+                                    <apex:selectoptions value="{!clients}" />
+                                    <apex:actionsupport event="onchange" action="{!setOptions}" rerender="contactSelect" status="surveyStatus" oncomplete="initComboBox({!item.Counter});" >
+                                        <apex:param name="surveyToRefresh" value="{!item.Counter}" />
+                                    </apex:actionsupport>
+                                </apex:selectlist>  
+                            </apex:column>      
+                            <apex:column style="min-width:150px" >
+                                <apex:facet name="header" >
+                                <apex:outputpanel layout="none" ><apex:outputtext value="{!dLabel['DL244']}" />&nbsp;<c:ECO_HelpIcon helptext="Select the client contact who will receive the survey.  The list of available contacts is based on the names listed in the client contact record.  If the desired client contact is not visible in the search field, request an update to the client record through the Global Business Services app." /></apex:outputpanel>
+                                </apex:facet>
+                                <apex:outputpanel layout="inline" id="contactSelect" >
+                                    <apex:selectlist value="{!item.ss.Contact__c}" styleclass="contactSelector" multiselect="false" size="1" rendered="{!item.cOptions.size > 0}" id="contactSelectList" onchange="setVal(this)" >
+                                        <apex:selectoptions value="{!item.cOptions}" />     
+                                    </apex:selectlist>
+                                </apex:outputpanel>
+                            </apex:column>  
+
+
+                        </apex:pageblocktable>
+                        <apex:actionstatus id="surveyStatus" >
+                            <apex:facet name="start" >
+                                <p style="padding-bottom:20px;text-align:center;" class="searchText" ><img style="position:relative;top:24px;" src="/img/loading32.gif" /> {!dLabel['DL245']}</p>
+                            </apex:facet>
+                        </apex:actionstatus>
+                    </apex:pageblocksection>
+
+
+                </apex:pageblock>               
+                </apex:outputpanel>
+            </div>
+            
+        </apex:outputpanel>
+        </apex:actionregion>
+        <apex:outputpanel id="stakeattach" styleclass="panelWrapper" >
+<nttdcore:DLabel name="DL248" default="Files and Attachments" labelParent="{!this}" />        
+            <apex:pageblock >
+
+                <apex:pageblockbuttons location="bottom" >
+                    <nttdcore:DLabel name="DL246" default="Save" labelParent="{!this}" /><apex:commandbutton action="{!SaveAll}" value="{!dLabel['DL246']}" /><!-- onComplete="location.reload()" -->
+                    <!--<apex:commandButton action="{!SaveAll}" value="Save" rerender="pgMessages,ActiveKeysTable,InactiveKeysTable,ProjectTeamTable,VendorSubTable,StakeholderTable,CommTable"  onClick="this.disabled = true;"/>--><!-- onComplete="location.reload()" -->
+                    <nttdcore:DLabel name="DL247" default="Return to Project" labelParent="{!this}" /><apex:commandbutton action="{!ReturnToProject}" value="{!dLabel['DL247']}" />
+                </apex:pageblockbuttons>
+
+                <apex:facet name="header" >
+                    <apex:outputpanel >
+                        <h2 class="mainTitle" >{!dLabel['DL248']}</h2>
+                    </apex:outputpanel>
+                </apex:facet>   
+
+                <div class="fileList" style="padding:0 12px;margin-top:7px" ><nttdcore:DLabel name="DL249" default="File Name" labelParent="{!this}" />
+                    <apex:pageblocktable value="{!StakeholderDoc}" var="file" style="width: 825px;" rendered="{!oProject.StakeholderAttachments__c != null}" >
+                        <apex:column headervalue="{!dLabel['DL249']}" >
+
+                            <apex:outputlink value="{!URLFOR($Action.Attachment.Download, file.Id)}" target="_blank" >
+                                <apex:outputtext value="{!file.Name}" />
+                            </apex:outputlink>
+                        </apex:column>
+                        <apex:column value="{!file.ContentType}" /> 
+                        <apex:column value="{!file.LastModifiedDate}" />    
+                        <apex:column value="{!file.LastModifiedById}" />
+                    </apex:pageblocktable>
+                    <br/><br/>
+                    <apex:inputfile id="docStakeHolderAttachment" value="{!docStakeHolderAttachment.Body}" contenttype="{!docStakeHolderAttachment.ContentType}" filename="{!docStakeHolderAttachment.Name}" onchange="fileChosen('{!$Component.saveStakeholderDoc}', this, '{!$Component.overrideStakeHolderAttachment}'); return false;" />
+                    <apex:inputtext id="overrideStakeHolderAttachment" value="{!overrideStakeHolderAttachment}" maxlength="80" html-placeholder="Override File Name" styleclass="attachNewFile" />
+                    <nttdcore:DLabel name="DL250" default="Attach" labelParent="{!this}" /><apex:commandbutton id="saveStakeholderDoc" value="{!dLabel['DL250']}" action="{!saveStakeholderDoc}" styleclass="attachNewFile" /><br/>
+                </div>
+
+
+            </apex:pageblock>               
+        </apex:outputpanel> 
+
+        <apex:actionregion >
+        <c:ECO_RiskFlyout projectid="{!pse__Proj__c.Id}" planelement="Project Team" />
+        <c:ECO_AssumptionFlyout projectid="{!pse__Proj__c.Id}" planelement="Project Team" />
+
+        <!-- modal window --> 
+        <c:ECO_ModalDialog width="820" padding="20px 10px 20px 10px" name="modalDialogAddProjectMember" ><nttdcore:DLabel name="DL271" default="Searching..." labelParent="{!this}" /><nttdcore:DLabel name="DL272" default="Saving..." labelParent="{!this}" />
+             <nttdcore:DLabel name="DL251" default="Select/Replace Key Member" labelParent="{!this}" /><apex:pageblock title="{!dLabel['DL251']}" id="pbModal" ><nttdcore:DLabel name="DL262" default="Delegate&#39;s Name" labelParent="{!this}" /><nttdcore:DLabel name="DL263" default="Effective Date" labelParent="{!this}" /><nttdcore:DLabel name="DL264" default="Lookup Type" labelParent="{!this}" /><nttdcore:DLabel name="DL265" default="Delegate" labelParent="{!this}" /><nttdcore:DLabel name="DL266" default="Unfiltered" labelParent="{!this}" /><nttdcore:DLabel name="DL267" default="Action" labelParent="{!this}" /><nttdcore:DLabel name="DL268" default="Select" labelParent="{!this}" /><nttdcore:DLabel name="DL269" default="Reports To" labelParent="{!this}" /><nttdcore:DLabel name="DL270" default="There are 0 results for the above criteria" labelParent="{!this}" />
+                <apex:pageblockbuttons location="bottom" >
+                    <apex:outputpanel layout="inline" styleclass="btn" onclick="searchKeyMembers()" ><nttdcore:DLabel name="DL252" default="Search" labelParent="{!this}" />{!dLabel['DL252']}</apex:outputpanel>
+                    <apex:outputpanel layout="inline" styleclass="btn" onclick="cancelModal()" ><nttdcore:DLabel name="DL253" default="Cancel" labelParent="{!this}" />{!dLabel['DL253']}</apex:outputpanel>
+                </apex:pageblockbuttons>
+                <apex:pagemessages id="modalMessages" />
+
+                <!--<c:ECO_CollapsibleSection sectionTitle="Select/Replace Key Member Instructions" uniqueId="replace">  -->
+                    <apex:pagemessage severity="info" ><nttdcore:DLabel name="DL254" default="Notes:" labelParent="{!this}" /><nttdcore:DLabel name="DL259" default="Exceptions:" labelParent="{!this}" />
+                    {!dLabel['DL254']}
+                    <ul>
+                        <li><nttdcore:DLabel name="DL255" default="During Project Planning phases, no Key Member history is kept." labelParent="{!this}" />{!dLabel['DL255']}</li>
+                        <li><nttdcore:DLabel name="DL256" default="During Execution there can only have be one person active in a key member role at any given time and there must be an active person in each role at all times (except as noted below)" labelParent="{!this}" />{!dLabel['DL256']}</li>
+                        <li><nttdcore:DLabel name="DL257" default="Project Managers must be certified in order to be selectable in the Project Manager role." labelParent="{!this}" />{!dLabel['DL257']}</li>
+                        <li><nttdcore:DLabel name="DL258" default="When selecting a Project Approver or Project Accountant, clicking on the &quot;Delegate&quot; option will search against all people who are currently actively delegates of the P&amp;L Manager and Finance Lead respectively.  If you change to &quot;Unfiltered&quot; option, then you can select any person in that role, however an approval workflow will be sent to the P&amp;L Manager or Finance Lead to confirm the assignment." labelParent="{!this}" />{!dLabel['DL258']}</li>
+                    </ul>
+
+                    {!dLabel['DL259']}
+                    <ul>
+                        <li><nttdcore:DLabel name="DL260" default="Deputy Project Managers - there can be up to 12 DPMs on a project at any given time" labelParent="{!this}" />{!dLabel['DL260']}</li>
+                        <li><nttdcore:DLabel name="DL261" default="Project Administrator, Project Biller and FCAP Subcontract Administrator are optional roles, applicable only to some Geo&#39;s" labelParent="{!this}" />{!dLabel['DL261']}</li>
+                    </ul>
+                    </apex:pagemessage>
+                <!--</c:ECO_CollapsibleSection>  -->              
+
+                <!-- search form section -->
+                <apex:pageblocksection showheader="false" >
+                    <apex:inputtext label="{!dLabel['DL262']}" id="queryContactName" onkeypress="handleEnter(event)" />
+                    <apex:outputfield id="modalProjectRoles" value="{!insertReplaceProjectTeamMember.ProjectRole__c}" />
+                    <apex:pageblocksectionitem rendered="{!pse__Proj__c.pse__Stage__c != 'Planning' && pse__Proj__c.pse__Stage__c != 'Pending Go/No Go'}" >
+                        <!--<c:ECO_HelpIcon helpText="The date of when the role replacement will take effect. This will create the end date of the role being replaced to a day previous to this date."/> -->
+                            <apex:outputlabel value="{!dLabel['DL263']}" />
+                            <apex:outputpanel layout="block" styleclass="requiredInput" >
+                            <apex:outputpanel layout="block" styleclass="requiredBlock" />
+                                <apex:inputfield value="{!insertReplaceProjectTeamMember.StartDate__c}" id="queryStartDate" onkeypress="handleEnter(event)" />
+                            </apex:outputpanel>
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem >
+                        <apex:outputlabel value="{!dLabel['DL264']}" id="queryTypelabel" />
+                        <apex:selectradio value="{!userSelectQueryType}" id="queryType" onkeypress="handleEnter(event)" >
+                            <apex:selectoption itemvalue="Delegate" itemlabel="{!dLabel['DL265']}" />
+                            <apex:selectoption itemvalue="Unfiltered" itemlabel="{!dLabel['DL266']}" />
+                        </apex:selectradio>
+                    </apex:pageblocksectionitem>
+                </apex:pageblocksection>
+                <!-- end search form section -->
+                <apex:pageblocksection showheader="false" id="pbsQueryTable" columns="1" >
+                <!-- query results table section -->
+                <apex:pageblocktable rendered="{!AND(queryDelegates != NULL, queryDelegates.SIZE > 0)}" value="{!queryDelegates}" var="delegate" styleclass="delegateQueryTable" >
+                    <apex:column >
+                        <apex:facet name="header" >{!dLabel['DL267']}</apex:facet>
+                        <apex:outputpanel styleclass="linkPanel" layout="inline" onclick="saveSelectedDelegate('{!delegate.Id}')" >{!dLabel['DL268']}</apex:outputpanel>
+                    </apex:column>
+                    <apex:column value="{!delegate.Name}" />
+                    <apex:column value="{!delegate.Title}" />
+                    <apex:column value="{!delegate.Email}" />
+                    <apex:column value="{!delegate.Phone}" />
+                    <apex:column >
+                        <apex:facet name="header" >{!dLabel['DL269']}</apex:facet>
+                        <apex:outputfield value="{!delegate.ReportsTo.Name}" />
+                    </apex:column>
+                </apex:pageblocktable>
+                <apex:outputpanel rendered="{!AND(queryDelegates != NULL, queryDelegates.SIZE < 1)}" >
+                    <p>{!dLabel['DL270']}</p>
+                </apex:outputpanel>
+                <!-- end query results table section -->
+                </apex:pageblocksection>
+                <apex:inputhidden id="existingRecordId" />
+                <apex:outputlabel styleclass="saveError" value="{!saveError}" id="saveError" />
+             </apex:pageblock>
+             <apex:actionstatus id="queryStatus" >
+                <apex:facet name="start" >
+                    <p style="padding-bottom:20px;text-align:center;" class="searchText" ><img style="position:relative;top:24px;" src="/img/loading32.gif" /> {!dLabel['DL271']}</p>
+                </apex:facet>
+            </apex:actionstatus>
+             <apex:actionstatus id="saveStatus" >
+                <apex:facet name="start" >
+                    <p style="padding-bottom:20px;text-align:center;" class="searchText" ><img style="position:relative;top:24px;" src="/img/loading32.gif" /> {!dLabel['DL272']}</p>
+                </apex:facet>
+            </apex:actionstatus>
+        </c:ECO_ModalDialog>
+        <!-- end modal window -->
+
+        <apex:actionfunction action="{!searchForKeyMembers}" name="searchForKeyMembers" rerender="pbsQueryTable" status="queryStatus" >
+            <apex:param name="contactName" value="" />
+            <apex:param name="queryType" value="" />
+            <apex:param name="selectedRole" value="" />
+            <apex:param name="startDate" value="" />
+        </apex:actionfunction>
+
+        <apex:actionfunction action="{!selectReplaceKeyMember}" name="selectReplaceKeyMember" rerender="saveError, modalMessages" status="saveStatus" oncomplete="checkForError()" >
+            <apex:param name="selectedContactId" value="" />
+            <apex:param name="selectedRole" value="" />
+            <apex:param name="startDate" value="" />
+            <apex:param name="existingId" value="" />
+            <apex:param name="queryType" value="" />
+        </apex:actionfunction>
+
+        <apex:actionfunction name="resetModalValues" action="{!resetModalValues}" rerender="pbModal" immediate="true" />
+        <apex:actionfunction name="refreshPage" action="{!resetModalValues}" rerender="pbModal, topForm" />
+        </apex:actionregion>
+
+        <!--  <apex:pageBlock title="Project Team History">
+            <apex:pageBlockTable value="{!histories}" var="h">
+                <apex:column headerValue="Date" value="{!h.thedate}"/>
+                <apex:column headerValue="User" value="{!h.who}"/>
+                <apex:column headerValue="Action"><apex:outputText escape="false" value="{!h.action}"/></apex:column>
+            </apex:pageBlockTable>
+        </apex:pageBlock>    -->
+                
+    </apex:form>
+  
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

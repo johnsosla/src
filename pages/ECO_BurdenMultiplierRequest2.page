@@ -1,0 +1,186 @@
+<apex:page standardcontroller="ProjectBurdenMultiplierRequest__c" extensions="ECO_BurdenMultiplierRequest2Controller,nttdcore.DLabelParentController" action="{!init}" id="BMPage" >
+
+<style>
+	.dmeOutput{  
+		font-size: 1.0em;
+  		font-weight: bold; 
+  		color: #4a4a56;  /*Standrd Salesforce Color*/
+  	}
+</style>
+
+<script>
+function setFocusOnLoad() {}
+</script>
+<apex:form id="BMForm" >
+
+	<nttdcore:DLabel name="DL1" default="Edit Request for Non-Standard Burden Multipliers" labelParent="{!this}" /><apex:sectionHeader title="{!dLabel['DL1']}" subtitle="{!project.Name}" />
+	<apex:pageMessages id="messages" />
+	<nttdcore:DLabel name="DL2" default="Edit Request for Non-Standard Burden Multipliers" labelParent="{!this}" /><apex:pageBlock title="{!dLabel['DL2']}" ><nttdcore:DLabel name="DL6" default="Project Information" labelParent="{!this}" />
+	
+	<apex:pageBlockButtons >
+		<nttdcore:DLabel name="DL3" default="Save" labelParent="{!this}" /><apex:commandButton value="{!dLabel['DL3']}" action="{!save}" />
+        <nttdcore:DLabel name="DL4" default="Submit for Approval" labelParent="{!this}" /><apex:commandButton value="{!dLabel['DL4']}" action="{!submitForApproval}" rendered="{!(request.ApprovalStatus__c == null || request.ApprovalStatus__c == '' || request.ApprovalStatus__c == 'Rejected' || request.ApprovalStatus__c == 'Recalled') }" />
+		<nttdcore:DLabel name="DL5" default="Return to Project" labelParent="{!this}" /><apex:commandButton value="{!dLabel['DL5']}" action="{!cancel}" />
+	</apex:pageBlockButtons>
+	<apex:inputHidden value="{!ProjectBurdenMultiplierRequest__c.Project__c }" />
+	<apex:pageBlockSection title="{!dLabel['DL6']}" collapsible="false" >
+		<apex:outputField value="{!project.EcoSystemReferenceNumber__c}" />
+		<apex:outputField value="{!project.pse__Stage__c}" />
+		<apex:outputField value="{!project.OracleProjectnumber__c}" />
+		<apex:outputField value="{!ProjectBurdenMultiplierRequest__c.ProjectManager__c}" /> <!-- Project Manager -->		
+		<apex:outputField value="{!project.Name}" />
+		<apex:outputField value="{!ProjectBurdenMultiplierRequest__c.ProjectApprover__c}" /> <!-- Project Approver -->
+		<apex:outputField value="{!project.PrimaryEndClient__r.AccountName__c}" />
+		<apex:outputField value="{!ProjectBurdenMultiplierRequest__c.FinanceLead__c}" /> <!-- Finance Lead -->
+		<apex:outputField value="{!project.DefaultTopTaskCustomer__c}" />
+		
+		<!--  Dates -->
+		<apex:outputField value="{!project.RFPIssueDate__c}" />
+		<apex:outputField value="{!project.EstimatedStartDate__c}" />
+		<apex:outputField value="{!project.ProposalDue__c}" />
+		<apex:outputField value="{!project.pse__Start_Date__c}" />
+		<apex:outputField value="{!project.EstAwardDate__c}" />
+		<apex:outputField value="{!project.pse__End_Date__c}" />		
+		
+		<!--  Values -->
+		<apex:outputField value="{!project.CapitalValue__c}" />
+		<apex:outputField value="{!project.AECOMLaborCosts__c}" />
+		<apex:outputField value="{!project.EstimatedContractValue__c}" />
+		<apex:outputField value="{!project.SubsCost__c}" />
+		<apex:outputField value="{!project.NetServicesRevenue__c}" />
+		<apex:outputField value="{!project.ODCsCost__c}" />					
+
+	</apex:pageBlockSection>
+
+	<apex:pageBlockSection >
+		<apex:outputField value="{!project.ProjectDescription__c}" />
+	</apex:pageBlockSection>
+
+	<apex:outputPanel id="requestDetails" ><nttdcore:DLabel name="DL7" default="Request" labelParent="{!this}" /><nttdcore:DLabel name="DL8" default="Home Burden Schedule" labelParent="{!this}" /><nttdcore:DLabel name="DL9" default="Field Burden Schedule" labelParent="{!this}" /><nttdcore:DLabel name="DL10" default="Has this request been discussed with your district/regional finance manager" labelParent="{!this}" /><nttdcore:DLabel name="DL16" default="Additional Information - for Custom Rate Request" labelParent="{!this}" /><nttdcore:DLabel name="DL17" default="Please provide a description / details of the requested rates:" labelParent="{!this}" />	
+	<apex:pageBlockSection title="{!dLabel['DL7']}" collapsible="false" columns="1" >
+
+<!--
+		<apex:inputField value="{!ProjectBurdenMultiplierRequest__c.RequestedRateSet__c}">
+			<apex:actionSupport event="onchange" rerender="requestDetails"/>
+		</apex:inputField>
+-->
+
+<!--
+		<apex:inputField value="{!ProjectBurdenMultiplierRequest__c.HomeField__c}">
+			<apex:actionSupport event="onchange" rerender="requestDetails"/>
+		</apex:inputField>
+-->
+
+<!--
+		<apex:pageBlockSectionItem>
+			<apex:outputLabel value="Home / Field" />
+			
+			<apex:selectList value="{!homeField}" multiselect="false" size="1">
+				<apex:selectOptions value="{!homeFieldOptions}" />
+			</apex:selectList>	
+		</apex:pageBlockSectionItem>
+-->		
+
+		<apex:pageBlockSectionItem >
+			<apex:outputLabel value="{!dLabel['DL8']}" />
+			
+			<apex:selectList value="{!burdenSchedule}" multiselect="false" size="1" id="burdenSchedule" >
+				<apex:selectOptions value="{!burdenSchedules}" />
+			</apex:selectList>	
+		</apex:pageBlockSectionItem>
+
+		<apex:pageBlockSectionItem >
+			<apex:outputLabel value="{!dLabel['DL9']}" />
+			
+			<apex:selectList value="{!burdenScheduleField}" multiselect="false" size="1" id="burdenScheduleField" >
+				<apex:selectOptions value="{!burdenSchedules}" />
+				<apex:actionSupport event="onchange" rerender="requestDetails" />
+			</apex:selectList>	
+		</apex:pageBlockSectionItem>
+		
+		<apex:inputField value="{!ProjectBurdenMultiplierRequest__c.EffectiveFrom__c}" />	
+		<apex:inputField value="{!ProjectBurdenMultiplierRequest__c.EffectiveTo__c}" />	
+<!--		<apex:outputField value="{!ProjectBurdenMultiplierRequest__c.RequestedRateSet__c}"/>	-->
+		<apex:inputField style="width: 600px; height:75px;" value="{!ProjectBurdenMultiplierRequest__c.BasisofRequest__c}" />
+		<apex:outputPanel >
+			<table>
+				<tr>
+					<td><apex:outputLabel styleclass="dmeOutput" ><br/>{!dLabel['DL10']}</apex:outputLabel></td>
+					<td><apex:selectRadio layout="lineDirection" value="{!ProjectBurdenMultiplierRequest__c.DiscussedwithManager__c}" >
+    					<apex:selectOptions value="{!YesNoOptions}" />
+ 					</apex:selectRadio></td>
+				</tr>
+				</table>
+		</apex:outputPanel>
+	</apex:pageBlockSection>
+	<apex:outputPanel >
+				<apex:outputPanel id="field" rendered="{!burdenScheduleField != ''}" ><nttdcore:DLabel name="DL11" default="Additional Information - for Field Rate Request" labelParent="{!this}" /><nttdcore:DLabel name="DL12" default="Are the staff working on this project 100% site based with no home office facilities required?" labelParent="{!this}" /><nttdcore:DLabel name="DL13" default="Is this request for Field Rates to be applied to a specific person or portion of work which is part of an overall contract?" labelParent="{!this}" /><nttdcore:DLabel name="DL14" default="If &quot;Yes&quot;, please provide the Task Number for which people will charge their time:" labelParent="{!this}" /><nttdcore:DLabel name="DL15" default="Please provide a list of staff who will be charging time to this project/task" labelParent="{!this}" />			
+	<apex:pageBlockSection title="{!dLabel['DL11']}" columns="1" collapsible="false" >			
+			<apex:outputPanel id="specificWork" >
+			<table>
+				<tr>
+					<td><apex:outputLabel styleclass="dmeOutput" ><br/>{!dLabel['DL12']}</apex:outputLabel></td>
+					<td><apex:selectRadio layout="lineDirection" value="{!ProjectBurdenMultiplierRequest__c.CompleteSiteBased__c}" >
+    					<apex:selectOptions value="{!YesNoOptions}" />
+ 					</apex:selectRadio></td>
+				</tr>
+				<tr>
+					<td><apex:outputLabel styleclass="dmeOutput" ><br/>{!dLabel['DL13']}</apex:outputLabel></td>
+					<td><apex:actionRegion ><apex:selectRadio layout="lineDirection" value="{!ProjectBurdenMultiplierRequest__c.SpecificPersonWork__c}" >
+    					<apex:selectOptions value="{!YesNoOptions}" />
+    					<apex:actionSupport event="onchange" rerender="test" />
+ 					</apex:selectRadio></apex:actionRegion></td>
+				</tr>
+				<tr>
+					<td colspan="2" ><apex:outputLabel styleclass="dmeOutput" ><br/>{!dLabel['DL14']}  </apex:outputLabel>
+						<br/><apex:inputField value="{!ProjectBurdenMultiplierRequest__c.TaskNumber__c}" />
+					</td>
+				</tr>
+				<tr>
+					<td colspan="2" ><apex:outputLabel styleclass="dmeOutput" ><br/>{!dLabel['DL15']}</apex:outputLabel>
+					<br/><apex:inputField style="width: 600px; height:75px;" value="{!ProjectBurdenMultiplierRequest__c.StaffList__c}" /></td>
+				</tr>				
+				<tr>
+					<td colspan="2" />
+				</tr>	
+				</table>
+				</apex:outputPanel>
+		</apex:pageBlockSection>
+					
+				</apex:outputPanel>
+		
+		</apex:outputPanel>
+<!--		<apex:outputPanel id="custom" rendered="{!homeField == 'Custom'}"> -->
+
+		<apex:pageBlockSection title="{!dLabel['DL16']}" collapsible="false" columns="1" >			
+			<apex:outputPanel >
+				<table>
+				<tr>
+					<td colspan="2" >
+					<apex:outputLabel styleclass="dmeOutput" >{!dLabel['DL17']}<br/>
+					</apex:outputLabel>
+					<apex:inputField style="width: 600px; height:75px;" value="{!ProjectBurdenMultiplierRequest__c.RequestedRateDetails__c}" />
+					</td>
+				</tr>	
+				</table>					
+			</apex:outputPanel>
+		
+	</apex:pageBlockSection>
+
+<!--	</apex:outputPanel>	 -->
+	</apex:outputPanel>
+	</apex:pageBlock>
+
+</apex:form>
+	<apex:relatedList list="CombinedAttachments" />
+	<apex:relatedList list="ProcessSteps" />
+    <script>
+        var allTdTags = document.getElementsByTagName('td');
+        for(var i=0;i<allTdTags.length;i++){
+       
+        if(allTdTags[i].className == 'pbButton'){
+                     document.getElementsByName('piSubmit')[0].style.display = "none";          
+            }
+        }
+    </script>
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

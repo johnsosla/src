@@ -1,0 +1,60 @@
+<apex:page standardcontroller="ManagementTeam__c" extensions="ECO_CreateMSAContact,nttdcore.DLabelParentController" action="{!init}" >
+		<style>
+	   	.halfWidthWrapper {
+			width:50%;
+			display:inline-block;
+			float:left;
+		}
+		
+		#notifications{
+			margin-left:50%;
+			padding-left:20px;
+		}
+		</style>
+<apex:form >
+<nttdcore:DLabel name="DL29" default="New Management Team" labelParent="{!this}" /><nttdcore:DLabel name="DL30" default="{{1}}({{2}})" labelParent="{!this}" p1="{!agreement.ContractTitle__c}" p2="{!agreement.AgreementNumber__c}" /><apex:sectionheader title="{!dLabel['DL29']}" subtitle="{!dLabel['DL30']}" />
+
+<nttdcore:DLabel name="DL31" default="Management Team Edit" labelParent="{!this}" /><apex:pageblock title="{!dLabel['DL31']}" mode="edit" >
+	<apex:pageblockbuttons ><nttdcore:DLabel name="DL32" default="Save" labelParent="{!this}" /><apex:commandbutton value="{!dLabel['DL32']}" action="{!save}" /><nttdcore:DLabel name="DL33" default="Return to MSA" labelParent="{!this}" /><apex:commandbutton value="{!dLabel['DL33']}" action="{!cancel}" /><nttdcore:DLabel name="DL34" default="New Contact" labelParent="{!this}" /><apex:commandbutton value="{!dLabel['DL34']}" action="{!createNewContact}" /></apex:pageblockbuttons>
+	<div class="halfWidthWrapper" ><nttdcore:DLabel name="DL35" default="Team Member" labelParent="{!this}" /><nttdcore:DLabel name="DL36" default="Use this field to locate and add the name of the AECOM or 3rd party team member.  If a Client, Vendor or Sub contact name cannot be found, click the &#39;New Contact&#39; button to add the name to the relevant account record.  Once added, return and search for the name to add it to the MSA Management Team." labelParent="{!this}" /><nttdcore:DLabel name="DL37" default="Team Member" labelParent="{!this}" /><nttdcore:DLabel name="DL38" default="The role of the team member on the contract." labelParent="{!this}" /><nttdcore:DLabel name="DL39" default="Role" labelParent="{!this}" />
+		<apex:pageblocksection columns="1" title="{!dLabel['DL35']}" >
+<!--			<apex:outputField value="{!ManagementTeam__c.Agreement__c}"/>-->
+			<apex:inputfield value="{!ManagementTeam__c.TeamMemberType__c}" />
+			<apex:pageblocksectionitem helptext="{!dLabel['DL36']}" >
+				<apex:outputlabel value="{!dLabel['DL37']}" />
+				<apex:inputfield value="{!ManagementTeam__c.TeamMember__c}" />
+			</apex:pageblocksectionitem>
+			<apex:pageblocksectionitem helptext="{!dLabel['DL38']}" >
+				<apex:outputlabel value="{!dLabel['DL39']}" />
+				<apex:inputfield value="{!ManagementTeam__c.Role__c}" />
+			</apex:pageblocksectionitem>
+		</apex:pageblocksection>
+<!--		<apex:pageblocksection columns="1" title="Client">-->
+<!--			<apex:outputField value="{!ManagementTeam__c.Agreement__c}"/>-->
+		<!--	<apex:inputField value="{!ManagementTeam__c.ClientTeamMember__c}"/>
+			<apex:inputField value="{!ManagementTeam__c.ClientRole__c}"/>-->
+	<!--	</apex:pageblocksection> -->
+ 
+		<!--<apex:pageblocksection columns="1" title="Vendor/Sub"> -->
+<!--			<apex:outputField value="{!ManagementTeam__c.Agreement__c}"/>-->
+		<!--	<apex:inputField value="{!ManagementTeam__c.VendorTeamMember__c}"/>
+			<apex:inputField value="{!ManagementTeam__c.VendorRole__c}"/>-->
+	<!--	</apex:pageblocksection>		-->
+
+	</div>
+	
+	<div id="notifications" ><nttdcore:DLabel name="DL40" default="New Contact" labelParent="{!this}" /><nttdcore:DLabel name="DL41" default="Save" labelParent="{!this}" /><nttdcore:DLabel name="DL42" default="Cancel" labelParent="{!this}" />
+		<apex:pageblocksection columns="1" title="{!dLabel['DL40']}" rendered="{!creatingNewContact}" >
+		<apex:inputfield value="{!contact.FirstName}" />
+		<apex:inputfield value="{!contact.LastName}" />
+		<apex:inputfield value="{!contact.AccountId}" />
+		<apex:outputpanel ><apex:commandbutton value="{!dLabel['DL41']}" action="{!saveNewContact}" /><apex:commandbutton value="{!dLabel['DL42']}" action="{!cancelNewContact}" /></apex:outputpanel>
+		</apex:pageblocksection>
+	</div>
+</apex:pageblock>
+
+<apex:inputhidden value="{!ManagementTeam__c.Agreement__c}" />
+
+</apex:form>
+
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

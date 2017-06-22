@@ -1,0 +1,109 @@
+<apex:page standardcontroller="pse__Proj__c" extensions="ECO_DeliverableListController,nttdcore.DLabelParentController" tabstyle="Deliverable__c" >
+<apex:messages />
+<style>
+    /* CUSTOM HELP / GUIDANCE TEXT BOX */
+    .customHelpText{
+            padding: 7px;
+            border: 1px solid #85B3CE;
+            min-height: 30px;
+            display: block;
+            width: auto;
+            margin: 0 0 5px 0;
+            background-repeat: no-repeat;
+            border-radius: 4px;
+            background-color: #A2D3F1;
+            
+        }
+        .customHelpBody{
+            display:inline-block;
+            color:#;
+            max-width:95%;
+        } 
+        .alignOutputfield span {
+            text-align:right;
+        }
+        .rightAlign {text-align:right;} 
+        .leftAlign {text-align:left;} 
+        .centerAlign {text-align:center;} 
+    
+        .odd {
+            background-color: #F0F0F6;
+            }
+            .even {
+            background-color: #FFFFFF;
+            }
+</style>    
+<apex:form >
+  
+    <nttdcore:DLabel name="DL1" default="Deliverables &amp; TQR" labelParent="{!this}" /><apex:sectionHeader title="{!dLabel['DL1']}" subtitle="{!pse__Proj__c.Name}" /> 
+    <div class="customHelpText" >
+        <div class="customHelpBody" ><nttdcore:DLabel name="DL2" default="ePM is the way AECOM implements our Quality Management System by evaluating our risks, planning our work, checking our work and making sure our clients are satisfied." labelParent="{!this}" /><nttdcore:DLabel name="DL3" default="Consider what tasks need to be completed to fulfill the contractual scope of works. &nbsp;These tasks, either individually or together, will inform your project deliverables. &nbsp;Types of deliverables typically include, but are not limited to, reports, design documents, drawings, letters, plans, specifications, data sheets or calculations." labelParent="{!this}" /><nttdcore:DLabel name="DL4" default="By definition, deliverables typically do not include project documents that are prepared for internal use. However, this section can be used to track and review internal documents, as needed (e.g., SH&amp;E Plan, Quality Management Plan)." labelParent="{!this}" />
+            {!dLabel['DL2']}
+            <br/><br/>{!dLabel['DL3']} &nbsp;
+            <br/><br/>{!dLabel['DL4']}&nbsp;
+        </div>
+    </div> 
+    <apex:pagemessages id="messages" />
+    
+     <apex:pageBlock ><nttdcore:DLabel name="DL9" default="Deliverables" labelParent="{!this}" /><nttdcore:DLabel name="DL10" default="Action" labelParent="{!this}" /><nttdcore:DLabel name="DL11" default="View" labelParent="{!this}" /><nttdcore:DLabel name="DL12" default="Delete" labelParent="{!this}" /><nttdcore:DLabel name="DL13" default="Deliverable Name" labelParent="{!this}" /><nttdcore:DLabel name="DL14" default="Current Status" labelParent="{!this}" /><nttdcore:DLabel name="DL15" default="Deliverable Originator" labelParent="{!this}" /><nttdcore:DLabel name="DL16" default="Related Scope Package" labelParent="{!this}" /><nttdcore:DLabel name="DL17" default="Deliverable Type" labelParent="{!this}" /><nttdcore:DLabel name="DL18" default="Due Date" labelParent="{!this}" /><nttdcore:DLabel name="DL19" default="Submitted Date" labelParent="{!this}" /><nttdcore:DLabel name="DL20" default="No records to display" labelParent="{!this}" /><nttdcore:DLabel name="DL21" default="Technical Quality Review (TQR) Progress" labelParent="{!this}" /><nttdcore:DLabel name="DL22" default="Action" labelParent="{!this}" /><nttdcore:DLabel name="DL23" default="View" labelParent="{!this}" /><nttdcore:DLabel name="DL24" default="TQR Number" labelParent="{!this}" /><nttdcore:DLabel name="DL25" default="Deliverable Name" labelParent="{!this}" /><nttdcore:DLabel name="DL26" default="Deliverable Version" labelParent="{!this}" /><nttdcore:DLabel name="DL27" default="Reviews Completed" labelParent="{!this}" /><nttdcore:DLabel name="DL28" default="/" labelParent="{!this}" /><nttdcore:DLabel name="DL29" default="No records to display" labelParent="{!this}" />
+        <apex:pageBlockButtons location="top" ><nttdcore:DLabel name="DL6" default="New Deliverable" labelParent="{!this}" /><nttdcore:DLabel name="DL7" default="Processing..." labelParent="{!this}" />
+            <nttdcore:DLabel name="DL5" default="Return to Project" labelParent="{!this}" /><apex:commandButton action="{!returnProj}" value="{!dLabel['DL5']}" immediate="true" />
+            <apex:actionStatus id="mySaveStatus1" >
+            <apex:facet name="stop" >
+            <apex:commandButton action="{!newDeliverable}" status="mySaveStatus1" value="{!dLabel['DL6']}" disabled="false" rerender="mySaveStatus, messages" />
+            </apex:facet>
+            <apex:facet name="start" >
+            <apex:commandButton action="{!newDeliverable}" status="mySaveStatus1" value="{!dLabel['DL7']}" disabled="true" /> </apex:facet>
+            </apex:actionStatus>
+            <!--<apex:commandButton action="{!newDeliverable}" value="New Deliverable" immediate="true" />    -->
+            <nttdcore:DLabel name="DL8" default="Export Deliverables List" labelParent="{!this}" /><apex:commandButton action="{!exportCSV}" value="{!dLabel['DL8']}" />
+        </apex:pageBlockButtons>
+        <apex:pageBlockSection title="{!dLabel['DL9']}" columns="1" collapsible="false" >
+            <apex:pageBlockTable value="{!Deliverables}" rendered="{!Deliverables.size > 0}" var="deliverlist" rowclasses="even,odd" >
+                <apex:column headervalue="{!dLabel['DL10']}" >
+                    <!--<apex:commandLink value="Edit" action="/{!deliverlist.Id}/e?retURL=/apex/ECO_RiskRegisterList?id={!pse__Proj__c.id}"/>&nbsp;&nbsp;-->
+                    <apex:commandLink value="{!dLabel['DL11']}" action="/{!deliverlist.Id}" />&nbsp;&nbsp;
+                    <apex:commandLink value="{!dLabel['DL12']}" action="{!deleteDeliver}" onclick="return confirm('Are you sure you want to delete this deliverable record?');" >
+                        <apex:param name="recid" value="{!deliverlist.id}" />
+                    </apex:commandLink>
+                </apex:column>
+                <apex:column headerclass="centerAlign" styleclass="leftAlign" ><apex:facet name="header" >{!dLabel['DL13']}</apex:facet><apex:outputField value="{!deliverlist.Name}" /></apex:column>
+                <apex:column headerclass="centerAlign" headervalue="{!dLabel['DL14']}" styleclass="centerAlign" ><apex:outputField value="{!deliverlist.Status__c}" /></apex:column>
+                <apex:column headerclass="centerAlign" styleclass="centerAlign" headervalue="{!dLabel['DL15']}" ><apex:outputField value="{!deliverlist.DeliverablesOwner__r.Name}" /></apex:column>
+                
+                <apex:column headerclass="centerAlign" styleclass="leftAlign" headervalue="{!dLabel['DL16']}" >
+                    <apex:commandLink value="{!deliverlist.Project_Scope__r.Name}" 
+                    action="/apex/ECO_ProjectScope?projectId={!pse__Proj__c.id}&selTab={!deliverlist.Project_Scope__r.Name}"/>
+                </apex:column>
+                
+                <apex:column headerclass="centerAlign" styleclass="centerAlign" headervalue="{!dLabel['DL17']}" ><apex:outputField value="{!deliverlist.DeliverableType__c}" /></apex:column>
+                <apex:column headerclass="centerAlign" styleclass="centerAlign" headervalue="{!dLabel['DL18']}" ><apex:outputField value="{!deliverlist.DueDate__c}" /></apex:column>
+                <apex:column headerclass="centerAlign" styleclass="centerAlign" headervalue="{!dLabel['DL19']}" ><apex:outputField value="{!deliverlist.DateSubmitted__c}" /></apex:column>
+            </apex:pageBlockTable>
+            
+            <apex:outputPanel rendered="{!Deliverables.size == 0}" >
+                <apex:outputText value="{!dLabel['DL20']}" />
+            </apex:outputPanel> 
+        </apex:pageBlockSection>
+        <apex:pageBlockSection title="{!dLabel['DL21']}" columns="1" collapsible="false" >
+            <apex:pageBlockTable value="{!TQRs}" rendered="{!TQRs.size > 0}" var="TQRlist" rowclasses="even,odd" >
+                <apex:column headervalue="{!dLabel['DL22']}" width="80" >
+                    <apex:commandLink value="{!dLabel['DL23']}" action="/{!TQRlist.Id}" />&nbsp;&nbsp;
+                    <!--<apex:commandLink value="Edit" action="/{!TQRlist.Id}/e?retURL=/apex/ECO_DeliverableList?id={!pse__Proj__c.id}"/>-->
+                </apex:column>
+                <apex:column headerclass="centerAlign" styleclass="centerAlign" ><apex:facet name="header" >{!dLabel['DL24']}</apex:facet><apex:outputLink value="/{!TQRlist.Id}" styleclass="centerAlign" >{!TQRlist.Name}</apex:outputLink></apex:column>
+                <apex:column headerclass="centerAlign" styleclass="centerAlign" headervalue="{!dLabel['DL25']}" ><apex:outputField value="{!TQRlist.Deliverable__c}" /></apex:column>
+                <apex:column headerclass="centerAlign" styleclass="centerAlign" headervalue="{!dLabel['DL26']}" ><apex:outputField value="{!TQRlist.DeliverableRevision__c}" /></apex:column>
+                <apex:column headerclass="centerAlign" styleclass="centerAlign" headervalue="{!dLabel['DL27']}" ><apex:outputField value="{!TQRlist.TotalReviewsCompleted__c}" />{!dLabel['DL28']}<apex:outputField value="{!TQRlist.TotalNumberOfReviews__c}" /></apex:column>
+            </apex:pageBlockTable>
+            
+            <apex:outputPanel rendered="{!TQRs.size == 0}" >
+                <apex:outputText value="{!dLabel['DL29']}" />
+            </apex:outputPanel> 
+        </apex:pageBlockSection>
+    </apex:pageBlock>    
+    <c:ECO_RiskFlyout projectid="{!thisProject.Id}" planelement="Deliverables" />
+    <c:ECO_AssumptionFlyout projectid="{!thisProject.Id}" planelement="Deliverables" />
+    <c:ECO_ProjectTeamFlyout projectid="{!thisProject.Id}" />
+</apex:form>    
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

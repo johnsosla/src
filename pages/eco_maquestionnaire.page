@@ -1,0 +1,247 @@
+<apex:page controller="ECO_MAQuestionnaireController" showheader="true" sidebar="false" extensions="nttdcore.DLabelParentController" >
+    <style>
+
+        /* TABLE */
+        /*======================================*/
+        .questionnaire .table th {
+          font-size: 1.05em;
+          font-weight: 600;
+          border-bottom: 2px solid rgba(0, 0, 0, 0.14);
+        }
+        .questionnaire .table td {
+          border-top: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        .questionnaire .table table td{
+            border:none !important;
+        }
+        .questionnaire .table.table-vcenter th,
+        .questionnaire .table.table-vcenter td {
+          vertical-align: middle;
+        }
+        .questionnaire .table .min-width {
+          width: 1%;
+          white-space: nowrap;
+          padding-left: 15px !important;
+          padding-right: 15px !important;
+        }
+        .questionnaire .table-bordered td,
+        .questionnaire .table-bordered th {
+          border-color: rgba(0, 0, 0, 0.11);
+        }
+        .questionnaire .table-striped > tbody > tr:nth-child(2n+1) {
+          background-color: #f9f9f9;
+        }
+        .questionnaire .table-hover > tbody > tr:hover {
+          background-color: #e3f3ff;
+        }
+        .questionnaire textarea{
+            margin:5px 0 15px 0;
+        }
+        .questionnaire td{
+            padding:8px 0 5px 15px;
+        }
+        table.list table tr td{
+            border:none !important;
+        }
+        table.list .headerRow th{
+            font-size:1.1em !important;
+        }
+        body .pbBody table.list tr th, body .pbBody table.list tr td{
+            border-left:none !important;
+            border-top:none !important;
+            border-right:1px solid #ededed;
+        }
+        /* CUSTOM HELP / GUIDANCE TEXT BOX*/
+        .customHelpText{
+            padding:7px;
+            border:1px solid #85B3CE;
+            min-height:30px;
+            display:block;
+            width:auto;
+            margin:0;
+            background-repeat:no-repeat;
+            border-radius:4px;
+            background-color:#A2D3F1;
+        }
+        .customHelpBody{
+            display:inline-block;
+            color:#;
+            max-width:95%;
+            //margin-left:28px;
+        }
+        td.padded {
+            padding-top:0px;
+            padding-bottom:0px;
+            height:6px;
+        }
+
+
+        .table{border-collapse:collapse;}
+        // The next line enables scrolling with fixed header
+        //.table-wrap{max-height: 400px;width:100%;overflow-y:auto;overflow-x:hidden;}  
+        .table-dalam{height:600px;border-collapse:collapse;}
+        .td-nya{border-left:1px solid white;border-right:1px solid lightgrey;border-bottom:1px solid lightgrey;word-wrap: break-word;width:14.25%;padding-left:10px;}
+        .th{width:14.25%;text-align:center;padding-left:10px;}
+        .picklist{text-align:center;}
+       
+        
+        
+    </style>
+    <apex:includeScript value="{!$Resource.ECO_jQuery_1_11_2_min_js}" />    
+    <script>
+        function setInner(variable)
+        {
+            var selected = variable.value;
+
+            if(selected == "No" || selected == "False"){
+                document.getElementById("j_id0:j_id11:j_id15:Staff:1").checked = true;
+                document.getElementById("j_id0:j_id11:j_id15:Expert:1").checked = true;
+                document.getElementById("j_id0:j_id11:j_id15:JVInvolve:1").checked = true;
+                document.getElementById("j_id0:j_id11:j_id15:PMService:1").checked = true;
+                document.getElementById("j_id0:j_id11:j_id15:RFP:1").checked = true;
+            }
+        }
+    
+        function setOuter(variable){
+            var selected = variable.value;
+            if(selected == "Yes" || selected == "True"){
+                document.getElementById("j_id0:j_id11:j_id15:COI:0").checked = true;
+            }
+            if(selected == "No" || selected == "False"){
+                if(document.getElementById("j_id0:j_id11:j_id15:Staff:1").checked
+                  && document.getElementById("j_id0:j_id11:j_id15:Expert:1").checked
+                  && document.getElementById("j_id0:j_id11:j_id15:JVInvolve:1").checked
+                  && document.getElementById("j_id0:j_id11:j_id15:PMService:1").checked
+                  && document.getElementById("j_id0:j_id11:j_id15:RFP:1").checked){
+                    document.getElementById("j_id0:j_id11:j_id15:COI:1").checked = true;
+                }
+            }
+        }
+    </script>
+    <nttdcore:DLabel name="DL1" default="Market Assessment" labelParent="{!this}" /><nttdcore:DLabel name="DL2" default="Market Assessment Questions" labelParent="{!this}" /><apex:sectionHeader title="{!dLabel['DL1']}" subtitle="{!dLabel['DL2']}" />
+    <apex:pageMessages id="pageMessages" />
+    <c:ECO_CollapsibleSection sectiontitle="General Guidance Information" ><nttdcore:DLabel name="DL3" default="A Market Assessment helps guide our decision to pursue a project and evaluate our probability of success through a series of questions that consider our position in the market, our relationship with the client(s) and our ability to execute successfully." labelParent="{!this}" /><nttdcore:DLabel name="DL4" default="Complete the following section to assess the project opportunity against the strategic business plan for your operations or business line, our experience on similar projects, our technical strength and resource availability, our relationship with the client(s) and our competitive position." labelParent="{!this}" />  
+            {!dLabel['DL3']}
+            <br/><br/>
+            {!dLabel['DL4']}
+    </c:ECO_CollapsibleSection>
+    <br/>
+    <apex:form >
+
+        <!--<apex:inputField value="{!MarketAssessment__c.QuestionnaireSet__r.ApprovalStatus__c}" rendered="false" />-->
+
+        <div style="position:relative;" >
+            <apex:outputPanel layout="block" styleclass="questionnaire" >
+                <nttdcore:DLabel name="DL5" default="{{1}} Questions" labelParent="{!this}" p1="{!MarketAssessment.Name}" /><apex:pageBlock title="{!dLabel['DL5']}" >
+                    <apex:pageBlockButtons location="both" >
+                        <nttdcore:DLabel name="DL6" default="Save" labelParent="{!this}" /><apex:commandButton action="{!saveRecord}" value="{!dLabel['DL6']}" disabled="{!MarketAssessment.QuestionnaireSet__r.ApprovalStatus__c !='Pending Approval'}" />
+                        <nttdcore:DLabel name="DL7" default="Save and Next" labelParent="{!this}" /><apex:commandButton action="{!SaveNext}" value="{!dLabel['DL7']}" immediate="false" />
+                        <!-- <apex:commandButton action="{!SaveNext}" value="Save & Next" disabled="{!oMarketAssessment.QuestionnaireSet__r.ApprovalStatus__c !='Pending Approval'}" /> -->
+                        <nttdcore:DLabel name="DL8" default="Return to Summary" labelParent="{!this}" /><apex:commandButton action="{!ReturnToSummary}" value="{!dLabel['DL8']}" />
+                    </apex:pageBlockButtons>
+                    <h1><center><nttdcore:DLabel name="DL9" default="Ratings" labelParent="{!this}" />{!dLabel['DL9']}</center></h1><br/>
+                    <table class="table" >
+                    <thead>
+                        <tr>
+                        <th class="th" ><nttdcore:DLabel name="DL10" default="Factor" labelParent="{!this}" />{!dLabel['DL10']}</th>
+                        <th class="th" ><nttdcore:DLabel name="DL11" default="5" labelParent="{!this}" />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{!dLabel['DL11']}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+                        <th class="th" ><nttdcore:DLabel name="DL12" default="4" labelParent="{!this}" />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{!dLabel['DL12']}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+                        <th class="th" ><nttdcore:DLabel name="DL13" default="3" labelParent="{!this}" />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{!dLabel['DL13']}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+                        <th class="th" ><nttdcore:DLabel name="DL14" default="2" labelParent="{!this}" />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{!dLabel['DL14']}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+                        <th class="th" ><nttdcore:DLabel name="DL15" default="1" labelParent="{!this}" />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{!dLabel['DL15']}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+                        <th class="th" ><nttdcore:DLabel name="DL16" default="Total Score:" labelParent="{!this}" />{!dLabel['DL16']}&nbsp;&nbsp;<apex:outputText id="scoreTotal" value="" /></th>
+                       </tr>
+                     </thead>
+                     <tbody>
+                       <tr>
+                          <td colspan="7" >
+                          <div class="table-wrap" >
+                          <table class="table-dalam" >
+                             <tbody> 
+                                     <apex:repeat value="{!lAnswers}" var="a" >        
+                                     <apex:outputPanel rendered="{!NOT(a.IsFreeForm__c)}" >
+                                       <tr>
+                                         <td class="td-nya" >
+                                             <apex:outputText value="{!a.TemplateQuestion__r.Factor__c}" 
+                                                rendered="{!if(OR(userLanguage != 'fr',AND(userLanguage == 'fr', a.TemplateQuestion__r.FrFactor__c == null)), true, false)}" />
+                                             <apex:outputText value="{!a.TemplateQuestion__r.FrFactor__c}" 
+                                                rendered="{!NOT(if(OR(userLanguage != 'fr',AND(userLanguage == 'fr', a.TemplateQuestion__r.FrFactor__c == null)), true, false))}" />
+                                             <apex:outputPanel rendered="{!NOT(a.TemplateQuestion__r.HelpText__c=NULL)}" ><c:ECO_HelpIcon helptext="{!a.TemplateQuestion__r.HelpText__c}" /></apex:outputPanel>
+                                         </td>
+                                         <td class="td-nya" >
+                                              <apex:outputText value="{!a.TemplateQuestion__r.Rating5__c}" escape="false" 
+                                                rendered="{!if(OR(userLanguage != 'fr',AND(userLanguage == 'fr', a.TemplateQuestion__r.FrRating5__c == null)), true, false)}" />
+                                              <apex:outputText value="{!a.TemplateQuestion__r.FrRating5__c}" escape="false" 
+                                                rendered="{!NOT(if(OR(userLanguage != 'fr',AND(userLanguage == 'fr', a.TemplateQuestion__r.FrRating5__c == null)), true, false))}" />
+                                         </td>
+                                         <td class="td-nya" >
+                                              <apex:outputText value="{!a.TemplateQuestion__r.Rating4__c}" escape="false" 
+                                                rendered="{!if(OR(userLanguage != 'fr',AND(userLanguage == 'fr', a.TemplateQuestion__r.FrRating4__c == null)), true, false)}" />
+                                              <apex:outputText value="{!a.TemplateQuestion__r.FrRating4__c}" escape="false" 
+                                                rendered="{!NOT(if(OR(userLanguage != 'fr',AND(userLanguage == 'fr', a.TemplateQuestion__r.FrRating4__c == null)), true, false))}" />
+                                         </td>
+                                         <td class="td-nya" >
+                                              <apex:outputText value="{!a.TemplateQuestion__r.Rating3__c}" escape="false" 
+                                                rendered="{!if(OR(userLanguage != 'fr',AND(userLanguage == 'fr', a.TemplateQuestion__r.FrRating3__c == null)), true, false)}" />
+                                              <apex:outputText value="{!a.TemplateQuestion__r.FrRating3__c}" escape="false" 
+                                                rendered="{!NOT(if(OR(userLanguage != 'fr',AND(userLanguage == 'fr', a.TemplateQuestion__r.FrRating3__c == null)), true, false))}" />
+                                         </td>
+                                         <td class="td-nya" >
+                                              <apex:outputText value="{!a.TemplateQuestion__r.Rating2__c}" escape="false" 
+                                                rendered="{!if(OR(userLanguage != 'fr',AND(userLanguage == 'fr', a.TemplateQuestion__r.FrRating2__c == null)), true, false)}" />
+                                              <apex:outputText value="{!a.TemplateQuestion__r.FrRating2__c}" escape="false" 
+                                                rendered="{!NOT(if(OR(userLanguage != 'fr',AND(userLanguage == 'fr', a.TemplateQuestion__r.FrRating2__c == null)), true, false))}" />
+                                         </td>
+                                         <td class="td-nya" >
+                                              <apex:outputText value="{!a.TemplateQuestion__r.Rating1__c}" escape="false" 
+                                                rendered="{!if(OR(userLanguage != 'fr',AND(userLanguage == 'fr', a.TemplateQuestion__r.FrRating1__c == null)), true, false)}" />
+                                              <apex:outputText value="{!a.TemplateQuestion__r.FrRating1__c}" escape="false" 
+                                                rendered="{!NOT(if(OR(userLanguage != 'fr',AND(userLanguage == 'fr', a.TemplateQuestion__r.FrRating1__c == null)), true, false))}" />
+                                         </td>
+                                         <td class="picklist" >                                            
+                                             <apex:inputField value="{!a.ScorePicklist__c}" >
+                                                 <apex:actionSupport event="onchange" rerender="" onsubmit="calculateScore();" />
+                                             </apex:inputField>
+                                         </td>                                        
+                                       </tr>
+                                     </apex:outputPanel>  
+                                     <apex:outputPanel rendered="{!a.IsFreeForm__c}" >
+                                       <tr><td colspan="7" >
+                                           <br/><br/><b>{!lAnswers[11].TemplateQuestion__r.Question_1__c}</b><br/><br/>
+                                           <apex:inputField value="{!lAnswers[11].FreeForm__c}" style="width:97%" />  
+                                       </td></tr>
+                                     </apex:outputPanel> 
+                                     </apex:repeat>      
+                            </tbody>
+                           </table>                                                   
+                         </div>
+                       </td>
+                     </tr>
+                      </tbody>
+                     </table>
+                                        
+
+                </apex:pageBlock>
+            </apex:outputPanel>
+        </div>
+    </apex:form>
+    <script>
+        function calculateScore() {
+            var scoreTotal = 0;
+            $('[class*="picklist"]').find('option').each(function(index,element){
+                if (element.selected) {
+                    scoreTotal += Number(element.value);
+                }
+            });
+
+            $('[id$="scoreTotal"]').text(scoreTotal);           
+        }
+    
+        $(document).ready(function() {
+            calculateScore();
+        });   
+        
+        
+
+    </script>    
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

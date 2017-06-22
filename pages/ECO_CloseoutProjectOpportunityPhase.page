@@ -1,0 +1,347 @@
+<apex:page showheader="true" standardcontroller="pse__Proj__c" extensions="ECO_CloseoutOpportunityPhaseController,nttdcore.DLabelParentController" tabstyle="pse__Proj__c" sidebar="true" action="{!init}" >
+
+	<style>
+
+		.colA {
+			font-weight: bold;
+			text-align:right;
+			vertical-align:middle !important;
+		}
+
+		.colB {
+			padding:0 10px !important;
+		}
+
+		.colC {
+			vertical-align:middle !important;
+		}
+
+
+		.colD {
+			text-align:left;
+			vertical-align:middle !important;
+		}		
+
+		.questions{
+			vertical-align:middle !important;
+			margin-left:3px;
+		}
+
+		.dmeOutput{  
+			font-size: 1.0em;
+			font-weight: bold; 
+			color: #4a4a56;  /*Standrd Salesforce Color*/
+		}
+		
+		.attachNewFile{
+			visibility: hidden;
+		}
+		
+		.pbtOutputPanel
+		{
+			padding: 100;
+			color: red;
+		}  	
+		
+		.textBox
+		{
+			padding-bottom: 5px;
+		}
+		
+		.fileList
+		{
+			padding:0 12px;
+			margin-top:7px;
+		}
+		
+		.bPageBlock .detailList tr td.dataCol, 
+		.bPageBlock .detailList tr td.labelCol
+		{
+			border-bottom:1px solid #dbdbdb;
+		}
+
+		.bPageBlock .detailList tr td.dataCol.last, 
+		.bPageBlock .detailList tr td.labelCol.last
+		{
+			border-bottom:0px solid #dbdbdb;
+		}
+		 
+		.questionCol {
+			padding-top: 10px;  
+		}
+
+		/* CUSTOM HELP / GUIDANCE TEXT BOX */
+		.customHelpText{
+			padding: 7px;
+			border: 1px solid #85B3CE;
+			min-height: 10px;
+			display: block;
+			width: auto;
+			margin: 0 0 5px 0;
+			background-repeat: no-repeat;
+			border-radius: 4px;
+			background-color: #A2D3F1;
+			
+		}
+		.customHelpBody{
+			display:inline-block;
+			color:#;
+			max-width:95%;
+		}
+
+	</style>
+
+	<head>
+		<apex:stylesheet value="https://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css" />
+		<apex:includescript value="https://code.jquery.com/jquery-1.9.1.js" />
+		<apex:includescript value="https://code.jquery.com/ui/1.10.3/jquery-ui.js" />
+	</head>
+
+	<script>
+
+		var status = false;
+		var statusdate = false;
+		var copyOpp = false;
+
+		function statusclick(field){
+
+			if(field == 'status'){
+				status = true;
+			} else if (field == 'statusdate'){
+				statusdate = true;
+			} else if (field == 'copyOpp') {
+				copyOpp = true;
+			}
+
+			if(status && statusdate && copyOpp){
+				document.getElementById('fileattach').style.display = 'block';
+			}
+
+		} 
+
+		function openPopup(id)
+		{
+			var newWin=window.open('/' + id, 'PopUp',
+				   'height=450,width=650,left=300,top=100,resizable=no,scrollbars=yes,toolbar=no,status=no,channelmode=no');
+			if (window.focus) 
+			{
+				newWin.focus();
+			}
+				 
+			return false;       
+		}	
+		
+		function fileChosen(attachButton,documentField,overrideField)
+		{
+			if(documentField.value != '')
+			{
+				document.getElementById(attachButton).style.visibility = 'visible';			
+				document.getElementById(overrideField).value = '';
+				document.getElementById(overrideField).style.visibility = 'visible';
+							
+			}
+			else
+			{
+				document.getElementById(attachButton).style.visibility= 'hidden';
+				document.getElementById(overrideField).style.visibility= 'hidden';			
+			}		
+		}
+		
+	</script>
+
+	<apex:form >
+
+		<nttdcore:DLabel name="DL20" default="Change Status" labelParent="{!this}" /><apex:sectionheader title="{!dLabel['DL20']}" subtitle="{!pse__Proj__c.ProjectSectionHeaderName__c}" />
+		<apex:pageblock id="goHelp" rendered="{!pse__Proj__c.pse__Stage__c == 'No-Go'  
+				|| pse__Proj__c.pse__Stage__c == 'Canceled by Client' || pse__Proj__c.pse__Stage__c == 'Lost'}" >
+			<div class="customHelpText" >
+				<div class="customHelpBody" ><nttdcore:DLabel name="DL21" default="Click the &#39;Reset Project Status&#39; button to reset the project status back to prior status. Provide notes explaining why the project status is changing from the previous revision." labelParent="{!this}" />
+				<!--Click the 'Reset Project Status' button to reset the project status back to 'Planning'. Provide notes explaining why the project status is changing from the previous revision.-->
+				{!dLabel['DL21']}
+				</div>
+			</div>		
+		</apex:pageblock>		
+		<apex:pageblock id="noGoHelp" rendered="{!pse__Proj__c.pse__Stage__c != 'No-Go'  
+				&& pse__Proj__c.pse__Stage__c != 'Canceled by Client' && pse__Proj__c.pse__Stage__c != 'Lost'}" >
+			<div class="customHelpText" >
+				<div class="customHelpBody" ><nttdcore:DLabel name="DL22" default="Options for closing a project in the opportunity phase include: &lsquo;Canceled by Client&rsquo;, &lsquo;No Go&rsquo; or &lsquo;Lost&rsquo;.  These statuses align to the stages in our Customer Relationship Management (CRM) tool." labelParent="{!this}" /><nttdcore:DLabel name="DL23" default="Once the appropriate status is selected, determine if the corresponding CRM record for the project opportunity should also be updated.  This is typical in most cases but there are situations where the opportunity record remains open for follow-on related project opportunities.  For example, an opportunity record is tracking the end-to-end construction of a bridge but the initial project opportunity was only for the geotechnical design.  The Account or Capture Manager may desire to have the record remain open and available for the next phase of work.  If you are unsure, check with your local Business Development lead or the client record Account Manager." labelParent="{!this}" />
+					{!dLabel['DL22']}  
+					<br/><br/>
+					{!dLabel['DL23']}
+				</div>
+			</div>		
+		</apex:pageblock>		
+
+
+
+		<apex:pagemessages id="messages" />		
+		
+		<apex:outputpanel id="noGoStartup" rendered="{!pse__Proj__c.pse__Stage__c == 'No-Go'  || pse__Proj__c.pse__Stage__c == 'Canceled by Client' || pse__Proj__c.pse__Stage__c == 'Lost'}" >
+			<apex:pageblock >
+				<apex:pageblockbuttons >
+					<nttdcore:DLabel name="DL24" default="Reset Project Status" labelParent="{!this}" /><apex:commandbutton value="{!dLabel['DL24']}" action="{!createChangeManagementPlanning}" />
+					<nttdcore:DLabel name="DL25" default="Return to Project" labelParent="{!this}" /><apex:commandbutton value="{!dLabel['DL25']}" action="{!back}" immediate="true" />
+				</apex:pageblockbuttons>
+				<apex:pageblocksection columns="1" collapsible="false" >
+					<apex:inputfield value="{!oProject.ProjectClosureNotes__c}" />
+				</apex:pageblocksection>
+
+			</apex:pageblock>
+
+		</apex:outputpanel>		
+
+
+		<apex:pageblock rendered="{!pse__Proj__c.pse__Stage__c != 'No-Go' && pse__Proj__c.pse__Stage__c != 'Canceled by Client' && pse__Proj__c.pse__Stage__c != 'Lost'}" ><nttdcore:DLabel name="DL28" default="Change Status" labelParent="{!this}" />
+
+			<apex:pageblockbuttons location="top" >
+				<nttdcore:DLabel name="DL26" default="Save" labelParent="{!this}" /><apex:commandbutton value="{!dLabel['DL26']}" action="{!closesave}" />
+				<nttdcore:DLabel name="DL27" default="Return to Project" labelParent="{!this}" /><apex:commandbutton value="{!dLabel['DL27']}" action="{!back}" immediate="true" />
+			</apex:pageblockbuttons>
+
+			<apex:pageblocksection title="{!dLabel['DL28']}" collapsible="false" />
+
+			<div style="padding:0 100px;margin-top:7px" >
+			<nttdcore:DLabel name="DL29" default="Project/Opportunity Closure Status" labelParent="{!this}" />
+			<nttdcore:DLabel name="DL30" default="Status Change Date" labelParent="{!this}" />
+			<nttdcore:DLabel name="DL31" default="Notes" labelParent="{!this}" />
+			<nttdcore:DLabel name="DL32" default="Also Close Related Opportunity Record" labelParent="{!this}" />
+			<nttdcore:DLabel name="DL33" default="Client Debrief" labelParent="{!this}" />
+			<nttdcore:DLabel name="DL34" default="Notes" labelParent="{!this}" />
+			<nttdcore:DLabel name="DL35" default="Internal Debrief" labelParent="{!this}" />
+			<nttdcore:DLabel name="DL36" default="Notes" labelParent="{!this}" />
+			<apex:outputpanel id="projectFields" >
+
+				<apex:actionregion >
+					<apex:panelgrid columns="4" columnclasses="colA, colB, colC, colD" id="grid" >
+						<apex:outputlabel value="{!dLabel['DL29']}" />
+
+						<apex:actionregion immediate="true" >						
+							<apex:outputpanel styleclass="requiredInput" layout="block" >
+								<apex:outputpanel styleclass="requiredBlock" layout="block" />
+								<apex:selectlist size="1" value="{!oProject.ProjOpptyClosureStatus__c}" required="true" >
+									<apex:actionsupport event="onchange" rerender="projectFields, browsefile" />
+									<apex:selectoptions value="{!closureStatusOptions}" />
+								</apex:selectlist>
+							</apex:outputpanel>
+						</apex:actionregion>
+						<apex:outputtext value="" />
+						<apex:outputtext value="" />
+
+						<apex:outputlabel value="{!$ObjectType.pse__Proj__c.Fields.Reason_Won_or_Lost__c.label}" rendered="{!oProject.ProjOpptyClosureStatus__c == '9 Lost'}" />
+						<apex:outputpanel styleclass="requiredInput" layout="block" rendered="{!oProject.ProjOpptyClosureStatus__c == '9 Lost'}" >
+							<apex:outputpanel styleclass="requiredBlock" layout="block" rendered="{!oProject.ProjOpptyClosureStatus__c == '9 Lost'}" />
+							<apex:selectlist size="1" value="{!oProject.Reason_Won_or_Lost__c}" required="true" rendered="{!oProject.ProjOpptyClosureStatus__c == '9 Lost'}" >
+								<apex:selectoptions value="{!reasonsWonLostOptions}" />
+							</apex:selectlist>
+						</apex:outputpanel>
+						<apex:outputtext value="" rendered="{!oProject.ProjOpptyClosureStatus__c == '9 Lost'}" />
+						<apex:outputtext value="" rendered="{!oProject.ProjOpptyClosureStatus__c == '9 Lost'}" />
+
+<!-- 						<apex:outputPanel id="lostInfoPanel" rendered="{!oProject.ProjOpptyClosureStatus__c == '9 Lost'}">
+							<apex:outputLabel value="Status Change Reason" />
+							<apex:outputText value="" />			
+							<apex:inputField value="{!oProject.Reason_Won_or_Lost__c}" required="true" />
+							<apex:outputText value="" />
+						</apex:outputPanel>
+ -->
+						<apex:outputlabel value="{!dLabel['DL30']}" />
+						<apex:inputfield value="{!oProject.StatusChangeDate__c}" required="true" >
+							<apex:actionsupport event="onchange" rerender="browsefile" />
+						</apex:inputfield>
+						<apex:outputtext value="" />
+						<apex:outputtext value="" />
+
+						<apex:outputlabel value="{!dLabel['DL31']}" />
+						<apex:inputfield style="width: 400px;" value="{!oProject.ProjOpptyCloseoutNotes__c}" />
+						<apex:outputtext value="" />
+						<apex:outputtext value="" />
+
+						<apex:outputlabel value="{!dLabel['DL32']}" />
+						<apex:outputpanel layout="block" styleclass="requiredInput" >
+								<div class="requiredBlock" />
+								<apex:selectradio value="{!oProject.AlsoCloseRelatedOpportunityList__c}" layout="lineDirection" required="true" >
+									<apex:selectoptions value="{!types}" />
+									<apex:actionsupport event="onchange" rerender="browsefile" />
+								</apex:selectradio>
+						</apex:outputpanel>					
+						<apex:outputlink value="/{!oProject.pse__Opportunity__c}" target="_blank" rendered="{!bHasAccessToOpportunity}" ><apex:outputtext value="{!oProject.pse__Opportunity__r.name}" /></apex:outputlink>
+						<apex:outputtext value="{!sopportunityName}" rendered="{!not(bHasAccessToOpportunity)}" />
+						<apex:outputtext value="" />
+
+						<apex:outputlabel value="{!dLabel['DL33']}" />
+						<apex:outputpanel layout="block" >
+								<div class="requiredBlock" />
+								<apex:selectradio value="{!oProject.ClientDebrief__c}" layout="lineDirection" >
+									<apex:selectoptions value="{!types}" />
+								</apex:selectradio>
+						</apex:outputpanel>
+						<apex:outputtext value="" />
+						<apex:outputtext value="" />
+
+						<apex:outputlabel value="{!dLabel['DL34']}" />
+						<apex:inputfield style="width: 400px;" value="{!oProject.ClientDebriefNotes__c}" />
+						<apex:outputtext value="" />
+						<apex:outputtext value="" />
+
+						<apex:outputlabel value="{!dLabel['DL35']}" />
+						<apex:outputpanel layout="block" >
+								<div class="requiredBlock" />
+								<apex:selectradio value="{!oProject.InternalDebrief__c}" layout="lineDirection" >
+									<apex:selectoptions value="{!types}" />
+								</apex:selectradio>
+						</apex:outputpanel>
+						<apex:outputtext value="" />
+						<apex:outputtext value="" />
+
+						<apex:outputlabel value="{!dLabel['DL36']}" />
+						<apex:inputfield style="width: 400px;" value="{!oProject.InternalDebriefNotes__c}" />
+						<apex:outputtext value="" />
+						<apex:outputtext value="" />		            
+
+					</apex:panelgrid>			
+				</apex:actionregion>
+			</apex:outputpanel>	
+			</div>
+			
+
+			<br/><br/><br/>
+
+			
+			<apex:outputpanel id="browsefile" >
+				
+				<apex:outputpanel style="display:{!if(and(oProject.ProjOpptyClosureStatus__c != null, oProject.StatusChangeDate__c != null, oProject.AlsoCloseRelatedOpportunityList__c != null),'inline-block', 'none')};" ><nttdcore:DLabel name="DL37" default="File Name" labelParent="{!this}" />
+				<!--<div id="fileattach" style="display: none;" class="fileList">-->
+					<apex:pageblocktable value="{!AttachedClosureFiles}" var="file" style="width: 825px;" rendered="{!oProject.ClosureAttachment__c != null}" >
+						<apex:column headervalue="{!dLabel['DL37']}" >
+							<!-- <apex:outputLink onclick="return openPopup('{!attachedDocumentControlSystemFile.Id}')"> 
+								<apex:outputText value="{!attachedDocumentControlSystemFile.Name}" />
+							</apex:outputLink> -->
+							<apex:outputlink value="{!URLFOR($Action.Attachment.Download, file.Id)}" target="_blank" >
+								<apex:outputtext value="{!file.Name}" />
+							</apex:outputlink>
+						</apex:column>
+						<apex:column value="{!file.ContentType}" />	
+						<apex:column value="{!file.LastModifiedDate}" />	
+						<apex:column value="{!file.LastModifiedById}" />
+					</apex:pageblocktable>
+								
+					<apex:inputfile id="dclosureAttachment" value="{!dclosureAttachment.Body}" contenttype="{!dclosureAttachment.ContentType}" filename="{!dclosureAttachment.Name}" onchange="fileChosen('{!$Component.cmdControlSystemAttachment}', this, '{!$Component.overrideControlSysName}'); return false;" />
+					<apex:inputtext id="overrideControlSysName" value="{!overrideControlSystemName}" maxlength="80" html-placeholder="Override File Name" styleclass="attachNewFile" />
+					<nttdcore:DLabel name="DL38" default="Attach" labelParent="{!this}" /><apex:commandbutton id="cmdControlSystemAttachment" value="{!dLabel['DL38']}" action="{!saveClosureAttachmentAndProject}" styleclass="attachNewFile" /><br/>
+				<!--</div>-->
+				</apex:outputpanel>
+
+			</apex:outputpanel>
+
+		</apex:pageblock>
+
+	</apex:form>
+
+	<script>
+
+		function setFocusOnLoad() {}
+
+	</script>
+
+
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

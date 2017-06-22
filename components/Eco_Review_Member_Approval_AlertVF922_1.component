@@ -1,0 +1,15 @@
+<apex:component language="{!theLanguage}" controller="nttdcore.DLabelChildController" access="global" ><apex:attribute name="theLanguage" type="String" required="true" description="language" access="global" /><apex:attribute name="theRecipient" type="Contact" required="true" description="recipient" access="global" /><apex:attribute name="theRelatedTo" type="ReviewMember__c" required="true" description="related to" access="global" />
+    <apex:outputpanel >
+        <p><nttdcore:DLabel name="DL1" default="You have been named as a/an {{1}} on the project below. Please click on the link below to review the project plan or contact the Project Manager for further details." labelParent="{!this}" componentContext="Eco_Review_Member_Approval_AlertVF922_1" p1="{!theRelatedTo.Role__c}" />{!dlRoot.dLabel['DL1']}
+        </p><p><nttdcore:DLabel name="DL2" default="Project Number: {{1}}" labelParent="{!this}" componentContext="Eco_Review_Member_Approval_AlertVF922_1" p1="{!theRelatedTo.ProjectNumber__c}" /><nttdcore:DLabel name="DL3" default="Project Name: {{1}}" labelParent="{!this}" componentContext="Eco_Review_Member_Approval_AlertVF922_1" p1="{!theRelatedTo.ProjectName__c}" /><nttdcore:DLabel name="DL4" default="Project Manager: {{1}}" labelParent="{!this}" componentContext="Eco_Review_Member_Approval_AlertVF922_1" p1="{!theRelatedTo.ProjectManager__c}" />
+        {!dlRoot.dLabel['DL2']}<br/>
+        {!dlRoot.dLabel['DL3']}<br/>
+        {!dlRoot.dLabel['DL4']}
+        </p><p><nttdcore:DLabel name="DL5" default="Click on the link below to view the details:" labelParent="{!this}" componentContext="Eco_Review_Member_Approval_AlertVF922_1" />
+        {!dlRoot.dLabel['DL5']} <br/>
+        <a href="{!LEFT($Api.Partner_Server_URL_290,FIND('services',$Api.Partner_Server_URL_290)-1)}{!theRelatedTo.Id}" >
+         {!LEFT($Api.Partner_Server_URL_290,FIND('services',$Api.Partner_Server_URL_290)-1)}{!theRelatedTo.Id}
+         </a>
+        </p>
+    </apex:outputpanel>
+<nttdcore:DLabelInit language="{!theLanguage}" labelParentInit="{!this}" /></apex:component>

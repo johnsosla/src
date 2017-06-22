@@ -1,0 +1,3 @@
+<apex:page tabStyle="Agreement__c" controller="ECO_MSAAgreementController" action="{!init}" >
+
+</apex:page>

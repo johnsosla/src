@@ -1,0 +1,290 @@
+<apex:page standardcontroller="DOAApprovalRequest__c" extensions="ECO_DOAApprovalsController,nttdcore.DLabelParentController" showheader="true" sidebar="true" tabstyle="DOAApprovalRequest__c" >
+    <style>
+        .hideDropdown select{
+            display:none !important;
+        }
+    </style>
+    <apex:includeScript value="{!$Resource.ECO_jQuery_1_11_2_min_js}"/>
+    <script type="text/javascript">
+        $b = jQuery.noConflict();
+        var btnsEnabled = true;
+        function saveButtonsEnabled(enable) {
+            btnsEnabled = enable;
+            var $buttons = $b('.btn'); // find all buttons in the page
+            var $saveButton = $b('.saveBtn');
+            if (enable === false) {
+                $buttons.toggleClass('btnDisabled', true);
+                $saveButton.val('Processing...');
+            } else {
+                $buttons.toggleClass('btnDisabled', false).attr('disabled', null);
+                $saveButton.val('Save');
+            }
+        }
+
+        function disableButtons() {
+            if (!btnsEnabled) return false;
+            saveButtonsEnabled(false);
+
+            return true;
+        }
+
+        function actionComplete() {
+            saveButtonsEnabled(true);
+        }
+    </script>
+    <apex:actionRegion >
+    <chatter:feedWithFollowers entityid="{!oDOA.Id}" />
+
+    <apex:form id="theform" >
+        <nttdcore:DLabel name="DL1" default="DOA Approval Request" labelParent="{!this}" /><apex:sectionHeader title="{!dLabel['DL1']}" subtitle="{!oDOA.Name}" />
+        <apex:outputLabel rendered="{!NOT(isDOAAdmin)}" >
+            <c:ECO_CollapsibleSection sectiontitle="General Guidance Information" > 
+                <p><nttdcore:DLabel name="DL2" default="This section summarizes the DOA approval request details prior to submitting the request and initiating the approval process.  Attach necessary documents or notes, view and revise approval forms, as needed, and click the &ldquo;Submit to DoA Approval Queue&rdquo; when ready to request approval for the selected DOA matters listed in the DOA Register.  The request will be submitted to a local queue and assigned to an appropriate ORM administrator to facilitate the approval process." labelParent="{!this}" />{!dLabel['DL2']}  </p>
+            </c:ECO_CollapsibleSection>
+            
+        </apex:outputLabel>
+        <apex:outputLabel rendered="{!isDOAAdmin}" >
+            <c:ECO_CollapsibleSection sectiontitle="General Guidance Information" > 
+                <p><nttdcore:DLabel name="DL3" default="This section serves as a &#39;dashboard&#39; for the ORM Administrator to initiate, manage and monitor the approval process for the specific DOA approval request.  Users can review the completed approval request form(s), DOA matters under consideration, approval participant names/roles, existing and/or pending approvals, contract review status (as needed), and recorded conditions of approval." labelParent="{!this}" />{!dLabel['DL3']}</p>
+            </c:ECO_CollapsibleSection>
+            
+        </apex:outputLabel>
+        <nttdcore:DLabel name="DL4" default="Approvals" labelParent="{!this}" /><apex:pageBlock title="{!dLabel['DL4']}" id="thepageblock" ><nttdcore:DLabel name="DL11" default="DOA Approval Request Detail" labelParent="{!this}" /><nttdcore:DLabel name="DL12" default="DoA Approvals" labelParent="{!this}" /><nttdcore:DLabel name="DL13" default="Submit Approvers" labelParent="{!this}" /><nttdcore:DLabel name="DL14" default="Recall Approvers" labelParent="{!this}" /><nttdcore:DLabel name="DL15" default="Send Reminder Email" labelParent="{!this}" /><nttdcore:DLabel name="DL16" default="Select" labelParent="{!this}" /><nttdcore:DLabel name="DL17" default="Select user to Submit for Approval" labelParent="{!this}" /><nttdcore:DLabel name="DL18" default="Approver Name" labelParent="{!this}" /><nttdcore:DLabel name="DL19" default="Approver Role / Title" labelParent="{!this}" /><nttdcore:DLabel name="DL20" default="Approval Sent" labelParent="{!this}" /><nttdcore:DLabel name="DL21" default="Approved By" labelParent="{!this}" /><nttdcore:DLabel name="DL22" default="Approval Date" labelParent="{!this}" /><nttdcore:DLabel name="DL23" default="Approval Status" labelParent="{!this}" /><nttdcore:DLabel name="DL24" default="Approval Time (Days)" labelParent="{!this}" /><nttdcore:DLabel name="DL25" default="Action" labelParent="{!this}" /><nttdcore:DLabel name="DL26" default="Save" labelParent="{!this}" /><nttdcore:DLabel name="DL27" default="Add new Approver" labelParent="{!this}" /><nttdcore:DLabel name="DL66" default="Processing..." labelParent="{!this}" />
+            
+            <apex:pageMessages id="messages" />
+            <apex:actionStatus id="buttonStatus" onstop="actionComplete()"/>
+            <apex:pageBlockButtons >
+                <nttdcore:DLabel name="DL5" default="Save" labelParent="{!this}" /><apex:commandButton action="{!saveDOA}" value="{!dLabel['DL5']}" rendered="{!OR(NOT(oDOA.AssigntoDoAApprovalQueue__c),isDOAAdmin, if($User.Id == oDOA.OwnerId,true,false))}" styleClass="saveBtn" status="buttonStatus" onclick="return disableButtons();"/>
+                <nttdcore:DLabel name="DL6" default="Submit to DoA Approval Queue" labelParent="{!this}" /><apex:commandButton action="{!submitDOAQueue}" value="{!dLabel['DL6']}" rendered="{!NOT(oDOA.AssigntoDoAApprovalQueue__c)}" styleClass="saveBtn" status="buttonStatus" onclick="return disableButtons();"/>
+                <nttdcore:DLabel name="DL7" default="Return to Requestor" labelParent="{!this}" /><apex:commandButton action="{!ReturnToRequestor}" value="{!dLabel['DL7']}" rendered="{!OR(isDOAAdmin,isSystemAdmin)}" styleClass="saveBtn" status="buttonStatus" onclick="return disableButtons();"/>
+                <apex:outputLink value="{!URLFOR('https://myecosystem.aecom.com/dept/risk/Pages/2%20Delegations-of-Authority.aspx')}" rendered="{!AND(NOT(oDOA.AssigntoDoAApprovalQueue__c), NOT(isDOAAdmin),oDOA.Enable_RCST_Button__c )}" styleclass="btn" style="text-decoration:none;padding:4px;" ><nttdcore:DLabel name="DL8" default="Risk Committee Submittal Template" labelParent="{!this}" />{!dLabel['DL8']}</apex:outputLink>
+                <nttdcore:DLabel name="DL9" default="Return to Project" labelParent="{!this}" /><apex:commandButton action="/{!oDOA.Project__c}" value="{!dLabel['DL9']}" rendered="{!oDOA.AssigntoDoAApprovalQueue__c}" />
+                <nttdcore:DLabel name="DL10" default="Old DOA Page" labelParent="{!this}" /><apex:commandButton action="{!oldDOAPage}" value="{!dLabel['DL10']}" rendered="{!displayToggleButton}" />
+            </apex:pageBlockButtons>
+
+            <apex:pageBlockSection title="{!dLabel['DL11']}" >
+                    <apex:outputField value="{!oDOA.Project__c}" rendered="{!IF(oDOA.Project__c != null, true, false)}" />
+
+                    <apex:inputField value="{!oDOA.ProjectNameSubject__c}" rendered="{!AND(IF(oDOA.Project__c != null, false, true), NOT(oDOA.AssigntoDoAApprovalQueue__c))}" />
+                    <apex:outputField value="{!oDOA.ProjectNameSubject__c}" rendered="{!AND(IF(oDOA.Project__c != null, false, true), oDOA.AssigntoDoAApprovalQueue__c)}" />
+
+                    <apex:inputField value="{!oDOA.Requestor__c}" styleclass="hideDropdown" required="true" rendered="{!NOT(oDOA.AssigntoDoAApprovalQueue__c)}" />
+                    <apex:outputField value="{!oDOA.Requestor__c}" styleclass="hideDropdown" rendered="{!oDOA.AssigntoDoAApprovalQueue__c}" />
+                    
+                    <apex:inputField value="{!oDOA.OpportunityNumber__c}" rendered="{!AND(IF(oDOA.Project__c != null, false, true), NOT(oDOA.AssigntoDoAApprovalQueue__c))}" />
+                    <apex:outputField value="{!oDOA.OpportunityName__c}" rendered="{!IF(oDOA.Project__c != null, true, false)}" />
+                    
+                    <apex:inputField value="{!oDOA.DateRequired__c}" rendered="{!NOT(oDOA.AssigntoDoAApprovalQueue__c)}" />
+                    <apex:outputField value="{!oDOA.DateRequired__c}" rendered="{!oDOA.AssigntoDoAApprovalQueue__c}" />
+
+                    <apex:outputField value="{!oDOA.ProjectNumber__c}" rendered="{!IF(oDOA.Project__c != null, true, false)}" />
+                    <apex:pageBlockSectionItem rendered="{!IF(oDOA.Project__c != null, true, false)}" />
+
+                    <apex:outputField value="{!oDOA.BillingClientPrimary__c}" rendered="{!IF(oDOA.Project__c != null, true, false)}" />
+
+                    <apex:inputField value="{!oDOA.Operating_Group__c}" rendered="{!NOT(oDOA.AssigntoDoAApprovalQueue__c)}" required="true" />
+                    <apex:outputField value="{!oDOA.Operating_Group__c}" rendered="{!oDOA.AssigntoDoAApprovalQueue__c}" />   
+
+                    <apex:outputField value="{!oDOA.EndClientPrimary__c}" rendered="{!IF(oDOA.Project__c != null, true, false)}" />
+
+                    <apex:inputField value="{!oDOA.Strategic_Business_Unit__c}" rendered="{!NOT(oDOA.AssigntoDoAApprovalQueue__c)}" required="true" />
+                    <apex:outputField value="{!oDOA.Strategic_Business_Unit__c}" rendered="{!oDOA.AssigntoDoAApprovalQueue__c}" />
+                    
+                    <apex:outputField value="{!oDOA.Geography__c}" rendered="{!IF(oDOA.Project__c != null, true, false)}" />
+                    <apex:pageBlockSectionItem rendered="{!IF(oDOA.Project__c != null, true, false)}" />
+                    <apex:outputField value="{!oDOA.DOARegion__c}" rendered="{!IF(oDOA.Project__c != null, true, false)}" />
+
+                    <apex:inputField value="{!oDOA.OwnerId}" rendered="{!OR(isDOAAdmin,NOT(oDOA.AssigntoDoAApprovalQueue__c))}" />
+                    <apex:outputField value="{!oDOA.OwnerId}" rendered="{!NOT(OR(isDOAAdmin,NOT(oDOA.AssigntoDoAApprovalQueue__c)))}" />
+                    
+                    <apex:outputField value="{!oDOA.District__c}" rendered="{!IF(oDOA.Project__c != null, true, false)}" />
+
+                    <apex:inputField value="{!oDOA.ApprovalStatus__c}" rendered="{!OR(isDOAAdmin,isSystemAdmin)}" />
+                    <apex:outputField value="{!oDOA.ApprovalStatus__c}" rendered="{!NOT(OR(isDOAAdmin,isSystemAdmin))}" />
+                    
+                    <apex:outputField value="{!oDOA.Office__c}" rendered="{!IF(oDOA.Project__c != null, true, false)}" />
+                    <apex:pageBlockSectionItem />
+
+                    <apex:outputField value="{!oDOA.Business_Line__c}" rendered="{!IF(oDOA.Project__c != null, true, false)}" />
+
+                    <apex:inputHidden value="{!oDOA.AssigntoDoAApprovalQueue__c}" />
+            </apex:pageBlockSection>
+            <apex:pageBlockSection title="{!dLabel['DL12']}" id="Approvals" columns="1" >
+                <apex:pageBlockSectionItem >
+                <apex:outputPanel style="width: 100%;" >
+                <div align="center" draggable="false" >
+                <apex:commandButton action="{!SubmitApprovers}" value="{!dLabel['DL13']}" disabled="{!if(NOT(OR(isDOAAdmin,isSystemAdmin)),true,false)}" style="width: 12%;" styleClass="saveBtn" status="buttonStatus" onclick="return disableButtons();"/>
+                &nbsp;<apex:commandButton action="{!RecallApprovers}" value="{!dLabel['DL14']}" disabled="{!if(NOT(OR(isDOAAdmin,isSystemAdmin)),true,false)}" style="width: 12%;" styleClass="saveBtn" status="buttonStatus" onclick="return disableButtons();" />
+                &nbsp;<apex:commandButton action="{!sendReminder}" value="{!dLabel['DL15']}" disabled="{!if(NOT(OR(isDOAAdmin,isSystemAdmin)),true,false)}" style="width: 12%;" styleClass="saveBtn" status="buttonStatus" onclick="return disableButtons();"/>
+                </div>
+                </apex:outputPanel>
+                </apex:pageBlockSectionItem>
+                        
+                <apex:pageBlockTable value="{!mapDisplayApprovers}" var="approver" id="appTable" >
+                    <apex:column headervalue="{!dLabel['DL16']}" title="{!dLabel['DL17']}" width="40" >
+                        <!--<apex:inputCheckbox value="{!mapDisplayApprovers[approver].bSelected}" disabled="{!Not(mapDisplayApprovers[approver].bNewRecord)}">-->
+                        <apex:inputCheckbox value="{!mapDisplayApprovers[approver].bSelected}" disabled="{!if(NOT(OR(isDOAAdmin,isSystemAdmin)),true,false)}" >
+                        </apex:inputCheckbox>
+                    </apex:column>
+                    <apex:column headervalue="{!dLabel['DL18']}" styleclass="hideDropdown" >
+                        <apex:inputField value="{!mapDisplayApprovers[approver].oDOAApprover.ApproverName__c}" rendered="{!AND(OR(mapDisplayApprovers[approver].oDOAApprover.ApprovalStatus__c =='Pending', mapDisplayApprovers[approver].oDOAApprover.ApprovalStatus__c ==''),OR(isDOAAdmin,isSystemAdmin))}" />
+                        <apex:outputField value="{!mapDisplayApprovers[approver].oDOAApprover.ApproverName__c}" rendered="{!NOT(AND(OR(mapDisplayApprovers[approver].oDOAApprover.ApprovalStatus__c =='Pending', mapDisplayApprovers[approver].oDOAApprover.ApprovalStatus__c ==''),OR(isDOAAdmin,isSystemAdmin)))}" />
+                    </apex:column>
+                    <apex:column headervalue="{!dLabel['DL19']}" >
+                        <apex:inputField value="{!mapDisplayApprovers[approver].oDOAApprover.ApproverRoleTitle__c}" rendered="{!OR(isDOAAdmin,isSystemAdmin)}" />
+                        <apex:outputField value="{!mapDisplayApprovers[approver].oDOAApprover.ApproverRoleTitle__c}" rendered="{!NOT(OR(isDOAAdmin,isSystemAdmin))}" />
+                    </apex:column>
+                    <apex:column headervalue="{!dLabel['DL20']}" >
+                        <apex:outputField value="{!mapDisplayApprovers[approver].oDOAApprover.ApprovalSent__c}" />
+                    </apex:column>
+                    <apex:column headervalue="{!dLabel['DL21']}" >
+                        <apex:outputField value="{!mapDisplayApprovers[approver].oDOAApprover.ApprovedBy__c}" />
+                    </apex:column>
+                    <apex:column headervalue="{!dLabel['DL22']}" >
+                        <apex:outputField value="{!mapDisplayApprovers[approver].oDOAApprover.DateApproved__c}" />
+                    </apex:column>
+                    <apex:column headervalue="{!dLabel['DL23']}" >
+                        <apex:inputField value="{!mapDisplayApprovers[approver].oDOAApprover.ApprovalStatus__c}" rendered="{!OR(mapDisplayApprovers[approver].bEditable,isDOAAdmin,isSystemAdmin)}" />
+                        <apex:outputField value="{!mapDisplayApprovers[approver].oDOAApprover.ApprovalStatus__c}" rendered="{!NOT(OR(mapDisplayApprovers[approver].bEditable,isDOAAdmin,isSystemAdmin))}" />
+                    </apex:column>
+                    <apex:column headervalue="{!dLabel['DL24']}" >
+                        <apex:outputField value="{!mapDisplayApprovers[approver].oDOAApprover.ApprovalProcessTime__c}" />
+                    </apex:column>
+                    <apex:column headervalue="{!dLabel['DL25']}" >
+                        <apex:actionStatus id="mySaveStatus1" >
+                            <apex:facet name="stop" >
+                                <apex:commandButton action="{!SaveApprover}" status="mySaveStatus1" value="{!dLabel['DL26']}" rerender="Approvals" 
+                                                    disabled="{!NOT(OR(mapDisplayApprovers[approver].bEditable,isDOAAdmin,isSystemAdmin))}">
+                                <apex:param name="ApproverWrap" value="{!approver}" assignto="{!saveApp}" />
+                                </apex:commandButton>
+                            </apex:facet>
+                            <apex:facet name="start" >
+                                <apex:commandButton action="{!SaveApprover}" status="mySaveStatus1" value="{!dLabel['DL66']}" disabled="true" /> 
+                            </apex:facet>
+                        </apex:actionStatus>
+                    </apex:column>
+                </apex:pageBlockTable>
+                <apex:commandLink action="{!AddApprover}" value="{!dLabel['DL27']}" rerender="Approvals" rendered="{!OR(isDOAAdmin,isSystemAdmin)}" />
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+    </apex:form>
+    
+    <nttdcore:DLabel name="DL28" default="Contract Reviews" labelParent="{!this}" /><apex:pageBlock title="{!dLabel['DL28']}" >
+            <apex:include pagename="ECO_ContractReviewRequests" />
+    </apex:pageBlock>
+    
+    <nttdcore:DLabel name="DL29" default="Approval Request Forms" labelParent="{!this}" /><apex:pageBlock title="{!dLabel['DL29']}" rendered="{!AND(NOT(isDOAAdmin),NOT(oDOA.Enable_RCST_Button__c))}" ><nttdcore:DLabel name="DL31" default="Form Number" labelParent="{!this}" /><nttdcore:DLabel name="DL32" default="Record Type" labelParent="{!this}" /><nttdcore:DLabel name="DL33" default="Created By" labelParent="{!this}" /><nttdcore:DLabel name="DL34" default="Created Date" labelParent="{!this}" />
+        <nttdcore:DLabel name="DL30" default="No records to display" labelParent="{!this}" /><apex:pageMessage severity="INFO" summary="{!dLabel['DL30']}" rendered="{!If(lForm.size > 0 , false, true)}" >
+        </apex:pageMessage>
+        <apex:pageBlockTable rendered="{!If(lForm.size > 0 , true, false)}" value="{!lForm}" var="form" >
+            <apex:column headervalue="{!dLabel['DL31']}" >
+                <apex:outputLink value="/apex/ECO_RFA?id={!form.Id}" target="_blank" >{!form.Name}</apex:outputLink>
+            </apex:column>
+            <apex:column headervalue="{!dLabel['DL32']}" >
+                <apex:outputField value="{!form.RecordTypeId}" />
+            </apex:column>
+            <apex:column headervalue="{!dLabel['DL33']}" >
+                <apex:outputField value="{!form.CreatedById}" />
+            </apex:column>
+            <apex:column headervalue="{!dLabel['DL34']}" >
+                <apex:outputField value="{!form.CreatedDate}" />
+            </apex:column>
+        </apex:pageBlockTable>
+    </apex:pageBlock>
+        
+    <nttdcore:DLabel name="DL35" default="DOA Register" labelParent="{!this}" /><apex:pageBlock title="{!dLabel['DL35']}" rendered="{!NOT(isDOAAdmin)}" ><nttdcore:DLabel name="DL37" default="DOA Register" labelParent="{!this}" /><nttdcore:DLabel name="DL38" default="Action" labelParent="{!this}" /><nttdcore:DLabel name="DL39" default="View" labelParent="{!this}" /><nttdcore:DLabel name="DL40" default="DOA Register Number" labelParent="{!this}" /><nttdcore:DLabel name="DL41" default="DCS sub-DOA" labelParent="{!this}" /><nttdcore:DLabel name="DL42" default="DOA Title" labelParent="{!this}" /><nttdcore:DLabel name="DL43" default="DOA Trigger" labelParent="{!this}" /><nttdcore:DLabel name="DL44" default="Approval Status" labelParent="{!this}" />
+        <nttdcore:DLabel name="DL36" default="No records to display" labelParent="{!this}" /><apex:pageMessage severity="INFO" summary="{!dLabel['DL36']}" rendered="{!If(lDOARegister.size > 0 , false, true)}" >
+        </apex:pageMessage>
+        <apex:pageBlockTable rendered="{!If(lDOARegister.size > 0 , true, false)}" value="{!lDOARegister}" var="DOA" title="{!dLabel['DL37']}" >
+            <apex:column headervalue="{!dLabel['DL38']}" >
+                <apex:outputLink value="/{!DOA.Id}?retURL=/apex/ECO_DOA_ApprovalRequest_AddApprovers?Id={!oDOA.Id}" target="_blank" >{!dLabel['DL39']}</apex:outputLink>
+            </apex:column>
+            <apex:column headervalue="{!dLabel['DL40']}" >
+                <apex:outputField value="{!DOA.Name}" />
+            </apex:column>
+            <apex:column headervalue="{!dLabel['DL41']}" >
+                <apex:outputField value="{!DOA.DCSsubDOA__c}" />
+            </apex:column>
+            <apex:column headervalue="{!dLabel['DL42']}" >
+                <apex:outputField value="{!DOA.RiskTitle__c}" />
+            </apex:column>
+            <apex:column headervalue="{!dLabel['DL43']}" >
+                <apex:outputField value="{!DOA.DOATrigger__c}" />
+            </apex:column>
+            <apex:column headervalue="{!dLabel['DL44']}" >
+                <apex:outputField value="{!DOA.ApprovalStatus__c}" />
+            </apex:column>
+        </apex:pageBlockTable>
+    </apex:pageBlock>
+        
+    <nttdcore:DLabel name="DL45" default="DOA Conditions of Approval" labelParent="{!this}" /><apex:pageBlock title="{!dLabel['DL45']}" rendered="{!NOT(isDOAAdmin)}" ><nttdcore:DLabel name="DL47" default="Condition of Approval" labelParent="{!this}" /><nttdcore:DLabel name="DL48" default="Condition" labelParent="{!this}" /><nttdcore:DLabel name="DL49" default="Approver" labelParent="{!this}" /><nttdcore:DLabel name="DL50" default="Created Date" labelParent="{!this}" /><nttdcore:DLabel name="DL51" default="Status" labelParent="{!this}" /><nttdcore:DLabel name="DL52" default="Status Date" labelParent="{!this}" />
+        <nttdcore:DLabel name="DL46" default="No records to display" labelParent="{!this}" /><apex:pageMessage severity="INFO" summary="{!dLabel['DL46']}" rendered="{!If(lDOAConditions.size > 0 , false, true)}" >
+        </apex:pageMessage>
+        <apex:pageBlockTable rendered="{!If(lDOAConditions.size > 0 , true, false)}" value="{!lDOAConditions}" var="DOACondition" >
+            <apex:column headervalue="{!dLabel['DL47']}" style="width:10%" >
+                <apex:outputLink value="/{!DOACondition.Id}?retURL=/apex/ECO_DOA_ApprovalRequest_UserBased?id={!oDOA.Id}" target="_blank" >{!DOACondition.Name}</apex:outputLink>
+            </apex:column>
+            <apex:column headervalue="{!dLabel['DL48']}" style="width:36%" >
+                <apex:outputField value="{!DOACondition.ConditionLongText__c}" />
+            </apex:column>
+            <apex:column headervalue="{!dLabel['DL49']}" >
+                <apex:outputField value="{!DOACondition.CreatedBy__c}" />
+            </apex:column>
+            <apex:column headervalue="{!dLabel['DL50']}" >
+                <apex:outputField value="{!DOACondition.CreatedDate}" />
+            </apex:column>
+            <apex:column headervalue="{!dLabel['DL51']}" >
+                <apex:outputField value="{!DOACondition.Mitigation_Plan__c}" />
+            </apex:column>
+            <apex:column headervalue="{!dLabel['DL52']}" >
+                <apex:outputField value="{!DOACondition.Status_Date__c}" />
+            </apex:column>
+        </apex:pageBlockTable>
+    </apex:pageBlock>
+    
+    </apex:actionRegion>
+    <!--<apex:relatedList list="ComplianceConditionsofApprovals__r"/>-->
+    <apex:relatedList list="Forms__r" rendered="{!AND(isDOAAdmin,NOT(oDOA.Enable_RCST_Button__c))}" />
+    <nttdcore:DLabel name="DL53" default="DOA Register" labelParent="{!this}" /><apex:relatedList list="DOA_Register__r" title="{!dLabel['DL53']}" rendered="{!isDOAAdmin}" />
+    <nttdcore:DLabel name="DL54" default="DOA Conditions of Approval" labelParent="{!this}" /><apex:relatedList list="DOAConditions__r" title="{!dLabel['DL54']}" rendered="{!isDOAAdmin}" />
+    <!--<apex:relatedList list="ComplianceConditionsofApprovals__r" title="Compliance Conditions of Approval" rendered="{!isDOAAdmin}"/>
+    <apex:listViews type="ComplianceConditionsofApproval__r"/>-->
+    <apex:form rendered="{!isDOAAdmin}" >
+    <nttdcore:DLabel name="DL55" default="ORM Compliance" labelParent="{!this}" /><apex:pageBlock title="{!dLabel['DL55']}" ><nttdcore:DLabel name="DL58" default="Action" labelParent="{!this}" /><nttdcore:DLabel name="DL59" default="Edit" labelParent="{!this}" /><nttdcore:DLabel name="DL60" default="Compliance Status" labelParent="{!this}" /><nttdcore:DLabel name="DL61" default="Compliance Status Date" labelParent="{!this}" /><nttdcore:DLabel name="DL62" default="Conditions Completed" labelParent="{!this}" /><nttdcore:DLabel name="DL63" default="Conditions Completed Date" labelParent="{!this}" /><nttdcore:DLabel name="DL64" default="Comments" labelParent="{!this}" />
+            <apex:pageBlockButtons location="Top" >
+                <!--<apex:commandButton action="{!URLFOR($Action.ComplianceConditionsofApproval__c.New)}" value="New Compliance Condition of Approval"/>-->
+                <nttdcore:DLabel name="DL56" default="New Compliance Entry" labelParent="{!this}" /><apex:commandButton action="/apex/ECO_Compliance_Create?doaId={!oDOA.Id}" value="{!dLabel['DL56']}" />
+                <!--<apex:commandButton action="/a5E/e?CF00Ne0000000koPp={!oDOA.Name}&CF00Ne0000000koPp={!oDOA.Id}&retURL=/apex/ECO_DOA_ApprovalRequest_UserBased?id={!oDOA.Id}" value="New Compliance Condition of Approval"/>-->
+            </apex:pageBlockButtons>
+            <nttdcore:DLabel name="DL57" default="No records to display" labelParent="{!this}" /><apex:pageMessage severity="INFO" summary="{!dLabel['DL57']}" rendered="{!If(lCompliance.size > 0 , false, true)}" >
+            </apex:pageMessage>
+            
+            <apex:pageBlockTable rendered="{!If(lCompliance.size > 0 , true, false)}" value="{!lCompliance}" var="Compliance" >
+                <apex:column headervalue="{!dLabel['DL58']}" >
+                    <apex:outputLink value="/apex/ECO_Compliance_Condition_of_Approval?Id={!Compliance.Id}" target="_blank" >{!dLabel['DL59']}</apex:outputLink>
+                </apex:column>
+                <!--<apex:column headerValue="Compliance Conditions of Approval Number">
+                    <apex:outputField value="{!Compliance.Name}"/>
+                </apex:column>-->
+                <apex:column headervalue="{!dLabel['DL60']}" >
+                    <!--<apex:outputLink value="/{!DOACondition.Id}" target="_blank">{!DOACondition.Name}</apex:outputLink>-->
+                    <apex:outputField value="{!Compliance.ComplianceStatus__c}" />
+                </apex:column>
+                <apex:column headervalue="{!dLabel['DL61']}" >
+                    <apex:outputField value="{!Compliance.ComplianceStatusDate__c}" />
+                </apex:column>
+                <apex:column headervalue="{!dLabel['DL62']}" >
+                    <apex:outputField value="{!Compliance.ConditionsCompleted__c}" />
+                </apex:column>
+                <apex:column headervalue="{!dLabel['DL63']}" >
+                    <apex:outputField value="{!Compliance.ConditionsCompletedDate__c}" />
+                </apex:column>
+                <apex:column headervalue="{!dLabel['DL64']}" >
+                    <apex:outputField value="{!Compliance.GeneralComments__c}" />
+                </apex:column>
+                
+            </apex:pageBlockTable>
+    </apex:pageBlock>
+    </apex:form>
+    <nttdcore:DLabel name="DL65" default="Notes and Attachments" labelParent="{!this}" /><apex:relatedList list="CombinedAttachments" subject="{!oDOA}" title="{!dLabel['DL65']}" />
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

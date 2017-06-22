@@ -1,0 +1,42 @@
+<apex:page standardcontroller="Deliverable__c" extensions="nttdcore.DLabelParentController" >
+   <style>
+    /* CUSTOM HELP / GUIDANCE TEXT BOX */
+		.customHelpText{
+			padding:10px 15px;
+			border:1px solid #85B3CE;
+			min-height:30px;
+			display:block;
+			width:auto;
+			margin:0;
+			background-color:#A2D3F1;
+       // background-image: url('../img/icon/forecasts24.png');
+			background-position:.05% 10%;
+			background-repeat:no-repeat;
+			border-radius:4px;
+			margin-bottom:15px;
+        }
+    </style>
+    
+    <div class="customHelpText" >
+		<div class="customHelpBody" >
+        	<apex:outputPanel >
+            	<!--<apex:outputText value="Consider what tasks need to be completed  to fulfill the contractual scope of works.  These tasks, either individually or together, will inform your project deliverables.  Types of deliverables typically include, but are not limited to, reports, design documents, drawings, letters, plans, specifications, data sheets or calculations.  Deliverables do not include project documents that are prepared for internal use.  Enough detail should be provided within the description field to support preparation and technical review of the deliverable. 
+							" escape="false" />-->
+                <nttdcore:DLabel name="DL1" default="Tasks required to fulfil the contractual scope of work, either individually or together, inform the type and scope of the project deliverables.  These typically include, but are not limited to, reports, design documents, drawings, letters, plans, specifications, data sheets or calculations.  By definition, deliverables typically do not include project documents that are prepared for internal use.  However, this section can be used to track and review internal documents, as needed (e.g., SH&amp;E Plan, Quality Management Plan).  
+                    &lt;br/&gt;Follow the steps below to create a record for each project deliverable and assign owners and due dates, track versions and assign, schedule and capture the technical quality review(s).  
+                    &lt;br/&gt;&lt;br/&gt;1. Create the deliverable record.  Enough detail should be provided within the description field to support preparation and technical review of the deliverable.   
+                    &lt;br/&gt;&lt;br/&gt;2. Capture the deliverable version. (e.g. Draft, Draft Final, Version 1).  The number of versions will vary per project.  Each deliverable must have at least one version as a record to reference during the technical quality review.  This allows a technical quality review record to be created for each version or iteration of the deliverable, as needed.
+                    &lt;br/&gt;&lt;br/&gt;3. Assign all members of the Technical Quality Review Team.  The team must be assigned prior to scheduling a quality review. Ensure that a Deliverable Originator is added if that person wishes to schedule a technical quality review.
+                    &lt;br/&gt;&lt;br/&gt;4. Schedule and capture technical quality reviews.  Reviews may be scheduled per version of the report with all or a subset of the  assigned technical team.  The technical team will capture their completed review(s) in the respective Technical Quality Review record.
+                    " labelParent="{!this}" /><apex:outputText value="{!dLabel['DL1']}" escape="false" />
+                <br/><br/>
+           	</apex:outputPanel>     
+    	</div>
+	</div>
+    
+    
+    
+    
+    
+    
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

@@ -1,0 +1,7 @@
+<apex:page standardController="pse__Resource_Request__c" >
+  <BR></BR>
+  &nbsp;&nbsp;<img src="/img/icon/people32.png" alt=" "/> 
+  <h1><font size="3">Creating Resource Requests</font></h1>
+  <BR></BR>
+  <BR>&nbsp;&nbsp;New resource requests must be created from a project or an opportunity.</BR>
+</apex:page>

@@ -1,0 +1,137 @@
+<apex:page showHeader="true" sidebar="true" standardController="PMCertReq__c" extensions="PMC_PLMgrFinalApprovalController">
+	<div style="font-size: 2em; font-weight: bold; margin:10px">{!$Label.PMCAP_PL_Final_Approval_PageHeader}</div>
+
+	<apex:form >
+
+		<apex:pageMessages />
+
+		<apex:pageBlock rendered="{!authError}">
+			{!$Label.PMCAP_PL_Final_Approval_AuthError}
+		</apex:pageBlock>
+
+
+		<apex:outputPanel rendered="{!!authError}">
+			<apex:pageBlock rendered="{!currentStep == 1}">
+				<apex:pageBlockButtons style="float: right">
+					<apex:commandButton value="{!$Label.Next}" action="{!next}" />
+				</apex:pageBlockButtons>
+
+				<div style="font-size: 1.3em; font-weight: bold; margin:10px">
+					<i>{!$Label.PMCAP_PL_Final_Approval_IVerify_1} <a href="{!$Label.PMCAP_PL_Final_Approval_CompetenciesBehaviors_Link}">{!$Label.PMCAP_Click_Here}</a> {!$Label.PMCAP_PL_Final_Approval_IVerify_2}</i>
+				</div>
+
+				<p>
+					<b>{!$Label.PMCAP_Sponsor_Endorsement_CandidateName}-</b> &nbsp; <apex:outputField value="{!certReq.Candidate__c}" />
+					<br/>
+					<!-- Candidate organization -->
+					<b>{!$Label.PMCAP_PL_Final_Approval_CandidateOrganization}-</b> &nbsp; <apex:outputField value="{!certReq.Candidate_Office__c}" />
+					<br/>
+					<b>{!$Label.PMCAP_Int_Endorsement_CandidateYearsExperience}-</b> &nbsp; <apex:outputField value="{!certReq.Candidate_Experience__c}" />
+					<br/>
+					<b>{!$Label.PMCAP_Sponsor_Endorsement_CandidateTitle}-</b> &nbsp; <apex:outputField value="{!certReq.Candidate_Title__c}" />
+					<br/>
+					<b>{!$Label.PMCAP_Sponsor_Endorsement_CandidateRes}-</b> &nbsp; <apex:outputField value="{!certReq.CandidatesResume__c}" />
+					<br/>
+					<b>{!$Label.PMCAP_Sponsor_Endorsement_CandidateSuper}-</b> &nbsp; <apex:outputField value="{!certReq.Candidate_Supervisor__c}" />
+					<br/>
+					<b>{!$Label.PMCAP_PL_Training_SponsorName}-</b> &nbsp; <apex:outputField value="{!certReq.Sponsor__c}" />
+					<br/>
+					<b>{!$Label.PMCAP_PL_Training_SponsorComment}-</b> &nbsp; <apex:outputField value="{!certReq.Sponsor_Comments__c}" />
+					<br/>
+					<b>{!$Label.PMCAP_PL_Final_Approval_SponsorEndorsementResult}-</b> &nbsp; <apex:outputField value="{!certReq.Sponsor_Endorsement__c}" />
+					<br/>
+					<b>{!$Label.PMCAP_Int_Endorsement_InterviewerName}-</b> &nbsp; <apex:outputField value="{!certReq.Interviewer__c}" />
+					<br/>
+					<b>{!$Label.PMCAP_PL_Final_Approval_InterviewerComments}-</b> &nbsp; <apex:outputField value="{!certReq.InterviewerComments__c}" />
+					<br/>
+					<b>{!$Label.PMCAP_PL_Final_Approval_InterviewerEndorsementResult}-</b> &nbsp; <apex:outputField value="{!certReq.InterviewerEndorsement__c}" />
+					<br/>
+					<b>{!$Label.PMCAP_Int_Endorsement_PLManagerTrainingComments}-</b> &nbsp; <apex:outputField value="{!certReq.P_L_Manager_Comments__c}" />
+				</p>
+
+
+				<p>
+					<apex:repeat value="{!interviewAttachments}" var="attach">
+						<a href="/{!attach.Id}">{!attach.Name}</a>
+					</apex:repeat>
+				</p>
+
+				<p>
+					<apex:repeat value="{!resumeAttachments}" var="attach">
+						<a href="/{!attach.Id}">{!attach.Name}</a>
+					</apex:repeat>
+				</p>
+
+				<br/>
+
+				<apex:pageBlockSection columns="1">
+
+					<apex:pageBlockSectionItem >
+						<apex:outputLabel value="{!$Label.PMCAP_PL_Final_Approval_PLCertificationApproval}" />
+						<apex:outputPanel styleClass="requiredInput" layout="block">
+							<div class="requiredBlock" />
+							<apex:selectRadio label="{!$Label.PMCAP_PL_Final_Approval_PLCertificationApproval}" value="{!plManagerApproved}" layout="pageDirection" required="true" styleClass="requiredField">
+								<apex:selectOption itemLabel="{!$Label.PMCAP_PL_Final_Approval_YesIApprove}" itemValue="Yes" />
+								<apex:selectOption itemLabel="{!$Label.PMCAP_PL_Final_Approval_NoIDoNotApprove}" itemValue="No" />
+							</apex:selectRadio>
+						</apex:outputPanel>
+					</apex:pageBlockSectionItem>
+
+				</apex:pageBlockSection>
+
+				<p>
+
+					*{!$Label.PMCAP_PL_Final_Approval_LimitNotice}
+
+				</p>
+
+				<apex:outputPanel rendered="{!lengthExceeded}">
+					<p style="font-weight: bold; color: #f00">
+						{!$Label.PMCAP_PL_Final_Approval_LimitError1} <apex:outputText value="{!LEN(certReq.P_L_Manager_Comments_Award_Cert__c)}" /> {!$Label.PMCAP_PL_Final_Approval_LimitError2}.
+					</p>
+				</apex:outputPanel>
+
+				<br/>
+
+				<apex:pageBlockSection columns="1">
+					<apex:pageBlockSectionItem >
+						<apex:outputLabel value="{!$Label.PMCAP_PL_Final_Approval_PLMgrComments}" />
+						<apex:outputPanel styleClass="requiredInput" layout="block">
+							<div class="requiredBlock" />
+							<apex:inputTextarea label="{!$Label.PMCAP_PL_Final_Approval_PLMgrComments}" rows="8" cols="80" value="{!certReq.P_L_Manager_Comments_Award_Cert__c}" required="true" />
+						</apex:outputPanel>
+					</apex:pageBlockSectionItem>
+				</apex:pageBlockSection>
+
+
+			</apex:pageBlock>
+
+			<apex:pageBlock rendered="{!currentStep == 2}">
+				<apex:pageBlockButtons style="float: right">
+					<apex:commandButton value="{!$Label.Previous}" action="{!previous}" />
+					<apex:commandButton value="{!$Label.Next}" action="{!reject}" />
+				</apex:pageBlockButtons>
+
+				<p>
+					{!$Label.PMCAP_PL_Final_Approval_PleaseProvideRejectionReason}
+				</p>
+
+				<apex:pageBlockSection columns="1">
+
+					<apex:pageBlockSectionItem >
+						<apex:outputLabel value="{!$Label.PMCAP_PL_Final_Approval_NotApprovedReason}" for="rejectionReason" />
+						<apex:outputPanel styleClass="requiredInput" layout="block">
+							<div class="requiredBlock" />
+							<apex:selectList size="1" label="{!$Label.PMCAP_PL_Final_Approval_NotApprovedReason}" id="rejectionReason" value="{!certReq.P_L_Manager_Rejection_List_Reason_2__c}" required="true">
+								<apex:selectOptions value="{!rejectionReasons}" />
+							</apex:selectList>
+						</apex:outputPanel>
+					</apex:pageBlockSectionItem>
+
+				</apex:pageBlockSection>
+
+			</apex:pageBlock>
+		</apex:outputPanel>
+
+	</apex:form>
+</apex:page>

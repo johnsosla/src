@@ -1,0 +1,134 @@
+<apex:page standardcontroller="SharedServicesRequest__c" extensions="nttdcore.DLabelParentController" >
+<style>
+	table#tb1, table#tb2{
+		border-collapse: collapse;
+		text-align: center;
+	}
+	table#tb1 td, table#tb2 td{
+		border: 1px solid black;
+		padding: 10px;
+		vertical-align: middle;
+	}
+	.black{
+		background-color: black;
+		width: 10px;
+	}
+	.body{
+		background-color: #f6fb0c;
+	}
+	.headers{
+		background-color: #d0d0d0;
+		font-weight: bold;
+	}
+	.empty{
+		border-left: white !important;
+		border-top: white !important;
+	}
+</style>
+<nttdcore:DLabel name="DL1" default="Global Business Services" labelParent="{!this}" /><apex:sectionHeader title="" subtitle="{!dLabel['DL1']}" />
+	<p><i><nttdcore:DLabel name="DL2" default="In preparation for the initial launch of Ecosystem Project Management (ePM) in New Zealand.  Global Business Services (GBS) Request Forms for Customer, Vendor, and Subcontractor account creation and modifications are unavailable during these times:" labelParent="{!this}" />
+		{!dLabel['DL2']}
+	</i></p>
+	<table id="tb1" >
+		<tr>
+			<td class="empty" />
+			<td colspan="2" class="headers" ><nttdcore:DLabel name="DL3" default="Los Angeles Time Zone" labelParent="{!this}" />{!dLabel['DL3']}</td>
+			<td class="black" />
+			<td colspan="2" class="headers" ><nttdcore:DLabel name="DL4" default="London Time Zone" labelParent="{!this}" />{!dLabel['DL4']}</td>
+			<td class="black" />
+			<td colspan="2" class="headers" ><nttdcore:DLabel name="DL5" default="NZ Time Zone" labelParent="{!this}" />{!dLabel['DL5']}</td>
+			<td class="black" />
+			<td colspan="2" class="headers" ><nttdcore:DLabel name="DL6" default="Hong Kong" labelParent="{!this}" />{!dLabel['DL6']}</td>
+		</tr>
+		<tr>
+			<td class="headers" ><nttdcore:DLabel name="DL7" default="Shutdown Category" labelParent="{!this}" />{!dLabel['DL7']}</td>
+			<td class="headers" ><nttdcore:DLabel name="DL8" default="Start" labelParent="{!this}" />{!dLabel['DL8']}</td>
+			<td class="headers" ><nttdcore:DLabel name="DL9" default="End" labelParent="{!this}" />{!dLabel['DL9']}</td>
+			<td class="black" />
+			<td class="headers" ><nttdcore:DLabel name="DL10" default="Start" labelParent="{!this}" />{!dLabel['DL10']}</td>
+			<td class="headers" ><nttdcore:DLabel name="DL11" default="End" labelParent="{!this}" />{!dLabel['DL11']}</td>
+			<td class="black" />
+			<td class="headers" ><nttdcore:DLabel name="DL12" default="Start" labelParent="{!this}" />{!dLabel['DL12']}</td>
+			<td class="headers" ><nttdcore:DLabel name="DL13" default="End" labelParent="{!this}" />{!dLabel['DL13']}</td>
+			<td class="black" />
+			<td class="headers" ><nttdcore:DLabel name="DL14" default="Start" labelParent="{!this}" />{!dLabel['DL14']}</td>
+			<td class="headers" ><nttdcore:DLabel name="DL15" default="End" labelParent="{!this}" />{!dLabel['DL15']}</td>
+		</tr>
+		<tr>
+			<td><nttdcore:DLabel name="DL16" default="GBS Forms" labelParent="{!this}" />{!dLabel['DL16']}</td>
+			<td class="body" ><nttdcore:DLabel name="DL17" default="24-Jun at 8:00am" labelParent="{!this}" />{!dLabel['DL17']}</td>
+			<td class="body" ><nttdcore:DLabel name="DL18" default="3-Jul at 2:00pm" labelParent="{!this}" />{!dLabel['DL18']}</td>
+			<td class="black" />
+			<td class="body" ><nttdcore:DLabel name="DL19" default="24-Jun at 4:00pm" labelParent="{!this}" />{!dLabel['DL19']}</td>
+			<td class="body" ><nttdcore:DLabel name="DL20" default="3-Jul at 10:00pm" labelParent="{!this}" />{!dLabel['DL20']}</td>
+			<td class="black" />
+			<td class="body" ><nttdcore:DLabel name="DL21" default="25-Jun at 3:00am" labelParent="{!this}" />{!dLabel['DL21']}</td>
+			<td class="body" ><nttdcore:DLabel name="DL22" default="4-Jul at 9:00am" labelParent="{!this}" />{!dLabel['DL22']}</td>
+			<td class="black" />
+			<td class="body" ><nttdcore:DLabel name="DL23" default="24-Jun at 8:00am" labelParent="{!this}" />{!dLabel['DL23']}</td>
+			<td class="body" ><nttdcore:DLabel name="DL24" default="4-Jul at 5:00am" labelParent="{!this}" />{!dLabel['DL24']}</td>
+		</tr>
+	</table>
+	<p>
+	<i><nttdcore:DLabel name="DL25" default="If you have an" labelParent="{!this}" /><nttdcore:DLabel name="DL27" default="request to setup a customer, vendor, or subcontractor in Oracle during the time frame in which the GBS Request Forms will be unavailable, please use the following contacts by geography:" labelParent="{!this}" />
+	{!dLabel['DL25']} <b><u><nttdcore:DLabel name="DL26" default="URGENT" labelParent="{!this}" />{!dLabel['DL26']}</u></b> {!dLabel['DL27']}
+	</i>
+	</p>
+	<table id="tb2" >
+		<tr>
+			<td class="empty" />
+			<td class="headers" ><nttdcore:DLabel name="DL28" default="Americas" labelParent="{!this}" />{!dLabel['DL28']}</td>
+			<td class="black" />
+			<td class="headers" ><nttdcore:DLabel name="DL29" default="EMIA" labelParent="{!this}" />{!dLabel['DL29']}</td>
+			<td class="black" />
+			<td class="headers" ><nttdcore:DLabel name="DL30" default="Australia/NZ" labelParent="{!this}" />{!dLabel['DL30']}</td>
+			<td class="black" />
+			<td class="headers" ><nttdcore:DLabel name="DL31" default="Hong Kong and Singapore" labelParent="{!this}" />{!dLabel['DL31']}</td>
+			<td class="black" />
+			<td class="headers" ><nttdcore:DLabel name="DL32" default="PRC" labelParent="{!this}" />{!dLabel['DL32']}</td>
+		</tr>
+		<tr>
+			<td class="headers" ><nttdcore:DLabel name="DL33" default="GBS Request Type" labelParent="{!this}" />{!dLabel['DL33']}</td>
+			<td class="headers" ><nttdcore:DLabel name="DL34" default="Contact Email" labelParent="{!this}" />{!dLabel['DL34']}</td>			
+			<td class="black" />
+			<td class="headers" ><nttdcore:DLabel name="DL35" default="Contact Email" labelParent="{!this}" />{!dLabel['DL35']}</td>	
+			<td class="black" />
+			<td class="headers" ><nttdcore:DLabel name="DL36" default="Contact Email" labelParent="{!this}" />{!dLabel['DL36']}</td>	
+			<td class="black" />
+			<td class="headers" ><nttdcore:DLabel name="DL37" default="Contact Email" labelParent="{!this}" />{!dLabel['DL37']}</td>	
+			<td class="black" />
+			<td class="headers" ><nttdcore:DLabel name="DL38" default="Contact Email" labelParent="{!this}" />{!dLabel['DL38']}</td>	
+		</tr>
+		<tr>
+			<td class="" ><nttdcore:DLabel name="DL39" default="Vendor and Subcontractors" labelParent="{!this}" />{!dLabel['DL39']}</td>
+			<td class="" ><a href="mailto:vendor_management@urscorp.com" target="_top" ><nttdcore:DLabel name="DL40" default="vendor_management@urscorp.com" labelParent="{!this}" />{!dLabel['DL40']}</a></td>
+			<td class="black" />
+			<td class="" ><nttdcore:DLabel name="DL41" default="Europe:" labelParent="{!this}" /><nttdcore:DLabel name="DL43" default="Africa:" labelParent="{!this}" /><nttdcore:DLabel name="DL45" default="Middle East:" labelParent="{!this}" />{!dLabel['DL41']}<br/><a href="mailto:accounts.payable.europe@aecom.com" target="_top" ><nttdcore:DLabel name="DL42" default="accounts.payable.europe@aecom.com" labelParent="{!this}" />{!dLabel['DL42']}</a><br/><br/>
+						 {!dLabel['DL43']}<br/><a href="mailto:AfricaSSC@aecom.com" target="_top" ><nttdcore:DLabel name="DL44" default="AfricaSSC@aecom.com" labelParent="{!this}" />{!dLabel['DL44']}</a><br/><br/>
+						 {!dLabel['DL45']}<br/><a href="mailto:shylaja.sasi@aecom.com" target="_top" ><nttdcore:DLabel name="DL46" default="shylaja.sasi@aecom.com" labelParent="{!this}" />{!dLabel['DL46']}</a></td>
+			<td class="black" />
+			<td class="" ><a href="mailto:arcorp.anz@aecom.com" target="_top" ><nttdcore:DLabel name="DL47" default="arcorp.anz@aecom.com" labelParent="{!this}" />{!dLabel['DL47']}</a></td>
+			<td class="black" />
+			<td class="" ><a href="mailto:candy.lau@aecom.com" target="_top" ><nttdcore:DLabel name="DL48" default="candy.lau@aecom.com" labelParent="{!this}" />{!dLabel['DL48']}</a><br/><br/>
+						 <a href="mailto:vincent.ho@aecom.com" target="_top" ><nttdcore:DLabel name="DL49" default="vincent.ho@aecom.com" labelParent="{!this}" />{!dLabel['DL49']}</a>
+			</td>
+			<td class="black" />
+			<td class="" ><a href="mailto:YiFan.Xu@aecom.com@aecom.com" target="_top" ><nttdcore:DLabel name="DL50" default="YiFan.Xu@aecom.com" labelParent="{!this}" />{!dLabel['DL50']}</a></td>
+		</tr>
+		<tr>
+			<td class="" ><nttdcore:DLabel name="DL51" default="Customers" labelParent="{!this}" />{!dLabel['DL51']}</td>
+			<td class="" ><a href="mailto:SSCUSCustomerSetup.Service@aecom.com" target="_top" ><nttdcore:DLabel name="DL52" default="SSCUSCustomerSetup.Service@aecom.com" labelParent="{!this}" />{!dLabel['DL52']}</a></td>
+			<td class="black" />
+			<td class="" ><nttdcore:DLabel name="DL53" default="EMIA:" labelParent="{!this}" />{!dLabel['DL53']} <a href="mailto:accounts.receivable.europe@aecom.com" target="_top" ><nttdcore:DLabel name="DL54" default="accounts.receivable.europe@aecom.com" labelParent="{!this}" />{!dLabel['DL54']}</a></td>
+			<td class="black" />
+			<td class="" ><a href="mailto:arcorp.anz@aecom.com" target="_top" ><nttdcore:DLabel name="DL55" default="arcorp.anz@aecom.com" labelParent="{!this}" />{!dLabel['DL55']}</a></td>
+			<td class="black" />
+			<td class="" ><a href="mailto:denis.tsang@aecom.com" target="_top" ><nttdcore:DLabel name="DL56" default="denis.tsang@aecom.com" labelParent="{!this}" />{!dLabel['DL56']}</a><br/><br/>
+						 <a href="mailto:curtis.lau@aecom.com" target="_top" ><nttdcore:DLabel name="DL57" default="curtis.lau@aecom.com" labelParent="{!this}" />{!dLabel['DL57']}</a>
+			</td>
+			<td class="black" />
+			<td class="" ><a href="mailto:YiFan.Xu@aecom.com@aecom.com" target="_top" ><nttdcore:DLabel name="DL58" default="YiFan.Xu@aecom.com" labelParent="{!this}" />{!dLabel['DL58']}</a></td>
+		</tr>
+
+	</table>
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

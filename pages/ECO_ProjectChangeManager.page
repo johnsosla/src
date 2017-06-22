@@ -1,0 +1,270 @@
+<apex:page tabstyle="pse__Proj__c" standardcontroller="pse__Proj__c" extensions="ECO_ProjectChangeManagerController,nttdcore.DLabelParentController" cache="false" action="{!init}" >
+    <style>
+        .halfWidthWrapper {
+            width:30%;
+            display:inline-block;
+            float:left;
+        }
+        
+        #notifications{
+            margin-left:30%;
+            padding-left:20px;
+        }
+        
+        .dmeOutput{  
+            font-size: 1.0em;
+            font-weight: bold; 
+            color: #4a4a56;  /*Standrd Salesforce Color*/
+        }       
+        
+       /* .customHelpText{
+            padding:7px;
+            border:1px solid #85B3CE;
+            min-height:30px;
+            display:block;
+            width:auto;
+            margin:0;
+            background-color:#E3F0F8;
+            background-repeat:no-repeat;
+            border-radius:4px;
+        }
+        
+        .customHelpBody{
+            display:block;
+            color:#;
+            max-width:95%;
+        }  */
+
+        /* CUSTOM HELP / GUIDANCE TEXT BOX */
+        .customHelpText{
+            padding: 7px;
+            border: 1px solid #85B3CE;
+            min-height: 30px;
+            display: block;
+            width: auto;
+            margin: 0 0 5px 0;
+            background-repeat: no-repeat;
+            border-radius: 4px;
+            background-color: #A2D3F1;
+            
+        }
+        .customHelpBody{
+            display:inline-block;
+            color:#;
+            max-width:95%;
+        }   
+        
+        .changeManagerTable
+        {
+            border-collapse: collapse;
+            border: 1px solid #e8e8e8;
+        }
+        .changeManagerTable tr{
+            border-bottom: 1px solid #e8e8e8;
+        }                   
+        
+        .changeManagerTable td{
+            padding: 10px 10px 10px 10px;
+        }
+        
+        .changeManagerTable tr:hover {
+            background: #e8f4f8;
+        }
+
+        .changeManagerTable tr:hover td {
+            background: #e8f4f8;
+        }
+        .block {
+            display: inline-block;
+        }
+                
+    </style>
+    <apex:form >    
+    <nttdcore:DLabel name="DL1" default="Project Change Management" labelParent="{!this}" /><apex:sectionHeader title="{!dLabel['DL1']}" subtitle="{!pse__Proj__c.Name + "(" + pse__Proj__c.ProjectNumber__c + ")"}" />
+ 
+        <nttdcore:DLabel name="DL2" default="Project Details" labelParent="{!this}" /><apex:pageBlock title="{!dLabel['DL2']}" ><nttdcore:DLabel name="DL11" default="Project Contract Change Requirements" labelParent="{!this}" /><nttdcore:DLabel name="DL12" default="AECOM Requirements" labelParent="{!this}" /><nttdcore:DLabel name="DL13" default="Clients Requirements" labelParent="{!this}" /><nttdcore:DLabel name="DL14" default="Change Legend" labelParent="{!this}" /><nttdcore:DLabel name="DL15" default=" No Unapproved Changes" labelParent="{!this}" /><nttdcore:DLabel name="DL16" default="Changes Pending Approval" labelParent="{!this}" /><nttdcore:DLabel name="DL17" default="Project Plan Change Status" labelParent="{!this}" /><nttdcore:DLabel name="DL18" default="Schedule/WBS" labelParent="{!this}" /><nttdcore:DLabel name="DL19" default="Project Team" labelParent="{!this}" /><nttdcore:DLabel name="DL20" default="Customers" labelParent="{!this}" /><nttdcore:DLabel name="DL21" default="Project Classifications" labelParent="{!this}" /><nttdcore:DLabel name="DL22" default="Safety Health &amp; Environment" labelParent="{!this}" /><nttdcore:DLabel name="DL23" default="Agreements and Funding" labelParent="{!this}" /><nttdcore:DLabel name="DL24" default="Scope and Packages" labelParent="{!this}" /><nttdcore:DLabel name="DL25" default="Subs and Vendors" labelParent="{!this}" /><nttdcore:DLabel name="DL26" default="Deliverables" labelParent="{!this}" /><nttdcore:DLabel name="DL27" default="Document Management" labelParent="{!this}" /><nttdcore:DLabel name="DL28" default="Stakeholders &amp; Communications" labelParent="{!this}" /><nttdcore:DLabel name="DL29" default="Risk Register" labelParent="{!this}" /><nttdcore:DLabel name="DL30" default="Resilience" labelParent="{!this}" />                                                                        
+            <apex:pageBlockButtons location="top" >
+                <nttdcore:DLabel name="DL3" default="Save" labelParent="{!this}" /><apex:commandButton value="{!dLabel['DL3']}" action="{!save}" />
+                <nttdcore:DLabel name="DL4" default="Return to Project" labelParent="{!this}" /><apex:commandButton value="{!dLabel['DL4']}" action="{!cancel}" />
+            </apex:pageBlockButtons>    
+        <div class="customHelpText" >
+            <div class="customHelpBody" ><nttdcore:DLabel name="DL5" default="Consider the following approach when managing change in a project:" labelParent="{!this}" /><nttdcore:DLabel name="DL6" default="- Determine the nature of the change that will or has occurred;" labelParent="{!this}" /><nttdcore:DLabel name="DL7" default="- Obtain appropriate approvals associated with the change;" labelParent="{!this}" /><nttdcore:DLabel name="DL8" default="- Record and reflect the change in relevant project documentation, and at least in the Project Plan and Schedule;" labelParent="{!this}" /><nttdcore:DLabel name="DL9" default="- Ensure all stakeholders (e.g., client, subconsultant, AECOM team) are notified of the change; and" labelParent="{!this}" /><nttdcore:DLabel name="DL10" default="- Manage and document the change and effect on the project (i.e., costs, risk, resources, quality, etc.)." labelParent="{!this}" />
+                {!dLabel['DL5']}<br/>
+                {!dLabel['DL6']}<br/>
+                {!dLabel['DL7']}<br/>
+                {!dLabel['DL8']}<br/>
+                {!dLabel['DL9']}<br/>
+                {!dLabel['DL10']}<br/>  
+            </div>
+        </div>                      
+<!--            <apex:pageBlockSection title="Project Details">                                                                 
+                <apex:outputField value="{!pse__Proj__c.Name}" />
+                <apex:outputField value="{!pse__Proj__c.OwnerId}" />
+                <apex:outputField value="{!pse__Proj__c.pse__Opportunity__c}" />
+                <apex:outputField value="{!pse__Proj__c.EstimatedContractValue__c}" />
+                <apex:outputField value="{!pse__Proj__c.pse__Project_Manager__c}" />
+                <apex:outputField value="{!pse__Proj__c.NetServicesRevenue__c}" />
+                <apex:outputField value="{!pse__Proj__c.ProjectOwningOrg__c}" />
+                <apex:outputField value="{!pse__Proj__c.TotalMargin__c}" />
+                <apex:outputField value="{!pse__Proj__c.PrimaryEndClient__c}" />
+                <apex:outputField value="{!pse__Proj__c.TotalBidBudget__c}" />
+                <apex:outputField value="{!pse__Proj__c.PrimaryBillingClient__c}" />
+                <apex:outputField value="{!pse__Proj__c.EstimatedStartDate__c}" />
+                
+            </apex:pageBlockSection>        
+ -->        <br/>   
+            <apex:pageBlockSection title="{!dLabel['DL11']}" collapsible="false" columns="1" >
+                <apex:outputPanel >
+                    <apex:outputLabel value="{!dLabel['DL12']}" styleclass="dmeOutput" />
+                    <c:ECO_HelpIcon helptext="{!$ObjectType.pse__Proj__c.fields.ChangeManagerAECOMRequirements__c.inlineHelpText}" />
+                    <br/>
+                    <apex:inputField value="{!pse__Proj__c.ChangeManagerAECOMRequirements__c}" style="width: 825px; height: 40px" html-placeholder="{!$Label.Change_Manager_AECOM_Req_Help_Text}" />
+                </apex:outputPanel>
+                <apex:outputPanel >
+                <apex:outputLabel value="{!dLabel['DL13']}" styleclass="dmeOutput" />
+                <c:ECO_HelpIcon helptext="{!$ObjectType.pse__Proj__c.fields.ChangeManagerClientsRequirements__c.inlineHelpText}" />
+                <br/>
+                    <apex:inputField value="{!pse__Proj__c.ChangeManagerClientsRequirements__c}" style="width: 825px; height: 40px" html-placeholder="{!$Label.Change_Manager_Client_Req_Help_Text}" />
+                </apex:outputPanel>
+            </apex:pageBlockSection>
+            <apex:pageBlockSection columns="1" >
+                <apex:outputPanel >
+                    <apex:outputLabel styleclass="dmeOutput" value="{!dLabel['DL14']}" />
+                    <table class="changeManagerTable" >
+                        <tr><td><apex:outputField value="{!pse__Proj__c.ChangeManagerNoChanges__c}" /><apex:outputLabel styleclass="dmeOutput" value="{!dLabel['DL15']}" /></td></tr>
+                        <tr><td><apex:outputField value="{!pse__Proj__c.ChangeManagerChanges__c}" /><apex:outputLabel styleclass="dmeOutput" value="{!dLabel['DL16']}" /></td></tr>
+                    </table>
+                    <br/>
+                    <apex:outputLabel styleclass="dmeOutput" value="{!dLabel['DL17']}" />
+                    <c:ECO_HelpIcon helptext="For any sections identified as having changes pending approval, complete a new change request to document the basis or reason for the change and obtain approval." />
+                    <table class="changeManagerTable" >
+                        <tr>                        
+                            <td>
+                                <apex:outputPanel rendered="{!NOT(IsChangedTasks)}" >
+                                    <apex:outputField value="{!pse__Proj__c.ChangeManagerNoChanges__c}" />
+                                </apex:outputPanel>
+                                <apex:outputPanel rendered="{!IsChangedTasks}" >
+                                    <apex:outputField value="{!pse__Proj__c.ChangeManagerChanges__c}" />
+                                </apex:outputPanel>
+                                <apex:outputLabel styleclass="dmeOutput" value="{!dLabel['DL18']}" />
+                            </td>
+                            <td>
+                                <apex:outputPanel rendered="{!NOT(IsChangedKeyMembers)}" >
+                                    <apex:outputField value="{!pse__Proj__c.ChangeManagerNoChanges__c}" />
+                                </apex:outputPanel>
+                                <apex:outputPanel rendered="{!IsChangedKeyMembers}" >
+                                    <apex:outputField value="{!pse__Proj__c.ChangeManagerChanges__c}" />
+                                </apex:outputPanel>
+                                <apex:outputLabel styleclass="dmeOutput" value="{!dLabel['DL19']}" />
+                            </td>
+                            <td>
+                                <apex:outputPanel rendered="{!NOT(IsChangedCustomers)}" >
+                                    <apex:outputField value="{!pse__Proj__c.ChangeManagerNoChanges__c}" />
+                                </apex:outputPanel>
+                                <apex:outputPanel rendered="{!IsChangedCustomers}" >
+                                    <apex:outputField value="{!pse__Proj__c.ChangeManagerChanges__c}" />
+                                </apex:outputPanel>
+                                <apex:outputLabel styleclass="dmeOutput" value="{!dLabel['DL20']}" />
+                            </td>
+                            <td>
+                                <apex:outputPanel rendered="{!NOT(IsChangedClassifications)}" >
+                                    <apex:outputField value="{!pse__Proj__c.ChangeManagerNoChanges__c}" />
+                                </apex:outputPanel>
+                                <apex:outputPanel rendered="{!IsChangedClassifications}" >
+                                    <apex:outputField value="{!pse__Proj__c.ChangeManagerChanges__c}" />
+                                </apex:outputPanel>
+                                <apex:outputLabel styleclass="dmeOutput" value="{!dLabel['DL21']}" />
+                            </td>                       
+                            <td>
+                                <apex:outputPanel rendered="{!NOT(IsChangedSHE)}" >
+                                    <apex:outputField value="{!pse__Proj__c.ChangeManagerNoChanges__c}" />
+                                </apex:outputPanel>
+                                <apex:outputPanel rendered="{!IsChangedSHE}" >
+                                    <apex:outputField value="{!pse__Proj__c.ChangeManagerChanges__c}" />
+                                </apex:outputPanel>
+                                <apex:outputLabel styleclass="dmeOutput" value="{!dLabel['DL22']}" />
+                            </td>                       
+                            <td>
+                                <apex:outputPanel rendered="{!NOT(IsChangedAgreements) && NOT(IsChangedFunding)}" >
+                                    <apex:outputField value="{!pse__Proj__c.ChangeManagerNoChanges__c}" />
+                                </apex:outputPanel>
+                                <apex:outputPanel rendered="{!IsChangedAgreements || IsChangedFunding}" >
+                                    <apex:outputField value="{!pse__Proj__c.ChangeManagerChanges__c}" />
+                                </apex:outputPanel>
+                                <apex:outputLabel styleclass="dmeOutput" value="{!dLabel['DL23']}" />
+                            </td>                       
+                            <td>
+                                <apex:outputPanel rendered="{!NOT(IsChangedScope)}" >
+                                    <apex:outputField value="{!pse__Proj__c.ChangeManagerNoChanges__c}" />
+                                </apex:outputPanel>
+                                <apex:outputPanel rendered="{!IsChangedScope}" >
+                                    <apex:outputField value="{!pse__Proj__c.ChangeManagerChanges__c}" />
+                                </apex:outputPanel>
+                                <apex:outputLabel styleclass="dmeOutput" value="{!dLabel['DL24']}" />
+                            </td>   
+                        </tr>
+                        <tr>                    
+                            <!-- <td><apex:outputLabel styleclass="dmeOutput" value="Budget"/></td>      -->                
+                            <td>
+                                <apex:outputPanel rendered="{!NOT(IsChangedResources)}" >
+                                    <apex:outputField value="{!pse__Proj__c.ChangeManagerNoChanges__c}" />
+                                </apex:outputPanel>
+                                <apex:outputPanel rendered="{!IsChangedResources}" >
+                                    <apex:outputField value="{!pse__Proj__c.ChangeManagerChanges__c}" />
+                                </apex:outputPanel>
+                                <apex:outputLabel styleclass="dmeOutput" value="{!dLabel['DL25']}" />
+                            </td>                       
+                            <td>
+                                <apex:outputPanel rendered="{!NOT(IsChangedDeliverables)}" >
+                                    <apex:outputField value="{!pse__Proj__c.ChangeManagerNoChanges__c}" />
+                                </apex:outputPanel>
+                                <apex:outputPanel rendered="{!IsChangedDeliverables}" >
+                                    <apex:outputField value="{!pse__Proj__c.ChangeManagerChanges__c}" />
+                                </apex:outputPanel>
+                                <apex:outputLabel styleclass="dmeOutput" value="{!dLabel['DL26']}" />
+                            </td>                       
+                            <td>
+                                <apex:outputPanel rendered="{!NOT(IsChangedDocManage)}" >
+                                    <apex:outputField value="{!pse__Proj__c.ChangeManagerNoChanges__c}" />
+                                </apex:outputPanel>
+                                <apex:outputPanel rendered="{!IsChangedDocManage}" >
+                                    <apex:outputField value="{!pse__Proj__c.ChangeManagerChanges__c}" />
+                                </apex:outputPanel>
+                                <apex:outputLabel styleclass="dmeOutput" value="{!dLabel['DL27']}" />
+                            </td>                       
+                            <td>
+                                <apex:outputPanel rendered="{!NOT(IsChangedStakeComm)}" >
+                                    <apex:outputField value="{!pse__Proj__c.ChangeManagerNoChanges__c}" />
+                                </apex:outputPanel>
+                                <apex:outputPanel rendered="{!IsChangedStakeComm}" >
+                                    <apex:outputField value="{!pse__Proj__c.ChangeManagerChanges__c}" />
+                                </apex:outputPanel>
+                                <apex:outputLabel styleclass="dmeOutput" value="{!dLabel['DL28']}" />
+                            </td>                       
+                            <td>
+                                <apex:outputPanel rendered="{!NOT(IsChangedRisk)}" >
+                                    <apex:outputField value="{!pse__Proj__c.ChangeManagerNoChanges__c}" />
+                                </apex:outputPanel>
+                                <apex:outputPanel rendered="{!IsChangedRisk}" >
+                                    <apex:outputField value="{!pse__Proj__c.ChangeManagerChanges__c}" />
+                                </apex:outputPanel>
+                                <apex:outputLabel styleclass="dmeOutput" value="{!dLabel['DL29']}" />
+                            </td>
+                            <td>
+                                <apex:outputPanel rendered="{!NOT(IsChangedResilience)}" >
+                                    <apex:outputField value="{!pse__Proj__c.ChangeManagerNoChanges__c}" />
+                                </apex:outputPanel>
+                                <apex:outputPanel rendered="{!IsChangedResilience}" >
+                                    <apex:outputField value="{!pse__Proj__c.ChangeManagerChanges__c}" />
+                                </apex:outputPanel>
+                                <apex:outputLabel styleclass="dmeOutput" value="{!dLabel['DL30']}" />
+                            </td>
+                        </tr>               
+                    </table>    
+                </apex:outputPanel>
+                                                        
+            </apex:pageBlockSection>    
+        </apex:pageBlock>
+    </apex:form>
+    <apex:relatedList list="ChangeManager__r" />
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

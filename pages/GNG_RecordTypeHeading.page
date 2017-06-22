@@ -1,0 +1,12 @@
+<apex:page standardController="Go_No_Go_Conversation__c" >
+    <style>
+      .SecondHeader{
+        font-size: 25px;
+        background-color:#d0f5a9;
+        Width:100%
+      }
+    </style>
+    <div class="SecondHeader">
+    	<apex:outputField value="{!Go_No_Go_Conversation__c.RecordTypeId}"/>
+    </div>   
+</apex:page>

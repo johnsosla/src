@@ -1,0 +1,72 @@
+<apex:page standardController="Contract_Review__c" showHeader="true" extensions="ContractReviewGNGDetailsController" >
+	 <apex:form >
+	 	<apex:pageBlock >
+	 		<apex:pageBlockSection title="{!$Label.CRS_Additional_Opportunity_Information}" columns="2" ShowHeader="true">
+		 		<apex:pageBlockSectionItem >
+				 	 <apex:outputLabel value="{!$ObjectType.Go_No_Go_Conversation__c.fields.Opportunity_Record__c.label}" for="Opportunity_Record__c"/>
+				 	 <apex:outputField value="{!GNG.Opportunity_Record__c}" id="Opportunity_Record__c"/>
+				</apex:pageBlockSectionItem>
+				<apex:pageBlockSectionItem >
+				 	 <apex:outputLabel value="{!$ObjectType.Go_No_Go_Conversation__c.fields.Opportunity_Name__c.label}" for="Opportunity_Name__c"/>
+				 	 <apex:outputField value="{!GNG.Opportunity_Name__c}" id="Opportunity_Name__c"/>
+				</apex:pageBlockSectionItem>
+				<apex:pageBlockSectionItem >
+				 	 <apex:outputLabel value="{!$ObjectType.Go_No_Go_Conversation__c.fields.Opportunity_Lead_Region__c.label}" for="Opportunity_Lead_Region__c"/>
+				 	 <apex:outputField value="{!GNG.Opportunity_Lead_Region__c}" id="Opportunity_Lead_Region__c"/>
+				</apex:pageBlockSectionItem>
+				<apex:pageBlockSectionItem >
+				 	 <apex:outputLabel value="{!$ObjectType.Go_No_Go_Conversation__c.fields.Primary_Department_from_Opportunity__c.label}" for="Primary_Department_from_Opportunity__c"/>
+				 	 <apex:outputField value="{!GNG.Primary_Department_from_Opportunity__c}" id="Primary_Department_from_Opportunity__c"/>
+				</apex:pageBlockSectionItem>
+				<apex:pageBlockSectionItem >
+				 	 <apex:outputLabel value="{!$ObjectType.Go_No_Go_Conversation__c.fields.ANZ_Approver__c.label}" for="ANZ_Approver__c"/>
+				 	 <apex:outputField value="{!GNG.ANZ_Approver__c}" id="ANZ_Approver__c"/>
+				</apex:pageBlockSectionItem>
+				<apex:pageBlockSectionItem >
+				 	 <apex:outputLabel value="{!$ObjectType.Go_No_Go_Conversation__c.fields.Approver__c.label}" for="Approver__c"/>
+				 	 <apex:outputField value="{!GNG.Approver__c}" id="Approver__c"/>
+				</apex:pageBlockSectionItem>
+				<apex:pageBlockSectionItem >
+				 	 <apex:outputLabel value="{!$ObjectType.Go_No_Go_Conversation__c.fields.Decision_Date__c.label}" for="Decision_Date__c"/>
+				 	 <apex:outputField value="{!GNG.Decision_Date__c}" id="Decision_Date__c"/>
+				</apex:pageBlockSectionItem>
+				<apex:pageBlockSectionItem >
+				 	 <apex:outputLabel value="{!$ObjectType.Go_No_Go_Conversation__c.fields.Program_Ceiling__c.label}" for="Program_Ceiling__c"/>
+				 	 <apex:outputField value="{!GNG.Program_Ceiling__c}" id="Program_Ceiling__c"/>
+				</apex:pageBlockSectionItem>
+				<apex:pageBlockSectionItem >
+				 	 <apex:outputLabel value="{!$ObjectType.Go_No_Go_Conversation__c.fields.Net_Revenue_from_Opp__c.label}" for="Net_Revenue_from_Opp__c"/>
+				 	 <apex:outputField value="{!GNG.Net_Revenue_from_Opp__c}" id="Net_Revenue_from_Opp__c"/>
+				</apex:pageBlockSectionItem>
+				<apex:pageBlockSectionItem >
+				 	 <apex:outputLabel value="{!$ObjectType.Go_No_Go_Conversation__c.fields.Probabilities_from_Opportunitiy__c.label}" for="Probabilities_from_Opportunitiy__c"/>
+				 	 <apex:outputField value="{!GNG.Probabilities_from_Opportunitiy__c}" id="Probabilities_from_Opportunitiy__c"/>
+				</apex:pageBlockSectionItem>
+				<apex:pageBlockSectionItem >
+				 	 <apex:outputLabel value="{!$ObjectType.Go_No_Go_Conversation__c.fields.Opportunity_Record__c.label}" for="Opportunity_Record__c"/>
+				 	 <apex:outputField value="{!GNG.Opportunity_Record__c}" id="Opportunity_Record__c"/>
+				</apex:pageBlockSectionItem>
+				<apex:pageBlockSectionItem >
+				 	 <apex:outputLabel value="{!$ObjectType.Go_No_Go_Conversation__c.fields.Est_Pursuit_Costs__c.label}" for="Est_Pursuit_Costs__c"/>
+				 	 <apex:outputField value="{!GNG.Est_Pursuit_Costs__c}" id="Est_Pursuit_Costs__c"/>
+				</apex:pageBlockSectionItem>
+				<apex:pageBlockSectionItem >
+				 	 <apex:outputLabel value="{!$ObjectType.Go_No_Go_Conversation__c.fields.Client_Name__c.label}" for="Est_Pursuit_Costs__c"/>
+				 	 <apex:outputField value="{!GNG.Client_Name__r.Type}" id="account"/>
+				</apex:pageBlockSectionItem>
+				<apex:pageBlockSectionItem >
+				 	 <apex:outputLabel value="{!$ObjectType.Go_No_Go_Conversation__c.fields.AECOM_Work_from_Opp__c.label}" for="AECOM_Work_from_Opp__c"/>
+				 	 <apex:outputField value="{!GNG.AECOM_Work_from_Opp__c}" id="AECOM_Work_from_Opp__c"/>
+				</apex:pageBlockSectionItem>
+				<apex:pageBlockSectionItem >
+				 	 <apex:outputLabel value="{!$ObjectType.Go_No_Go_Conversation__c.fields.Project_Location__c.label}" for="Project_Location__c"/>
+				 	 <apex:outputField value="{!GNG.Project_Location__c}" id="Project_Location__c"/>
+				</apex:pageBlockSectionItem>
+				<apex:pageBlockSectionItem >
+				 	 <apex:outputLabel value="{!$ObjectType.Go_No_Go_Conversation__c.fields.Proposal_Due_Date__c.label}" for="Proposal_Due_Date__c"/>
+				 	 <apex:outputField value="{!GNG.Proposal_Due_Date__c}" id="Proposal_Due_Date__c"/>
+				</apex:pageBlockSectionItem>
+		 	</apex:pageBlockSection> 
+		 </apex:pageBlock>
+	 </apex:form> 
+</apex:page>

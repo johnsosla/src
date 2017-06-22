@@ -1,0 +1,4 @@
+<apex:page standardController="ChangeManager__c" extensions="ECO_ChangeManagerDetailController" action="{!createNewChangeManager}">
+
+
+</apex:page>

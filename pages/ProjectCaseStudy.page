@@ -1,0 +1,42 @@
+<apex:page standardController="Project__c" showheader="false"  standardstylesheets="false" Sidebar="false" cache="true" renderAs="PDF"> 
+<apex:variable value="{!Project__c}" var="prj"/>
+<b><h1><apex:outputField style="font-family: Arial; font-size: 29pt;"  value="{!prj.Project_Name__c}"/></h1></b><br/><br/>
+<Apex:DataTable value="{!Project__c}" var="pr" id="picTable">
+<Apex:Column style="width:30% height:100px" >
+<apex:outputField value="{!pr.Images_additional__c}"/><p/>
+</apex:Column>
+<Apex:Column style="width:65% height:100px">
+<apex:outputField value="{!pr.Image__c}"/><p/>
+</apex:Column>
+
+</Apex:DataTable>
+<apex:DataTable value="{!Project__c}" var="proj" id="theTable">
+<Apex:Column style="width:300px" >
+<b><apex:outputtext value="Client" /></b><br/>
+<apex:outputField style="font-family: Arial; font-size: 10pt;"  value="{!proj.Owner_Client_Output__c}"/><br/><br/>
+<b><apex:outputtext value="Location" /></b><br/>
+<apex:outputField style="font-family: Arial; font-size: 10pt;"  value="{!proj.Location_Output__c}"/><br/><br/>
+<b><apex:outputtext value="Contract Value" /></b><br/>
+<apex:outputField style="font-family: Arial; font-size: 10pt;"  value="{!proj.SearchFee__c}"/><br/><br/>
+<b><apex:outputtext value="Years" /></b><br/>
+<apex:outputText value="{0,date,yyyy}">   
+    <apex:param value="{!proj.Date_Started__c}"/> 
+    </apex:outputtext>
+    <apex:outputtext value=" - " />
+    <apex:outputText value="{0,date,yyyy}">   
+    <apex:param value="{!proj.Search_Completion_Date__c}"/> 
+    </apex:outputtext>
+
+</apex:Column>
+<Apex:Column style="width:700px">
+<br/><b><apex:outputtext value="Project Overview" /></b><br/><br/>
+<apex:outputField style="font-family: Arial; font-size: 10pt;"  value="{!proj.Brief_Description__c}"/><br/><br/>
+<b><apex:outputtext value="Client Benefits" /></b><br/>
+<apex:outputField style="font-family: Arial; font-size: 10pt;"  value="{!proj.Project_Key_Features__c}"/><br/>
+<b><apex:outputtext value="Work Performed" /></b><br/>
+<apex:outputField style="font-family: Arial; font-size: 10pt;"  value="{!proj.Project_Description__c}"/><br/>
+</Apex:Column>
+</apex:DataTable>
+ 
+   
+</apex:page>

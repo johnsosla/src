@@ -1,0 +1,4 @@
+<apex:component controller="ECO_ApprovalRequestCommentsController" access="global">
+    <apex:attribute name="relatedToId" assignTo="{!targetObjectId}" type="String" description="ID of the record whose last approval comments to retrieve"/>
+    <apex:outputText value="{!comments}"/>
+</apex:component>

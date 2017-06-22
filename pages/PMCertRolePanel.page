@@ -1,0 +1,80 @@
+<apex:page standardController="PMCertReq__c" showheader="false">
+    <apex:form rendered="{!If(AND(PMCertReq__c.Check_Sponsor_Current_User__c==True, PMCertReq__c.RecordType.DeveloperName="Sponsor"),True,False)}">
+        <div style="text-align: center; width: 100%">
+            <apex:commandbutton style="align:center" onclick="window.top.location='/apex/PMC_SponsorEndorsement?id={!PMCertReq__c.Id}'; return false;" value="{!$Label.PMCRP_SponsorEndorsementRequest}"/>
+            <!--
+            <apex:commandbutton style="align:center" onclick="window.top.location='/flow/PM_Cert_Sponsor_Endorsement?retURL=%2F{!PMCertReq__c.Id}&varPMCertId={!PMCertReq__c.Id}'; return false;" value="{!$Label.PMCRP_SponsorEndorsementRequest}"/>
+			-->
+            </div>
+            <br/>
+            <br/>
+            <apex:outputText value="{!$Label.PMCRP_SponsorEndorsementRequestHelp}"/>
+    </apex:form>
+
+    <apex:form rendered="{!If(AND(PMCertReq__c.Check_P_L_Manager_Current_User__c==True, PMCertReq__c.RecordType.DeveloperName="P_L_Manager_Training"),True,False)}">
+        <div style="text-align: center; width: 100%">
+            <apex:commandbutton style="align:center" onclick="window.top.location='/apex/PMC_PlMgrTrainingApproval?id={!PMCertReq__c.Id}'; return false;" value="{!$Label.PMCRP_PLTrainingAppRequest}"/>
+            <!--
+            <apex:commandbutton style="align:center" onclick="window.top.location='/flow/PM_Cert_P_L_Manager_Training_Approval?retURL=%2F{!PMCertReq__c.Id}&varPMCertId={!PMCertReq__c.Id}'; return false;" value="{!$Label.PMCRP_PLTrainingAppRequest}"/>
+			-->
+			</div>
+            <br/>
+            <br/>
+            <apex:outputText value="{!$Label.PMCRP_PLTrainingAppRequestHelp}"/>
+        
+    </apex:form>
+
+    <apex:form rendered="{!If(AND(PMCertReq__c.Check_Interviewer_Current_User__c==True, PMCertReq__c.RecordType.DeveloperName="Interviewer"),True,False)}">
+        <div style="text-align: center; width: 100%">
+            <apex:commandbutton style="align:center" onclick="window.top.location='/apex/PMC_InterviewerEndorsement?id={!PMCertReq__c.Id}'; return false;" value="{!$Label.PMCRP_IntEndorsementRequest}"/>
+            <!--
+            <apex:commandbutton style="align:center" onclick="window.top.location='/flow/PM_Cert_Interviewer_Endorsement?retURL=%2F{!PMCertReq__c.Id}&varPMCertId={!PMCertReq__c.Id}'; return false;" value="{!$Label.PMCRP_IntEndorsementRequest}"/>
+			-->            
+			</div>
+            <br/>
+            <br/>
+            <apex:outputText value="{!$Label.PMCRP_IntEndorsementRequestHelp1}"/>
+            <br/>
+            <apex:outputText value="{!$Label.PMCRP_IntEndorsementRequestHelp2}"/>
+        
+    </apex:form>
+
+    <apex:form rendered="{!If(AND(PMCertReq__c.Check_P_L_Manager_Current_User__c==True, PMCertReq__c.RecordType.DeveloperName="Final_Certification"),True,False)}">
+        <div style="text-align: center; width: 100%">
+        	<apex:commandbutton style="align:center" onclick="window.top.location='/apex/PMC_PLMgrFinalApproval?id={!PMCertReq__c.Id}'; return false;" value="{!$Label.PMCRP_PLCertAppRequest}"/>
+            <!--
+            <apex:commandbutton style="align:center" onclick="window.top.location='/flow/PM_Cert_P_L_Manager_Final_Approval?retURL=%2F{!PMCertReq__c.Id}&varPMCertId={!PMCertReq__c.Id}'; return false;" value="{!$Label.PMCRP_PLCertAppRequest}"/>
+			-->
+			</div>
+            <br/>
+            <br/>
+            <apex:outputText value="{!$Label.PMCRP_PLCertAppRequestHelp}"/>
+            
+    </apex:form>
+
+    <apex:form rendered="{!If(AND(PMCertReq__c.Check_Candidate_Current_User__c==True, PMCertReq__c.RecordType.DeveloperName="Sponsor"),True,False)}">
+    
+    <script type="text/javascript" src="/soap/ajax/29.0/connection.js"></script>
+    <script type="text/javascript">
+
+        function recallApplication() {
+            window.top.location = "/apex/PMC_RecallApplication?id={!PMCertReq__c.Id}";
+            
+            return false;
+        }
+    </script>
+    
+        <div style="text-align: center; width: 100%">
+            <apex:commandbutton style="align:center" onclick="return recallApplication();" value="{!$Label.PMCRP_RecallCertification}"/>
+            
+        </div>
+
+        <br/>
+        <br/>
+        <apex:outputText value="{!$Label.PMCRP_RecallCertificationHelp1}"/>
+        <br/>
+        <apex:outputText value="{!$Label.PMCRP_RecallCertificationHelp2}"/>
+            
+    </apex:form>
+ 
+</apex:page>

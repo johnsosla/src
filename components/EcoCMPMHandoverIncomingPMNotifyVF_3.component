@@ -1,0 +1,12 @@
+<apex:component language="{!theLanguage}" controller="nttdcore.DLabelChildController" access="global" ><nttdcore:DLabel name="DL1" default="{{1}} you have been nominated as the new PM for {{2}}.
+    
+    Outgoing PM: {{3}}
+    Incoming PM: {{4}}
+    
+    Project Name: {{5}}
+    Project Number: {{6}}
+    Client: {{7}}
+    
+    Project Link: {{8}}" labelParent="{!this}" componentContext="EcoCMPMHandoverIncomingPMNotifyVF_3" p1="{!theRelatedTo.IncomingPM__c}" p2="{!theRelatedTo.ProjectName__c}" p3="{!theRelatedTo.OutgoingPM__c}" p4="{!theRelatedTo.IncomingPM__c}" p5="{!theRelatedTo.ProjectName__c}" p6="{!theRelatedTo.ProjectNumber__c}" p7="{!theRelatedTo.Client__c}" p8="{!theRelatedTo.ProjectLink__c}" /><apex:attribute name="theLanguage" type="String" required="true" description="language" access="global" /><apex:attribute name="theRecipient" type="Contact" required="true" description="recipient" access="global" /><apex:attribute name="theRelatedTo" type="ChangeManager__c" required="true" description="related to" access="global" />
+    {!dlRoot.dLabel['DL1']}
+<nttdcore:DLabelInit language="{!theLanguage}" labelParentInit="{!this}" /></apex:component>

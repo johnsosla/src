@@ -1,0 +1,94 @@
+<apex:page showHeader="true" sidebar="true" controller="CFM_DefaultInclusionCriteriaController" action="{!doSetup}">
+
+    <style>
+        .header-selectlist {
+            padding-bottom: 15px;
+            font-weight: bold;
+        }
+        .filterTable tr {
+            height: 30px;
+        }
+        .filterTable tr:first-child {
+            height: 20px;
+        }
+        .filterTable select.fieldSelect {
+            width: 100%;
+        }
+        .filterTable select.operatorSelect {
+            width: 85%;
+        }
+        .filterTable td {
+            padding-right: 5px;
+        }
+        .addRowSection {
+            margin-bottom: 10px;
+        }
+        .randomSelection {
+            margin-top: 10px;
+        }
+        .currentPage {
+            font-weight: bold;
+        }
+        .operatorColumn {
+            width: 150px;
+        }
+    </style>
+
+  <apex:sectionHeader title="Project Surveys" subtitle="Default Inclusion Criteria"/>
+
+    <apex:form >
+
+        <apex:pageMessages />
+
+        <apex:pageBlock title="Default Inclusion Criteria">
+
+            <apex:pageBlockButtons location="both">
+                <apex:commandButton value="Check Logic" action="{!checkLogicAction}" />
+                <apex:commandButton value="Save Changes" action="{!saveChanges}" />
+                <apex:commandButton value="Discard Changes" action="{!discardChanges}" />
+            </apex:pageBlockButtons>
+
+            <apex:outputPanel id="filterLogic">
+                <table class="filterTable">
+                    <tr>
+                        <apex:outputPanel layout="none" rendered="{!showFilterLogic}">
+                            <td>
+                            </td>
+                        </apex:outputPanel>
+                        <th>Field</th>
+                        <th class="operatorColumn">Operator</th>
+                        <th>Value</th>
+                    </tr>
+                    <apex:repeat value="{!logicRowList}" var="logicRow">
+                        <c:CFM_LogicRow LogicRow="{!logicRow}" ShowNumbers="{!showFilterLogic}" IsDefaultCriteriaRow="true" />
+                    </apex:repeat>
+                </table>
+
+                <apex:outputPanel layout="block" styleClass="addRowSection">
+                    <apex:commandLink value="Add Row" action="{!addLogicRowAction}" reRender="filterLogic" />
+
+                    <apex:outputPanel rendered="{!logicRowList.size > 10}">
+                        &nbsp; | &nbsp;
+                        <apex:commandLink value="Remove Row" action="{!removeLogicRowAction}" reRender="filterLogic" />
+                    </apex:outputPanel>
+
+                </apex:outputPanel>
+
+                <div>
+                    <apex:commandLink value="Add Filter Logic ..." action="{!addFilterAction}" rendered="{!!showFilterLogic}"/>
+                    <apex:outputPanel layout="none" id="FilterLogicOP" rendered="{!showFilterLogic}" styleClass="addRowSection">
+                        <apex:commandLink value="Clear Filter Logic" action="{!clearFilterAction}"/>
+                    </apex:outputPanel>
+                </div>
+                <div>
+                    <apex:outputPanel rendered="{!showFilterLogic}">
+                    <b>Filter Logic:</b> <br/>
+                    <apex:inputText value="{!filterLogic}" />
+                    </apex:outputPanel>
+                </div>
+
+
+            </apex:outputPanel>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

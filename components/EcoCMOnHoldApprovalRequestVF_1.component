@@ -1,0 +1,31 @@
+<apex:component language="{!theLanguage}" controller="nttdcore.DLabelChildController" access="global" ><apex:attribute name="theLanguage" type="String" required="true" description="language" access="global" /><apex:attribute name="theRecipient" type="User" required="true" description="recipient" access="global" /><apex:attribute name="theRelatedTo" type="ChangeManager__c" required="true" description="related to" access="global" />
+    <apex:outputpanel >
+        <p><nttdcore:DLabel name="DL1" default="Approval to Place Project on Hold {{1}} for the following reason:" labelParent="{!this}" componentContext="EcoCMOnHoldApprovalRequestVF_1" p1="{!theRelatedTo.ProjectRequestOnHoldDate__c}" /><nttdcore:DLabel name="DL10" default="Please approve or reject this item via clicking on the link below or replying to this email with the words 'approve • approved • yes • reject • rejected • no'.  Any additional comments to be recorded can be added in a second line of the email reply." labelParent="{!this}" componentContext="EcoCMOnHoldApprovalRequestVF_1" />{!dlRoot.dLabel['DL1']}  
+        <p/>
+        <b><nttdcore:DLabel name="DL2" default="On Hold Reason:" labelParent="{!this}" componentContext="EcoCMOnHoldApprovalRequestVF_1" />{!dlRoot.dLabel['DL2']}</b> {!theRelatedTo.IntExtProjectOnHoldComments__c}
+        <br/>
+        <b><nttdcore:DLabel name="DL3" default="Approval Comments:" labelParent="{!this}" componentContext="EcoCMOnHoldApprovalRequestVF_1" />{!dlRoot.dLabel['DL3']}</b> <!--{!ApprovalRequest.Comments}--><c:ECO_ApprovalRequestComments relatedtoid="{!theRelatedTo.id}" />
+        <br/>
+        <b><nttdcore:DLabel name="DL4" default="Project Name:" labelParent="{!this}" componentContext="EcoCMOnHoldApprovalRequestVF_1" />{!dlRoot.dLabel['DL4']}</b> {!theRelatedTo.ProjectName__c}
+        <br/>
+        <b><nttdcore:DLabel name="DL5" default="Project Number:" labelParent="{!this}" componentContext="EcoCMOnHoldApprovalRequestVF_1" />{!dlRoot.dLabel['DL5']}</b> {!theRelatedTo.ProjectNumber__c}
+        <br/>
+        <b><nttdcore:DLabel name="DL6" default="Client:" labelParent="{!this}" componentContext="EcoCMOnHoldApprovalRequestVF_1" />{!dlRoot.dLabel['DL6']}</b> {!theRelatedTo.Client__c}
+        <br/>
+        <b><nttdcore:DLabel name="DL7" default="Project Manager:" labelParent="{!this}" componentContext="EcoCMOnHoldApprovalRequestVF_1" />{!dlRoot.dLabel['DL7']}</b> {!theRelatedTo.ProjectManager__c}
+        <br/>
+        <b><nttdcore:DLabel name="DL8" default="Requested On Hold Date:" labelParent="{!this}" componentContext="EcoCMOnHoldApprovalRequestVF_1" />{!dlRoot.dLabel['DL8']}</b>  {!theRelatedTo.ProjectRequestOnHoldDate__c}
+        <br/>
+        <b><nttdcore:DLabel name="DL9" default="Scheduled Restart Date:" labelParent="{!this}" componentContext="EcoCMOnHoldApprovalRequestVF_1" />{!dlRoot.dLabel['DL9']}</b> {!theRelatedTo.ProjectRequestRestartDate__c}
+        <p/>
+        {!dlRoot.dLabel['DL10']} <!--{!ApprovalRequest.Comments}--><c:ECO_ApprovalRequestComments relatedtoid="{!theRelatedTo.id}" />
+        <p/>
+        <!--<a href = "{!ApprovalRequest.Internal_URL}" > Approval Link </a>-->
+        <c:ECO_ApprovalRequestURL relatedtoid="{!theRelatedTo.id}" />
+        <br/>
+        <!--<a href = "{!theRelatedTo.ProjectLink__c}" > Project Link </a>-->
+        <a href="{!LEFT($Api.Partner_Server_URL_290,FIND('services',$Api.Partner_Server_URL_290)-1)}{!theRelatedTo.Id}" ><nttdcore:DLabel name="DL11" default="Project Link" labelParent="{!this}" componentContext="EcoCMOnHoldApprovalRequestVF_1" />
+         {!dlRoot.dLabel['DL11']}
+         </a></p>
+    </apex:outputpanel>
+<nttdcore:DLabelInit language="{!theLanguage}" labelParentInit="{!this}" /></apex:component>

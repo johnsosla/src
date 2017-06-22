@@ -1,0 +1,394 @@
+<apex:page standardcontroller="Agreement__c" extensions="ECO_ProjectSegmentationController,nttdcore.DLabelParentController" action="{!init}" tabstyle="Agreement__c" >
+ 		<style>
+        .customHelpText
+        {
+            padding:10px 5px;
+            border:1px solid #85B3CE;
+            min-height:25px;
+            display:block;
+            width:auto;
+            margin:5px 5px;
+            background-color:#E3F0F8;
+        }
+        .customHelpIcon
+        {
+            display:inline-block;
+            margin:0 5px 0 0;
+            width:24px;
+            height:24px;
+            vertical-align:top !important;
+        }
+        .customHelpBody
+        {
+            padding: 10px 5px;
+            display:inline-block;
+            color:#;
+            max-width:95%;
+        }  
+        .message{
+			background-color: #A2D3F1;
+		}
+
+        </style>
+<apex:pageMessages id="pageMessages" />
+<apex:form >
+<nttdcore:DLabel name="DL1" default="Agreements" labelParent="{!this}" /><nttdcore:DLabel name="DL2" default="Contract Segmentation Questionnaire" labelParent="{!this}" /><apex:sectionHeader title="{!dLabel['DL1']}" subtitle="{!dLabel['DL2']}" />
+<nttdcore:DLabel name="DL3" default="Contract Segmentation Questionnaire" labelParent="{!this}" /><apex:pageBlock title="{!dLabel['DL3']}" id="pb1" ><nttdcore:DLabel name="DL10" default="Contract Name / Description" labelParent="{!this}" /><nttdcore:DLabel name="DL11" default="Group CFO" labelParent="{!this}" /><nttdcore:DLabel name="DL12" default="Contract Number" labelParent="{!this}" /><nttdcore:DLabel name="DL13" default="Designee" labelParent="{!this}" /><nttdcore:DLabel name="DL14" default="Client" labelParent="{!this}" /><nttdcore:DLabel name="DL37" default="Related Projects" labelParent="{!this}" /><nttdcore:DLabel name="DL38" default="Related Project(s)" labelParent="{!this}" />
+<apex:pageBlockButtons >
+	<nttdcore:DLabel name="DL4" default="Save" labelParent="{!this}" /><apex:commandButton value="{!dLabel['DL4']}" action="{!save}" rendered="{!mode=='Edit'}" /> 
+	<nttdcore:DLabel name="DL5" default="Cancel" labelParent="{!this}" /><apex:commandButton value="{!dLabel['DL5']}" action="{!cancel}" rendered="{!mode=='Edit'}" /> 	
+	<nttdcore:DLabel name="DL6" default="Edit" labelParent="{!this}" /><apex:commandButton value="{!dLabel['DL6']}" action="{!editSegmentationSurvey}" rendered="{!mode=='' && agreement.SegApprovalStatus__c != 'Approved'}" />
+	<nttdcore:DLabel name="DL7" default="Return to Agreement" labelParent="{!this}" /><apex:commandButton value="{!dLabel['DL7']}" action="{!returnToAgreement}" rendered="{!mode=='' && agreement.IsMSA__c}" />
+	<nttdcore:DLabel name="DL8" default="Return to Funding" labelParent="{!this}" /><apex:commandButton value="{!dLabel['DL8']}" action="{!returnToFunding}" rendered="{!mode=='' && !agreement.IsMSA__c}" />
+	<nttdcore:DLabel name="DL9" default="Submit for Approval" labelParent="{!this}" /><apex:commandButton value="{!dLabel['DL9']}" action="{!submitForApproval}" rendered="{!mode=='' && (agreement.SegApprovalStatus__c == '' || agreement.SegApprovalStatus__c == null || agreement.SegApprovalStatus__c == 'Rejected') && ShowApprovalProcess}" />
+</apex:pageBlockButtons>
+
+<!-- <apex:outputPanel >The segmenting of a contract involves breaking a contract into smaller units for accounting purposes so revenue can be recognized among different components or phases. As a result, different profitability margins may apply to each unit or phase. SOP 81-1 establishes the following conditions under which it is permissible to segment a contract:</apex:outputPanel><br/><br/>											
+ -->
+<apex:pageBlockSection columns="2" >
+<apex:pageBlockSectionItem ><apex:outputText style="font-weight: bold" value="{!dLabel['DL10']}" /><apex:outputField value="{!agreement.ContractTitle__c}" /></apex:pageBlockSectionItem>				
+<apex:pageBlockSectionItem >
+	<apex:outputText style="font-weight: bold" value="{!dLabel['DL11']}" />
+	<apex:outputPanel >
+		<!--<apex:inputField value="{!agreement.segGroupCFO__c}" rendered="{!mode=='Edit'}"/>-->
+		<apex:outputField value="{!agreement.segGroupCFO__c}" />
+	</apex:outputPanel>
+</apex:pageBlockSectionItem>
+<apex:pageBlockSectionItem ><apex:outputText style="font-weight: bold" value="{!dLabel['DL12']}" /><apex:outputField value="{!agreement.AgreementNumber__c}" /></apex:pageBlockSectionItem>				
+<apex:pageBlockSectionItem >
+	<apex:outputText style="font-weight: bold" value="{!dLabel['DL13']}" />
+	<apex:outputPanel >
+		<!--<apex:inputField value="{!agreement.segDesignee__c}" rendered="{!mode=='Edit'}"/>-->
+		<apex:outputField value="{!agreement.segDesignee__c}" />
+	</apex:outputPanel>
+</apex:pageBlockSectionItem>
+<apex:pageBlockSectionItem ><apex:outputText style="font-weight: bold" value="{!dLabel['DL14']}" /><apex:outputField value="{!agreement.Account__c}" /></apex:pageBlockSectionItem>		
+</apex:pageBlockSection>
+
+<br/>
+	<nttdcore:DLabel name="DL15" default="
+       The segmenting of a contract involves breaking a contract into smaller units for accounting purposes so revenue can be recognized among different components or phases. As a result, different profitability margins may apply to each unit or phase. SOP 81-1 establishes the following conditions under which it is permissible to segment a contract:" labelParent="{!this}" /><apex:pageMessage id="headerSummaryMessage" severity="info" escape="false" summary="{!dLabel['DL15']}" />			
+<apex:outputPanel id="main" ><nttdcore:DLabel name="DL16" default="All Must Be Met (reference SOP 81-1 paragraph 40)" labelParent="{!this}" /><nttdcore:DLabel name="DL17" default="A separate proposal has been submitted for each component of the project." labelParent="{!this}" /><nttdcore:DLabel name="DL18" default="A proposal has been submitted for the entire project." labelParent="{!this}" /><nttdcore:DLabel name="DL19" default="The customer had the right to accept either individual components or the entire project" labelParent="{!this}" /><nttdcore:DLabel name="DL20" default="The aggregate price of the seperate components approximates the total proposed amount for the entire project." labelParent="{!this}" />
+<apex:pageBlockSection title="{!dLabel['DL16']}" columns="1" collapsible="false" >
+					
+	<!-- 		<apex:outputPanel >	
+			<table><tr><td width="800px">
+			<apex:outputText ><b><br/>Does the project require domestic travel to a remote or austere location, or requires international travel?</b></apex:outputText>	
+			</td>
+			<td><apex:actionRegion ><apex:selectRadio layout="lineDirection" value="{!pse__Proj__c.SafetyHealthTravelRequired__c}" >
+		    		<apex:selectOptions value="{!YesNoOptions}"/>
+		    		<apex:actionSupport event="onchange" rerender="travelRequired"/>
+		 		</apex:selectRadio></apex:actionRegion></td>
+			</tr>
+			</table>																		
+			</apex:outputPanel> -->
+
+<apex:outputPanel >
+<table>
+	<tr>
+		<td width="800px" ><br/>
+			<apex:outputText >{!dLabel['DL17']}</apex:outputText>
+		</td>	
+		<td>
+			<apex:actionRegion >
+ 			<apex:selectRadio layout="lineDirection" value="{!agreement.segSeparateProposal__c}" disabled="{!mode==''}" >
+		    	<apex:selectOptions value="{!YesNoOptions}" />
+		    	<apex:actionSupport event="onchange" rerender="main" action="{!resetSections}" />
+		 	</apex:selectRadio>
+		 	</apex:actionRegion>
+		</td> 
+	</tr>
+</table>
+</apex:outputPanel>						
+<apex:outputPanel >
+<table>
+	<tr>
+		<td width="800px" ><br/>
+			<apex:outputText >{!dLabel['DL18']}</apex:outputText>
+		</td>	
+		<td>
+			<apex:actionRegion >
+ 				<apex:selectRadio layout="lineDirection" value="{!agreement.segProposalSubmitted__c}" disabled="{!mode==''}" >
+		    		<apex:selectOptions value="{!YesNoOptions}" />
+		    		<apex:actionSupport event="onchange" rerender="main" action="{!resetSections}" />
+		 		</apex:selectRadio>
+		 	</apex:actionRegion>
+		</td> 
+	</tr>
+</table>
+</apex:outputPanel>		
+
+<apex:outputPanel >
+<table>
+	<tr>
+		<td width="800px" ><br/>
+			<apex:outputText >{!dLabel['DL19']}</apex:outputText>
+		</td>	
+		<td>
+			<apex:actionRegion >
+ 				<apex:selectRadio layout="lineDirection" value="{!agreement.segRightToAccept__c}" disabled="{!mode==''}" >
+		    		<apex:selectOptions value="{!YesNoOptions}" />
+		    		<apex:actionSupport event="onchange" rerender="main" action="{!resetSections}" />
+		 		</apex:selectRadio>
+		 	</apex:actionRegion>
+		</td> 
+	</tr>
+</table>
+</apex:outputPanel>						
+<apex:outputPanel >
+<table>
+	<tr>
+		<td width="800px" ><br/>
+			<apex:outputText >{!dLabel['DL20']}</apex:outputText>
+		</td>
+		<td>
+			<apex:actionRegion >
+ 				<apex:selectRadio layout="lineDirection" value="{!agreement.segSeparateComponents__c}" disabled="{!mode==''}" >
+		    		<apex:selectOptions value="{!YesNoOptions}" />
+		    		<apex:actionSupport event="onchange" rerender="main" action="{!resetSections}" />
+		 		</apex:selectRadio>
+		 	</apex:actionRegion>
+		</td> 		
+	</tr>
+</table>
+</apex:outputPanel>	
+</apex:pageBlockSection>				
+<br/>
+<apex:outputPanel id="section2" rendered="{!ShowSection2}" ><nttdcore:DLabel name="DL21" default="If the project does not meet the above, it may still be segmented only if it meets all following criteria (reference SOP 81-1 paragraph 41)" labelParent="{!this}" /><nttdcore:DLabel name="DL22" default="The terms and scope of the contract call for seperate phases or elements." labelParent="{!this}" /><nttdcore:DLabel name="DL23" default="The seperate phases or elements are often bid / negotiated separately." labelParent="{!this}" /><nttdcore:DLabel name="DL24" default="The market assigns different gross profit rates to each phase or element because of different risks or relationships of supply and demand." labelParent="{!this}" /><nttdcore:DLabel name="DL25" default="AECOM has a significant history of providing similar services to other customers under separate contracts for each significant segment where each segment is ascribed a profit margin higher that the profit margin on the project." labelParent="{!this}" /><nttdcore:DLabel name="DL26" default="The excess of the aggregate price of the the phases sold separtely over the prices of the entire project relates to cost savings resulting from combined performance of the contract obligations." labelParent="{!this}" /><nttdcore:DLabel name="DL27" default="The historical pricing policy is relatively stable and based on pricing policy rather than unique economic or customer relationships." labelParent="{!this}" /><nttdcore:DLabel name="DL28" default="The above criteria is documented and verifable." labelParent="{!this}" />
+<apex:pageBlockSection columns="1" collapsible="false" title="{!dLabel['DL21']}" >
+<apex:outputPanel >
+<table>
+	<tr>
+		<td width="800px" ><br/>
+			<apex:outputText >{!dLabel['DL22']}</apex:outputText>
+		</td>	
+		<td>
+			<apex:actionRegion >
+	 			<apex:selectRadio layout="lineDirection" value="{!agreement.segTermsAndScope__c}" disabled="{!mode==''}" >
+			    	<apex:selectOptions value="{!YesNoOptions}" />
+			    	<apex:actionSupport event="onchange" rerender="main" action="{!resetSections}" />
+			 	</apex:selectRadio>
+		 	</apex:actionRegion>
+		</td> 
+	</tr>
+</table>
+</apex:outputPanel>											
+<apex:outputPanel >
+<table>
+	<tr>
+		<td width="800px" ><br/>
+			<apex:outputText >{!dLabel['DL23']}</apex:outputText>
+		</td>	
+		<td>
+			<apex:actionRegion >
+	 			<apex:selectRadio layout="lineDirection" value="{!agreement.segSeparatePhases__c}" disabled="{!mode==''}" >
+			    	<apex:selectOptions value="{!YesNoOptions}" />
+			    	<apex:actionSupport event="onchange" rerender="main" action="{!resetSections}" />
+			 	</apex:selectRadio>
+		 	</apex:actionRegion>
+		</td> 
+	</tr>
+</table>
+</apex:outputPanel>													
+<apex:outputPanel >
+<table>
+	<tr>
+		<td width="800px" ><br/>
+			<apex:outputText >{!dLabel['DL24']}</apex:outputText>
+		</td>	
+		<td>
+			<apex:actionRegion >
+	 			<apex:selectRadio layout="lineDirection" value="{!agreement.segGrossProfitRates__c}" disabled="{!mode==''}" >
+			    	<apex:selectOptions value="{!YesNoOptions}" />
+			    	<apex:actionSupport event="onchange" rerender="main" action="{!resetSections}" />
+			 	</apex:selectRadio>
+		 	</apex:actionRegion>
+		</td> 
+	</tr>
+</table>
+</apex:outputPanel>												
+<apex:outputPanel >
+<table>
+	<tr>
+		<td width="800px" ><br/>
+			<apex:outputText >{!dLabel['DL25']}</apex:outputText>
+		</td>	
+		<td>
+			<apex:actionRegion >
+	 			<apex:selectRadio layout="lineDirection" value="{!agreement.segSignificantHisory__c}" disabled="{!mode==''}" >
+			    	<apex:selectOptions value="{!YesNoOptions}" />
+			    	<apex:actionSupport event="onchange" rerender="main" action="{!resetSections}" />
+			 	</apex:selectRadio>
+		 	</apex:actionRegion>
+		</td> 
+	</tr>
+</table></apex:outputPanel>													
+<apex:outputPanel >
+<table>
+	<tr>
+		<td width="800px" ><br/>
+			<apex:outputText >{!dLabel['DL26']}</apex:outputText>
+		</td>	
+		<td>
+			<apex:actionRegion >
+	 			<apex:selectRadio layout="lineDirection" value="{!agreement.segAggregatePrice__c}" disabled="{!mode==''}" >
+			    	<apex:selectOptions value="{!YesNoOptions}" />
+			    	<apex:actionSupport event="onchange" rerender="main" action="{!resetSections}" />
+			 	</apex:selectRadio>
+		 	</apex:actionRegion>
+		</td> 
+	</tr>
+</table></apex:outputPanel>																					
+<apex:outputPanel >
+<table>
+	<tr>
+		<td width="800px" ><br/>
+			<apex:outputText >{!dLabel['DL27']}</apex:outputText>
+		</td>	
+		<td>
+			<apex:actionRegion >
+	 			<apex:selectRadio layout="lineDirection" value="{!agreement.segPricingPolicy__c}" disabled="{!mode==''}" >
+			    	<apex:selectOptions value="{!YesNoOptions}" />
+			    	<apex:actionSupport event="onchange" rerender="main" action="{!resetSections}" />
+			 	</apex:selectRadio>
+		 	</apex:actionRegion>
+		</td> 
+	</tr>
+</table>	</apex:outputPanel>													
+<apex:outputPanel ><table>
+	<tr>
+		<td width="800px" ><br/>
+			<apex:outputText >{!dLabel['DL28']}</apex:outputText>
+		</td>	
+		<td>
+			<apex:actionRegion >
+	 			<apex:selectRadio layout="lineDirection" value="{!agreement.segVerifiable__c}" disabled="{!mode==''}" >
+			    	<apex:selectOptions value="{!YesNoOptions}" />
+			    	<apex:actionSupport event="onchange" rerender="main" action="{!resetSections}" />
+			 	</apex:selectRadio>
+		 	</apex:actionRegion>
+		</td> 
+	</tr>
+</table></apex:outputPanel>
+</apex:pageBlockSection>
+<b/><br/>							
+</apex:outputPanel>
+<apex:outputPanel id="section3" rendered="{!ShowSection3}" ><nttdcore:DLabel name="DL29" default="Contract options and additions: An option or an addition to an existing contract should be treated as a separate contract in any of the following circumstances (reference SOP 81-1 paragraph 64)" labelParent="{!this}" /><nttdcore:DLabel name="DL30" default="The product or service to be provided differs significantly from the product or service provided under the original contract." labelParent="{!this}" /><nttdcore:DLabel name="DL31" default="The price of the new product or service is negotiated without regard to the original contract and involves different economic judgements." labelParent="{!this}" /><nttdcore:DLabel name="DL32" default="The product or services to be provided are similar to those under the original contract, but the contract price and anticipated contract cost relationship are significantly different." labelParent="{!this}" />	
+<apex:pageBlockSection columns="1" collapsible="false" title="{!dLabel['DL29']}" >
+						
+<apex:outputPanel ><table>
+	<tr>
+		<td width="800px" ><br/>
+			<apex:outputText >{!dLabel['DL30']}</apex:outputText>
+		</td>	
+		<td>
+			<apex:actionRegion >
+	 			<apex:selectRadio layout="lineDirection" value="{!agreement.segProductOrServiceDiffers__c}" disabled="{!mode==''}" >
+			    	<apex:selectOptions value="{!YesNoOptions}" />
+			    	<apex:actionSupport event="onchange" rerender="main" action="{!resetSections}" />
+			 	</apex:selectRadio>
+		 	</apex:actionRegion>
+		</td> 
+	</tr>
+</table></apex:outputPanel>
+
+<apex:outputPanel ><table>
+	<tr>
+		<td width="800px" ><br/>
+			<apex:outputText >{!dLabel['DL31']}</apex:outputText>
+		</td>	
+		<td>
+			<apex:actionRegion >
+	 			<apex:selectRadio layout="lineDirection" value="{!agreement.segNegotiatedWithoutRegard__c}" disabled="{!mode==''}" >
+			    	<apex:selectOptions value="{!YesNoOptions}" />
+			    	<apex:actionSupport event="onchange" rerender="main" action="{!resetSections}" />
+			 	</apex:selectRadio>
+		 	</apex:actionRegion>
+		</td> 
+	</tr>
+</table></apex:outputPanel>
+
+<apex:outputPanel ><table>
+	<tr>
+		<td width="800px" ><br/>
+			<apex:outputText >{!dLabel['DL32']}</apex:outputText>
+		</td>	
+		<td>
+			<apex:actionRegion >
+	 			<apex:selectRadio layout="lineDirection" value="{!agreement.segUnderOriginalContract__c}" disabled="{!mode==''}" >
+			    	<apex:selectOptions value="{!YesNoOptions}" />
+			    	<apex:actionSupport event="onchange" rerender="main" action="{!resetSections}" />
+			 	</apex:selectRadio>
+		 	</apex:actionRegion>
+		</td> 
+	</tr>
+</table></apex:outputPanel>
+
+</apex:pageBlockSection>
+</apex:outputPanel>
+<apex:outputPanel rendered="{!ShowConclusion}" ><nttdcore:DLabel name="DL33" default="Conclusion" labelParent="{!this}" /><nttdcore:DLabel name="DL34" default="Do not segment the contract / Amendment / Option" labelParent="{!this}" /><nttdcore:DLabel name="DL35" default="Segment the contract / Amendment / Option based on adherence to SOP-81-1" labelParent="{!this}" /><nttdcore:DLabel name="DL36" default="Contract / Amendment / Option does not qualify for segmenting, but per attachmed documentation will be segmented for management purposes.  Note: In such case project(s) will be evaluated and necssary adjustments made at least quarterly to assure that profit is recognized ratably across the entire contract." labelParent="{!this}" />
+<apex:pageBlockSection title="{!dLabel['DL33']}" columns="1" collapsible="false" >
+<apex:outputPanel rendered="{!agreement.segProductOrServiceDiffers__c == 'No' && agreement.segNegotiatedWithoutRegard__c == 'No' && agreement.segUnderOriginalContract__c == 'No'}" ><table>
+	<tr>
+		<td width="800px" ><br/>
+			<apex:outputText >{!dLabel['DL34']}</apex:outputText>
+		</td>	
+		<td>
+ 			<apex:selectRadio layout="lineDirection" value="{!agreement.segAmendmentOption__c}" disabled="{!mode==''}" >
+		    	<apex:selectOptions value="{!YesNoOptions}" />
+		 	</apex:selectRadio>
+		</td> 
+	</tr>
+</table></apex:outputPanel>
+
+<apex:outputPanel rendered="{!agreement.segProductOrServiceDiffers__c != 'No' || agreement.segNegotiatedWithoutRegard__c != 'No' || agreement.segUnderOriginalContract__c != 'No'}" ><table>
+	<tr>
+		<td width="800px" ><br/>
+			<apex:outputText >{!dLabel['DL35']}</apex:outputText>
+		</td>	
+		<td>
+ 			<apex:selectRadio layout="lineDirection" value="{!agreement.segAdherence__c}" disabled="{!mode==''}" >
+		    	<apex:selectOptions value="{!YesNoOptions}" />
+		 	</apex:selectRadio>
+		</td> 
+	</tr>
+</table></apex:outputPanel>
+
+<apex:outputPanel rendered="{!agreement.segProductOrServiceDiffers__c == 'No' && agreement.segNegotiatedWithoutRegard__c == 'No' && agreement.segUnderOriginalContract__c == 'No'}" ><table>
+	<tr>
+		<td width="800px" ><br/>
+			<apex:outputText >{!dLabel['DL36']}</apex:outputText>
+		</td>	
+		<td>
+ 			<apex:selectRadio layout="lineDirection" value="{!agreement.segOptionDoesNotQualify__c}" disabled="{!mode==''}" >
+		    	<apex:selectOptions value="{!YesNoOptions}" />
+		 	</apex:selectRadio>
+		</td> 
+	</tr>
+</table></apex:outputPanel>
+</apex:pageBlockSection>
+</apex:outputPanel>
+</apex:outputPanel>
+<apex:pageBlockSection title="{!dLabel['DL37']}" columns="1" collapsible="false" >
+<b>{!dLabel['DL38']}</b><br/>
+<apex:outputPanel >
+<apex:repeat value="{!projects}" var="project" >
+<apex:commandLink action="{!URLFOR($Action.pse__Proj__c.view, project.Id)}" ><apex:outputField value="{!project.Name}" /></apex:commandLink><apex:outputText value="   " /><br/>
+</apex:repeat>
+</apex:outputPanel>
+</apex:pageBlockSection>
+</apex:pageBlock>
+</apex:form>		
+
+	<apex:relatedList list="ProcessSteps" rendered="{!mode=='' && ShowApprovalProcess}" id="ProcessSteps" />	
+	<script>
+    	var allTdTags = document.getElementsByTagName('td');
+    	for(var i=0;i<allTdTags.length;i++){
+       
+     	if(allTdTags[i].className == 'pbButton'){
+                     document.getElementsByName('piSubmit')[0].style.display = "none";          
+        	}
+    	}
+  	</script>
+										
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

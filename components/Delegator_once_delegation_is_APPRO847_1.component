@@ -1,0 +1,13 @@
+<apex:component language="{!theLanguage}" controller="nttdcore.DLabelChildController" access="global" ><apex:attribute name="theLanguage" type="String" required="true" description="language" access="global" /><apex:attribute name="theRecipient" type="User" required="true" description="recipient" access="global" /><apex:attribute name="theRelatedTo" type="Delegate__c" required="true" description="related to" access="global" />
+<html>
+<style type="text/css" >
+body {font-family: Arial;}
+</style>
+<body><nttdcore:DLabel name="DL1" default="Your delegation request detailed below has now been approved.  This delegation is now active, or if future dated will become active on the nominated date." labelParent="{!this}" componentContext="Delegator_once_delegation_is_APPRO847_1" />
+{!dlRoot.dLabel['DL1']}
+
+<c:ECO_DelegateOrgStringTable delegateid="{!theRelatedTo.id}" />
+
+</body>
+</html>
+<nttdcore:DLabelInit language="{!theLanguage}" labelParentInit="{!this}" /></apex:component>

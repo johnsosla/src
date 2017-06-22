@@ -1,0 +1,4 @@
+<apex:page showheader="true" sidebar="true" standardcontroller="pse__Proj__c" extensions="ECO_CreateWeeklyRollupEntriesController,nttdcore.DLabelParentController" action="{!recalculate}" ><nttdcore:DLabel name="DL1" default="Weekly Rollup Entries have been queued and should be available for this project in 5 minutes." labelParent="{!this}" />
+	{!dLabel['DL1']}<br/><br/>
+	<apex:outputLink value="/{!pse__Proj__c.id}" ><nttdcore:DLabel name="DL2" default="Back to Project" labelParent="{!this}" />{!dLabel['DL2']}</apex:outputLink>
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

@@ -1,0 +1,20 @@
+<apex:page standardController="Project__c" recordSetVar="projects" extensions="ProjectMergeExtension" showheader="false" standardstylesheets="false" Sidebar="false" cache="true" contentType="application/msword#ProjectMerge.doc;charset=UTF-8"> 
+    <style>
+        .msoNormal {
+            font-family: Arial;
+            font-size: 9pt;
+        }
+    
+    </style>
+    
+    <body style="font-family: Arial; font-size: 9pt;">
+        <apex:repeat value="{!selectedProjects}" var="prj">
+
+            <c:ProjectMerge prj="{!prj}"/>
+            <br clear="all" style="mso-special-character:line-break;page-break-before:always;"/>
+            
+        </apex:repeat>
+    
+
+    </body>
+</apex:page>

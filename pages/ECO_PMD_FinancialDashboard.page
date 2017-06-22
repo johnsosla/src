@@ -1,0 +1,78 @@
+<apex:page showheader="true" sidebar="true" standardstylesheets="true" standardcontroller="pse__Proj__c" extensions="ECO_PMD_FinancialDashboard_Controller,ECO_PMD_Top10EmployeesByHours_Controller,ECO_PMD_Top10EmployeesByCost_Controller,ECO_PMD_Top10TasksByCost_Controller,nttdcore.DLabelParentController" >
+
+	<apex:outputtext value="{!$Label.ECO_FinancialForce_Error}" style="font-size:12pt;font-weight:500!important;margin-left: 38px;" rendered="{!NOT(hasFinancialForceAccess)}" />        
+
+	<apex:outputpanel rendered="{!hasFinancialForceAccess}" >
+
+		<html xmlns:ng="http://angularjs.org" ng-app="ecopmd" >
+		
+		  <head>
+		    <apex:includescript value="{!$Resource.ECO_jQuery_1_11_2_min_js}" />
+		    <apex:includescript value="{!URLFOR($Resource.angular_1_4_7_min, 'angular.min.js')}" />
+		    <apex:includescript value="{!URLFOR($Resource.angular_1_4_7_min, 'i18n/angular-locale_' + LOWER(locale) + '.js')}" />
+		    <apex:stylesheet value="{!URLFOR($Resource.bootstrap_3_3_5_Namespaced, 'css-bs/bootstrap.min.css')}" />
+		    <apex:includescript value="{!URLFOR($Resource.bootstrap_3_3_5_Namespaced, 'js/bootstrap.min.js')}" />
+		    <apex:includescript value="{!URLFOR($Resource.bootstrap_3_3_5_Namespaced, 'ui-bootstrap-tpls-0.14.3.min.js')}" />
+		
+		    <apex:stylesheet value="{!URLFOR($Resource.ECO_ng_DashPanel, 'lib/pikaday.min.css')}" />
+		    <apex:includescript value="{!URLFOR($Resource.ECO_ng_DashPanel, 'lib/pikaday.min.js')}" />
+		    <apex:includescript value="{!URLFOR($Resource.ECO_ng_DashPanel, 'lib/pikaday-angular/pikaday-angular.js')}" />
+		    <apex:includescript value="{!URLFOR($Resource.ECO_ng_DashPanel, 'lib/moment.min.js')}" />
+		
+		    <apex:stylesheet value="{!URLFOR($Resource.KendoUi, 'KendoUi/Style/kendo.common.min.css')}" /> 
+		    <apex:stylesheet value="{!URLFOR($Resource.KendoUi, 'KendoUi/Style/kendo.default.min.css')}" /> 
+		    <apex:includescript value="{!URLFOR($Resource.KendoUi, 'KendoUi/js/kendo.all.min.js')}" />
+		
+		    <c:ECO_PMD_ng_dashpanel_js />
+		    <c:ECO_PMD_CSS />
+		  </head>
+		
+		  <body>
+		
+		    <div class="bs" > <!-- bootstrap namespace -->
+		      <div class="container-fluid" >
+		        <navigation-bar page-title="Financial Dashboard" project-number="{!pse__Proj__c.OracleProjectnumber__c}" project-name="{!pse__Proj__c.name}" project-id="{!Id}" />
+		        <div class="border row mainMargin" >
+		          <div class="col-lg-12 col-md-12 nopadding" >
+		            <c:ECO_PMD_PL projectid="{!pse__Proj__c.Id}" />
+		          </div>
+		          <div class="col-md-4 nopadding" >
+		          </div>
+		        </div>
+		        <div class="clearfix" />
+		        <div class="border row mainMargin" >
+		          <div class="col-md-6 nopadding" >
+		            <c:ECO_PMD_TrendAnalysisChart projectid="{!pse__Proj__c.Id}" />
+		          </div>
+		          <div class="col-md-6 nopadding" >
+		            <!--c:ECO_PMD_RunRateETCChart projectId="{!pse__Proj__c.Id}" / -->
+		          </div>
+		        </div>
+		        <div class="clearfix" />
+		        <div class="border row mainMargin" >
+		          <div class="col-md-6 nopadding" >
+		           <c:ECO_PMD_WorkingCapitalChart projectid="{!pse__Proj__c.Id}" />
+		         </div>
+		         <div class="col-md-6 nopadding" >
+		           <c:ECO_PMD_CashFlowChart projectid="{!pse__Proj__c.Id}" />
+		         </div>
+		        </div>
+		        <div class="clearfix" />
+		        <div class="border row mainMargin" >
+		          <div class="col-md-4 nopadding" >
+		            <top-ten-panel project-id="{!pse__Proj__c.Id}" title="Cost" />
+		          </div>
+		          <div class="col-md-4 nopadding" >
+		           <top-ten-panel project-id="{!pse__Proj__c.Id}" title="Hours" />
+		          </div>
+		          <div class="col-md-4 nopadding" >
+		           <top-ten-panel project-id="{!pse__Proj__c.Id}" title="Labor" />
+		          </div>
+		        </div>
+		      </div>
+		    </div>
+		    <c:ECO_PMD_NavigationBar_ng projectid="{!Id}" />
+		  </body>
+		</html>
+	</apex:outputpanel>
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

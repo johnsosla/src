@@ -1,0 +1,20 @@
+<apex:page controller="ECO_SOXApprovalReviewReport_Controller" >
+<script>
+    function disableOnSubmit(input) {
+        setTimeout('disableAfterTimeout(\'' + input.id + '\');', 50);
+    }
+    function disableAfterTimeout(id) {
+        var toDisable = document.getElementById( id );
+        toDisable.disabled = 'disabled';
+        // Use the Salesforce CSS style to make the button appear disabled
+        toDisable.className = 'btnDisabled';
+        toDisable.value = "Generating Report..."
+    }
+</script>
+
+<apex:form >
+<b>Click the button to run the SOX Approval Review Report - you will recieve an email containing the report shortly.</b>
+  <apex:commandButton action="{!callBatch}" value="Run Batch" id="theButton" onclick="disableOnSubmit(this);"/>
+</apex:form> 
+      
+</apex:page>

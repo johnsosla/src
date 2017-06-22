@@ -1,0 +1,39 @@
+<apex:component language="{!theLanguage}" controller="nttdcore.DLabelChildController" access="global" ><apex:attribute name="theLanguage" type="String" required="true" description="language" access="global" /><apex:attribute name="theRecipient" type="User" required="true" description="recipient" access="global" /><apex:attribute name="theRelatedTo" type="ChangeManager__c" required="true" description="related to" access="global" />
+        <apex:outputpanel ><nttdcore:DLabel name="DL1" default="The following Work at Risk Approval Request has been Recalled:" labelParent="{!this}" componentContext="EcoRecallWorkatRiskWithoutFunding_335_1" /><nttdcore:DLabel name="DL23" default="Click here to access the Project :" labelParent="{!this}" componentContext="EcoRecallWorkatRiskWithoutFunding_335_1" />
+            {!dlRoot.dLabel['DL1']}
+            <br/><br/>
+            <b><nttdcore:DLabel name="DL2" default="Project Name:" labelParent="{!this}" componentContext="EcoRecallWorkatRiskWithoutFunding_335_1" /> {!dlRoot.dLabel['DL2']}</b> {!theRelatedTo.ProjectName__c}<br/>
+            <b><nttdcore:DLabel name="DL3" default="Project Number:" labelParent="{!this}" componentContext="EcoRecallWorkatRiskWithoutFunding_335_1" />{!dlRoot.dLabel['DL3']}</b> {!theRelatedTo.ProjectNumber__c}<br/>
+            <b><nttdcore:DLabel name="DL4" default="Change Request Number:" labelParent="{!this}" componentContext="EcoRecallWorkatRiskWithoutFunding_335_1" />{!dlRoot.dLabel['DL4']}</b> {!theRelatedTo.Name}<br/>
+            <br/>
+
+            <b><nttdcore:DLabel name="DL5" default="Budget Change order being submitted:" labelParent="{!this}" componentContext="EcoRecallWorkatRiskWithoutFunding_335_1" />{!dlRoot.dLabel['DL5']}</b><br/>
+            <b><nttdcore:DLabel name="DL6" default="Budget Name:" labelParent="{!this}" componentContext="EcoRecallWorkatRiskWithoutFunding_335_1" />{!dlRoot.dLabel['DL6']} </b>  {!theRelatedTo.BudgetName__c}<br/>
+            <b><nttdcore:DLabel name="DL7" default="Total Budget Cost:" labelParent="{!this}" componentContext="EcoRecallWorkatRiskWithoutFunding_335_1" />{!dlRoot.dLabel['DL7']}</b>   <apex:outputField value="{!theRelatedTo.TotalBudgetCost__c}" /><br/>
+            <b><nttdcore:DLabel name="DL8" default="Total Budget Revenue (from original change order):" labelParent="{!this}" componentContext="EcoRecallWorkatRiskWithoutFunding_335_1" />{!dlRoot.dLabel['DL8']}  </b> <apex:outputField value="{!theRelatedTo.TotalBudgetRevenue__c}" /><br/>
+            <b><nttdcore:DLabel name="DL9" default="Revenue value being added to Forecast Revenue Budget for W@R:" labelParent="{!this}" componentContext="EcoRecallWorkatRiskWithoutFunding_335_1" />{!dlRoot.dLabel['DL9']}  </b> <apex:outputField value="{!theRelatedTo.RevenueAddedforWAR__c}" />
+            <br/><br/>
+            <b><nttdcore:DLabel name="DL10" default="Other Impacted Changes:" labelParent="{!this}" componentContext="EcoRecallWorkatRiskWithoutFunding_335_1" />{!dlRoot.dLabel['DL10']}</b> 
+            <br/><br/>
+            <b><nttdcore:DLabel name="DL11" default="Task:" labelParent="{!this}" componentContext="EcoRecallWorkatRiskWithoutFunding_335_1" />{!dlRoot.dLabel['DL11']} </b> {!theRelatedTo.StringInt_Ext_Schedule__c} <br/>
+            <b><nttdcore:DLabel name="DL12" default="Task Comments:" labelParent="{!this}" componentContext="EcoRecallWorkatRiskWithoutFunding_335_1" />{!dlRoot.dLabel['DL12']}</b>  {!theRelatedTo.IntExtProjectTasksComments__c} 
+            <br/><br/>
+            <b><nttdcore:DLabel name="DL13" default="Budget:" labelParent="{!this}" componentContext="EcoRecallWorkatRiskWithoutFunding_335_1" />{!dlRoot.dLabel['DL13']}</b>  {!theRelatedTo.StringInt_Ext_Budget_Change__c} <br/>
+            <b><nttdcore:DLabel name="DL14" default="Budget Comments:" labelParent="{!this}" componentContext="EcoRecallWorkatRiskWithoutFunding_335_1" />{!dlRoot.dLabel['DL14']}</b>  {!theRelatedTo.IntExtBudgetComments__c} 
+            <br/><br/>
+            <b><nttdcore:DLabel name="DL15" default="Customers:" labelParent="{!this}" componentContext="EcoRecallWorkatRiskWithoutFunding_335_1" />{!dlRoot.dLabel['DL15']}</b>  {!theRelatedTo.StringInt_Ext_Customers__c} <br/>
+            <b><nttdcore:DLabel name="DL16" default="Customer Comments:" labelParent="{!this}" componentContext="EcoRecallWorkatRiskWithoutFunding_335_1" />{!dlRoot.dLabel['DL16']}</b>  {!theRelatedTo.IntExtCustomersComments__c} 
+            <br/><br/>
+            <b><nttdcore:DLabel name="DL17" default="Agreements:" labelParent="{!this}" componentContext="EcoRecallWorkatRiskWithoutFunding_335_1" />{!dlRoot.dLabel['DL17']}</b>  {!theRelatedTo.StringInt_Ext_Contract_Management__c} <br/>
+            <b><nttdcore:DLabel name="DL18" default="Agreement Comments:" labelParent="{!this}" componentContext="EcoRecallWorkatRiskWithoutFunding_335_1" />{!dlRoot.dLabel['DL18']}</b>  {!theRelatedTo.IntExtContractManagementComments__c} 
+            <br/><br/>
+            <b><nttdcore:DLabel name="DL19" default="Classifications:" labelParent="{!this}" componentContext="EcoRecallWorkatRiskWithoutFunding_335_1" />{!dlRoot.dLabel['DL19']}</b>  {!theRelatedTo.StringIntExtClassifications__c} <br/>
+            <b><nttdcore:DLabel name="DL20" default="Classification Comments:" labelParent="{!this}" componentContext="EcoRecallWorkatRiskWithoutFunding_335_1" />{!dlRoot.dLabel['DL20']}</b>  {!theRelatedTo.IntExtClassificationsComments__c} 
+            <br/><br/>
+            <b><nttdcore:DLabel name="DL21" default="Key Members:" labelParent="{!this}" componentContext="EcoRecallWorkatRiskWithoutFunding_335_1" />{!dlRoot.dLabel['DL21']} </b> {!theRelatedTo.StringInt_Ext_Key_Members__c} <br/>
+            <b><nttdcore:DLabel name="DL22" default="Key Member Comments:" labelParent="{!this}" componentContext="EcoRecallWorkatRiskWithoutFunding_335_1" />{!dlRoot.dLabel['DL22']}</b>  {!theRelatedTo.IntExtKeyMembersComments__c} 
+            <br/><br/>
+
+            {!dlRoot.dLabel['DL23']} <a href="{!theRelatedTo.ProjectLink__c}" ><nttdcore:DLabel name="DL24" default="Project Link" labelParent="{!this}" componentContext="EcoRecallWorkatRiskWithoutFunding_335_1" /> {!dlRoot.dLabel['DL24']} </a>
+        </apex:outputpanel>
+    <nttdcore:DLabelInit language="{!theLanguage}" labelParentInit="{!this}" /></apex:component>

@@ -1,0 +1,674 @@
+<apex:component >
+    <apex:attribute name="Project" description="GFA_Project record for this component" type="GFA_Project" required="true"/>
+    <apex:attribute name="editMode" description="Designates wheter component will be used for editing" type="Boolean" required="false" default="false"/>
+    <apex:attribute name="AvailableTemplates" description="List of templates that are available to select" type="GFA_Template[]" required="false" />
+    <apex:attribute name="SelectTemplate" description="Apex action to select template" type="ApexPages.Action" required="false"/>
+    <apex:attribute name="addTemplate" description="Designates whether Template button is visible" type="Boolean" required="false"/>
+
+    <apex:outputPanel id="projectDetailComponent">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">Project Information</h3>
+            </div>
+            <div class="panel-body">
+                <table class="table fixedTable" style="{!IF(editMode = true, 'table-layout: auto;','')}">
+                    <tr>
+                        <td>
+                            <label>Project Number:</label>
+                        </td>
+                        <td>
+                            <apex:inputField value="{!Project.Obj.Name}" rendered="{!editMode}"/>
+                            <apex:outputField value="{!Project.Obj.Name}" rendered="{!!editMode}"/>
+                        </td>
+                         <td>
+                            <label>Project Name:</label>
+                        </td>
+                        <td>
+                            <div class="gfaRequired">
+                                <div class="gfaRequiredBlock"/>
+                                <apex:inputField value="{!Project.Obj.Project_Name__c}" rendered="{!editMode}"/>
+                            </div>
+                            <apex:outputField value="{!Project.Obj.Project_Name__c}" rendered="{!!editMode}"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label>Lifecycle Stage:</label>
+                        </td>
+                        <td>
+                            <apex:inputField value="{!Project.Obj.Lifecycle_Stage__c}" rendered="{!editMode}"/>
+                            <apex:outputField value="{!Project.Obj.Lifecycle_Stage__c}" rendered="{!!editMode}"/>
+                        </td>
+                        <td>
+                            <label>Template:</label>
+                        </td>
+                        <td>
+                                <apex:actionStatus id="actionButtonsStatus" rendered="{!!editMode && Project.CanSelectTemplate || addTemplate}">
+                                    <apex:facet name="stop">
+                                        <apex:commandButton value="Select Template" styleClass="mainButton" reRender="selectTemplatePanel" oncomplete="openModal('#selectTemplateModal');" status="actionButtonsStatus"/>
+                                    </apex:facet>
+                                    <apex:facet name="start">
+                                        <apex:image styleClass="actionButtonSpinner" value="/img/loading.gif"/>
+                                    </apex:facet>
+                                </apex:actionStatus>
+                            <apex:outputField value="{!Project.Obj.Template__c}" rendered="{!Project.TemplateId != null}"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label>Project Status:</label>
+                        </td>
+                        <td>
+                            <apex:inputField value="{!Project.Obj.Project_Status__c}" rendered="{!editMode}"/>
+                            <apex:outputField value="{!Project.Obj.Project_Status__c}" rendered="{!!editMode}"/>
+                        </td>
+                        <td>
+                            <label>Group:</label>
+                        </td>
+                        <td>
+                            <div class="gfaRequired">
+                                <div class="gfaRequiredBlock"/>
+                                <apex:inputField value="{!Project.Obj.Group__c}" rendered="{!editMode}"/>
+                            </div>
+                            <apex:outputField value="{!Project.Obj.Group__c}" rendered="{!!editMode}"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label>Confidential Project:</label>
+                        </td>
+                        <td>
+                            <apex:inputField value="{!Project.Obj.Is_Confidential_Project__c}" rendered="{!editMode}"/>
+                            <apex:outputField value="{!Project.Obj.Is_Confidential_Project__c}" rendered="{!!editMode}"/>
+                        </td>
+                        <td>
+                            <label>Operating Group:</label>
+                        </td>
+                        <td>
+                            <div class="gfaRequired">
+                                <div class="gfaRequiredBlock"/>
+                                <apex:inputField value="{!Project.Obj.Operating_Group__c}" rendered="{!editMode}"/>
+                            </div>
+                            <apex:outputField value="{!Project.Obj.Operating_Group__c}" rendered="{!!editMode}"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label>GFA Type:</label>
+                        </td>
+                        <td>
+                            <div class="gfaRequired">
+                                <div class="gfaRequiredBlock"/>
+                                <apex:inputField value="{!Project.Obj.Project_Sponsor__c}" rendered="{!editMode}"/>
+                            </div>
+                            <apex:outputField value="{!Project.Obj.Project_Sponsor__c}" rendered="{!!editMode}"/>
+                        </td>
+                        <td>
+                            <label>Business Line:</label>
+                        </td>
+                        <td>
+                            <div class="gfaRequired">
+                                <div class="gfaRequiredBlock"/>
+                                <apex:inputField value="{!Project.Obj.Business_Line__c}" rendered="{!editMode}"/>
+                            </div>
+                            <apex:outputField value="{!Project.Obj.Business_Line__c}" rendered="{!!editMode}"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label>Opportunity Name:</label>
+                        </td>
+                        <td>
+                            <apex:inputField value="{!Project.Obj.Opportunity__c}" rendered="{!editMode}"/>
+                            <apex:outputField value="{!Project.Obj.Opportunity__c}" rendered="{!!editMode}"/>
+                        </td>
+                        <td>
+                            <label>Complexity:</label>
+                        </td>
+                        <td>
+                            <div class="gfaRequired">
+                                <div class="gfaRequiredBlock"/>
+                                <apex:inputField value="{!Project.Obj.Complexity__c}" rendered="{!editMode}"/>
+                            </div>
+                            <apex:outputField value="{!Project.Obj.Complexity__c}" rendered="{!!editMode}"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label>Opportunity Not Known Yet:</label>
+                        </td>
+                        <td>
+                            <apex:inputField value="{!Project.Obj.Is_Not_Known_Yet__c}" rendered="{!editMode}"/>
+                            <apex:outputField value="{!Project.Obj.Is_Not_Known_Yet__c}" rendered="{!!editMode}"/>
+                        </td>
+                         <td>
+                            <label>Risk Level:</label>
+                        </td>
+                        <td>
+                            <div class="gfaRequired">
+                                <div class="gfaRequiredBlock"/>
+                                <apex:inputField value="{!Project.Obj.Risk_Level__c}" rendered="{!editMode}"/>
+                            </div>
+                            <apex:outputField value="{!Project.Obj.Risk_Level__c}" rendered="{!!editMode}"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label>Project Profile:</label>
+                        </td>
+                        <td>
+                            <apex:inputField value="{!Project.Obj.Project_Profile__c}" rendered="{!editMode}"/>
+                            <apex:outputField value="{!Project.Obj.Project_Profile__c}" rendered="{!!editMode}"/>
+                        </td>
+                         <td>
+                            <label>Scope Of Service:</label>
+                        </td>
+                        <td>
+                            <apex:inputField value="{!Project.Obj.Scope_of_Service__c}" rendered="{!editMode}"/>
+                            <apex:outputField value="{!Project.Obj.Scope_of_Service__c}" rendered="{!!editMode}"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label>Opportunity Id:</label>
+                        </td>
+                        <td colspan="3">
+                            <apex:outputField value="{!Project.Obj.Opportunity_Id__c}" rendered="{!editMode}"/>
+                            <apex:outputField value="{!Project.Obj.Opportunity_Id__c}" rendered="{!!editMode}"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label>Client:</label>
+                        </td>
+                        <td colspan="3">
+                            <apex:inputField value="{!Project.Obj.Client__c}" rendered="{!editMode}"/>
+                            <apex:outputField value="{!Project.Obj.Client__c}" rendered="{!!editMode}"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label>Is Client Key Account:</label>
+                        </td>
+                        <td colspan="3">
+                            <apex:inputField value="{!Project.Obj.Is_Key_Account__c}" rendered="{!editMode}"/>
+                            <apex:outputField value="{!Project.Obj.Is_Key_Account__c}" rendered="{!!editMode}"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label>Contracted To:</label>
+                        </td>
+                        <td colspan="3">
+                            <apex:inputField value="{!Project.Obj.Contracted_To__c}" rendered="{!editMode}"/>
+                            <apex:outputField value="{!Project.Obj.Contracted_To__c}" rendered="{!!editMode}"/>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">Project Dates</h3>
+            </div>
+            <div class="panel-body">
+                <table class="table fixedTable">
+                    <tr>
+                        <td>
+                            <label>Bid Submission Date:</label>
+                        </td>
+                        <td>
+                            <apex:inputField value="{!Project.Obj.Bid_Submission_Date__c}" rendered="{!editMode}"/>
+                            <apex:outputField value="{!Project.Obj.Bid_Submission_Date__c}" rendered="{!!editMode}"/>
+                        </td>
+                        <td>
+                            <label>Project End Date Scheduled:</label>
+                        </td>
+                        <td>
+                            <apex:inputField value="{!Project.Obj.Project_End_Date_Scheduled__c}" rendered="{!editMode}"/>
+                            <apex:outputField value="{!Project.Obj.Project_End_Date_Scheduled__c}" rendered="{!!editMode}"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label>Bid Award Date:</label>
+                        </td>
+                        <td>
+                            <apex:inputField value="{!Project.Obj.Bid_Award_Date__c}" rendered="{!editMode}"/>
+                            <apex:outputField value="{!Project.Obj.Bid_Award_Date__c}" rendered="{!!editMode}"/>
+                        </td>
+                        <td>
+                            <label>Project End Date Forecast:</label>
+                        </td>
+                        <td>
+                            <apex:inputField value="{!Project.Obj.Project_End_Date_Forecast__c}" rendered="{!editMode}"/>
+                            <apex:outputField value="{!Project.Obj.Project_End_Date_Forecast__c}" rendered="{!!editMode}"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label>Project Start Date Scheduled:</label>
+                        </td>
+                        <td>
+                            <apex:inputField value="{!Project.Obj.Project_Start_Date_Scheduled__c}" rendered="{!editMode}"/>
+                            <apex:outputField value="{!Project.Obj.Project_Start_Date_Scheduled__c}" rendered="{!!editMode}"/>
+                        </td>
+                        <td>
+                            <label>Project End Date Actual:</label>
+                        </td>
+                        <td>
+                            <apex:inputField value="{!Project.Obj.Project_End_Date_Actual__c}" rendered="{!editMode}"/>
+                            <apex:outputField value="{!Project.Obj.Project_End_Date_Actual__c}" rendered="{!!editMode}"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label>Project Start Date Forecast:</label>
+                        </td>
+                        <td colspan="3">
+                            <apex:inputField value="{!Project.Obj.Project_Start_Date_Forecast__c}" rendered="{!editMode}"/>
+                            <apex:outputField value="{!Project.Obj.Project_Start_Date_Forecast__c}" rendered="{!!editMode}"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label>Project Start Date Actual:</label>
+                        </td>
+                        <td colspan="3">
+                            <apex:inputField value="{!Project.Obj.Project_Start_Date_Actual__c}" rendered="{!editMode}"/>
+                            <apex:outputField value="{!Project.Obj.Project_Start_Date_Actual__c}" rendered="{!!editMode}"/>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">Site Details</h3>
+            </div>
+            <div class="panel-body">
+                <table class="table fixedTable">
+                    <tr>
+                        <td>
+                            <label>Type:</label>
+                        </td>
+                        <td>
+                            <apex:inputField value="{!Project.Obj.Type__c}" rendered="{!editMode}"/>
+                            <apex:outputField value="{!Project.Obj.Type__c}" rendered="{!!editMode}"/>
+                        </td>
+                        <td>
+                            <label>Geographic Region:</label>
+                        </td>
+                        <td>
+                            <apex:inputField value="{!Project.Obj.Geographic_Region__c}" rendered="{!editMode}"/>
+                            <apex:outputField value="{!Project.Obj.Geographic_Region__c}" rendered="{!!editMode}"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label>Site Name:</label>
+                        </td>
+                        <td>
+                            <apex:inputField value="{!Project.Obj.Site_Name__c}" rendered="{!editMode}"/>
+                            <apex:outputField value="{!Project.Obj.Site_Name__c}" rendered="{!!editMode}"/>
+                        </td>
+                        <td>
+                            <label>Service Line:</label>
+                        </td>
+                        <td>
+                            <apex:inputField value="{!Project.Obj.Service_Line__c}" rendered="{!editMode}"/>
+                            <apex:outputField value="{!Project.Obj.Service_Line__c}" rendered="{!!editMode}"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label>Site Street Address:</label>
+                        </td>
+                        <td colspan="3">
+                            <apex:inputField value="{!Project.Obj.Site_Street_Address__c}" rendered="{!editMode}"/>
+                            <apex:outputField value="{!Project.Obj.Site_Street_Address__c}" rendered="{!!editMode}"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label>Site City / Town:</label>
+                        </td>
+                        <td colspan="3">
+                            <apex:inputField value="{!Project.Obj.Site_City_Town__c}" rendered="{!editMode}"/>
+                            <apex:outputField value="{!Project.Obj.Site_City_Town__c}" rendered="{!!editMode}"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label>Province / State:</label>
+                        </td>
+                        <td colspan="3">
+                            <apex:inputField value="{!Project.Obj.Province_State__c}" rendered="{!editMode}"/>
+                            <apex:outputField value="{!Project.Obj.Province_State__c}" rendered="{!!editMode}"/>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">Contacts</h3>
+            </div>
+            <div class="panel-body">
+                <table class="table fixedTable">
+                    <tr>
+                        <td>
+                            <label>Client Contact Name:</label>
+                        </td>
+                        <td >
+                            <apex:inputField value="{!Project.Obj.Client_Contact_Name__c}" rendered="{!editMode}"/>
+                            <apex:outputField value="{!Project.Obj.Client_Contact_Name__c}" rendered="{!!editMode}"/>
+                        </td>
+                        <td>
+                            <label>Contractor Contact Name:</label>
+                        </td>
+                        <td >
+                            <apex:inputField value="{!Project.Obj.Contractor_Contact_Name__c}" rendered="{!editMode}"/>
+                            <apex:outputField value="{!Project.Obj.Contractor_Contact_Name__c}" rendered="{!!editMode}"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label>Contact Phone:</label>
+                        </td>
+                        <td >
+                            <apex:inputField value="{!Project.Obj.Client_Contact_Phone__c}" rendered="{!editMode}"/>
+                            <apex:outputField value="{!Project.Obj.Client_Contact_Phone__c}" rendered="{!!editMode}"/>
+                        </td>
+                        <td>
+                            <label>Contact Phone:</label>
+                        </td>
+                        <td >
+                            <apex:inputField value="{!Project.Obj.Contractor_Contact_Phone__c}" rendered="{!editMode}"/>
+                            <apex:outputField value="{!Project.Obj.Contractor_Contact_Phone__c}" rendered="{!!editMode}"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label>Contact Email:</label>
+                        </td>
+                        <td >
+                            <apex:inputField value="{!Project.Obj.Client_Contact_Email__c}" rendered="{!editMode}"/>
+                            <apex:outputField value="{!Project.Obj.Client_Contact_Email__c}" rendered="{!!editMode}"/>
+                        </td>
+                        <td>
+                            <label>Contact Email:</label>
+                        </td>
+                        <td >
+                            <apex:inputField value="{!Project.Obj.Contractor_Contact_Email__c}" rendered="{!editMode}"/>
+                            <apex:outputField value="{!Project.Obj.Contractor_Contact_Email__c}" rendered="{!!editMode}"/>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">Contract Details</h3>
+            </div>
+            <div class="panel-body">
+                <table class="table fixedTable">
+                    <tr>
+                        <td>
+                            <label>Contract Terms:</label>
+                        </td>
+                        <td >
+                            <apex:inputField value="{!Project.Obj.Contract_Terms__c}" rendered="{!editMode}"/>
+                            <apex:outputField value="{!Project.Obj.Contract_Terms__c}" rendered="{!!editMode}"/>
+                        </td>
+                        <td>
+                            <label>Scope Summary:</label>
+                        </td>
+                        <td >
+                            <apex:inputField value="{!Project.Obj.Scope_Summary__c}" rendered="{!editMode}"/>
+                            <apex:outputField value="{!Project.Obj.Scope_Summary__c}" rendered="{!!editMode}"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label>Primary Service:</label>
+                        </td>
+                        <td colspan="3">
+                            <apex:inputField value="{!Project.Obj.Primary_Service__c}" rendered="{!editMode}"/>
+                            <apex:outputField value="{!Project.Obj.Primary_Service__c}" rendered="{!!editMode}"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label>Included Services:</label>
+                        </td>
+                        <td colspan="3">
+                            <apex:inputField value="{!Project.Obj.Included_Services__c}" rendered="{!editMode}"/>
+                            <apex:outputField value="{!Project.Obj.Included_Services__c}" rendered="{!!editMode}"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label>Currency:</label>
+                        </td>
+                        <td colspan="3">
+                            <!-- Please redo this -->
+                            <apex:inputField value="{!Project.Obj.Currency__c}" rendered="{!editMode}"/>
+                            <apex:outputField value="{!Project.Obj.Currency__c}" rendered="{!!editMode}"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label>Contract Value:</label>
+                        </td>
+                        <td colspan="3">
+                            <apex:inputField value="{!Project.Obj.Contract_Value__c}" rendered="{!editMode}"/>
+                            <apex:outputField value="{!Project.Obj.Contract_Value__c}" rendered="{!!editMode}"/>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">Contract Summary / Terms &amp; Conditions</h3>
+            </div>
+            <div class="panel-body">
+                <table class="table fixedTable">
+                    <tr>
+                        <td>
+                            <label>Liquidated Damages:</label>
+                        </td>
+                        <td >
+                            <apex:inputField value="{!Project.Obj.Liquidated_Damages__c}" rendered="{!editMode}"/>
+                            <apex:outputField value="{!Project.Obj.Liquidated_Damages__c}" rendered="{!!editMode}"/>
+                        </td>
+                        <td>
+                            <label>Performance Guarantee:</label>
+                        </td>
+                        <td >
+                            <apex:inputField value="{!Project.Obj.Performance_Guarantee__c}" rendered="{!editMode}"/>
+                            <apex:outputField value="{!Project.Obj.Performance_Guarantee__c}" rendered="{!!editMode}"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label>Consequential Damages:</label>
+                        </td>
+                        <td >
+                            <apex:inputField value="{!Project.Obj.Consequential_Damages__c}" rendered="{!editMode}"/>
+                            <apex:outputField value="{!Project.Obj.Consequential_Damages__c}" rendered="{!!editMode}"/>
+                        </td>
+                        <td>
+                            <label>Chargeback / Setoff:</label>
+                        </td>
+                        <td >
+                            <apex:inputField value="{!Project.Obj.Chargeback_Setoff__c}" rendered="{!editMode}"/>
+                            <apex:outputField value="{!Project.Obj.Chargeback_Setoff__c}" rendered="{!!editMode}"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label>Payment Terms:</label>
+                        </td>
+                        <td >
+                            <apex:inputField value="{!Project.Obj.Payment_Terms__c}" rendered="{!editMode}"/>
+                            <apex:outputField value="{!Project.Obj.Payment_Terms__c}" rendered="{!!editMode}"/>
+                        </td>
+                        <td>
+                            <label>Indemnity &amp; Liability:</label>
+                        </td>
+                        <td >
+                            <apex:inputField value="{!Project.Obj.Indemnity_Liability__c}" rendered="{!editMode}"/>
+                            <apex:outputField value="{!Project.Obj.Indemnity_Liability__c}" rendered="{!!editMode}"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label>Insurance:</label>
+                        </td>
+                        <td >
+                            <apex:inputField value="{!Project.Obj.Insurance__c}" rendered="{!editMode}"/>
+                            <apex:outputField value="{!Project.Obj.Insurance__c}" rendered="{!!editMode}"/>
+                        </td>
+                        <td>
+                            <label>Errors &amp; Omissions:</label>
+                        </td>
+                        <td >
+                            <apex:inputField value="{!Project.Obj.Errors_Omissions__c}" rendered="{!editMode}"/>
+                            <apex:outputField value="{!Project.Obj.Errors_Omissions__c}" rendered="{!!editMode}"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label>Holdback:</label>
+                        </td>
+                        <td >
+                            <apex:inputField value="{!Project.Obj.Holdback__c}" rendered="{!editMode}"/>
+                            <apex:outputField value="{!Project.Obj.Holdback__c}" rendered="{!!editMode}"/>
+                        </td>
+                        <td>
+                            <label>Other:</label>
+                        </td>
+                        <td >
+                            <apex:inputField value="{!Project.Obj.Other__c}" rendered="{!editMode}"/>
+                            <apex:outputField value="{!Project.Obj.Other__c}" rendered="{!!editMode}"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label>Warranty:</label>
+                        </td>
+                        <td colspan="3">
+                            <apex:inputField value="{!Project.Obj.Warranty__c}" rendered="{!editMode}"/>
+                            <apex:outputField value="{!Project.Obj.Warranty__c}" rendered="{!!editMode}"/>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">Phase Schedule</h3>
+            </div>
+            <div class="panel-body">
+                <table class="table">
+                    <thead>
+                        <th>Phase</th>
+                        <th>Scheduled Completion Date</th>
+                        <th>Forecast Completion Date</th>
+                        <th>Actual Completion Date</th>
+                        <th>Days Remaining</th>
+                        <th>Phase Status</th>
+                        <th>Approval Date</th>
+                    </thead>
+                    <tbody>
+                        <apex:repeat var="phase" value="{!project.ProjectPhases}" >
+                        <tr>
+                            <td>{!phase.LibraryPhaseName}</td>
+                            <td>
+                                <apex:inputField value="{!phase.obj.Scheduled_Completion_Date__c}" rendered="{!editMode}"/>
+                                <apex:outputField value="{!phase.obj.Scheduled_Completion_Date__c}" rendered="{!!editMode}"/>
+                            </td>
+                            <td>
+                                <apex:inputField value="{!phase.obj.Forecast_Completion_Date__c}" rendered="{!editMode}"/>
+                                <apex:outputField value="{!phase.obj.Forecast_Completion_Date__c}" rendered="{!!editMode}"/>
+                            </td>
+                            <td>
+                                <apex:outputField value="{!phase.obj.Actual_Completion_Date__c}" />
+                            </td>
+                            <td>
+                                <apex:outputText value="{!phase.DaysRemaining}" rendered="{!!editMode}"/>
+                            </td>
+                            <td>
+                                <apex:inputField value="{!phase.obj.Phase_Status__c}" rendered="{!editMode}"/>
+                                <apex:outputField value="{!phase.obj.Phase_Status__c}" rendered="{!!editMode}"/>
+                            </td>
+                            <td>
+                                <apex:inputField value="{!phase.obj.Approval_Date__c}" rendered="{!editMode}"/>
+                                <apex:outputField value="{!phase.obj.Approval_Date__c}" rendered="{!!editMode}"/>
+                            </td>
+                        </tr>
+                        </apex:repeat>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </apex:outputPanel>
+
+    <apex:outputPanel rendered="{!!editMode}" id="selectTemplatePanel">
+        <div class="modal" id="selectTemplateModal">
+            <div class="modal-dialog" style="width: 80%">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title text-center">Select a Template</h4>
+                    </div>
+                    <div class="modal-body">
+                        <table class="table">
+                            <thead>
+                                <th> </th>
+                                <th>Template Name</th>
+                                <th>Group</th>
+                                <th>Operating Group</th>
+                                <th>Business Line</th>
+                                <th>GFA Type</th>
+                            </thead>
+                            <tbody>
+                                <apex:repeat var="template" value="{!AvailableTemplates}">
+                                    <tr>
+                                        <td>
+                                            <apex:actionStatus id="addTemplateLinkStatus">
+                                                <apex:facet name="start">
+                                                    <apex:image styleClass="actionButtonSpinner" value="/img/loading.gif"/>
+                                                </apex:facet>
+                                                <apex:facet name="stop">
+                                                    <apex:commandLink value="Select" action="{!SelectTemplate}" status="addTemplateLinkStatus" oncomplete="closeModal('#selectTemplateModal');" reRender="projectDetailComponent">
+                                                        <apex:param name="templateId" value="{!template.Id}"/>
+                                                    </apex:commandLink>
+                                                </apex:facet>
+                                            </apex:actionStatus>
+                                        </td>
+                                        <td><a href="/apex/GFA_TemplateFramework?id={!template.Id}">{!template.TemplateName}</a></td>
+                                        <td>{!template.Group}</td>
+                                        <td>{!template.OperatingGroup}</td>
+                                        <td>{!template.BusinessLine}</td>
+                                        <td>{!template.ProjectSponsor}</td>
+                                    </tr>
+                                </apex:repeat>
+                                <apex:outputPanel layout="none" rendered="{!AvailableTemplates.size == 0}">
+                                    <tr>
+                                        <td colspan="6" class="text-center">
+                                            There are no available templates that matches this project
+                                        </td>
+                                    </tr>
+                                </apex:outputPanel>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </apex:outputPanel>
+</apex:component>

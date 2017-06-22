@@ -1,0 +1,43 @@
+<apex:component language="{!theLanguage}" controller="nttdcore.DLabelChildController" access="global" ><nttdcore:DLabel name="DL1" default="Dear {{1}}, 
+         
+{{2}} has been" labelParent="{!this}" componentContext="EcoNonDelegateTeamMmbrAprvlRqstApv783_3" p1="{!theRelatedTo.Unfiltered_Delegate_Approver__r.Name}" p2="{!theRelatedTo.Name}" /><nttdcore:DLabel name="DL2" default="for the project team of {{1}} project for {{2}} role.  
+  
+ Project Name:  {{3}}
+ 
+ Opportunity Name:  {{4}} 
+ 
+ Project Manager:  {{5}} 
+ 
+ Net Services Revenue:  {{6}} 
+ 
+ Weighted NSR:  {{7}} 
+ 
+ Primary End Client:  {{8}} 
+ 
+ Primary Billing Client:  {{9}} 
+ 
+ Owner:  {{10}} 
+ 
+ Estimated AECOM Gross Fee:  {{11}} 
+ 
+ Carrying Out Organization:  {{12}} 
+ 
+ Percentage Margin:  {{13}} 
+ 
+ Total Margin:  {{14}} 
+ 
+ Total Bid Budget:  {{15}} 
+ 
+ Estimated Start Date:" labelParent="{!this}" componentContext="EcoNonDelegateTeamMmbrAprvlRqstApv783_3" p1="{!theRelatedTo.ProjectName__c}" p2="{!theRelatedTo.ProjectRoleName__c}" p3="{!theRelatedTo.Project__r.Name}" p4="{!theRelatedTo.Project__r.pse__Opportunity__r.Name}" p5="{!theRelatedTo.Project__r.pse__Project_Manager__r.Name}" p6="{!theRelatedTo.Project__r.NetServicesRevenue__c}" p7="{!theRelatedTo.Project__r.WeightedNSR__c}" p8="{!theRelatedTo.Primary_End_Client__c}" p9="{!theRelatedTo.Primary_Billing_Client__c}" p10="{!theRelatedTo.Project__r.Owner.Name }" p11="{!theRelatedTo.Project__r.EstimatedContractValue__c}" p12="{!theRelatedTo.Project__r.CarryingOutOrganizationFormula__c}" p13="{!theRelatedTo.Project__r.PercentageMargin__c}" p14="{!theRelatedTo.Project__r.TotalMargin__c}" p15="{!theRelatedTo.Project__r.TotalBidBudget__c}" /><nttdcore:DLabel name="DL3" default="Approval Comments:" labelParent="{!this}" componentContext="EcoNonDelegateTeamMmbrAprvlRqstApv783_3" /><nttdcore:DLabel name="DL4" default="Project Team Member Link: {{1}}{{2}}
+  
+Thanks," labelParent="{!this}" componentContext="EcoNonDelegateTeamMmbrAprvlRqstApv783_3" p1="{!LEFT($Api.Partner_Server_URL_290,FIND('services',$Api.Partner_Server_URL_290)-1)}" p2="{!theRelatedTo.Id}" /><apex:attribute name="theLanguage" type="String" required="true" description="language" access="global" /><apex:attribute name="theRecipient" type="User" required="true" description="recipient" access="global" /><apex:attribute name="theRelatedTo" type="ProjectTeamMember__c" required="true" description="related to" access="global" />
+{!dlRoot.dLabel['DL1']}  <c:ECO_ApprovalRequestStatus relatedtoid="{!theRelatedTo.Id}" />  {!dlRoot.dLabel['DL2']}  <apex:outputtext value="{0,date,EEE MMM dd yyyy}" >
+                                       <apex:param value="{!theRelatedTo.Project__r.EstimatedStartDate__c}" />
+                          </apex:outputtext>
+                          
+ 
+ {!dlRoot.dLabel['DL3']}  <c:ECO_ApprovalRequestComments relatedtoid="{!theRelatedTo.Id}" />  
+ 
+ 
+ {!dlRoot.dLabel['DL4']}
+<nttdcore:DLabelInit language="{!theLanguage}" labelParentInit="{!this}" /></apex:component>

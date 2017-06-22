@@ -1,0 +1,6 @@
+<apex:component controller="ECO_ProjCountryRiskController" access="global">
+<apex:attribute assignTo="{!objId}" name="ObjectId" type="String" description="Object Id"/>
+    Location: {!QuoteCountryName}
+    <br/>
+    Risk Rating:  {!QuoteSafetyRating}
+</apex:component>

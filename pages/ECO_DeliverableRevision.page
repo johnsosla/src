@@ -1,0 +1,30 @@
+<apex:page standardcontroller="DeliverableRevision__c" extensions="ECO_DeliverableRevisionController,nttdcore.DLabelParentController" showheader="true" sidebar="true" >
+	<nttdcore:DLabel name="DL1" default="Deliverable Revision Edit" labelParent="{!this}" /><nttdcore:DLabel name="DL2" default="New Deliverable Revision" labelParent="{!this}" /><apex:sectionheader title="{!dLabel['DL1']}" subtitle="{!dLabel['DL2']}" />
+
+	<apex:form >
+		<apex:inputField value="{!DeliverableRevision__c.Name}" rendered="false" />
+		<apex:inputField value="{!DeliverableRevision__c.Deliverable__c}" rendered="false" />
+		<apex:inputField value="{!DeliverableRevision__c.RevisionDate__c}" rendered="false" />
+		<apex:inputField value="{!DeliverableRevision__c.Description__c}" rendered="false" />
+
+		<nttdcore:DLabel name="DL3" default="Deliverable Revision Edit" labelParent="{!this}" /><apex:pageBlock title="{!dLabel['DL3']}" ><nttdcore:DLabel name="DL6" default="Information" labelParent="{!this}" />
+			<apex:pageBlockButtons >
+				<nttdcore:DLabel name="DL4" default="Save" labelParent="{!this}" /><apex:commandButton value="{!dLabel['DL4']}" action="{!saveDR}" />
+				<nttdcore:DLabel name="DL5" default="Cancel" labelParent="{!this}" /><apex:commandButton value="{!dLabel['DL5']}" action="{!Cancel}" immediate="true" />
+			</apex:pageBlockButtons>
+			<apex:pageBlockSection title="{!dLabel['DL6']}" >
+				<apex:inputField value="{!mysObject.Name}" required="true" />
+				<apex:inputField value="{!mysObject.Deliverable__c}" required="true" />
+				<apex:inputField value="{!mysObject.RevisionDate__c}" required="true" />
+			</apex:pageBlockSection>
+			<apex:pageBlockSection columns="1" >
+				<apex:inputField value="{!mysObject.Description__c}" />
+			</apex:pageBlockSection>
+			<!--<apex:pageBlockSection>
+				<apex:inputField value="{!DeliverableRevision__c.CreatedBy}" />
+				<apex:inputField value="{!DeliverableRevision__c.LastModifiedBy}" />
+			</apex:pageBlockSection>-->
+		</apex:pageBlock>
+	</apex:form>
+
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

@@ -1,0 +1,3 @@
+<apex:component controller="ECO_HelpTextController" allowDML="true">
+	<apex:attribute name="ready" type="String" description="Dummy value" assignTo="{!render}" />
+</apex:component>

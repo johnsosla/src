@@ -1,0 +1,938 @@
+<apex:page docType="html-5.0" showheader="false" sidebar="false" standardStylesheets="false" controller="ECO_Temp_PortalController" action="{!onLoad}" id="portalTemplate">
+<!-- <apex:page docType="html-5.0" showheader="false" sidebar="false" standardStylesheets="false" controller="ECO_Temp_PortalController" action="{!onLoad}" id="portalTemplate" manifest="/apex/ECO_Temp_Portal_CacheManifest"> -->
+    
+    <!-- <CoveoSolutions:CoveoJsSearch stylesheet="CoveoFullSearch.css" debug="true" /> -->
+   
+    
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+    
+    <!-- css3-mediaqueries.js for IE less than 9 -->
+    <!--[if lt IE 9]>
+    <script src="https://css3-mediaqueries-js.googlecode.com/svn/trunk/css3-mediaqueries.js"></script>
+    <![endif]-->
+
+    <apex:stylesheet value="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/css/ECO_PortalSpecificCSS.css')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/css/bootstrap.min.css')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/css/font-awesome.min.css')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/css/gallery.prefixed.css')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/css/morris.min.css')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/css/nifty.css')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.ECO_SmartSearchStyles)}" />
+            
+    <style>
+        @media (max-width:768px), handheld and (orientation: portrait){
+        body .aside .boxed .hidden-xs{
+        display:none !important;
+        }
+        }
+        body ul li, body ol li{
+        margin-left:0;
+        }
+    </style>
+
+    
+    <style>
+        /* TO BE MERGED INTO NIFTY.CSS */
+        .searchResultGutter{
+            width:4.3333333%;
+        }
+        /*.resultsCol{
+            width:62.3333333%;
+        }
+        .resultTotal{
+            margin-left:122px;
+        }
+        .coveo-facet-column{
+            margin-left:138px;
+        }*/
+        @media screen and (max-width:767px){
+            /*.resultTotal{
+                margin-left:-50px;
+            }
+            .resultsModules{
+                margin-left:0;
+            }
+            .facetCol{
+                margin-left:-50px;
+            }
+            .resultsCol{
+                width:100%;
+                margin-left:-50px;
+            }*/
+        }
+
+
+        /* NEW ADDITIONS FOR STANDARD SCROLL BAR - ANDREW SMITH - 7/16/2015 */
+      .myProjectsPortfolio {
+        height:auto;
+      }
+      #mainnav-container{
+        overflow-y:scroll;
+        overflow-x:hidden;
+        direction:rtl;
+        margin-top:115px;
+        padding-top:0;
+        margin-bottom:0 !important;
+        height:auto !important;
+        min-height: 100px !important;
+        background-color:#00729d;
+      }
+      #mainnav{
+        direction:ltr;
+        height:auto !important;
+      }
+      #mainnav .brand-text{
+        width:195px !important;
+      }
+      #mainnav-menu-wrap{
+        margin: 0 !important;
+        padding:0 !important;
+      }
+      .brand-text{
+        font-size: 14px;
+        font-weight: 600;
+        text-transform: uppercase;
+      }
+      .editReports .fa-cog{
+        color:#adb3b8;
+      }
+      .myProjectsPortfolio{
+
+        height:125px;
+      }
+
+
+    </style>
+             
+    
+    <style type="text/css">
+        /* New Additions for myEcosystem Header 3/28/2016 Chris Ferguson */
+			/* temporary, set container width to TPN width */
+            html {
+                background-color: #000;
+                margin: auto;
+                max-width: 1500px;
+            }
+			/* permanent code below */
+			@font-face {
+			    font-family: "aecom-sans";
+			    font-weight: 200;
+			    src: url("{!URLFOR($Resource.MES_HeaderAssets, 'MES_HeaderAssets/fonts/AECOMSans_V1.000/EOT/AECOMSans_W_Lt.eot')}") format("eot"), url("{!URLFOR($Resource.MES_HeaderAssets, 'MES_HeaderAssets/fonts/AECOMSans_V1.000/WOFF/AECOMSans_W_Lt.woff')}") format("woff"), url("{!URLFOR($Resource.MES_HeaderAssets, 'MES_HeaderAssets/fonts/AECOMSans_V1.000/TTF/AECOMSans_W_Lt.ttf')}") format("truetype");
+			}
+			@font-face {
+			    font-family: "aecom-sans";
+			    font-style: italic;
+			    font-weight: 200;
+			    src: url("{!URLFOR($Resource.MES_HeaderAssets, 'MES_HeaderAssets/fonts/AECOMSans_V1.000/EOT/AECOMSans_W_LtIt.eot')}") format("eot"), url("{!URLFOR($Resource.MES_HeaderAssets, 'MES_HeaderAssets/fonts/AECOMSans_V1.000/WOFF/AECOMSans_W_LtIt.woff')}") format("woff"), url("{!URLFOR($Resource.MES_HeaderAssets, 'MES_HeaderAssets/fonts/AECOMSans_V1.000/TTF/AECOMSans_W_LtIt.ttf')}") format("truetype");
+			}
+			@font-face {
+			    font-family: "aecom-sans";
+			    font-weight: 400;
+                src: url("{!URLFOR($Resource.MES_HeaderAssets, 'MES_HeaderAssets/fonts/AECOMSans_V1.000/EOT/AECOMSans_W_Rg.eot')}") format("eot"), url("{!URLFOR($Resource.MES_HeaderAssets, 'MES_HeaderAssets/fonts/AECOMSans_V1.000/WOFF/AECOMSans_W_Rg.woff')}") format("woff"), url("{!URLFOR($Resource.MES_HeaderAssets, 'MES_HeaderAssets/fonts/AECOMSans_V1.000/TTF/AECOMSans_W_Rg.ttf')}") format("truetype");
+			}
+			@font-face {
+			    font-family: "aecom-sans";
+			    font-style: italic;
+			    font-weight: 400;
+			    src: url("{!URLFOR($Resource.MES_HeaderAssets, 'MES_HeaderAssets/fonts/AECOMSans_V1.000/EOT/AECOMSans_W_It.eot')}") format("eot"), url("{!URLFOR($Resource.MES_HeaderAssets, 'MES_HeaderAssets/fonts/AECOMSans_V1.000/WOFF/AECOMSans_W_It.woff')}") format("woff"), url("{!URLFOR($Resource.MES_HeaderAssets, 'MES_HeaderAssets/fonts/AECOMSans_V1.000/TTF/AECOMSans_W_It.ttf')}") format("truetype");
+			}
+			@font-face {
+			    font-family: "aecom-sans";
+			    font-weight: 800;
+			    src: url("{!URLFOR($Resource.MES_HeaderAssets, 'MES_HeaderAssets/fonts/AECOMSans_V1.000/EOT/AECOMSans_W_Bd.eot')}") format("eot"), url("{!URLFOR($Resource.MES_HeaderAssets, 'MES_HeaderAssets/fonts/AECOMSans_V1.000/WOFF/AECOMSans_W_Bd.woff')}") format("woff"), url("{!URLFOR($Resource.MES_HeaderAssets, 'MES_HeaderAssets/fonts/AECOMSans_V1.000/TTF/AECOMSans_W_Bd.ttf')}") format("truetype");
+			}
+			@font-face {
+			    font-family: "aecom-sans";
+			    font-style: italic;
+			    font-weight: 800;
+				src: url("{!URLFOR($Resource.MES_HeaderAssets, 'MES_HeaderAssets/fonts/AECOMSans_V1.000/EOT/AECOMSans_W_BdIt.eot')}") format("eot"), url("{!URLFOR($Resource.MES_HeaderAssets, 'MES_HeaderAssets/fonts/AECOMSans_V1.000/WOFF/AECOMSans_W_BdIt.woff')}") format("woff"), url("{!URLFOR($Resource.MES_HeaderAssets, 'MES_HeaderAssets/fonts/AECOMSans_V1.000/TTF/AECOMSans_W_BdIt.ttf')}") format("truetype");
+			}	
+			body, button, input, select, textarea, table, td, b {
+			    font-family: aecom-sans,Arial,sans-serif !important;
+			}	
+
+			.ecosysTitle{
+				margin-top: 1em;
+			}
+			.ecosysTitle h3{
+			    color: #999b9d;
+			    font-size: 2em;
+			    font-weight: 400;
+			    margin: 0 0 1em;
+			}
+			.ecosysTitle{
+				margin-top: 1em;
+			}
+			.ecosysTitle h3{
+			    color: #999b9d;
+			    font-size: 2em;
+			    font-weight: 400;
+			    margin: 0 0 1em;
+			}
+			.smart-links { 
+				float:left;
+			}
+			.header-logo .nav > li {
+			    display: block;
+			    float: left;
+			    position: relative; padding-top:5px;
+			}
+			.smart-links i{ font-size:16px;}	
+			.smart-links .nav > li > a {
+			    display: block;
+			    padding: 10px 10px;
+			    position: relative;
+			}
+			div.top-navigation-menu{
+				background-color: #f2fbfe;
+			}
+			div.ecosysTopHeader{
+				background-color: #ccf0fa;
+				height: 66px;
+				background-image: url('{!URLFOR($Resource.MES_HeaderAssets, 'images/headerBrand.png')}');
+				background-repeat: no-repeat;
+				background-position: 256px 0;	
+				position: relative;
+				padding-left: 15px;
+			    padding-right: 15px;
+			    overflow: hidden;
+			}
+			div.ecosysTopHeader .aecomTitle{
+				background-image: url('{!URLFOR($Resource.MES_HeaderAssets, 'images/aecomHeader.png')}');
+				background-position: 0 11px;
+			    background-repeat: no-repeat;
+			    display: block;
+			    font-weight: 600;
+			    height: 50px;
+			    padding-top: 40px;
+			    font-size: 14px;
+			    float: left;
+			    min-width: 124px;
+			    cursor: pointer;
+			}
+			div.ecosysTopHeader .ecosysTitle{
+				float: right;
+				background-image: url('{!URLFOR($Resource.MES_HeaderAssets, 'images/ecosystemLogoTPN.png')}');
+			    background-repeat: no-repeat;
+			    background-size: 177px 33px;
+				height: 33px;
+				width: 177px;
+			    position: relative;
+			    cursor: pointer;
+			}
+			div.ecosysBottomHeader .ecosysSearchContainer{	
+				float: right;
+				height: 48px;
+				border-left: solid 1px #b2b2b2;
+				padding: 10px 0px 0px 20px;
+				position: relative;
+			}
+			div.ecosysBottomHeader .ecosysSearchContainer .ecosysSearchBox{
+				background-color: #fff;
+				font-size: 16px;
+				color: #666666;
+				border: 0px;	
+				width: 300px;
+				height: 21px;
+			}
+			div.ecosysBottomHeader .ecosysSearchContainer button[type="button"] {
+			    background-image: url('{!URLFOR($Resource.MES_HeaderAssets, 'images/searchGo.png')}');
+			    border: medium none !important;
+			    height: 17px !important;
+			    width: 17px !important;    
+			    outline: medium none !important;
+			    position: absolute !important;
+			    right: 5px;
+			    top: 14px;
+			}
+			div.ecosysBottomHeader{
+				background-color: #66d3ef;
+				height: 49px;
+				background-image: url('{!URLFOR($Resource.MES_HeaderAssets, 'images/headerBrand.png')}');
+				background-repeat: no-repeat;
+				background-position: 256px -66px;
+				padding-left: 0px;
+			    padding-right: 15px;
+			    overflow: hidden;
+			}
+			.smart-links .nav > li{
+				padding-top: 0px;
+			}
+			.smart-links .nav > li > a.ecosysHeaderIcon{
+				padding: 7px 25px 0px 0px;
+				text-decoration: none;
+			}
+			.ecosysBottomHeader .navbar-top-links{
+				margin: 0px 0px 0px 10px;
+				padding: 0px;
+			}
+			.ecosysHeaderButton{
+				display: block;
+				height: 20px;
+				min-width: 27px;
+				background-position: center top;
+				background-repeat: no-repeat;
+				font-size: 8px;
+				color: #f3fbfd;
+				text-align: center;
+				padding-top: 23px;
+			}
+			.ecosysOutlook .ecosysHeaderButton{
+                background-image: url('{!URLFOR($Resource.MES_HeaderAssets, 'images/iconOutlook.png')}');
+			}
+			.ecosysEPM .ecosysHeaderButton{
+                background-image: url('{!URLFOR($Resource.MES_HeaderAssets, 'images/iconEPM.png')}');
+			}
+			.nav > li > a:focus, .nav > li > a:hover {
+			    background-color: transparent;
+			}
+			.navbar-top-links a{
+				outline: 0;
+			}	
+		</style>
+        <script type="text/javascript">
+            /* New Additions for myEcosystem Header 3/28/2016 Chris Ferguson */
+			function doSmartSearch() {
+				var fullurl = "https://aecom--c.na13.visual.force.com/apex/ECO_SmartSearch#q=";
+				var query = document.getElementById('ecosysSearchBox').value;
+				var newurl = fullurl + query + "&t=All&sort=relevancy";
+				var win = window.open(newurl, '_blank');
+				win.focus();
+			}
+		</script>
+        
+    <apex:insert name="head" />
+
+    <!-- This is where I am storing all of the modals -->
+            <div class="modal fade" id="modalAlerts" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                            <h4 class="modal-title" id="myModalLabel">{!$Label.ECOPortalAlerts}</h4>
+                        </div>
+                        
+                        <div class="modal-body">
+                            <table class="table table-striped table-hover">
+                                <thead> 
+                                    <tr>
+                                    <th>{!$Label.ECOPortalProjectNo}</th>
+                                    <th>{!$Label.ECOPortalProjectName}</th>
+                                    <th>{!$Label.ECOPortalAlert}</th>
+                                    <th>{!$Label.ECOPortalResponse}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <apex:repeat value="{!alerts}" var="alert" >
+                                    
+                                        <tr>
+                                            <td><a href="{!alert.LinkToRecord__c}"><apex:outputText value="{!alert.Project_Number__c}" /></a></td>
+                                            <td><a href="{!alert.LinkToRecord__c}"><apex:outputField value="{!alert.Subject__c}" /></a></td>
+                                            <td><apex:outputField value="{!alert.LongDescriptionMaxLength__c}" /></td>
+                                            <td><apex:outputText value="Comment" /></td>
+                                        </tr>                                       
+
+                                    </apex:repeat>
+                                    <apex:outputPanel rendered="{!alerts.size = 0}" layout="none">
+                                        <tr>
+                                            <td colspan="5" style="text-align:center;"><h3>{!$Label.ECOPortalNoAlerts}</h3></td>
+                                        </tr>
+                                    </apex:outputPanel>
+                                </tbody>
+                            </table>
+                            
+                            <div class="tempAlert">
+                                {!$Label.ECOPortalApprovalMessage}
+                            </div>
+
+                        </div>
+                        
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-primary" data-dismiss="modal">{!$Label.ECOOK}</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal fade" id="modalTasks" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                            <h4 class="modal-title" id="myModalLabel">{!$Label.ECOPortalTasks}</h4>
+                        </div>
+                        
+                        <div class="modal-body">
+
+                            <table class="table table-striped table-hover">
+                                <thead>
+                                    <tr>
+                                    <th>{!$Label.ECOPortalProjectNo}</th>
+                                    <th>{!$Label.ECOPortalRelatedto}</th>
+                                    <th>{!$Label.ECOPortalSubject}</th>
+                                    <th>{!$Label.ECOPortalDueDate}</th>
+                                    <th>{!$Label.ECOPortalPriority}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <apex:repeat value="{!tasks}" var="task" >
+                                    
+                                        <tr>
+                                            <td><a href="/{!task.id}"><apex:outputField value="{!task.Subject}" /></a></td>
+                                            <td><a href="/{!task.id}"><apex:outputField value="{!task.What.Name}" /></a></td>
+                                            <td><apex:outputField value="{!task.Subject}" /></td>
+                                            <td><apex:outputField value="{!task.ActivityDate}" /></td>
+                                            <td><apex:outputField value="{!task.Priority}" /></td>
+                                        </tr>
+
+                                    </apex:repeat>
+
+                                    <apex:outputPanel rendered="{!tasks.size = 0}" layout="none">
+                                        <tr>
+                                            <td colspan="5" style="text-align:center;"><h3>{!$Label.ECOPortalNoTasks}</h3></td>
+                                        </tr>
+                                    </apex:outputPanel>
+
+                                </tbody>
+                            </table>
+
+                        </div>
+                        
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-primary" data-dismiss="modal">{!$Label.ECOOK}</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal fade" id="modalApprovals" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                            <h4 class="modal-title" id="myModalLabel">{!$Label.ECOPortalApprovals}</h4>
+                        </div>
+                        
+                        <div class="modal-body">
+
+                            <table class="table table-striped table-hover displayNone">
+                                <thead>
+                                    <tr>
+                                    <th>{!$Label.ECOPortalProjectNo}</th>
+                                    <th>{!$Label.ECOPortalProjectName}</th>
+                                    <th>{!$Label.ECOPortalType}</th>
+                                    <th>{!$Label.ECOPortalAlert}</th>
+                                    <th>{!$Label.ECOPortalRequestInfo}</th>
+                                    <th>{!$Label.ECOPortalApprove}</th>
+                                    <th>{!$Label.ECOPortalReject}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <apex:repeat value="{!approvals}" var="approval" >
+                                    
+                                        <tr>
+                                            <td></td>
+                                            <td><a href="#"><apex:outputField value="{!approval.ProcessInstance.TargetObject.Name}" /></a></td>
+                                            <td></td>
+                                            <td><apex:outputField value="{!approval.ProcessInstance.Status}" /></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                        </tr>
+
+                                    </apex:repeat>
+
+                                    <apex:outputPanel rendered="{!approvals.size = 0}" layout="none">
+                                        <tr>
+                                            <td colspan="7" style="text-align:center;"><h3>{!$Label.ECOPortalNoApprovals}</h3></td>
+                                        </tr>
+                                    </apex:outputPanel>
+
+                                </tbody>
+                            </table>
+
+                            <div class="tempAlert">
+                                {!$Label.ECOPortalApprovalMessage}
+                            </div>
+
+                        </div>
+                        
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-primary" data-dismiss="modal">{!$Label.ECOOK}</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- End Modal Storage -->
+        
+        
+            <apex:pageMessages id="pageMessages" />
+            
+            <apex:form id="theForm" >   
+                <apex:actionFunction name="goToReportsBuilder" action="{!goToReportBuilder}" />
+                <apex:actionFunction name="goToApplicationConfiguration" action="{!goToApplicationConfiguration}" />
+                <apex:actionFunction name="goToNewProject" action="{!goToNewProject}" />
+                <apex:actionFunction name="goToNewOpportunity" action="{!goToNewOpportunity}" />
+
+            </apex:form>
+    <div id="container" class="aside effect mainnav-lg">
+        <!-- New Header for myEcosystem 3/28/2016 Chris Ferguson :: Updated 3/30/2016 Michael Wolf -->
+        <div>
+            <div id="header" class="s4-notdlg">
+                <div class="ecosysTopHeader">
+                    <span class="ecosysTitle" onclick="window.location='https://myecosystem.aecom.com';"></span>
+                    <span class="aecomTitle" onclick="window.location='https://myecosystem.aecom.com';"><span class="">Built to deliver a better world</span></span>			
+                </div>
+            <div class="ecosysBottomHeader">			
+                    <div class="ecosysSearchContainer" style="display:none;">
+                        <input id="ecosysSearchBox" class="ecosysSearchBox" placeholder=" SmartSearch" onkeypress="if(event.keyCode==13){doSmartSearch();return false;}" type="text" />
+                            <button type="button" onclick="doSmartSearch();">	</button>
+                    </div>
+                    <div class="header-logo">
+                        <div class="smart-links">
+                            <ul class="nav navbar-top-links">
+                                <li class="">
+                                    <a href="outlook:Inbox" class="ecosysHeaderIcon ecosysOutlook" style="display:none;">
+                                        <span class="ecosysHeaderButton">OUTLOOK</span>
+                                    </a>
+                                </li>
+                                <li class="">
+                                    <a href="http://ecosystem.aecom.com/" target="_blank" class="ecosysHeaderIcon ecosysEPM" style="display:none;">
+                                        <span class="ecosysHeaderButton">ePM</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>	
+            </div>
+        </div>
+		<div class="boxed">
+            <!--CONTENT CONTAINER-->
+            <!-- 
+               Contains the following:
+                 1) show/hide reports button and ticker messages
+                 2) followed by news feed and chatter
+                 3) followed by projects portfolio 
+                 4) followed by graphs 
+            -->
+            <apex:insert name="mainContent" />
+            <!--===================================================-->
+            
+            <apex:outputPanel rendered="{!IF(OR($CurrentPage.Name == 'ECO_Portal',$CurrentPage.Name == 'eco_portal'),true,false)}">
+                <!--AECOM APPS: Edit and List all apps-->
+                <!--===================================================-->
+                <nav id="mainnav-container">
+                    <div id="mainnav">
+
+                        <!--Menu-->
+                        <!--================================-->
+                        <div id="mainnav-menu-wrap">
+
+                                <div class="mainnav-height"> <!-- took out classes:  ui-widget-content hoverscroll vertical" style="height:85vh !important;" -->
+                                    <!-- THIS OUT FOR NOW 3/20/2015, FOR APP SCROLLING <div class="fixed-listcontainer"> -->
+                                        <ul id="mainnav-menu" class="list-group">
+
+                                            <li class="visible-xs showAllApps">
+                                                <a href="#">
+                                                    <div class="media-left">
+                                                        <i class="fa fa-eye" style="font-size:33px; padding-left:1px;"></i>
+                                                    </div>
+                                                    <div class="media-body menu-title showHideSwap visible-xs" style="height:35px;">
+                                                        Show Non-Mobile Applications
+                                                    </div>
+                                                    <div class="media-body menu-title showHideSwap hidden-xs" style="height:35px;">
+                                                        Hide Non-Mobile Applications
+                                                    </div>
+                                                </a>
+                                            </li>
+
+
+                                            <li class="visible-lg">
+                                                <div class="navbar-header">
+                                                   <a style="cursor:default;" class="navbar-brand">
+                                                        <div class="brand-title" style="padding:0; margin:0; width:100%;">
+                                                            <span class="brand-text">{!$Label.ECOAppCusSelectedApplications}</span>
+                                                        </div>
+                                                    </a>
+                                                </div>
+                                            </li>
+
+
+                                            <li class="editApps">
+                                                <a href="#" onclick="goToApplicationConfiguration();">
+                                                    <div class="media-left">
+                                                        <i class="fa fa-cog" style="font-size:33px; padding-left:1px;"></i>
+                                                    </div>
+                                                    <div class="media-body menu-title" style="height:35px;">
+                                                        {!$Label.ECOEditAecomApps} 
+                                                    </div>
+                                                </a>
+                                            </li>
+
+                                            <apex:repeat value="{!applications}" var="app" >
+                                                <apex:outputPanel rendered="{!!app.IsHidden__c}" layout="none">
+                                                    <li class="{!app.Application__r.NetworkRequirement__c} {!IF(app.Application__r.MobileEnabled__c, '', 'hiddenOnMobile')} anApplication">
+                                                        <a target="_blank" href="{!app.Application__r.ApplicationURL__c}">
+                                                            <div class="media-left">
+                                                                <apex:image value="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/img/loader.gif')}" html-data-original="{!URLFOR($Resource.ECO_CustomGraphicAssets, app.Application__r.ImageName__c)}" styleClass="lazy" width="33px" height="33px" />
+                                                            </div>
+                                                            <div class="media-body menu-title" style="height:35px;">
+                                                                <apex:outputText value="{!$Label[app.Application__r.ApplicationName__c]}" />
+                                                            </div>
+                                                        </a>
+                                                        
+                                                    </li>
+                                                </apex:outputPanel>
+                                            </apex:repeat>
+
+                                        </ul>
+                                </div>
+
+                        </div>
+                        <!--================================-->
+                        <!--End menu-->
+
+                    </div>
+                </nav>
+                <!--===================================================-->
+                <!--END MAIN NAVIGATION-->
+            </apex:outputPanel>
+
+            <apex:insert name="rightNav" />
+
+        
+
+
+        <!-- FOOTER -->
+        <!--===================================================-->
+        <footer id="footer">
+            <div class="hide-fixed pull-right pad-rgt"></div>
+
+
+            <p class="pad-lft">&#0169; 2015 AECOM</p>
+
+
+        </footer>
+        <!--===================================================-->
+        <!-- END FOOTER -->
+
+
+        </div>
+        <!--===================================================-->
+        <!-- END OF BOXED -->
+
+
+        
+    </div>
+    <!--===================================================-->
+    <!-- END OF CONTAINER -->
+    
+
+    <apex:includeScript value="{!$Resource.ECO_jQuery_1_11_2_min_js}"/>
+    <apex:includeScript value="{!URLFOR($Resource.ECO_jQueryUI_1_11_2, 'jquery-ui.min.js')}" />
+    <apex:includeScript value="{!$Resource.ECO_jQueryUI_TouchPunch}"/>
+    
+    <script src="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/js/jquery.lazyload.min.js')}"></script>
+    
+    <script>
+        // FOR WHEN PAGE IS LOADED IN AN IFRAME...
+        function isPageInframe(){
+            try {
+                return window.self !== window.top;
+            } catch(e) {
+            return true;
+
+            }
+        }
+        $( document ).ready(function() {
+
+            // IF PAGE IS IN AN IFRAME AND AN IE BROWSER...
+            if(isPageInframe () && (navigator.appName == 'Microsoft Internet Explorer')) { 
+              
+              document.getElementById('navbar-container').style.display="none";
+              document.getElementById('mainnav-container').style.display="none";
+              document.getElementById('SearchBlock').style.padding="0 0 0 10px";
+              document.getElementById('searchResults').style.padding="0 0 0 10px";
+              document.getElementById('blueBlock').style.minHeight="75px";
+              document.getElementById('scopeselector').style.height="30px";
+              document.getElementById('scopeselector').style.backgroundImage="none";
+              document.getElementById('CoveoQueryBox').style.height="30px";
+              document.getElementById('CoveoQueryBox').style.width="100%";
+              document.getElementById('CoveoSearchButton').style.height="30px";
+              document.getElementById('CoveoSearchButton').style.padding="0";
+              document.getElementById('facetColumn').style.margin="0";
+                //There are a few more styles using a Coveo function on ECO_SmartSearch on line 70 that couldn't be reached here.
+             
+            } 
+            // IF PAGE IS IN AN IFRAME AND NOT AN IE BROWSER AND NOT MOBILE PLATFORM...
+            else if (isPageInframe () && (navigator.appName == 'Netscape') && (navigator.platform !== 'iPhone') && (navigator.platform !== 'iPad') && (navigator.platform !== 'Android') && (navigator.platform !== 'iPhone Simulator') && (navigator.platform !== 'iPad Simulator') && (navigator.platform !== 'Linux armv7l') && (navigator.platform !== 'iPod') && (navigator.platform !== 'iPod touch')){ 
+              alert(navigator.platform);
+              document.getElementById('navbar-container').style.display="none";
+              document.getElementById('mainnav-container').style.display="none";
+              document.getElementById('SearchBlock').style.padding="0 0 0 10px";
+              document.getElementById('searchResults').style.padding="0 0 0 10px";
+            };
+            
+                
+
+        });
+    /*Coveo.$(function(){
+            // If the client is using IE and they are using it in an iframe then set the marginTop to -24px
+            //works only if not on SmartSearchPage (initialization 
+            Coveo.$('#searchBox').on('afterComponentsInitialization', function(){
+                Coveo.$('#searchBox .coveo-query-box-clear').css('marginTop', '-24px');
+            });
+        });*/
+    </script>
+
+    <script>
+        /* Scripts from ECO_Portal */
+        $(function() {
+            $("img.lazy").lazyload({
+                event : "sporty"
+            });
+        });
+
+        $(window).bind("load", function() {
+            var timeout = setTimeout(function() { $("img.lazy").trigger("sporty") }, 500);
+        });   
+
+        $(document).ready(function(){
+            $(".showAllApps").click(function(){
+                $(".hiddenOnMobile").toggle();
+            });
+
+            $(".showAllApps").click(function(){
+                $(".showHideSwap").toggleClass("hidden-xs");
+        });
+
+
+            $(".showAllApps").click(function(){
+              if ($("i").is('.fa-eye')) {
+                $("i.fa-eye").toggleClass("fa-eye-slash");
+              } else {
+                $("i.fa-eye-slash").toggleClass("fa-eye");
+              }
+            });
+            
+            // Plugin used: http://jedfoster.com/Readmore.js, part of ECONiftyResources static resource
+            $('div.nf').readmore({
+              speed: 75,
+              collapsedHeight: 40,
+              moreLink: '<a href="#">{!$Label.ECOPortalMore}</a>',
+              lessLink: '<a href="#">{!$Label.ECOPortalLess}</a>'
+            });
+            
+            // Plugin used: http://tablesorter.com/docs, part of ECONiftyResources static resource
+            $("#projectsTable").tablesorter();
+
+
+            var w_height = $(window).height();
+             var width = $(window).width();
+                $('.mainnav-height').css('height', w_height)
+
+             });
+            // for the window resize
+            $(window).resize(function() {
+                var bodyheight = $(window).height();
+                $('.mainnav-height').css('height', bodyheight);
+        }); 
+    </script>
+    
+
+    <script>var AWAN_online = false;</script>
+    <script src="{!awanJSPath}"></script>
+    
+    <apex:includeScript value="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/js/jquery.sparkline.min.js')}" />
+    
+    <script src="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/js/jquery.sparkline.min.js')}"></script>
+    <script src="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/js/bootstrap.min.js')}"></script>
+    <script src="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/js/nifty.min.js')}"></script>
+    <script src="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/js/morris.min.js')}"></script>
+    <script src="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/js/raphael.min.js')}"></script>
+    <!-- out for now, this was for scrolling APPs
+    <script src="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/js/jquery.hoverscroll.js')}"></script>
+    <script src="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/js/jquery.simplyscroll.min.js')}"></script>
+    -->
+    <script src="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/js/gauge.min.js')}"></script>
+    <script src="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/js/ECO_PortalSpecificJS.min.js')}"></script>
+    <script src="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/js/readmore.min.js')}"></script>
+    <script src="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/js/jquery.tablesorter.min.js')}"></script>
+    
+    
+
+    <script>
+        // CLIENT CARE PROGRAM
+        // =================================================================
+        $("#client-care-program").sparkline(["{!$Setup.ECO_Portal_Graph_Settings__c.Client_Care_Promoter__c}", "{!$Setup.ECO_Portal_Graph_Settings__c.Client_Care_Passive__c}", "{!$Setup.ECO_Portal_Graph_Settings__c.Client_Care_Detractor__c}"], {
+            type: 'pie',
+            width: '120',
+            height: '120',
+            tooltipChartTitle: '{!$Label.ECOPortalClientCareProgram}',
+            tooltipFormat: '{{offset:offset}} ({{percent.1}}%)',
+            tooltipValueLookups: {
+                'offset': {
+                    0: '{!$Label.ECOPortalPromoter}',
+                    1: '{!$Label.ECOPortalPassive}',
+                    2: '{!$Label.ECOPortalDetractor}',
+                }
+            },
+            sliceColors: ['#7ad689','#fec311','#fe2d11'],
+        });
+
+        // TECHNICAL PRACTICE NETWORKS
+        // =================================================================
+        Morris.Area({
+            element: 'technical-practice-networks',
+            data: [{
+                period: '{!$Label.ECOPortalJanuary}',
+                dl: {!$Setup.ECO_Portal_Graph_Settings__c.Visitor_Date_Jan_DL__c},
+                up: {!$Setup.ECO_Portal_Graph_Settings__c.Visitor_Date_Jan_UP__c} 
+                }, {
+                period: '{!$Label.ECOPortalFebruary}',
+                dl: {!$Setup.ECO_Portal_Graph_Settings__c.Visitor_Date_Feb_DL__c},
+                up: {!$Setup.ECO_Portal_Graph_Settings__c.Visitor_Date_Feb_UP__c}
+                }, {
+                period: '{!$Label.ECOPortalMarch}',
+                dl: {!$Setup.ECO_Portal_Graph_Settings__c.Visitor_Date_Mar_DL__c},
+                up: {!$Setup.ECO_Portal_Graph_Settings__c.Visitor_Date_Mar_UP__c}
+                }, {
+                period: '{!$Label.ECOPortalApril}',
+                dl: {!$Setup.ECO_Portal_Graph_Settings__c.Visitor_Date_Apr_DL__c},
+                up: {!$Setup.ECO_Portal_Graph_Settings__c.Visitor_Date_Apr_UP__c}
+                }, {
+                period: '{!$Label.ECOPortalMay}',
+                dl: {!$Setup.ECO_Portal_Graph_Settings__c.Visitor_Date_May_DL__c},
+                up: {!$Setup.ECO_Portal_Graph_Settings__c.Visitor_Date_May_UP__c}
+                }, {
+                period: '{!$Label.ECOPortalJune}',
+                dl: {!$Setup.ECO_Portal_Graph_Settings__c.Visitor_Date_Jun_DL__c},
+                up: {!$Setup.ECO_Portal_Graph_Settings__c.Visitor_Date_Jun_UP__c}
+                }, {
+                period: '{!$Label.ECOPortalJuly}',
+                dl: {!$Setup.ECO_Portal_Graph_Settings__c.Visitor_Date_Jul_DL__c},
+                up: {!$Setup.ECO_Portal_Graph_Settings__c.Visitor_Date_Jul_UP__c}
+                }, {
+                period: '{!$Label.ECOPortalAugust}',
+                dl: {!$Setup.ECO_Portal_Graph_Settings__c.Visitor_Date_Aug_DL__c},
+                up: {!$Setup.ECO_Portal_Graph_Settings__c.Visitor_Date_Aug_UP__c}
+                }, {
+                period: '{!$Label.ECOPortalSeptember}',
+                dl: {!$Setup.ECO_Portal_Graph_Settings__c.Visitor_Date_Sep_DL__c},
+                up: {!$Setup.ECO_Portal_Graph_Settings__c.Visitor_Date_Sep_UP__c}
+                }, {
+                period: '{!$Label.ECOPortalOctober}',
+                dl: {!$Setup.ECO_Portal_Graph_Settings__c.Visitor_Date_Oct_DL__c},
+                up: {!$Setup.ECO_Portal_Graph_Settings__c.Visitor_Date_Oct_UP__c}
+                }, {
+                period: '{!$Label.ECOPortalNovember}',
+                dl: {!$Setup.ECO_Portal_Graph_Settings__c.Visitor_Date_Nov_DL__c},
+                up: {!$Setup.ECO_Portal_Graph_Settings__c.Visitor_Date_Nov_UP__c}
+                }, {
+                period: '{!$Label.ECOPortalDecember}',
+                dl: {!$Setup.ECO_Portal_Graph_Settings__c.Visitor_Date_Dec_DL__c},
+                up: {!$Setup.ECO_Portal_Graph_Settings__c.Visitor_Date_Dec_UP__c}
+            }],
+            gridEnabled: false,
+            gridLineColor: 'transparent',
+            behaveLikeLine: true,
+            xkey: 'period',
+            ykeys: ['dl', 'up'],
+            labels: ['{!$Label.ECOPortalVisitors}', '{!$Label.ECOPortalPageviews}'],
+            lineColors: ['#00729d'],
+            pointSize: 0,
+            pointStrokeColors : ['#00729d'],
+            lineWidth: 0,
+            resize:true,
+            hideHover: 'auto',
+            fillOpacity: 0.7,
+            parseTime:false,
+            gridTextColor: ['#fff']
+        });
+
+        // CASE INDICENT RATE (Safety)
+        // =================================================================
+        var opts = {
+            lines: 10, // The number of lines to draw
+            angle: 0, // The length of each line
+            lineWidth: 0.3, // The line thickness
+            pointer: {
+                length: 0.45, // The radius of the inner circle
+                strokeWidth: 0.035, // The rotation offset
+                color: '#231f20' // Fill color
+            },
+            limitMax: 'true', // If true, the pointer will not go past the end of the gauge
+            colorStart: '#59ba47', // Colors
+            colorStop: '#59ba47', // just experiment with them
+            strokeColor: '#ddd', // to see which ones work best for you
+            generateGradient: true
+        };
+
+        var target = document.getElementById('case-incident-rate'); // your canvas element
+        var gauge = new Gauge(target).setOptions(opts); // create sexy gauge!
+        gauge.maxValue = 6; // set max gauge value
+        gauge.animationSpeed = 32; // set animation speed (32 is default value)
+        gauge.set({!$Setup.ECO_Portal_Graph_Settings__c.Incident_Rate_YTD_TCIR__c}); // set actual value
+        gauge.setTextField(document.getElementById("case-incident-rate-txt"));
+
+        // GOOGLE ANALYTICS
+        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){ 
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o), 
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m) 
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga'); 
+
+        ga('create', 'UA-33974532-22', 'auto'); 
+        ga('send', 'pageview'); 
+
+        function goToNewOpportunityWithPermCheck() {
+            var hasOpptyAccess =  {!$ObjectType.Opportunity.accessible};
+            if (!hasOpptyAccess) {
+                alert("{!$Label.ECOPortalNoOppAlert}");
+            } else {
+                goToNewOpportunity();
+            }
+        }
+
+        function showNewProjectMessage() {
+            alert("{!$Label.ECOPortalProjectMessage}");
+        }
+    </script>
+    <script type="text/javascript">
+        /* Placeholders.js v4.0.1 */
+        /*!
+         * The MIT License
+         *
+         * Copyright (c) 2012 James Allardice
+         *
+         * Permission is hereby granted, free of charge, to any person obtaining a copy
+         * of this software and associated documentation files (the "Software"), to
+         * deal in the Software without restriction, including without limitation the
+         * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+         * sell copies of the Software, and to permit persons to whom the Software is
+         * furnished to do so, subject to the following conditions:
+         *
+         * The above copyright notice and this permission notice shall be included in
+         * all copies or substantial portions of the Software.
+         *
+         * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+         * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+         * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+         * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+         * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+         * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+         * IN THE SOFTWARE.
+         */
+        //  Coveo.$(
+        // !function(a){"use strict";function b(){}function c(){try{return document.activeElement}catch(a){}}function d(a,b){for(var c=0,d=a.length;d>c;c++)if(a[c]===b)return!0;return!1}function e(a,b,c){return a.addEventListener?a.addEventListener(b,c,!1):a.attachEvent?a.attachEvent("on"+b,c):void 0}function f(a,b){var c;a.createTextRange?(c=a.createTextRange(),c.move("character",b),c.select()):a.selectionStart&&(a.focus(),a.setSelectionRange(b,b))}function g(a,b){try{return a.type=b,!0}catch(c){return!1}}function h(a,b){if(a&&a.getAttribute(B))b(a);else for(var c,d=a?a.getElementsByTagName("input"):N,e=a?a.getElementsByTagName("textarea"):O,f=d?d.length:0,g=e?e.length:0,h=f+g,i=0;h>i;i++)c=f>i?d[i]:e[i-f],b(c)}function i(a){h(a,k)}function j(a){h(a,l)}function k(a,b){var c=!!b&&a.value!==b,d=a.value===a.getAttribute(B);if((c||d)&&"true"===a.getAttribute(C)){a.removeAttribute(C),a.value=a.value.replace(a.getAttribute(B),""),a.className=a.className.replace(A,"");var e=a.getAttribute(I);parseInt(e,10)>=0&&(a.setAttribute("maxLength",e),a.removeAttribute(I));var f=a.getAttribute(D);return f&&(a.type=f),!0}return!1}function l(a){var b=a.getAttribute(B);if(""===a.value&&b){a.setAttribute(C,"true"),a.value=b,a.className+=" "+z;var c=a.getAttribute(I);c||(a.setAttribute(I,a.maxLength),a.removeAttribute("maxLength"));var d=a.getAttribute(D);return d?a.type="text":"password"===a.type&&g(a,"text")&&a.setAttribute(D,"password"),!0}return!1}function m(a){return function(){P&&a.value===a.getAttribute(B)&&"true"===a.getAttribute(C)?f(a,0):k(a)}}function n(a){return function(){l(a)}}function o(a){return function(){i(a)}}function p(a){return function(b){return v=a.value,"true"===a.getAttribute(C)&&v===a.getAttribute(B)&&d(x,b.keyCode)?(b.preventDefault&&b.preventDefault(),!1):void 0}}function q(a){return function(){k(a,v),""===a.value&&(a.blur(),f(a,0))}}function r(a){return function(){a===c()&&a.value===a.getAttribute(B)&&"true"===a.getAttribute(C)&&f(a,0)}}function s(a){var b=a.form;b&&"string"==typeof b&&(b=document.getElementById(b),b.getAttribute(E)||(e(b,"submit",o(b)),b.setAttribute(E,"true"))),e(a,"focus",m(a)),e(a,"blur",n(a)),P&&(e(a,"keydown",p(a)),e(a,"keyup",q(a)),e(a,"click",r(a))),a.setAttribute(F,"true"),a.setAttribute(B,T),(P||a!==c())&&l(a)}var t=document.createElement("input"),u=void 0!==t.placeholder;if(a.Placeholders={nativeSupport:u,disable:u?b:i,enable:u?b:j},!u){var v,w=["text","search","url","tel","email","password","number","textarea"],x=[27,33,34,35,36,37,38,39,40,8,46],y="#ccc",z="placeholdersjs",A=new RegExp("(?:^|s)"+z+"(?!S)"),B="data-placeholder-value",C="data-placeholder-active",D="data-placeholder-type",E="data-placeholder-submit",F="data-placeholder-bound",G="data-placeholder-focus",H="data-placeholder-live",I="data-placeholder-maxlength",J=100,K=document.getElementsByTagName("head")[0],L=document.documentElement,M=a.Placeholders,N=document.getElementsByTagName("input"),O=document.getElementsByTagName("textarea"),P="false"===L.getAttribute(G),Q="false"!==L.getAttribute(H),R=document.createElement("style");R.type="text/css";var S=document.createTextNode("."+z+" {color:"+y+";}");R.styleSheet?R.styleSheet.cssText=S.nodeValue:R.appendChild(S),K.insertBefore(R,K.firstChild);for(var T,U,V=0,W=N.length+O.length;W>V;V++)U=V<N.length?N[V]:O[V-N.length],T=U.attributes.placeholder,T&&(T=T.nodeValue,T&&d(w,U.type)&&s(U));var X=setInterval(function(){for(var a=0,b=N.length+O.length;b>a;a++)U=a<N.length?N[a]:O[a-N.length],T=U.attributes.placeholder,T?(T=T.nodeValue,T&&d(w,U.type)&&(U.getAttribute(F)||s(U),(T!==U.getAttribute(B)||"password"===U.type&&!U.getAttribute(D))&&("password"===U.type&&!U.getAttribute(D)&&g(U,"text")&&U.setAttribute(D,"password"),U.value===U.getAttribute(B)&&(U.value=T),U.setAttribute(B,T)))):U.getAttribute(C)&&(k(U),U.removeAttribute(B));Q||clearInterval(X)},J);e(a,"beforeunload",function(){M.disable()})}}(this));
+    </script>
+
+</apex:page>

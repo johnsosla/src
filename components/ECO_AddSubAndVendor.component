@@ -1,0 +1,220 @@
+<apex:component controller="ECO_AddSubAndVendorController" allowdml="true" extensions="nttdcore.DLabelChildController" >
+    <apex:attribute name="parentCon" description="Parent Controller" type="IBudgetSave" required="true" assignto="{!parentController}" />
+    <apex:attribute name="budgetHeader" description="The Budget Header ID" type="String" required="true" assignto="{!budgetHeaderId}" />
+
+    <apex:attribute name="refreshPage" description="The refresh page" type="String" required="true" assignto="{!refresh}" />
+
+    <apex:includeScript value="{!$Resource.ECO_jQuery_1_11_2_min_js}" />
+    <apex:includeScript value="{!URLFOR($Resource.ECO_jQueryUI_1_11_2, 'jquery-ui.min.js')}" />
+
+    <apex:stylesheet value="{!URLFOR($Resource.ECO_jQueryUI_1_11_2_Themes, 'themes/smoothness/jquery-ui.css')}" />
+    
+    {!ready}
+
+    <script type="text/javascript" >
+    	$z = jQuery.noConflict();
+
+        function loading(val) {
+            console.log('loading: ' + val);
+        	if (val) {
+              $z('.loadingSpinner').show();  
+              //document.getElementById('spinner1').style.display = 'block';
+            }
+            else {
+              actionComplete();
+              $z('.loadingSpinner').hide();   
+              //document.getElementById('spinner1').style.display = 'none';
+            }
+		}
+
+        function clearAll() {
+            $z('.searchField').val('');
+        }  
+
+        function toggleAll(inx) {
+            $z('.check1').prop('checked', $z(inx).is(":checked"));
+        }
+
+        $z(document).ready(function () {
+			$z('.tabsForResource').tabs();         
+        });
+    </script>
+    
+    <style>
+        .tabs { 
+            padding: 0px; 
+            background: none; 
+            border-width: 0px;
+        }
+
+        .ui-tabs-nav { 
+            padding-left: 0px; 
+            background: transparent; 
+            border-width: 0px 0px 1px 0px; 
+            -moz-border-radius: 0px; 
+            -webkit-border-radius: 0px; 
+            border-radius: 0px; 
+        } 
+
+        .ui-tabs-panel { 
+            background: #ffffff;
+            border-width: 0px 1px 1px 1px;
+        }
+
+        .tableClass {
+            background-color: black;
+            border-spacing: 1px;
+            border-collapse: inherit;
+        }
+
+        td.textCell {
+            background-color: white;
+        }
+
+        th.headerCell {
+            background-color: #f0f0f0;
+            text-align: center;
+            font-family: Arial, Helvetica;
+            font-size: 10pt;
+            font-weight: bold;
+        }
+    </style>
+    
+    	<apex:actionFunction name="SearchSites" action="{!SearchSites}" rerender="theTable" status="loading" />
+        
+    	<apex:actionStatus id="loading" onstart="loading(true)" onstop="loading(false)" />
+
+        <span style="font-size:14pt;font-weight:bold;" ><nttdcore:DLabel name="DL1" default="Add Resource to Sub &amp; Vendor" labelParent="{!this}" componentContext="ECO_AddSubAndVendor" />{!dlRoot.dLabel['DL1']}</span>
+
+        <div style="display:none; float: right;" id="spinner1" class="loadingSpinner" >
+            <img height="15" width="15" class="spinner" src="{!$Resource.loading}" alt="loading" title="loading" />
+        </div>
+
+        <div style="clear:both;" />
+
+        <div id="tabs" class="tabsForResource tabs" style="height:400px; margin-top:20px" >
+            <ul class="ui-tabs-nav" >
+                <li><a class="tabs-1" href="#tabs-1" ><nttdcore:DLabel name="DL2" default="Subs &amp; Vendor" labelParent="{!this}" componentContext="ECO_AddSubAndVendor" />{!dlRoot.dLabel['DL2']}</a></li>
+                <li><a class="tabs-2" href="#tabs-2" ><nttdcore:DLabel name="DL3" default="Find Sub Or Vendor" labelParent="{!this}" componentContext="ECO_AddSubAndVendor" />{!dlRoot.dLabel['DL3']}</a></li>
+                <li><a class="tabs-2" href="#tabs-3" ><nttdcore:DLabel name="DL4" default="Add Generic Sub Or Vendor" labelParent="{!this}" componentContext="ECO_AddSubAndVendor" />{!dlRoot.dLabel['DL4']}</a></li>
+            </ul>
+            
+            <div id="tabs-1" class="ui-tabs-panel" >
+                <div style="height:325px;" >
+                    <table class="tableClass" cellspacing="1" cellpadding="5" border="0" width="780px;" style="table-layout:fixed;" >
+                        <tr>
+                            <th class="headerCell" style="width: 25px;" ><apex:inputCheckbox onclick="toggleAll(this);" /></th>
+                            <th class="headerCell" style="width: 40px;" ><nttdcore:DLabel name="DL5" default="Oracle Id" labelParent="{!this}" componentContext="ECO_AddSubAndVendor" />{!dlRoot.dLabel['DL5']}</th>
+                            <th class="headerCell" style="width: 120px;" ><nttdcore:DLabel name="DL6" default="Account Name" labelParent="{!this}" componentContext="ECO_AddSubAndVendor" />{!dlRoot.dLabel['DL6']}</th>
+                            <th class="headerCell" style="width: 40px;" ><nttdcore:DLabel name="DL7" default="City" labelParent="{!this}" componentContext="ECO_AddSubAndVendor" />{!dlRoot.dLabel['DL7']}</th>
+                            <th class="headerCell" style="width: 20px;" ><nttdcore:DLabel name="DL8" default="State" labelParent="{!this}" componentContext="ECO_AddSubAndVendor" />{!dlRoot.dLabel['DL8']}</th>
+                            <th class="headerCell" style="width: 60px;" ><nttdcore:DLabel name="DL9" default="Country" labelParent="{!this}" componentContext="ECO_AddSubAndVendor" />{!dlRoot.dLabel['DL9']}</th>
+                            <th class="headerCell" style="width: 20px;" ><nttdcore:DLabel name="DL10" default="Type" labelParent="{!this}" componentContext="ECO_AddSubAndVendor" />{!dlRoot.dLabel['DL10']}</th>
+                        </tr>
+                    </table>
+
+                    <div style="height:280px; overflow:scroll;" >
+                        <table class="tableClass" cellspacing="1" cellpadding="5" border="0" width="780px;" style="table-layout:fixed;" >
+                            <apex:repeat value="{!lstVendorSites}" var="vendorSite" >
+                                <tr>
+                                    <td class="textCell" style="width: 25px; text-align: center;" ><apex:inputCheckbox value="{!vendorSite.selected}" styleclass="check1" /></td>
+                                    <td class="textCell" style="width: 40px;" ><apex:outputText value="{!vendorSite.vendorSite.Site__r.VendorSiteID__c}" /></td>
+                                    <td class="textCell" style="width: 120px;" ><apex:outputText value="{!vendorSite.vendorSite.Site__r.AccountName__c}" /></td>
+                                    <td class="textCell" style="width: 40px;" ><apex:outputText value="{!vendorSite.vendorSite.Site__r.City__c}" /></td>
+                                    <td class="textCell" style="width: 20px;" ><apex:outputText value="{!vendorSite.vendorSite.Site__r.State__c}" /></td>
+                                    <td class="textCell" style="width: 60px;" ><apex:outputText value="{!vendorSite.vendorSite.Site__r.Country__c}" /></td>
+                                    <td class="textCell" style="width: 20px;" ><apex:outputText value="{!vendorSite.vendorSite.Type__c}" /></td>
+                                </tr>
+                            </apex:repeat>                    
+                        </table>
+                    </div>
+                </div>
+
+                <div style="float: right;" >
+                    <nttdcore:DLabel name="DL11" default="Add Resource(s)" labelParent="{!this}" componentContext="ECO_AddSubAndVendor" /><apex:commandButton value="{!dlRoot.dLabel['DL11']}" action="{!addExistingResource}" status="loading" onclick="return disableButtons()" style="font-size:11px !important; font-family: Arial;" />
+                    
+                    <nttdcore:DLabel name="DL12" default="Cancel" labelParent="{!this}" componentContext="ECO_AddSubAndVendor" /><apex:commandButton value="{!dlRoot.dLabel['DL12']}" onclick="closeModal('modalDialog0');return false;" style="font-size:11px !important; font-family: Arial;" />
+                </div>
+
+                <div style="clear: both;" />
+            </div>
+
+            <div id="tabs-2" class="ui-tabs-panel" >
+                <div style="height:325px;" >
+                    <table border="0" cellspacing="2" cellpadding="3" >
+                        <tr>
+                            <td style="text-align:right;" ><nttdcore:DLabel name="DL13" default="Account Name:" labelParent="{!this}" componentContext="ECO_AddSubAndVendor" />{!dlRoot.dLabel['DL13']}</td>
+                            <td><apex:inputText value="{!searchAcctName}" styleclass="searchField" /></td>
+
+                            <td style="text-align:right; padding-left:75px;" ><nttdcore:DLabel name="DL14" default="City/Town:" labelParent="{!this}" componentContext="ECO_AddSubAndVendor" />{!dlRoot.dLabel['DL14']}</td>
+                            <td><apex:inputText value="{!searchCityTown}" styleclass="searchField" /></td>
+                        </tr>
+
+                        <tr>
+                            <td style="text-align:right;" ><nttdcore:DLabel name="DL15" default="State/Province/Emirate:" labelParent="{!this}" componentContext="ECO_AddSubAndVendor" />{!dlRoot.dLabel['DL15']}</td>
+                            <td><apex:inputText value="{!searchStateProvinceEmirate}" styleclass="searchField" /></td>
+
+                            <td style="text-align:right; padding-left:75px;" ><nttdcore:DLabel name="DL16" default="Country:" labelParent="{!this}" componentContext="ECO_AddSubAndVendor" />{!dlRoot.dLabel['DL16']}</td>
+                            <td><apex:inputText value="{!searchCountry}" styleclass="searchField" /></td>
+                        </tr>
+
+                        <tr>
+                            <td colspan="4" style="text-align: center; padding-top:10px;" >
+                                <nttdcore:DLabel name="DL17" default="Search" labelParent="{!this}" componentContext="ECO_AddSubAndVendor" /><apex:commandButton onclick="SearchSites(); return false;" value="{!dlRoot.dLabel['DL17']}" style="font-size:11px !important; font-family: Arial;" />
+                                <nttdcore:DLabel name="DL18" default="Clear / All" labelParent="{!this}" componentContext="ECO_AddSubAndVendor" /><apex:commandButton onclick="clearAll(); SearchSites(); return false;" value="{!dlRoot.dLabel['DL18']}" style="font-size:11px !important; font-family: Arial;" />
+                            </td>
+                        </tr>
+                    </table>
+
+                    <br/>
+
+                    <apex:outputPanel id="theTable" >
+                        <div style="height:180px; overflow:scroll;" >
+                            <table class="tableClass" cellspacing="1" cellpadding="5" border="0" width="780px;" >
+                                <tr>
+                                    <th class="headerCell" ><nttdcore:DLabel name="DL19" default="Add as" labelParent="{!this}" componentContext="ECO_AddSubAndVendor" />{!dlRoot.dLabel['DL19']}</th>
+                                    <th class="headerCell" ><nttdcore:DLabel name="DL20" default="Sub/Vendor Name" labelParent="{!this}" componentContext="ECO_AddSubAndVendor" />{!dlRoot.dLabel['DL20']}</th>
+                                    <th class="headerCell" ><nttdcore:DLabel name="DL21" default="Address" labelParent="{!this}" componentContext="ECO_AddSubAndVendor" />{!dlRoot.dLabel['DL21']}</th>
+                                    <th class="headerCell" ><nttdcore:DLabel name="DL22" default="City/Town" labelParent="{!this}" componentContext="ECO_AddSubAndVendor" />{!dlRoot.dLabel['DL22']}</th>
+                                    <th class="headerCell" ><nttdcore:DLabel name="DL23" default="State/Province/Emirate" labelParent="{!this}" componentContext="ECO_AddSubAndVendor" />{!dlRoot.dLabel['DL23']}</th>
+                                    <th class="headerCell" ><nttdcore:DLabel name="DL24" default="Country" labelParent="{!this}" componentContext="ECO_AddSubAndVendor" />{!dlRoot.dLabel['DL24']}</th>
+                                </tr>
+    
+                                <apex:repeat value="{!lstSitesSearchResults}" var="Site" >
+                                    <tr> 
+                                        <td class="textCell" >
+                                            <nttdcore:DLabel name="DL25" default="Sub" labelParent="{!this}" componentContext="ECO_AddSubAndVendor" /><apex:commandLink onclick="closeModal('modalDialog0');return true;" action="{!SelectSiteAsSub}" value="{!dlRoot.dLabel['DL25']}" >
+                                                <apex:param assignto="{!idSiteID}" name="SiteID" value="{!Site.id}" />
+                                            </apex:commandLink>&nbsp;&nbsp;&nbsp;&nbsp;
+                                            <nttdcore:DLabel name="DL26" default="Vendor" labelParent="{!this}" componentContext="ECO_AddSubAndVendor" /><apex:commandLink onclick="closeModal('modalDialog0');return true;" action="{!SelectSiteAsVendor}" value="{!dlRoot.dLabel['DL26']}" >
+                                                <apex:param assignto="{!idSiteID}" name="SiteID" value="{!Site.id}" />
+                                            </apex:commandLink>&nbsp;&nbsp;    
+                                        </td>
+                                        <td class="textCell" ><apex:outputText value="{!Site.AccountName__c}" /></td>
+                                        <td class="textCell" ><apex:outputText value="{!Site.Address1__c}" /></td>
+                                        <td class="textCell" ><apex:outputText value="{!Site.City__c}" /></td>
+                                        <td class="textCell" ><apex:outputText value="{!Site.State__c}" /></td>
+                                        <td class="textCell" ><apex:outputText value="{!Site.Country__c}" /></td>
+                                    </tr>
+                                </apex:repeat>                    
+                            </table>
+                        </div>
+                    </apex:outputPanel>
+                </div>
+                <div style="float: right;" >
+                    <nttdcore:DLabel name="DL27" default="Cancel" labelParent="{!this}" componentContext="ECO_AddSubAndVendor" /><apex:commandButton value="{!dlRoot.dLabel['DL27']}" onclick="closeModal('modalDialog0');return false;" style="font-size:11px !important; font-family: Arial;" />
+                </div>
+
+                <div style="clear: both;" />
+            </div>
+            <div id="tabs-3" class="ui-tabs-panel" >
+                <div style="float: right;" >
+                    <nttdcore:DLabel name="DL28" default="Add Generic Resource" labelParent="{!this}" componentContext="ECO_AddSubAndVendor" /><apex:commandButton value="{!dlRoot.dLabel['DL28']}" action="{!addGenericResource}" status="loading" onclick="return disableButtons()" style="font-size:11px !important; font-family: Arial;" />
+                    <nttdcore:DLabel name="DL29" default="Cancel" labelParent="{!this}" componentContext="ECO_AddSubAndVendor" /><apex:commandButton value="{!dlRoot.dLabel['DL29']}" onclick="closeModal('modalDialog0');return false;" style="font-size:11px !important; font-family: Arial;" />
+                </div>
+
+                <div style="clear: both;" />
+            </div>
+    
+        </div>
+</apex:component>

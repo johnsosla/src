@@ -1,0 +1,33 @@
+<apex:page standardController="Account"   extensions="ABNSearchController" >
+ 
+    <apex:form >
+ <apex:PageBlock >
+   
+   Search for :&nbsp;&nbsp;<apex:inputText value="{!searchString}" size="80"/>&nbsp;
+   <apex:commandButton action="{!GetMatchingABNs}" value="Search" /><br /><br />
+   <apex:pageBlock title="ABN Companies">
+      <apex:pageBlockTable value="{!abnCompanies}" var="comp">
+         <apex:column value="{!comp.abn}" headerValue="ABN"/>
+         <apex:column value="{!comp.organisationName}" headerValue="Organisation Name"/>
+         <apex:column value="{!comp.score}" headerValue="Score"/>
+         <apex:column value="{!comp.stateCode}" headerValue="State"/>
+         <apex:column value="{!comp.isCurrentIndicator}" headerValue="Current"/>
+         <apex:column >
+             <apex:commandLink value="Select" action="{!ABNSelect}" immediate="true">
+                  <apex:param name="selectedAbn" value="{!comp.abn}"  assignTo="{!abnParan}"/>  
+                  <apex:param name="selectedName" value="{!comp.organisationName}" assignTo="{!nameParan}"/>  
+             </apex:commandLink>
+          </apex:column>
+      </apex:pageBlockTable>
+   </apex:pageBlock>
+     
+	
+   
+   AccountId  :
+   <apex:OutputText value="{!account.name}"/>
+   <apex:OutputText value="{!account.Registered_Name__c}"  rendered="False"/>
+   <apex:OutputText value="{!account.Registration_Business_Number__c}"  rendered="False"/>
+   </apex:PageBlock>
+   </apex:form>
+    <!--test comment-->
+</apex:page>

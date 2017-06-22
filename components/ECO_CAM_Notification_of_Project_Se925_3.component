@@ -1,0 +1,13 @@
+<apex:component language="{!theLanguage}" controller="nttdcore.DLabelChildController" access="global" ><nttdcore:DLabel name="DL1" default="A new project for {{1}} has been added to ePM.
+        
+        Client: {{2}}
+        Project Name: {{3}}
+        Fee: {{4}}
+        Project/Capture Manager: {{5}}
+        Region: {{6}}
+        Business Line: {{7}}
+        
+        Project Link: 
+         {{8}}{{9}}" labelParent="{!this}" componentContext="ECO_CAM_Notification_of_Project_Se925_3" p1="{!theRelatedTo.DefaultTopTaskCustomer__r.Name}" p2="{!theRelatedTo.DefaultTopTaskCustomer__r.Name}" p3="{!theRelatedTo.Name}" p4="{!FLOOR(theRelatedTo.EstimatedContractValue__c)}" p5="{!theRelatedTo.CaptureManager__r.Name}" p6="{!theRelatedTo.RegionOwningOrg__c}" p7="{!theRelatedTo.BusinessLineOwningOrg__c}" p8="{!LEFT($Api.Partner_Server_URL_290,FIND('services',$Api.Partner_Server_URL_290)-1)}" p9="{!theRelatedTo.Id}" /><apex:attribute name="theLanguage" type="String" required="true" description="language" access="global" /><apex:attribute name="theRecipient" type="User" required="true" description="recipient" access="global" /><apex:attribute name="theRelatedTo" type="pse__Proj__c" required="true" description="related to" access="global" />
+        {!dlRoot.dLabel['DL1']}
+    <nttdcore:DLabelInit language="{!theLanguage}" labelParentInit="{!this}" /></apex:component>

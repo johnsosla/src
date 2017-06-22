@@ -1,0 +1,53 @@
+<apex:page standardController="GFA_Project_Roster__c" extensions="GFA_ProjectRosterController">
+ <!-- <apex:stylesheet value="{!URLFOR($Resource.GFA, 'bootstrap/css/bootstrap.min.css')}"/> -->
+<apex:stylesheet value="{!URLFOR($Resource.GFA, 'bootstrap/css/bootstrap.css')}"/>
+<apex:stylesheet value="{!URLFOR($Resource.GFA, 'custom/css/GFA_app.css')}"/>
+<apex:stylesheet value="{!URLFOR($Resource.GFA, 'font-awesome/css/font-awesome.min.css')}"/>
+<apex:stylesheet value="{!URLFOR($Resource.GFA, 'custom/css/GFA_app2.css')}"/>
+
+<script src="{!URLFOR($Resource.GFA, 'jQuery/jquery-1.12.1.min.js')}" type="text/javascript" charset="utf-8"></script>
+<script src="{!URLFOR($Resource.GFA, 'bootstrap/js/bootstrap.min.js')}" type="text/javascript" charset="utf-8"></script>
+<div class="GFA">
+
+<div class="bPageTitle">
+    <div class="ptBody">
+        <div class="content">
+            <img src="{!URLFOR($Resource.GFA, 'icons/task.png')}" alt="Project Roster" title="Project Roster" class="GFA_pageTitleIcon"/>
+            <h1 class="pageType">Project Roster Edit<span class="titleSeparatingColon">:</span></h1>
+            <h2 class="pageDescription">{!teamMemberName}</h2>
+            <div class="blank">&nbsp;</div>
+        </div>
+    </div>
+</div>
+
+<div class="pageContainer">
+    <apex:form id="form">
+        <div class="centerButtonsGroup p10">
+           <apex:actionStatus id="actionButtonsStatus">
+                <apex:facet name="stop">
+                    <apex:outputPanel id="btnPanel">
+                        <apex:commandButton value="Save" action="{!savePR}" styleClass="mainButton AE_Blue" reRender="form"/>
+                        <apex:commandButton value="Cancel" action="{!cancelPR}" styleClass="mainButton AE_Green" reRender="form"/>
+                    </apex:outputPanel>
+                </apex:facet>
+                <apex:facet name="start">
+                    <apex:image styleClass="actionButtonSpinner" value="/img/loading.gif"/>
+                </apex:facet>
+            </apex:actionStatus>
+        </div>
+        <apex:outputPanel id="projectRoster">
+            <div class="blank">&nbsp;</div>
+            <div class="panel panel-default">
+                 <div class="panel-heading">
+                    <h3 class="panel-title">Project Roster Edit</h3>
+                </div>
+                <div class="panel-body">
+                    <c:GFA_ProjectRosterComponent projectRoster="{!projectRoster}" editMode="true"/>
+                </div>
+            </div>
+        </apex:outputPanel>
+    </apex:form>
+</div>
+
+</div>
+</apex:page>

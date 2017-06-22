@@ -1,0 +1,8 @@
+<apex:component >
+    <div class="peopleProfileChatter">
+        <apex:outputLabel value="{!$Label.People_Profile_Chatter_Before}"/>
+        <a target="_blank" class="profileUnderlined" href="/{!$Setup.HR_Service_URL__c.People_Profile_Chatter_Group__c}">{!$Label.People_Profile_Chatter_Link} </a>
+
+        <apex:outputLabel value="{!$Label.People_Profile_Chatter_After}" />
+    </div>
+</apex:component>

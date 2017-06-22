@@ -1,0 +1,388 @@
+<apex:page id="rsProjects" controller="rsProjectsController" showHeader="false" sidebar="false" applyHtmlTag="false" docType="html-5.0" >
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no"/>
+
+    <apex:stylesheet value="{!URLFOR($Resource.rs_libs, 'bootstrap/css/bootstrap.min.css')}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.rs_libs, 'qtip/jquery.qtip.min.css')}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.rs_bundle, 'css/profilescommon.css')}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.rs_bundle, 'css/projectTable.css')}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.rs_bundle, 'css/searchBar.css')}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.rs_bundle, 'css/filterSection.css')}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.rs_bundle, 'css/projectGroupModal.css')}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.rs_bundle, 'css/buttonSection.css')}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.rs_libs, 'bsdatepicker/css/bootstrap-datepicker3.css')}"/>
+
+    <script src="{!URLFOR($Resource.rs_libs, 'jquery/jquery.js')}" type="text/javascript" charset="utf-8"></script>
+    <script src="{!URLFOR($Resource.rs_libs, 'jqueryui/jquery-ui.js')}" type="text/javascript" charset="utf-8"></script>
+    <script src="{!URLFOR($Resource.rs_libs, 'bsdatepicker/js/bootstrap-datepicker.js')}" type="text/javascript" charset="utf-8"></script>
+    <script src="{!URLFOR($Resource.rs_libs, 'svg4everybody/svg4everybody.min.js')}" type="text/javascript" charset="utf-8"></script>
+    <script>
+        var $j = jQuery.noConflict();
+        svg4everybody();
+    </script>
+
+<html xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <apex:form id="projectForm" >
+        <apex:actionFunction action="{!ProjectController.newPart}" reRender="projexp" name="addNewPart" oncomplete="resetProgress(); focusField('projectNameEdit'); setupFields('save');loadCountry('locationCountryEdit');stateChange($j('[id$=locationCountryEdit]').val(),'State','locationStateEdit');hidePlaceHolder();"/>
+        <div class="pageContainer">
+            <apex:outputPanel id="messages">
+                <apex:outputPanel layout="none" rendered="{!showMessages}">
+                    <div class="">
+                        <apex:pageMessages escape="false" />
+                    </div>
+                </apex:outputPanel>
+            </apex:outputPanel>
+
+            <div id="search">
+                <c:rsProjectSearchComponent ProjectSearchController="{!ProjectSearchController}" id="rsProjectSearch" reRender="rsProjectSearch,projexp,nonAECOM,messages" />
+            </div>
+
+            <div class="buttonSectionWrapper">
+                <div id="groups" class="inlineBlock">
+                    <c:rsProjectGroupsComponent rsProfile="{!Profile}" id="projGroupComp" reRender="projexp,projGroupComp,messages"/>
+                </div>
+
+                <apex:outputPanel layout="block" rendered="{!ProjectController.CanEdit}" styleClass="projectButtons inlineBlock">
+                    <input type="button" value="+ {!$Label.Add_New_Project}" class="btn brandStyledBtn" id="newProjectButton" />
+                </apex:outputPanel>
+                <div class="generateButtons inlineBlock">
+                    <c:rsGenerateResumeComponent userIdList="{!UserIdList}"/>
+                </div>
+
+                <div class="exportButtons inlineBlock">
+                <apex:commandLink styleClass="btn btn--neutral sfbtnOverrideDefault" style="text-decoration:none;" value="{!$Label.Export}" action="{!ProjectController.exportProjectsToExcel}" target="_blank"/>
+                </div>
+            </div>
+
+            <div class="clearfix">
+            </div>
+
+            <div class="projectTableWrapper">
+                <c:rsProjectComponent ProjectController="{!ProjectController}" Filter="{!ProjectSearchController.Filter}" FilterStat="{!ProjectSearchController.Filter.Status}" id="projexp" reRender="projexp,messages"/>
+            </div>
+
+            <c:rsPeopleProfileChatterGroup /> <br/>
+            <c:rsPolicyGuidance />
+            <apex:outputPanel layout="none" rendered="{!IsReadOnly}">
+                <apex:pageMessage summary="{!$Label.Read_Only_Profile_Message}" severity="info"/>
+            </apex:outputPanel>
+        </div>
+    </apex:form>
+
+    <script src="{!URLFOR($Resource.rs_libs, 'bootstrap/js/bootstrap.min.js')}" type="text/javascript" charset="utf-8"></script>
+    <script src="{!URLFOR($Resource.rs_libs, 'qtip/jquery.qtip.min.js')}" type="text/javascript" charset="utf-8"></script>
+    <script src="{!URLFOR($Resource.rs_bundle, 'js/profiles.js')}" type="text/javascript" charset="utf-8"></script>
+    <script src="/canvas/sdk/js/publisher.js" type="text/javascript" charset="utf-8"/>
+    <script>
+        function resize() {
+            console.log('SEND RESIZE FROM VF PAGE');
+            Sfdc.canvas.publisher.resize( {width : '100%', height : '3000px'});
+        }
+        function updateDisplay(msg) {
+           console.log('GOT EVENT IN VF PAGE: ', msg);
+        }
+
+        Sfdc.canvas.onReady(function() {
+            Sfdc.canvas.publisher.subscribe({name : "sfdc.resize", onData : function(e) {
+                console.log(e);
+                updateDisplay('sfdc.resize');
+                }
+            });
+        });
+
+        console.log('VFpage rendered');
+
+
+        function resetProgress() {
+            inProgress = false;
+        }
+
+        var states;
+        var inProgress = false;
+        var sortDir = ["",""];
+        var saveType;
+        //Retrieves State list from JSON file
+        $j.getJSON("{!URLFOR($Resource.rs_libs, 'StatesAndCountries/StatesAndCountries.json')}",function(json){
+            states = json;
+        });
+        $j(function() {
+            $j( "#tabs" ).tabs({ active: getTab()});
+            resize();
+        });
+
+        $j(document).ready(function() {
+            if( ( typeof sforce != 'undefined' ) && sforce && sforce.one ) {
+                //AECR-698, known issue with Salesforce, workaround is to open a child window
+                // and add a parameter so we still know it's in SF1
+                sforce.one.back();
+                window.open('/apex/rsProjects?sfone=true');
+            }
+            window.onbeforeunload = removeCollapsedCookies();
+            j$('[id$="projectForm"]').on("click",'#newProjectButton', function() {
+                if(inProgress) {
+                    return false;
+                }
+                showSectionSpinner('projectsHeader');
+                inProgress = true;
+                addNewPart();
+            });
+        });
+
+        function setSubTabCookies(tab) {
+            //Set Expiration to five minutes
+            var exp = new Date();
+            exp.setTime(exp.getTime() + 300000);
+            var expires = "expires="+exp.toGMTString()+";";
+            document.cookie="SQsubtab="+tab+";"+expires+"path=/;";
+        }
+
+        function setCollapsedCookie(tabId,tabClass) {
+            var tabClassEdit;
+            if(tabClass.indexOf("collapsed") > -1) {
+                tabClassEdit = tabClass.replace("collapsed","");
+            } else {
+                tabClassEdit = tabClass + ' collapsed';
+            }
+            console.log('tabid: ' + tabId + ' tabclass: ' + tabClassEdit);
+            document.cookie = tabId + "=" + tabClassEdit + ";" + "path=/;";
+        }
+
+        function restoreCollapsedSections() {
+            var cookies = getCookies();
+            for(var i = 0; i < cookies.length; i++) {
+                var cookie = cookies[i].split("=");
+                var tabId = cookie[0];
+                var tabClass = cookie[1];
+                if(j$('[id='+tabId+']').length) {
+                    if(tabClass.indexOf("collapsed") > -1) {
+                        j$('[id='+tabId+']').trigger("click");
+                    }
+                }
+            }
+        }
+
+        function getCookie(cname) {
+            var name = cname + "=";
+            var ca = document.cookie.split(';');
+            for(var i=0; i<ca.length; i++) {
+                var c = ca[i];
+                while (c.charAt(0)==' ') c = c.substring(1);
+                if (c.indexOf(name) != -1) return c.substring(name.length, c.length);
+            }
+            return "";
+        }
+
+        function getCookies() {
+            var cookies = [];
+            var all = document.cookie;
+            if( all === "" ) {
+                return cookies;
+            }
+            var list = all.split("; ");
+            for(var i = 0; i < list.length; i++) {
+                var cookie = list[i];
+                cookies.push(unescape(cookie));
+            }
+            return cookies;
+        }
+
+        function removeCollapsedCookies() {
+            var cookies = getCookies();
+            for(var i = 0; i < cookies.length; i++) {
+                var cookie = cookies[i].split("=");
+                var tabId = cookie[0];
+                var tabClass = cookie[1];
+                if(tabId.indexOf("CollapseLink") > -1) {
+                    document.cookie = tabId + "=" + tabClass + ";" + "path=/;" + "expires=Thu, 01 Jan 1970 00:00:00 GMT";
+                }
+            }
+        }
+
+        function getCookies() {
+            var cookies = [];
+            var all = document.cookie;
+            if( all === "" ) {
+                console.log('123 no cookies')
+                return cookies;
+            }
+            var list = all.split("; ");
+            for(var i = 0; i < list.length; i++) {
+                var cookie = list[i];
+                cookies.push(unescape(cookie));
+            }
+            return cookies;
+        }
+
+        function getParameterByName(name) {
+            var url = (window.location != window.parent.location) ? document.referrer: document.location;
+            var match = RegExp('[?&]' + name + '=([^&]*)').exec(url);
+            var value = match && decodeURIComponent(match[1].replace(/\+/g, ' '));
+            console.log('getParameterByName for ' + name + ' returns : ' + value);
+            return value;
+        }
+
+        function getTab() {
+            var value = getParameterByName('tab.Projects.subtab');
+            if(value === null) {
+                value = getCookie('SQsubtab');
+            }
+            console.log("getTab(): ", value);
+            return value;
+        }
+
+        function confirmDeletePart(){
+            return confirm("{!$Label.Confirm_Delete_Part}");
+        }
+
+        //Function to setup required fields for interaction
+        function setupFields(type) {
+            saveType = type;
+            $j.each(requiredFields, function(index, item) {
+                //Date Fields and Select lists do not fire off input event with DatePicker
+                if($j(item).is('select') || item == '[id$=ProjectIdin]') {
+                    if(!(saveType == 'edit' && item == '[id$=ProjectIdin]')) {
+                        $j(item).on('change',function() {
+                            var input = $j(this);
+                            var notEmpty = input.val().trim();
+                            if(notEmpty) {
+                                input.removeClass('invalid').addClass('valid');
+                            } else {
+                                input.removeClass('valid').addClass('invalid');
+                            }
+                        });
+                    }
+                } else {
+                    $j(item).on('input',function() {
+                        var input = $j(this);
+                        var notEmpty = input.val().trim();
+                        if(notEmpty) {
+                            input.removeClass('invalid').addClass('valid');
+                        } else {
+                            input.removeClass('valid').addClass('invalid');
+                        }
+                    });
+                    $j(item).on('focus',function() {
+                        var input = $j(this);
+                        var notEmpty = input.val().trim();
+                        if(notEmpty) {
+                            input.removeClass('invalid').addClass('valid');
+                        } else {
+                            input.removeClass('valid').addClass('invalid');
+                        }
+                    });
+                }
+            });
+        }
+
+        function checkRequiredFields() {
+            var notValid = true;
+            $j.each(requiredFields, function(index, item) {
+                console.log(!$j(item).val());
+                var errorMsg = $j('span.rsError',$j(item).parent());
+                if(!$j(item).val().trim() && !(saveType == 'edit' && item == '[id$=ProjectIdin]') && $j(item).is(':visible')) {
+                    $j(item).removeClass('valid').addClass('invalid');
+                    if(item == '[id$=ProjectIdin]' || $j(item).parent().hasClass('dateInput')) {
+                        errorMsg = $j('span.rsError',$j(item).parent().parent());
+                    }
+                    errorMsg.show();
+                    notValid = false;
+                } else {
+                    errorMsg.hide();
+                }
+            });
+            return notValid;
+        }
+
+        function focusField(fieldId) {
+            // var el = $j('[id$='+fieldId+']').get(0);
+            // var elemLen = el.value.length;
+
+            // el.selectionStart = elemLen;
+            // el.selectionEnd = elemLen;
+            // el.focus();
+            console.log("TODO reenable and review, focusField called, fieldId: ", fieldId);
+        }
+
+        function helpTextSetup() {
+            $j('.helpOrb').each(function() {
+                var elem = $j(this);
+                elem.qtip({
+                    content: true,
+                    events: {
+                        show: function(event, api) { elem.parent().removeClass('helpButton').addClass('helpButtonOn');},
+                        hide: function(event, api) { elem.parent().removeClass('helpButtonOn').addClass('helpButton');}
+                    }
+                });
+            });
+        }
+
+        function showSectionSpinner(headerId){
+            $j("#"+headerId).toggleClass('active');
+        }
+
+        // We have to clear out the apex:inputFields whenever we do anything other than save to clear out any SF validation errors
+        function clearInputFields() {
+            $j.each(inputFields, function(index, item) {
+                $j(item).val("");
+            });
+        }
+
+        //Defaults to User's Country on Adding a new Project
+        function loadCountry(countryId) {
+            var country = "{!profile.Obj['Country']}";
+            console.log('#####: ' + country);
+            if(country && $j('[id$=' + countryId +'] option[value="' + country + '"]').length) {
+                $j('[id$=' + countryId + ']').val(country);
+            }
+            else {
+                $j('[id$=' + countryId + ']').val("");
+            }
+        }
+
+        //updates hidden input for state field
+        function hiddenFieldUpdate(val,id) {
+            $j('input[id$=' + id + ']').val(val);
+        }
+
+        function stateChange(key,listId,inputId) {
+            console.log('key: ' + key);
+            if(key) {
+                $j('select[id$="' + listId + '"]').find('option').remove().end().append('<option value="">--None--</option>');
+                var stateList = states[key];
+                var startingVal;
+                if($j('[id$=' + inputId + ']').val()) {
+                    startingVal = $j('[id$=' + inputId + ']').val();
+                }
+                $j.each(stateList, function(key, value) {
+                    if(value == startingVal) {
+                        $j('select[id$="' + listId + '"]').append('<option value="'+ value +'" selected>'+value+'</option>');
+                    } else {
+                        $j('select[id$="' + listId + '"]').append('<option value="'+ value +'">'+value+'</option>');
+                    }
+                });
+            }
+        }
+
+        function removeSpacesFromId() {
+            $j('a[data-toggle=collapse]').each(function() {
+                var dataTarget = $j(this).attr('data-target');
+                var linkId = $j(this).attr('id');
+                dataTarget = dataTarget.replace(/ /g, '_');
+                linkId = linkId.replace(/ /g,'_');
+                $j(this).attr('data-target',dataTarget);
+                $j(this).attr('id',linkId);
+            });
+            $j('div.collapse').each(function() {
+                var idField = $j(this).attr('id');
+                idField = idField.replace(/ /g, '_');
+                $j(this).attr('id',idField);
+            });
+        }
+
+        function scrollToHeader(headerId) {
+            $j('[id$="' + headerId + '"]').get(0).scrollIntoView();
+        }
+    </script>
+
+</html>
+</apex:page>

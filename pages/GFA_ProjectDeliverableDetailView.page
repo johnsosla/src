@@ -1,0 +1,57 @@
+<apex:page standardController="GFA_Project_Deliverable__c" extensions="GFA_ProjectDeliverableDetailController">
+<!-- <apex:stylesheet value="{!URLFOR($Resource.GFA, 'bootstrap/css/bootstrap.min.css')}"/> -->
+<apex:stylesheet value="{!URLFOR($Resource.GFA, 'bootstrap/css/bootstrap.css')}"/>
+<apex:stylesheet value="{!URLFOR($Resource.GFA, 'custom/css/GFA_app.css')}"/>
+<apex:stylesheet value="{!URLFOR($Resource.GFA, 'font-awesome/css/font-awesome.min.css')}"/>
+<apex:stylesheet value="{!URLFOR($Resource.GFA, 'custom/css/GFA_app2.css')}"/>
+
+<script src="{!URLFOR($Resource.GFA, 'jQuery/jquery-1.12.1.min.js')}" type="text/javascript" charset="utf-8"></script>
+<script src="{!URLFOR($Resource.GFA, 'bootstrap/js/bootstrap.min.js')}" type="text/javascript" charset="utf-8"></script>
+<script src="{!URLFOR($Resource.GFA, 'custom/js/GFA_app.js')}" type="text/javascript" charset="utf-8"></script>
+<div class="GFA">
+
+<div class="bPageTitle">
+    <div class="ptBody">
+        <div class="content">
+            <img src="/s.gif" alt="Library Subtask Content" class="pageTitleIcon" title="Library Subtask Content"/>
+            <h1 class="pageType">Project Deliverable Detail View for <span class="titleSeparatingColon">:</span>{!projectDeliverable.Name}</h1>
+            <h2 class="pageDescription"><a href="apex/GFA_ProjectDetailView?id={!project.Id}">{!project.ProjectName}</a> / {!projectPhase.LibraryPhaseName} / <a href="apex/GFA_ProjectTaskDetail?id={!projectTask.Id}">{!projectTask.LibraryTaskName}</a> / <a href="/apex/GFA_ProjectSubtaskDetailView?id={!projectDeliverable.ProjectSubtaskId}"> {!projectSubtask.LibrarySubtaskName} </a></h2>
+            <div class="blank">&nbsp;</div>
+        </div>
+    </div>
+</div>
+
+<div class="pageContainer">
+    <apex:form id="form">
+        <div class="centerButtonsGroup p10">
+           <apex:actionStatus id="actionButtonsStatus">
+                <apex:facet name="stop">
+                    <apex:outputPanel id="btnPanel">
+                        <apex:commandButton value="Edit" action="{!editDeliverable}" styleClass="mainButton" rendered="{!CanEdit}" reRender="form"/>
+                        <apex:commandButton value="Delete" action="{!deleteDeliverable}" styleClass="mainButton" rendered="{!CanEdit}" reRender="form" onclick="if(!confirmDeletePart('project deliverable')) return false;"/>
+                    </apex:outputPanel>
+                </apex:facet>
+                <apex:facet name="start">
+                    <apex:image styleClass="actionButtonSpinner" value="/img/loading.gif"/>
+                </apex:facet>
+            </apex:actionStatus>
+        </div>
+
+        <apex:outputPanel id="projectDeliverable">
+            <div class="blank">&nbsp;</div>
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Project Deliverable Detail</h3>
+                </div>
+                <div class="panel-body">
+                    <c:GFA_ProjectDeliverableComponent projectDeliverable="{!projectDeliverable}"
+                                                        subtaskName="{!subtaskName}"
+                                                        editMode="false"/>
+                </div>
+            </div>
+        </apex:outputPanel>
+    </apex:form>
+</div>
+
+</div>
+</apex:page>

@@ -1,0 +1,65 @@
+<apex:page showHeader="true" sidebar="true" standardController="GFA_Project__c" extensions="GFA_ProjectTreeEditController" id="GFA_Page">
+<!-- <apex:stylesheet value="{!URLFOR($Resource.GFA, 'bootstrap/css/bootstrap.min.css')}"/> -->
+<apex:stylesheet value="{!URLFOR($Resource.GFA, 'bootstrap/css/bootstrap.css')}"/>
+<apex:stylesheet value="{!URLFOR($Resource.GFA, 'custom/css/GFA_app.css')}"/>
+<apex:stylesheet value="{!URLFOR($Resource.GFA, 'font-awesome/css/font-awesome.min.css')}"/>
+<apex:stylesheet value="{!URLFOR($Resource.GFA, 'custom/css/GFA_app2.css')}"/>
+
+<script src="{!URLFOR($Resource.GFA, 'jQuery/jquery-1.12.1.min.js')}" type="text/javascript" charset="utf-8"></script>
+<script src="{!URLFOR($Resource.GFA, 'bootstrap/js/bootstrap.min.js')}" type="text/javascript" charset="utf-8"></script>
+<script src="{!URLFOR($Resource.GFA, 'custom/js/GFA_app.js')}" type="text/javascript" charset="utf-8"></script>
+<div class="GFA">
+
+<div class="bPageTitle">
+    <div class="ptBody">
+        <div class="content">
+            <img src="{!URLFOR($Resource.GFA, 'icons/task.png')}" alt="Project Tree Edit" title="Project Tree Edit" class="GFA_pageTitleIcon"/>
+            <h1 class="pageType">Project Tree Edit<span class="titleSeparatingColon">:</span></h1>
+            <h2 class="pageDescription">{!project.ProjectName}</h2>
+            <div class="blank">&nbsp;</div>
+        </div>
+    </div>
+</div>
+
+<div class="pageContainer">
+    <apex:form id="form">
+        <div class="centerButtonsGroup p10">
+            <apex:actionStatus id="actionButtonsStatus">
+                <apex:facet name="stop">
+                    <apex:outputPanel id="btnPanel">
+                        <apex:commandButton value="Quick Save" action="{!saveAndContinue}" status="actionButtonsStatus" reRender="form" styleClass="mainButton AE_Blue" oncomplete="setupExpandAndCollapse();"/>
+                        <apex:commandButton value="Save" action="{!save}" status="actionButtonsStatus" reRender="form" styleClass="mainButton AE_Blue"/>
+                        <apex:commandButton value="Cancel" action="{!cancel}" status="actionButtonsStatus" reRender="form" styleClass="mainButton AE_Green"/>
+                    </apex:outputPanel>
+                </apex:facet>
+                <apex:facet name="start">
+                    <apex:image styleClass="actionButtonSpinner" value="/img/loading.gif"/>
+                </apex:facet>
+            </apex:actionStatus>
+        </div>
+
+        <c:GFA_ProjectTreeComponent Project="{!project}"
+                                    editMode="true"
+                                    SelectedPhase="{!SelectedPhase}"
+                                    SelectedTask="{!SelectedTask}"
+                                    AvailableLibrarySubtasks="{!AvailableLibrarySubtasks}"
+                                    AddLibrarySubtask="{!addLibrarySubtasks}"
+                                    RemoveProjectSubtask="{!removeProjectSubtasks}"
+                                    Filter="{!Filter}"
+                                    RefreshAvailableLibrarySubtasks="{!refreshAvailableLibrarySubtasks}"
+                                    ClearFilter="{!clearFilter}"
+                                    SelectedTaskName="{!SelectedTaskName}"
+                                    CheckAllAction="{!checkAllAction}"
+                                    CheckAll="{!CheckAll}"
+                                    PreviousPage="{!previousPage}"
+                                    SwitchToPage="{!switchToPage}"
+                                    NextPage="{!nextPage}"
+                                    PageNumbers="{!pageNumbers}"
+                                    DisplayPage="{!displayPage}"
+                                    />
+
+    </apex:form>
+</div>
+
+</div>
+</apex:page>

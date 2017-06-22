@@ -1,0 +1,102 @@
+<apex:page standardController="Contract_Review__c" extensions="ContractReview_EditController">
+    <apex:sectionHeader title="{!$Label.CRS_Contract_Review_Request_Edit_Title}" subtitle="{!Contract_Review__c.Name}"/>
+    <apex:form >
+
+        <apex:pageBlock title="{!$Label.CRS_Contract_Review_Request_Edit_Title}" mode="edit">
+
+            <apex:pageBlockButtons >
+                <apex:commandButton value="{!$Label.CRS_Next_Button}" action="{!Next}"/>
+                <!--<apex:commandButton value="Cancel" action="{!cancel}"/>-->
+            </apex:pageBlockButtons>
+            <apex:pageMessages />
+
+            
+            <apex:pageMessage title="{!$Label.CRS_edit_page_helptext}" severity="INFO" escape="false"/>
+                
+                
+
+            <apex:pageBlockSection title="{!$Label.CRS_Edit_Information_Section}" columns="2">
+                <apex:inputField value="{!Contract_Review__c.Name}" required="false"/>
+                <apex:inputField value="{!Contract_Review__c.OwnerId}" required="false"/>
+                <apex:inputField value="{!Contract_Review__c.Country__c}" required="true"/>
+                <apex:inputField value="{!Contract_Review__c.Second_Legal_User__c}" required="false"/>
+                <apex:inputField value="{!Contract_Review__c.State_Province_Emirate__c}" required="false"/>
+                <apex:inputField value="{!Contract_Review__c.Project_Manager__c}" required="true"/>
+                <apex:inputField value="{!Contract_Review__c.Area__c}" required="false"   />
+                <apex:pageblockSectionItem />
+                <apex:inputField value="{!Contract_Review__c.Business_Line__c}" required="true"/>
+                <apex:inputField value="{!Contract_Review__c.Project_Director__c}" required="true"/>
+                <apex:inputField value="{!Contract_Review__c.Preferred_Contract_Reviewer__c}" required="false"/>
+                <apex:inputField value="{!Contract_Review__c.Other_project_member__c}" required="false"/>
+                <apex:inputField value="{!Contract_Review__c.Date_Required__c}" required="true"/>
+                <apex:inputField value="{!Contract_Review__c.Risk_Level__c}" required="false"/>
+                <apex:inputField value="{!Contract_Review__c.External_Due_Date__c}" required="false"/>
+                <apex:inputField value="{!Contract_Review__c.CurrencyIsoCode}" required="false"/>
+                <apex:inputField value="{!Contract_Review__c.Date_received_by_Client__c}" required="false"/>
+                <apex:inputField value="{!Contract_Review__c.Estimated_Fee__c}" required="true"/>
+                <apex:inputField value="{!Contract_Review__c.Client_Vendor__c}" required="false"/>
+                <apex:inputField value="{!Contract_Review__c.Fee_Type__c}" required="false"/>
+                <apex:inputField value="{!Contract_Review__c.Client_vendor_as_named_on_the_contract__c}" required="true"/>
+                <apex:inputField value="{!Contract_Review__c.PI_Insurance_Amount__c}" required="false"/>
+                <apex:inputField value="{!Contract_Review__c.Country_of_incorporation_of_the_client_v__c}" required="false"/>
+                <apex:inputField value="{!Contract_Review__c.PL_Insurance_Amount__c}" required="false"/>
+                <apex:inputField value="{!Contract_Review__c.Client_Vendor_State_of_Incorporation__c}" required="false"/>
+                <apex:inputField value="{!Contract_Review__c.Limitation_of_Liability__c}" required="false"/>
+                <apex:inputField value="{!Contract_Review__c.Governing_Law__c}" required="false"/>
+                <apex:inputField value="{!Contract_Review__c.Insurance__c}" required="false"/>
+                <apex:inputField value="{!Contract_Review__c.Governing_Law_of_the_Contract_State__c}" required="false"/>
+                <apex:inputField value="{!Contract_Review__c.Comments__c}" required="false"/>
+                <apex:inputField value="{!Contract_Review__c.Review_Request_Type__c}" required="true"/>
+                <apex:inputField value="{!Contract_Review__c.Previously_reviewed__c}" required="false"/>
+                <apex:inputField value="{!Contract_Review__c.Contract_Type__c}" required="true"/>
+                <apex:pageBlockSectionItem />
+                <apex:inputField value="{!Contract_Review__c.Opportunity_GNG__c}" required="false"/>
+                <apex:pageBlockSectionItem />
+                <apex:inputField value="{!Contract_Review__c.Opportunity__c}" required="false"/>
+                <apex:pageBlockSectionItem />
+                <apex:inputField value="{!Contract_Review__c.Project__c}" required="false"/>
+                <apex:pageBlockSectionItem />
+                <apex:inputField value="{!Contract_Review__c.Request_Name__c}" required="true"/>
+                <apex:pageBlockSectionItem />
+                <apex:inputField value="{!Contract_Review__c.Description_Nature_of_Works__c}" required="true"/>
+                <apex:pageBlockSectionItem />
+                <apex:inputField value="{!Contract_Review__c.Legal_Team__c}" required="false"/>
+            </apex:pageBlockSection>
+
+
+            <apex:pageBlockSection title="{!$Label.CRS_Edit_Page_Service_Type_Risks}" columns="1">
+
+
+                <apex:inputField value="{!Contract_Review__c.Service_Type__c}" required="true"/>
+                <apex:inputField value="{!Contract_Review__c.significant_risks_identified__c}" required="false"/>
+            </apex:pageBlockSection>
+
+
+            <apex:pageBlockSection title="{!$Label.CRS_Edit_Page_America_only}" columns="2">
+                <apex:inputField value="{!Contract_Review__c.Federal_Contract__c}" required="false"/>
+            </apex:pageBlockSection>
+
+
+            <apex:pageBlockSection title="{!$Label.CRS_Edit_Page_Contract_Reviewer_Only}" columns="2">
+                <apex:inputField value="{!Contract_Review__c.Status_Review__c}" required="false"/>
+
+                <apex:inputField value="{!Contract_Review__c.Submitted__c}" required="false"/>
+            </apex:pageBlockSection>
+
+
+            <apex:pageBlockSection title="{!$Label.CRS_Edit_Page_ORM_Compliance}" columns="1">
+                <apex:inputField value="{!Contract_Review__c.Compliant__c}" required="false"/>
+                <apex:inputField value="{!Contract_Review__c.ORM_Comments__c}" required="false"/>
+                <apex:inputField value="{!Contract_Review__c.Next_Review_Date__c}" required="false"/>
+                <apex:inputField value="{!Contract_Review__c.Conditions_complete__c}" required="false"/>
+            </apex:pageBlockSection>
+
+
+            <apex:pageBlockSection title="{!$Label.CRS_Edit_Page_System_Information}" columns="2">
+                <apex:inputField value="{!Contract_Review__c.Time_Submitted__c}" required="false"/>
+                <apex:inputField value="{!Contract_Review__c.Time_Reviewed__c}" required="false"/>
+            </apex:pageBlockSection>
+
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

@@ -1,0 +1,10 @@
+<apex:component controller="nttdcore.DLabelChildController" access="global" language="{!theLanguage}">
+	<apex:attribute name="theRelatedTo" type="Delegate__c" required="true" description="related to" access="global" />
+	<apex:attribute name="theRecipient" type="Contact" required="true" description="recipient" access="global" />
+	<apex:attribute name="theLanguage" type="String" required="true" description="language" access="global" />
+
+This email is to inform you of a vacation rule created by {!theRelatedTo.CreatedBy} on your behalf. No action is required, this notification is for information purposes only. Should you have any concern, please contact the creator as noted above. 
+{!theRelatedTo.Name}
+<!--{!theRelatedTo.Link}-->
+{!LEFT($Api.Partner_Server_URL_290,FIND('services',$Api.Partner_Server_URL_290)-1)}{!theRelatedTo.Id}
+<nttdcore:DLabelInit language="{!theLanguage}" labelParentInit="{!this}" /></apex:component>

@@ -1,0 +1,349 @@
+<apex:page standardController="Risk__c" extensions="ECO_CreateRiskController" action="{!init}">
+    <script src="../../soap/ajax/36.0/connection.js"
+    type="text/javascript"></script>
+
+    <style>
+        .tborder{
+            border: 1px solid #868686 !important;
+        }
+
+        .blankfilled{
+            width:100px;
+            float:left;
+        }
+        .consequence{
+             width:360px;
+            text-align:right;
+            font-weight:bold;
+            clear:both;
+        }
+        .div-table{
+            display:table;         
+            width:auto;
+            border: 0px;   
+            border-spacing:5px;/*cellspacing:poor IE support for  this*/
+        }
+        .div-table-row{
+            display:table-row;
+            width:auto;
+       
+            clear:both;
+        }
+        .div-table-col{
+            float:left;/*fix for  buggy browsers*/
+            display:table-column;         
+            width:100px;
+            text-align:center;
+            padding: 10px 10px 10px 10px;
+            margin: 2px;
+        }
+        .low{
+            background-color:#00afd5;
+            
+        }
+        .medium{
+            background-color:#ffff0d;   
+        }
+        .high{
+            background-color:#fb0108;
+            
+        }
+        .xAxis{
+            width:100px;
+            font-weight:bold;
+        }
+        .yAxis{
+            width:100px;
+            font-weight:bold;
+        }
+        
+        .vertical-text{
+            transform: rotate(270deg);
+            transform-origin: 20px 15px;
+            font-weight: bold;
+        }
+        
+        .firstcol{
+            width:0px;
+        }
+    </style>
+    
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+    <script>
+        $(document).ready(function(){
+        	$("[id$=preRating]").prop("disabled",true);
+        	$("[id$=postRating]").prop("disabled",true);
+            $("[id$=preScore]").prop("disabled",true);
+            $("[id$=postScore]").prop("disabled",true);
+        })
+    </script>
+    
+    <script>
+    	function calculatePreRating(){
+            var preLikelihood = document.getElementById('{!$Component.theForm.theBlock.theSection.preLikelihood}').value;
+            var preConsequence = document.getElementById('{!$Component.theForm.theBlock.theSection.preConsequence}').value;
+            var preRating;
+            if(!!preLikelihood && !!preConsequence){
+                if(preLikelihood == 'Unlikely'){
+                    if(preConsequence == 'Minor'){
+                        preRating = 'Low';
+                        preScore = '15';
+                    }
+                    else if(preConsequence == 'Moderate'){
+                        preRating = 'Low';
+                        preScore = '30';
+                    }
+                    else if(preConsequence == 'Major'){
+                        preRating = 'Medium';
+                        preScore = '60';
+                    }
+                }
+                else if(preLikelihood == 'Possible'){
+                    if(preConsequence == 'Minor'){
+                        preRating = 'Low';
+                        preScore = '20';
+                    }
+                    else if(preConsequence == 'Moderate'){
+                        preRating = 'Medium';
+                        preScore = '40';
+                    }
+                    else if(preConsequence == 'Major'){
+                        preRating = 'High';
+                        preScore = '80';
+                    }
+                    
+                }
+                else if(preLikelihood == 'Likely'){
+                    if(preConsequence == 'Minor'){
+                        preRating = 'Medium';
+                        preScore = '25';
+                    }
+                    else if(preConsequence == 'Moderate'){
+                        preRating = 'High';
+                        preScore = '50';
+                    }
+                    else if(preConsequence == 'Major'){
+                        preRating = 'High';
+                        preScore = '100';
+                    }
+                    
+                }
+                document.getElementById('{!$Component.theForm.theBlock.theSection.preRating}').value = preRating;
+                document.getElementById('{!$Component.theForm.preMitigationRating}').value = preRating;
+                document.getElementById('{!$Component.theForm.preRatingChanged}').value = true;
+                document.getElementById('{!$Component.theForm.theBlock.theSection.preScore}').value = preScore;
+                document.getElementById('{!$Component.theForm.preMitigationScore}').value = preScore;
+                document.getElementById('{!$Component.theForm.preScoreChanged}').value = true;
+            }
+            if(!preLikelihood || !preConsequence){
+                document.getElementById('{!$Component.theForm.theBlock.theSection.preRating}').value = '';
+                document.getElementById('{!$Component.theForm.preMitigationRating}').value = '';
+                document.getElementById('{!$Component.theForm.preRatingChanged}').value = true;
+                document.getElementById('{!$Component.theForm.theBlock.theSection.preScore}').value = '';
+                document.getElementById('{!$Component.theForm.preMitigationScore}').value = '';
+                document.getElementById('{!$Component.theForm.preScoreChanged}').value = true;
+            }
+        }
+    	function calculatePostRating(){
+            var postLikelihood = document.getElementById('{!$Component.theForm.theBlock.postSection.postLikelihood}').value;
+            var postConsequence = document.getElementById('{!$Component.theForm.theBlock.postSection.postConsequence}').value;
+            if(!!postLikelihood && !!postConsequence){
+                if(postLikelihood == 'Unlikely'){
+                    if(postConsequence == 'Minor'){
+                        postRating = 'Low';
+                        postScore = '15';
+                    }
+                    else if(postConsequence == 'Moderate'){
+                        postRating = 'Low';
+                        postScore = '30';
+                    }
+                    else if(postConsequence == 'Major'){
+                        postRating = 'Medium';
+                        postScore = '60';
+                    }
+                }
+                else if(postLikelihood == 'Possible'){
+                    if(postConsequence == 'Minor'){
+                        postRating = 'Low';
+                        postScore = '20';
+                    }
+                    else if(postConsequence == 'Moderate'){
+                        postRating = 'Medium';
+                        postScore = '40';
+                    }
+                    else if(postConsequence == 'Major'){
+                        postRating = 'High';
+                        postScore = '80';
+                    }
+                    
+                }
+                else if(postLikelihood == 'Likely'){
+                    if(postConsequence == 'Minor'){
+                        postRating = 'Medium';
+                        postScore = '25';
+                    }
+                    else if(postConsequence == 'Moderate'){
+                        postRating = 'High';
+                        postScore = '50';
+                    }
+                    else if(postConsequence == 'Major'){
+                        postRating = 'High';
+                        postScore = '100';
+                    }
+                    
+                }
+                document.getElementById('{!$Component.theForm.theBlock.postSection.postRating}').value = postRating;
+                document.getElementById('{!$Component.theForm.postMitigationRating}').value = postRating;
+                document.getElementById('{!$Component.theForm.postRatingChanged}').value = true;
+                document.getElementById('{!$Component.theForm.theBlock.postSection.postScore}').value = postScore;
+                document.getElementById('{!$Component.theForm.postMitigationScore}').value = postScore;
+                document.getElementById('{!$Component.theForm.postScoreChanged}').value = true;
+            }
+            if(!postLikelihood || !postConsequence){
+                document.getElementById('{!$Component.theForm.postMitigationRating}').value = '';
+                document.getElementById('{!$Component.theForm.theBlock.postSection.postRating}').value = '';
+                document.getElementById('{!$Component.theForm.postRatingChanged}').value = true;
+                document.getElementById('{!$Component.theForm.postMitigationScore}').value = '';
+                document.getElementById('{!$Component.theForm.theBlock.postSection.postScore}').value = '';
+                document.getElementById('{!$Component.theForm.postScoreChanged}').value = true;
+            }
+            
+        }
+    </script>
+	<apex:pageMessages id="messages" />
+    <apex:form id="theForm">
+        <apex:inputHidden value="{!preRating}" id="preMitigationRating"/>
+        <apex:inputHidden value="{!postRating}" id="postMitigationRating"/>
+        <apex:inputHidden value="{!bPostRatingChanged}" id="postRatingChanged"/>
+        <apex:inputHidden value="{!bPreRatingChanged}" id="preRatingChanged"/>
+        <apex:inputHidden value="{!preScore}" id="preMitigationScore"/>
+        <apex:inputHidden value="{!postScore}" id="postMitigationScore"/>
+        <apex:inputHidden value="{!bPostScoreChanged}" id="postScoreChanged"/>
+        <apex:inputHidden value="{!bPreScoreChanged}" id="preScoreChanged"/>
+	<apex:sectionHeader title="Risk Edit" subtitle="New Risk" />
+	<apex:pageBlock title="Risk Edit" id="theBlock">
+        <apex:pageBlockButtons >
+        	<apex:commandButton action="{!saveRisk}" value="Save"/>
+            <apex:commandButton action="{!saveAndNew}" value="Save & New"/>
+            <apex:commandButton action="{!returnToRiskRegister}" value="Return To Risk Register" immediate="true"/>
+            <apex:commandButton action="{!cancelRisk}" value="Cancel" rendered="{!isNewRisk}" immediate="true"/>
+        </apex:pageBlockButtons>
+        <apex:pageBlockSection title="Information">
+        	<apex:inputField value="{!oRisk.RiskNumberAutoNum__c}"/>
+            <apex:inputField value="{!oRisk.CurrentStatus__c}"/>
+            <apex:inputField value="{!oRisk.Name}" required="true"/>
+            <apex:inputField value="{!oRisk.RiskOwner__c}"/>
+            <apex:inputField value="{!oRisk.PlanElement__c}" required="true"/>
+            <apex:inputField value="{!oRisk.Project__c}"/>
+            <apex:inputField value="{!oRisk.EventPhase__c}"/>
+            <apex:inputField value="{!oRisk.AssociatedTask__c}"/>
+			<apex:inputField value="{!oRisk.DoATrigger__c}"/>
+			<!--<apex:outputField value="{!oRisk.RiskScore__c}"/>            -->
+        </apex:pageBlockSection>
+        <apex:pageBlockSection title="Additional Risk Info" columns="1">
+            <apex:inputField value="{!oRisk.RiskDescription__c}" style="width: 280px;"/>
+            <apex:inputField value="{!oRisk.Cause__c}" style="width: 280px;"/>
+            <apex:inputField value="{!oRisk.Effect__c}" style="width: 280px;"/>
+            <apex:inputField value="{!oRisk.OpportunityFromRisk__c}" style="width: 280px;"/>
+            
+        </apex:pageBlockSection>
+        <apex:pageBlockSection title="Pre-mitigation Rating & Contingency" columns="1" id="theSection">        
+            <apex:inputField value="{!oRisk.LikelihoodofOccurrence__c}" id="preLikelihood" onchange="calculatePreRating();"/>
+            <apex:inputField value="{!oRisk.RiskConsequence__c}" id="preConsequence" onchange="calculatePreRating();"/>
+            <apex:inputField value="{!oRisk.Premitigationrating__c}" id="preRating"/>
+            <apex:inputField value="{!oRisk.PreMitigationScore__c}" id="preScore"/>
+            <apex:inputField value="{!oRisk.LaborCost__c}"/>
+            <apex:inputField value="{!oRisk.ODCCost__c}"/>
+            <apex:inputField value="{!oRisk.Premitigationbasisofestimate__c}" style="width: 280px;"/>
+            <!-- <apex:outputField value="{!oRisk.PreRiskMatrix__c}"/>   -->   
+            <apex:pageBlockSectionItem >
+                <apex:outputLabel value="Risk Rating Matrix" for="matrix1" />  
+                <div class="blankfilled">&nbsp;</div>
+                <div class="div-table" id="matrix1">
+                     <div class="consequence">{!$Label.Consequence}</div> 
+                <div class="div-table-row">
+                <div class="div-table-col firstcol">&nbsp;</div>
+                <div class="div-table-col yAxis">&nbsp;</div>
+                <div class="div-table-col xAxis">{!$Label.Risk_Rating_Minor}</div>
+                <div class="div-table-col xAxis">{!$Label.Risk_Rating_Moderate}</div>
+                <div class="div-table-col xAxis">{!$Label.Risk_Rating_Major}</div>
+                </div>
+                <div class="div-table-row">
+                <div class="div-table-col firstcol">&nbsp;</div>
+                <div class="div-table-col yAxis">{!$Label.Likely}</div>
+                <div class="div-table-col medium">{!$Label.Risk_Rating_Medium}<br/>25</div>
+                <div class="div-table-col high">{!$Label.Risk_Rating_High}<br/>50</div>
+                <div class="div-table-col high">{!$Label.Risk_Rating_High}<br/>100</div>
+                </div>
+                <div class="div-table-row">
+                <div class="div-table-col firstcol vertical-text">{!$Label.Probability}</div>
+                <div class="div-table-col yAxis">{!$Label.Possible}</div>
+                <div class="div-table-col low">{!$Label.Risk_Rating_Low}<br/>20</div>
+                <div class="div-table-col medium">{!$Label.Risk_Rating_Medium}<br/>40</div>
+                <div class="div-table-col high">{!$Label.Risk_Rating_High}<br/>80</div>
+                </div>
+                <div class="div-table-row">
+                <div class="div-table-col firstcol">&nbsp;</div>
+                <div class="div-table-col yAxis">{!$Label.Unlikely}</div>
+                <div class="div-table-col low">{!$Label.Risk_Rating_Low}<br/>15</div>
+                <div class="div-table-col low">{!$Label.Risk_Rating_Low}<br/>30</div>
+                <div class="div-table-col medium">{!$Label.Risk_Rating_Medium}<br/>60</div>
+                </div>
+                </div>
+            </apex:pageBlockSectionItem>        
+        </apex:pageBlockSection>
+        <apex:pageBlockSection title="Mitigation Plan and Cost" columns="1">
+            <apex:inputField value="{!oRisk.RiskMitigation__c}" required="true" style="width: 280px;"/>
+            <apex:inputField value="{!oRisk.MitigationEffectiveness__c}"/>
+            <apex:inputField value="{!oRisk.MitigationCostLabor__c}"/>
+            <apex:inputField value="{!oRisk.MitigationCostSubsODCs__c}"/>
+            <apex:inputField value="{!oRisk.Mitigationbasisofestimate__c}" style="width: 280px;"/>
+        </apex:pageBlockSection>
+        <apex:pageBlockSection title="Post-mitigation Rating & Contingency" columns="1" id="postSection">
+            <apex:inputField value="{!oRisk.Postmitigationlikelihood__c}" id="postLikelihood" onchange="calculatePostRating();"/>
+            <apex:inputField value="{!oRisk.Postmitigationconsequence__c}" id="postConsequence" onchange="calculatePostRating();"/>
+            <apex:inputField value="{!oRisk.Postmitigationrating__c}" id="postRating"/>
+            <apex:inputField value="{!oRisk.PostMitigationScore__c}" id="postScore"/>
+            <apex:inputField value="{!oRisk.PostmitigationContingencyLabor__c}"/>
+            <apex:inputField value="{!oRisk.PostmitigationContingencySubsODCs__c}"/>
+            <apex:inputField value="{!oRisk.Postmitigationbasisofestimate__c}" style="width: 280px;"/>
+            <!-- <apex:outputField value="{!oRisk.PostRiskMatrix__c}"/> -->
+            <apex:pageBlockSectionItem >
+                <apex:outputLabel value="Risk Rating Matrix" for="matrix2" />      
+                <div class="blankfilled">&nbsp;</div>
+                <div class="div-table" id="matrix2">
+                     <div class="consequence">{!$Label.Consequence}</div> 
+                <div class="div-table-row">
+                <div class="div-table-col firstcol">&nbsp;</div>
+                <div class="div-table-col yAxis">&nbsp;</div>
+                <div class="div-table-col xAxis">{!$Label.Risk_Rating_Minor}</div>
+                <div class="div-table-col xAxis">{!$Label.Risk_Rating_Moderate}</div>
+                <div class="div-table-col xAxis">{!$Label.Risk_Rating_Major}</div>
+                </div>
+                <div class="div-table-row">
+                <div class="div-table-col firstcol">&nbsp;</div>
+                <div class="div-table-col yAxis">{!$Label.Likely}</div>
+                <div class="div-table-col medium">{!$Label.Risk_Rating_Medium}<br/>25</div>
+                <div class="div-table-col high">{!$Label.Risk_Rating_High}<br/>50</div>
+                <div class="div-table-col high">{!$Label.Risk_Rating_High}<br/>100</div>
+                </div>
+                <div class="div-table-row">
+                <div class="div-table-col firstcol vertical-text">{!$Label.Probability}</div>
+                <div class="div-table-col yAxis">{!$Label.Possible}</div>
+                <div class="div-table-col low">{!$Label.Risk_Rating_Low}<br/>20</div>
+                <div class="div-table-col medium">{!$Label.Risk_Rating_Medium}<br/>40</div>
+                <div class="div-table-col high">{!$Label.Risk_Rating_High}<br/>80</div>
+                </div>
+                <div class="div-table-row">
+                <div class="div-table-col firstcol">&nbsp;</div>
+                <div class="div-table-col yAxis">{!$Label.Unlikely}</div>
+                <div class="div-table-col low">{!$Label.Risk_Rating_Low}<br/>15</div>
+                <div class="div-table-col low">{!$Label.Risk_Rating_Low}<br/>30</div>
+                <div class="div-table-col medium">{!$Label.Risk_Rating_Medium}<br/>60</div>
+                </div>
+                </div>
+            </apex:pageBlockSectionItem> 
+        </apex:pageBlockSection>
+   	</apex:pageBlock>
+    </apex:form>
+</apex:page>

@@ -1,0 +1,988 @@
+<apex:page tabstyle="ExportControl__c" standardcontroller="ExportControl__c" extensions="ECO_ExportControlController,nttdcore.DLabelParentController" showheader="true" sidebar="true" standardstylesheets="true" >
+    <apex:includeScript value="{!$Resource.ECO_jQuery_1_11_2_min_js}" />
+    <apex:includeScript value="{!URLFOR($Resource.ECO_jQueryUI_1_11_2, 'jquery-ui.min.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.ECO_Bootstrap_3_3_2, 'js/bootstrap.min.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/js/nifty.min.js')}" />
+    
+    
+    <apex:stylesheet value="{!URLFOR($Resource.ECO_jQueryUI_1_11_2_Themes, 'themes/smoothness/jquery-ui.css')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.ECO_Bootstrap_3_3_2, 'css/bootstrap.min.css')}" /> 
+    <apex:stylesheet value="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/css/nifty.css')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/css/font-awesome.min.css')}" />
+    <style>
+        input.hiddenIdField {
+            display: block;
+        }
+        
+        div.spinnerModal {
+            display: none;
+        }
+        
+        .fa {
+            font-size: 400%;
+            text-align: center;
+            color: white;
+        }
+        
+        .modal-dialog {
+            text-align: center !important;
+        }
+
+        .modal-backdrop
+        {
+            opacity:0 !important;
+        }
+
+        .questionnaireTable table tr td{
+            padding-right:18px;
+        }
+
+        .questionHelpText table tr td div.sfdc_richtext{
+            margin-left:35px;
+        }
+
+        .Custom50Block .bPageBlock{
+            margin-bottom:20px !important;
+        }
+
+        td.cell.false textarea{
+            margin-left:3px;
+        }
+        .pageDescription{
+            margin-top:-7px;
+        }
+        .pageType{
+            margin-top:0 !important;
+        }
+        .currentPageLink{
+            font-weight:bold;
+        }
+        .halfWidthWrapper {
+            width:47%;
+            display:inline-block;
+            vertical-align:top;
+        }
+        .halfWidthWrapper:first-child{
+            margin-right:20px;
+        }
+        .centeredColumn{
+            text-align:center;
+        }
+        .table .dataCell a{
+            text-decoration:underline;
+        }
+        .table th{
+            text-align:center;
+        }
+        body .pbBody table.list tr.headerRow th:first-child{
+            text-align:left !important;
+        }
+
+
+        /* TABLE */
+        /*======================================*/
+        .questionnaire .table th {
+          font-size: 1.05em;
+          font-weight: 600;
+          border-bottom: 2px solid rgba(0, 0, 0, 0.14);
+        }
+        .questionnaire .table td {
+          border-top: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        .questionnaire .table table td{
+            border:none !important;
+        }
+        .questionnaire .table.table-vcenter th,
+        .questionnaire .table.table-vcenter td {
+          vertical-align: middle;
+        }
+        .questionnaire .table .min-width {
+          width: 1%;
+          white-space: nowrap;
+          padding-left: 15px !important;
+          padding-right: 15px !important;
+        }
+        .questionnaire .table-bordered td,
+        .questionnaire .table-bordered th {
+          border-color: rgba(0, 0, 0, 0.11);
+        }
+        .questionnaire .table-striped > tbody > tr:nth-child(2n+1) {
+          background-color: #f9f9f9;
+        }
+        .questionnaire .table-hover > tbody > tr:hover {
+          background-color: #e3f3ff;
+        }
+        .table>tbody>tr>td, .table>tbody>tr>th, .table>tfoot>tr>td, .table>tfoot>tr>th, .table>thead>tr>td, .table>thead>tr>th{
+            padding:4px 8px 4px 8px;
+        }
+        .cell td label{
+            vertical-align:middle;
+            margin-left:3px;
+        }
+        table.list table tr td{
+            border:none !important;
+        }
+        table.list .headerRow th{
+            font-size:1.1em !important;
+        }
+        body .pbBody table.list tr th, body .pbBody table.list tr td{
+            border-left:none !important;
+            border-top:none !important;
+            border-right:1px solid #ededed;
+            }   
+
+        /* CUSTOM HELP / GUIDANCE TEXT BOX */
+        .customHelpText{
+            padding: 7px;
+            border: 1px solid #85B3CE;
+            min-height: 30px;
+            display: block;
+            width: auto;
+            margin: 0 0 5px 0;
+            background-repeat: no-repeat;
+            border-radius: 4px;
+            background-color: #A2D3F1;
+            
+        }
+        .customHelpBody{
+            display:inline-block;
+            color:#;
+            max-width:95%;
+        }
+
+    </style>
+    
+
+    <script type="text/javascript" >
+        function setFocusOnLoad() {}    
+        
+        var j$ = jQuery.noConflict();
+
+        j$(document).ready(function (){
+            showOrHideThirdPartyDescription();
+            j$("input[id$='ReviewDate']").blur();
+        });
+    </script>
+
+    <script>
+      $j = jQuery.noConflict();
+    
+      // Added a check for a specific custom object
+        //  if(window.location.href.indexOf("id=a57") != -1) {
+    //$j(document).ready(function() {     
+    //$j("input[name='piSubmit']").hide();
+    //});
+    //}
+    </script>
+    <script type="text/javascript" >
+        $j = jQuery.noConflict();
+        $(document).ready(function () {
+            
+            $('#spinnerModal').modal({
+                show: false
+            });
+        });
+        
+        function toggleShow (thisElement) 
+        {
+            if (thisElement.value == 'Yes' || thisElement.value == 'True' || thisElement.value == 'Unknown') 
+            {
+                
+                $('#spinnerModal').modal({
+                    show: true
+                });
+            }
+            else
+            {
+                $('#spinnerModal').modal({
+                    show: false
+                });
+                
+            }
+        }
+        
+        function showOrHideThirdPartyDescription(){ 
+            $j('input:radio[name$=showThirdPartyDescription]').each(function(index){
+                if($j(this).prop('checked') && $j(this).val() == 'Yes'){
+                    $j('[id$=thirdPartyDescription]').show();
+                    $j('[id$=thirdPartyText]').prop('required',true);
+                }
+                else if(!$j(this).prop('checked') && $j(this).val() == 'Yes'){
+                    $j('[id$=thirdPartyDescription]').hide();
+                    $j('[id$=thirdPartyText]').val('');
+                }
+            });
+            $j('input:radio[name$=partnerSC]').each(function(index){
+                if($j(this).prop('checked') && $j(this).val() == 'Yes'){
+                    $j('[id$=partnerAddress]').show();
+                    $j('[id$=partnerText1]').prop('required',true);
+                    $j('[id$=partnerGoods]').show();
+                    $j('[id$=partnerText2]').prop('required',true);
+                }
+                else if(!$j(this).prop('checked') && $j(this).val() == 'Yes'){
+                    $j('[id$=partnerAddress]').hide();
+                    $j('[id$=partnerText1]').val('');
+                    $j('[id$=partnerGoods]').hide();
+                    $j('[id$=partnerText2]').val('');
+                }
+            });
+            $j('input:radio[name$=jointVenture]').each(function(index){
+                //alert($j(this).val());
+                if($j(this).prop('checked') && $j(this).val() == 'Yes'){
+                    $j('[id$=jvName]').show();
+                    $j('[id$=jvText]').prop('required',true);
+                }
+                else if(!$j(this).prop('checked') && $j(this).val() == 'Yes'){
+                    $j('[id$=jvName]').hide();
+                    $j('[id$=jvText]').val('');
+                }
+            });
+            $j('input:radio[name$=travel]').each(function(index){
+                if($j(this).prop('checked') && $j(this).val() == 'Yes'){
+                    $j('[id$=travel1]').show();
+                    $j('[id$=travelText1]').prop('required',true);
+                    $j('[id$=travel2]').show();
+                    $j('[id$=travelText2]').prop('required',true);
+                }
+                else if(!$j(this).prop('checked') && $j(this).val() == 'Yes'){
+                    $j('[id$=travel1]').hide();
+                    $j('[id$=travelText1]').val('');
+                    $j('[id$=travel2]').hide();
+                    $j('[id$=travelText2]').val('');
+                }
+            });
+            if($j('[id$=governing]').val() == 'Other'){
+                $j('[id$=governingCountry]').show();
+                $j('[id$=governingText]').prop('required',true);
+            }
+            else{
+                $j('[id$=governingCountry]').hide();
+                $j('[id$=governingText]').val('');
+            }
+        }
+        
+        
+        function showModal () {
+            $('#spinnerModal').modal({
+                show: true
+            });
+        }
+        
+        function hideModal () {
+            $('#spinnerModal').modal('hide');
+        }
+        
+    </script>
+    <nttdcore:DLabel name="DL1" default="Export Control(s)" labelParent="{!this}" /><nttdcore:DLabel name="DL2" default="Export/Import Analysis Form" labelParent="{!this}" /><apex:sectionHeader title="{!dLabel['DL1']}" subtitle="{!dLabel['DL2']}" />
+    <apex:pageMessages id="pageMessages" />
+    <div class="customHelpText" >
+        <div class="customHelpBody" ><nttdcore:DLabel name="DL3" default="Export and import regulations control transfers of goods, data and services to foreign companies, persons and destinations, including foreign subsidiaries or joint ventures. The purpose of this form is to collect relevant business data in order to prepare an export/import analysis for an opportunity or transaction, and to retain business records required by applicable export and import regulations." labelParent="{!this}" /><nttdcore:DLabel name="DL5" default="Complete this form in its entirety and click &ldquo;Submit for Review&rdquo; to submit the form to the Export Controls team for export/import analysis.  The team will contact you if further information or action is required.  (Note: un-editable fields are auto-populated from the Project Plan)" labelParent="{!this}" />
+        {!dLabel['DL3']}
+        <p/>
+        <b><nttdcore:DLabel name="DL4" default="DIRECTIONS:" labelParent="{!this}" />{!dLabel['DL4']}</b> {!dLabel['DL5']}
+        </div>
+    </div>      
+
+
+    <apex:form >
+        
+        <apex:pageBlock ><nttdcore:DLabel name="DL9" default="Section I &ndash; Basic Information Concerning Your Transaction / Opportunity" labelParent="{!this}" />
+            <apex:pageBlockButtons location="both" >
+                <nttdcore:DLabel name="DL6" default="Return to Summary" labelParent="{!this}" /><apex:commandButton action="{!ReturnToSummary}" value="{!dLabel['DL6']}" immediate="true" />
+                <nttdcore:DLabel name="DL7" default="Save" labelParent="{!this}" /><apex:commandButton action="{!SaveRecord}" value="{!dLabel['DL7']}" rendered="{!NOT(bReadOnly)}" />
+                <nttdcore:DLabel name="DL8" default="Submit for Review" labelParent="{!this}" /><apex:commandButton action="{!SubmitForReview}" value="{!dLabel['DL8']}" rendered="{!NOT(oExportControl.SubmitforReview__c)}" />
+            </apex:pageBlockButtons>
+        
+            <apex:pageBlockSection collapsible="false" title="{!dLabel['DL9']}" />
+            <div class="customHelpText" >
+                <div class="customHelpBody" ><nttdcore:DLabel name="DL10" default="The purpose of this section is to collect basic data about you and the opportunity or transaction." labelParent="{!this}" />
+                    {!dLabel['DL10']}
+                </div>
+            </div>      
+
+            <apex:outputPanel id="all" ><nttdcore:DLabel name="DL21" default="Section II &ndash; Parties to the Transaction" labelParent="{!this}" /><nttdcore:DLabel name="DL58" default="Section III &ndash; Opportunities or Transaction Details" labelParent="{!this}" /><nttdcore:DLabel name="DL77" default="Section IV &ndash; Import Activity" labelParent="{!this}" /><nttdcore:DLabel name="DL80" default="Section V &ndash; Supplemental Questions" labelParent="{!this}" />
+            <apex:outputField rendered="false" value="{!ExportControl__c.Project__r.pse__Stage__c}" />
+            <table class="list table-hover" width="100%" cellpadding="0" cellspacing="0" >               
+                <tr>
+                    <td class="cell" ><nttdcore:DLabel name="DL11" default="EPM ID:" labelParent="{!this}" />
+                        {!dLabel['DL11']}
+                    </td>
+                    <td class="cell" width="200" valign="bottom" >
+                        <apex:outputField value="{!ExportControl__c.EcoSystemReferenceNumber__c}" />
+                    </td>
+                </tr>
+                <tr>
+                    <td class="cell" ><nttdcore:DLabel name="DL12" default="If an immediate review is needed, indicate the date:" labelParent="{!this}" />
+                        {!dLabel['DL12']}
+                    </td>
+                    <td class="cell" width="200" valign="bottom" >
+                        <apex:inputField id="ReviewDate" value="{!ExportControl__c.ImmediateReviewDate__c}" rendered="{!NOT(bReadOnly)}" />
+                        <apex:outputField value="{!ExportControl__c.ImmediateReviewDate__c}" rendered="{!bReadOnly}" />
+                    </td>
+                </tr>
+                <tr>
+                    <td class="cell" ><nttdcore:DLabel name="DL13" default="Title of opportunity/project (transaction):" labelParent="{!this}" />
+                        {!dLabel['DL13']}
+                    </td>
+                    <td class="cell" width="200" valign="bottom" >
+                        <apex:outputField value="{!ExportControl__c.ProjectLongName__c}" />
+                    </td>
+                </tr>
+                <tr>
+                    <td class="cell" ><nttdcore:DLabel name="DL14" default="Requestor&#39;s name and title:" labelParent="{!this}" />
+                        {!dLabel['DL14']} 
+                    </td>
+                    <td class="cell" width="200" valign="bottom" ><nttdcore:DLabel name="DL15" default="," labelParent="{!this}" />
+                        <apex:outputField value="{!ExportControl__c.Owner.Name}" />{!dLabel['DL15']} <apex:outputField value="{!ExportControl__c.RequesterTitle__c}" />
+                    </td>
+                </tr>
+                <tr>
+                    <td class="cell" ><nttdcore:DLabel name="DL16" default="Requestor&#39;s telephone number:" labelParent="{!this}" />
+                        {!dLabel['DL16']} 
+                    </td>
+                    <td class="cell" width="200" valign="bottom" >
+                        <apex:outputField value="{!ExportControl__c.RequesterTelephone__c}" />
+                    </td>
+                </tr>
+                <tr>
+                    <td class="cell" ><nttdcore:DLabel name="DL17" default="Requestor&#39;s Geography:" labelParent="{!this}" />
+                        {!dLabel['DL17']} 
+                    </td>
+                    <td class="cell" width="200" valign="bottom" >
+                        <apex:outputField value="{!ExportControl__c.RequesterGeography__c}" />
+                    </td>
+                </tr>
+                <tr>
+                    <td class="cell" ><nttdcore:DLabel name="DL18" default="Requestor&#39;s Business Line:" labelParent="{!this}" />
+                        {!dLabel['DL18']} 
+                    </td>
+                    <td class="cell" width="200" valign="bottom" >
+                        <apex:outputField value="{!ExportControl__c.RequesterBusinessLine__c}" />
+                    </td>
+                </tr>
+                <tr>
+                    <td class="cell" ><nttdcore:DLabel name="DL19" default="Requestor&#39;s AECOM Legal Entity, i.e. AECOM Technical Services, AECOM UK Ltd:" labelParent="{!this}" />
+                        {!dLabel['DL19']} 
+                    </td>
+                    <td class="cell" width="200" valign="bottom" >
+                        <apex:inputField id="RequesterLegalEntity" value="{!ExportControl__c.RequesterLegalEntity_Text__c}" rendered="{!NOT(bReadOnly)}" />
+                        <apex:outputField value="{!ExportControl__c.RequesterLegalEntity_Text__c}" rendered="{!bReadOnly}" />
+                    </td>
+                </tr>
+                <tr>
+                    <td class="cell" ><nttdcore:DLabel name="DL20" default="List all other AECOM Legal Entities that are/will be participating in this opportunity or transaction:" labelParent="{!this}" />
+                        {!dLabel['DL20']} 
+                    </td>
+                    <td class="cell" width="180" height="200" valign="bottom" >
+                        <apex:inputField id="LegalEntities" value="{!ExportControl__c.OtherAECOMLegalEntities__c}" style="height:200px;width:200px" rendered="{!NOT(bReadOnly)}" />
+                        <apex:outputField value="{!ExportControl__c.OtherAECOMLegalEntities__c}" style="height:200px;width:200px" rendered="{!bReadOnly}" />
+                    </td>
+                </tr>
+                </table>
+                
+                <apex:pageBlockSection collapsible="false" title="{!dLabel['DL21']}" /> 
+                <div class="customHelpText" >
+                    <div class="customHelpBody" ><nttdcore:DLabel name="DL22" default="The purpose of this section is to collect basic data concerning third parties, including the Ultimate End User, our client (if not the Ultimate End User),  parties known to date and contracted by the end user/owner" labelParent="{!this}" /><nttdcore:DLabel name="DL23" default="or our client, and known parties AECOM contracts or intends to contract, including non-technical agents and consultants." labelParent="{!this}" />
+                        {!dLabel['DL22']} <br/>{!dLabel['DL23']}
+                    </div>
+                </div>                              
+                <table class="list table-hover" width="100%" cellpadding="0" cellspacing="0" >
+                <tr bgcolor="#C9EDFF" >
+                    <td class="cell bold italic" colspan="2" ><nttdcore:DLabel name="DL24" default="Final Destination" labelParent="{!this}" />{!dLabel['DL24']}</td>
+                </tr>
+                <tr>
+                    <td class="cell" ><nttdcore:DLabel name="DL25" default="List the final destination to which goods, services or data AECOM will send (for example, a bridge designed for a project in Singapore &ndash; the final destination is Singapore):" labelParent="{!this}" />
+                        {!dLabel['DL25']} 
+                    </td>
+                    <td class="cell" width="200" valign="bottom" >
+                        <apex:inputField value="{!ExportControl__c.Final_Destination_Place__c}" rendered="{!NOT(bReadOnly)}" />
+                        <apex:outputField value="{!ExportControl__c.Final_Destination_Place__c}" rendered="{!bReadOnly}" />
+                    </td>
+                </tr>
+                <tr bgcolor="#C9EDFF" >
+                    <td colspan="2" ><nttdcore:DLabel name="DL27" default="(The &ldquo;Ultimate End User&rdquo; is the ultimate party, whether or not contracted with AECOM, who will be the actual beneficiary or user of AECOM supplied goods, services or data.)" labelParent="{!this}" />
+                    <span class="cell bold italic" ><nttdcore:DLabel name="DL26" default="Ultimate End User" labelParent="{!this}" />{!dLabel['DL26']} </span>
+                    {!dLabel['DL27']}
+                    </td>
+                </tr>
+                <tr>
+                    <td class="cell" ><nttdcore:DLabel name="DL28" default="Ultimate End User full legal name:" labelParent="{!this}" />
+                        {!dLabel['DL28']}
+                    </td>
+                    <td class="cell" width="200" valign="bottom" >
+                        <apex:outputField value="{!endClientAccount.Name}" />
+                    </td>
+                </tr>
+                <tr>
+                    <td class="cell" ><nttdcore:DLabel name="DL29" default="Ultimate End User address:" labelParent="{!this}" />
+                        {!dLabel['DL29']}
+                    </td>
+                    <td class="cell" width="200" valign="bottom" >
+                        <apex:outputField value="{!endClientAccount.BillingStreet}" />
+                        <br/>
+                        <apex:outputField value="{!endClientAccount.BillingCity}" /><nttdcore:DLabel name="DL30" default="," labelParent="{!this}" /><apex:outputText value="{!dLabel['DL30']}" rendered="{!AND(bShowUltimateEndUserAddress, IF(endClientAccount.BillingCity != null, true, false))}" />&nbsp;<apex:outputField value="{!endClientAccount.BillingState}" />
+                        <br/>
+                        <apex:outputField value="{!endClientAccount.BillingCountry}" /><nttdcore:DLabel name="DL31" default="," labelParent="{!this}" /><apex:outputText value="{!dLabel['DL31']}" rendered="{!AND(bShowUltimateEndUserAddress, IF(endClientAccount.BillingCountry != null, true,false))}" />&nbsp;<apex:outputField value="{!endClientAccount.BillingPostalCode}" />
+                    </td>
+                </tr>
+                <tr>
+                    <td class="cell" ><nttdcore:DLabel name="DL32" default="Ultimate End User website:" labelParent="{!this}" />
+                        {!dLabel['DL32']}
+                    </td>
+                    <td class="cell" width="200" valign="bottom" >
+                        <apex:inputField value="{!ExportControl__c.End_Client_Website__c}" rendered="{!NOT(bReadOnly)}" />
+                        <apex:outputField value="{!ExportControl__c.End_Client_Website__c}" rendered="{!bReadOnly}" />
+                    </td>
+                </tr>
+                <tr>
+                    <td class="cell" ><nttdcore:DLabel name="DL33" default="Is the Ultimate End User an agency, branch, department or ministry of a government?" labelParent="{!this}" />
+                        {!dLabel['DL33']}
+                    </td>
+                    <td class="cell" width="200" valign="bottom" >
+                        <apex:selectRadio value="{!ExportControl__c.UltimateEndUserAgency__c}" >
+                            <apex:selectOptions value="{!lAnswerValues}" />
+                        </apex:selectRadio>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="cell" ><nttdcore:DLabel name="DL34" default="Is the Ultimate End User a government-owned or state-owned business entity?" labelParent="{!this}" />
+                        {!dLabel['DL34']}
+                    </td>
+                    <td class="cell" width="200" valign="bottom" >
+                        <apex:selectRadio value="{!ExportControl__c.UltimateEndUserGovtorState__c}" >
+                            <apex:selectOptions value="{!lAnswerValues}" />
+                        </apex:selectRadio>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="cell" ><nttdcore:DLabel name="DL35" default="Is the Ultimate End User a joint venture?" labelParent="{!this}" />
+                        {!dLabel['DL35']}
+                    </td>
+                    <td class="cell" width="200" valign="bottom" >
+                        <apex:selectRadio value="{!ExportControl__c.UltimateEndUserJointVenture__c}" >
+                            <apex:selectOptions value="{!lAnswerValues}" />
+                        </apex:selectRadio>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="cell" ><nttdcore:DLabel name="DL36" default="Is the Ultimate End User contracting AECOM directly?" labelParent="{!this}" />
+                        {!dLabel['DL36']}
+                    </td>
+                    <td class="cell" width="200" valign="bottom" >
+                        <apex:selectRadio value="{!ExportControl__c.UltimateEndUserContracting__c}" >
+                            <apex:selectOptions value="{!lAnswerValues}" />
+                        </apex:selectRadio>
+                    </td>
+                </tr>
+                <tr bgcolor="#C9EDFF" >
+                    <td colspan="2" ><nttdcore:DLabel name="DL38" default="(If the &ldquo;Ultimate End User&rdquo; is not contracting AECOM directly.)" labelParent="{!this}" />
+                    <span class="cell bold italic" ><nttdcore:DLabel name="DL37" default="Client if not the Ultimate End User" labelParent="{!this}" />{!dLabel['DL37']}</span>
+                    {!dLabel['DL38']}</td>
+                </tr>
+                <tr>
+                    <td class="cell" ><nttdcore:DLabel name="DL39" default="Client&#39;s full legal name:" labelParent="{!this}" />
+                        {!dLabel['DL39']}
+                    </td>
+                    <td class="cell" width="200" valign="bottom" >
+                        <apex:outputField value="{!billingClientAccount.Name}" />
+                    </td>
+                </tr>
+                <tr>
+                    <td class="cell" ><nttdcore:DLabel name="DL40" default="Client&#39;s address:" labelParent="{!this}" />
+                        {!dLabel['DL40']}
+                    </td>
+                    <td class="cell" width="200" valign="bottom" >
+                        <apex:outputField value="{!billingClientAccount.BillingStreet}" />
+                        <br/>
+                        <apex:outputField value="{!billingClientAccount.BillingCity}" /><nttdcore:DLabel name="DL41" default="," labelParent="{!this}" /><apex:outputText value="{!dLabel['DL41']}" rendered="{!bShowClientAddress}" />&nbsp;<apex:outputField value="{!billingClientAccount.BillingState}" />
+                        <br/>
+                        <apex:outputField value="{!billingClientAccount.BillingCountry}" /><nttdcore:DLabel name="DL42" default="," labelParent="{!this}" /><apex:outputText value="{!dLabel['DL42']}" rendered="{!bShowClientAddress}" />&nbsp;<apex:outputField value="{!billingClientAccount.BillingPostalCode}" />
+                    </td>
+                </tr>
+                <tr>
+                    <td class="cell" ><nttdcore:DLabel name="DL43" default="Client&#39;s website:" labelParent="{!this}" />
+                        {!dLabel['DL43']}
+                    </td>
+                    <td class="cell" width="200" valign="bottom" >
+                        <apex:inputField value="{!oExportControl.Billing_Client_Website__c}" rendered="{!NOT(bReadOnly)}" />
+                        <apex:outputField value="{!oExportControl.Billing_Client_Website__c}" rendered="{!bReadOnly}" />
+                    </td>
+                </tr>
+                <tr>
+                    <td class="cell" ><nttdcore:DLabel name="DL44" default="Is the Client an agency, branch, department or ministry of a government?" labelParent="{!this}" />
+                        {!dLabel['DL44']}
+                    </td>
+                    <td class="cell" width="200" valign="bottom" >
+                        <apex:selectRadio value="{!ExportControl__c.ClientEndUserAgency__c}" >
+                            <apex:selectOptions value="{!lAnswerValues}" />
+                        </apex:selectRadio>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="cell" ><nttdcore:DLabel name="DL45" default="Is the Client a government-owned or state-owned business entity?" labelParent="{!this}" />
+                        {!dLabel['DL45']}
+                    </td>
+                    <td class="cell" width="200" valign="bottom" >
+                        <apex:selectRadio value="{!ExportControl__c.ClientEndUserGovtorState__c}" >
+                            <apex:selectOptions value="{!lAnswerValues}" />
+                        </apex:selectRadio>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="cell" ><nttdcore:DLabel name="DL46" default="Is the Client a joint venture?" labelParent="{!this}" />
+                        {!dLabel['DL46']} 
+                    </td>
+                    <td class="cell" width="200" valign="bottom" >
+                        <apex:selectRadio value="{!ExportControl__c.ClientJointVenture__c}" >
+                            <apex:selectOptions value="{!lAnswerValues}" />
+                        </apex:selectRadio>
+                    </td>
+                </tr>
+                <tr bgcolor="#C9EDFF" >
+                    <td class="cell bold italic" colspan="2" ><nttdcore:DLabel name="DL47" default="Ultimate End User or Client Third Parties" labelParent="{!this}" />{!dLabel['DL47']}</td>
+                </tr>
+                <tr>
+                    <td class="cell" ><nttdcore:DLabel name="DL48" default="Will the Ultimate End User or Client directly hire third parties with whom AECOM will need to exchange goods, data or services?" labelParent="{!this}" />
+                        {!dLabel['DL48']}
+                    </td>
+                    <td class="cell" width="200" valign="bottom" >
+                        <apex:selectRadio id="showThirdPartyDescription" onchange="showOrHideThirdPartyDescription()" value="{!ExportControl__c.EndUserorClientDirectHire__c}" >
+                            <apex:selectOptions value="{!lAnswerValues}" />
+                        </apex:selectRadio>
+                    </td>
+                </tr>
+                <!--<apex:actionRegion >-->
+                <tr id="thirdPartyDescription" >
+                    <td class="cell" align="right" colspan="2" >
+                        <table style="width: 100%;" >
+                            <tr>
+                                <td align="right" width="60%" valign="middle" ><nttdcore:DLabel name="DL49" default="If Yes, provide the name, address and website for each third party:" labelParent="{!this}" />{!dLabel['DL49']}</td>
+                                <td align="right" valign="top" >
+                                    <apex:inputTextarea id="thirdPartyText" value="{!ExportControl__c.EndUserorClientContactInfo__c}" style="width: 98%; height: 60px; border-left: 5px solid red; padding: 10px" rendered="{!NOT(bReadOnly)}" />
+                                    <apex:inputTextarea value="{!ExportControl__c.EndUserorClientContactInfo__c}" style="width: 98%; height: 60px; border-left: 5px; padding: 10px" disabled="true" rendered="{!bReadOnly}" />
+                                </td>
+                            </tr>
+                        </table>    
+                    </td>
+                </tr>
+                <!--</apex:actionRegion>-->
+                
+                <tr bgcolor="#C9EDFF" >
+                    <td class="cell bold italic" colspan="2" ><nttdcore:DLabel name="DL50" default="AECOM&#39;s Partners or Subcontractors" labelParent="{!this}" />{!dLabel['DL50']}</td>
+                </tr>
+                <tr>
+                    <td class="cell" ><nttdcore:DLabel name="DL51" default="Will AECOM use partners or subcontractors?" labelParent="{!this}" />
+                        {!dLabel['DL51']} 
+                    </td>
+                    <td class="cell" width="200" valign="bottom" >
+                        <!--<apex:actionRegion >-->
+                            <apex:selectRadio id="partnerSC" value="{!ExportControl__c.PartnerOrSubcontractors__c}" onchange="showOrHideThirdPartyDescription()" >
+                                <!--<apex:actionSupport event="onclick" rerender="partner" />-->
+                                <apex:selectOptions value="{!lAnswerValues}" />
+                            </apex:selectRadio>
+                        <!--</apex:actionRegion>-->
+                    </td>
+                </tr>
+                <tr>
+                    <tr id="partnerAddress" >
+                        <td class="cell" align="right" colspan="2" >
+                            <table style="width: 100%;" >
+                                <tr>
+                                    <td align="right" width="60%" valign="middle" ><nttdcore:DLabel name="DL52" default="If Yes, provide the name, address and website for each partner or subcontractor:" labelParent="{!this}" />{!dLabel['DL52']}</td>
+                                    <td align="right" valign="top" >
+                                        <apex:inputTextarea id="partnerText1" value="{!ExportControl__c.PartnerorSubContactInfo__c}" style="width: 98%; height: 60px; border-left: 5px solid red; padding: 10px" rendered="{!NOT(bReadOnly)}" />
+                                        <apex:inputTextarea value="{!ExportControl__c.PartnerorSubContactInfo__c}" style="width: 98%; height: 60px; border-left: 5px; padding: 10px" disabled="true" rendered="{!bReadOnly}" />
+                                    </td>
+                                </tr>
+                            </table>
+                            
+                        </td>
+                    </tr>
+                    <tr id="partnerGoods" >
+                        <td class="cell" align="right" colspan="2" >
+                            <table style="width: 100%;" >
+                                <tr>
+                                    <td align="right" width="60%" valign="middle" ><nttdcore:DLabel name="DL53" default="If Yes, briefly describe the goods, services or data each partner or subcontractor" labelParent="{!this}" /><nttdcore:DLabel name="DL54" default="will contribute to this opportunity or project:" labelParent="{!this}" />{!dLabel['DL53']} <br/> {!dLabel['DL54']}</td>
+                                    <td align="right" valign="top" >
+                                        <apex:inputTextarea id="partnerText2" value="{!ExportControl__c.PartnerOrSubServices__c}" style="width: 98%; height: 60px; border-left: 5px solid red; padding: 10px" rendered="{!NOT(bReadOnly)}" />
+                                        <apex:inputTextarea value="{!ExportControl__c.PartnerOrSubServices__c}" style="width: 98%; height: 60px; border-left: 5px; padding: 10px" disabled="true" rendered="{!bReadOnly}" />
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </tr>
+                <tr bgcolor="#C9EDFF" >
+                    <td class="cell bold italic" colspan="2" ><nttdcore:DLabel name="DL55" default="AECOM Joint Ventures" labelParent="{!this}" />{!dLabel['DL55']}</td>
+                </tr>
+                <tr>
+                    <td class="cell" ><nttdcore:DLabel name="DL56" default="Will AECOM be forming or use an existing Joint Venture for this opportunity or transaction?" labelParent="{!this}" />
+                        {!dLabel['DL56']}
+                    </td>
+                    <td class="cell" width="200" valign="bottom" >
+                        <apex:selectRadio id="jointVenture" value="{!ExportControl__c.PartnerOrSubcontractors__c}" onchange="showOrHideThirdPartyDescription()" >
+                            <apex:selectOptions value="{!lAnswerValues}" />
+                        </apex:selectRadio>
+                        <!--<apex:actionRegion >-->
+                            <!--<apex:inputField id="jointVenture" value="{!oExportControl.ExistingJointVentureInput__c}" onchange="showOrHideThirdPartyDescription()">-->
+                                <!--<apex:actionSupport event="onclick" rerender="jointVenture" />-->
+                            <!--</apex:inputField>-->
+                        <!--</apex:actionRegion>-->
+                    </td>
+                </tr>
+                <tr id="jvName" >
+                    <td class="cell" align="right" colspan="2" >
+                        <table style="width: 100%;" >
+                            <tr>
+                                <td align="right" width="60%" valign="middle" ><nttdcore:DLabel name="DL57" default="If Yes, provide the name of the Joint Venture, and identify all parties in addition to AECOM who comprise this Joint Venture:" labelParent="{!this}" />{!dLabel['DL57']}</td>
+                                <td align="right" valign="top" >
+                                    <apex:inputTextarea id="jvText" value="{!ExportControl__c.JointVentureName__c}" style="width: 98%; height: 60px; border-left: 5px solid red; padding: 10px" rendered="{!NOT(bReadOnly)}" />
+                                    <apex:inputTextarea value="{!ExportControl__c.JointVentureName__c}" style="width: 98%; height: 60px; border-left: 5px; padding: 10px" disabled="true" rendered="{!bReadOnly}" />
+                                </td>
+                            </tr>
+                        </table>
+                        
+                    </td>
+                </tr>
+                </table>
+           
+                <apex:pageBlockSection collapsible="false" title="{!dLabel['DL58']}" />      
+                <div class="customHelpText" >
+                    <div class="customHelpBody" ><nttdcore:DLabel name="DL59" default="The purpose of this section is to collect basic facts concerning the opportunity or transaction in plain layperson language." labelParent="{!this}" />
+                        {!dLabel['DL59']}
+                    </div>
+                </div>  
+                <apex:outputPanel id="Opportunities" >
+                <table class="list table-hover" width="100%" cellpadding="0" cellspacing="0" >
+                <!--<tr class="headerRow">
+                    <th colspan="2"  class="headerRow">                     
+                    Section III – Opportunities or Transaction Details
+                    <span style="padding:5px;display:block;font-weight: normal">The purpose of this section is to collect basic facts concerning the opportunity or transaction in plain layperson language.</span></th>
+                </tr>-->
+                <tr>
+                    <td class="cell" ><nttdcore:DLabel name="DL60" default="This opportunity or transaction is:" labelParent="{!this}" />
+                        {!dLabel['DL60']}
+                    </td>
+                    <td class="cell" width="200" valign="bottom" >
+                        <apex:outputField value="{!ExportControl__c.OpptyorTransStatus__c}" />
+                    </td>
+                </tr>
+                <tr>
+                    <td class="cell" ><nttdcore:DLabel name="DL61" default="Using plain, layperson language, describe what the project is (i.e. resort development, bridge design, military operational support project, etc.) and what AECOM and its partners or subcontractors do for this opportunity or project (i.e. design a civilian bridge, provide military maintenance and support services, etc.)" labelParent="{!this}" />
+                        {!dLabel['DL61']}
+                    </td>
+                    <td class="cell" width="200" height="150" valign="bottom" >
+                        <apex:inputField id="ProjectDescription" value="{!ExportControl__c.ProjectDescription__c}" style="height:200px;width:200px" rendered="{!NOT(bReadOnly)}" />
+                        <apex:outputField value="{!ExportControl__c.ProjectDescription__c}" style="height:200px;width:200px" rendered="{!bReadOnly}" />                      
+                    </td>
+                </tr>
+                <tr>
+                    <td class="cell italic" colspan="2" ><nttdcore:DLabel name="DL62" default="Does the opportunity or transaction concern or is related to ANY of the following (select all that apply):" labelParent="{!this}" />{!dLabel['DL62']}</td>
+                </tr>
+                <tr>
+                    <td class="cell" >
+                        <div style="padding-left: 26px;" ><nttdcore:DLabel name="DL63" default="Military, police or prison facilities?" labelParent="{!this}" /> 
+                            {!dLabel['DL63']}
+                        </div> 
+                        
+                    </td>
+                    <td class="cell" width="200" valign="bottom" >
+                        <apex:selectRadio value="{!ExportControl__c.OpptyOrTransMilitary__c}" >
+                            <apex:selectOptions value="{!lAnswerValues}" />
+                        </apex:selectRadio>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="cell" >
+                        <div style="padding-left: 26px;" ><nttdcore:DLabel name="DL64" default="Intelligence-gathering, CLASSIFIED or UNCLASSIFIED but sensitive or confidential?" labelParent="{!this}" /> 
+                        {!dLabel['DL64']} 
+                        </div>
+                    </td>
+                    <td class="cell" width="200" valign="bottom" >
+                        <apex:selectRadio value="{!ExportControl__c.OpptyOrTransIntelligence__c}" >
+                            <apex:selectOptions value="{!lAnswerValues}" />
+                        </apex:selectRadio>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="cell" >
+                        <div style="padding-left: 26px;" ><nttdcore:DLabel name="DL65" default="Space, high-altitude equipment, radar equipment or satellites and their ground stations?" labelParent="{!this}" /> 
+                        {!dLabel['DL65']}
+                        </div>
+                    </td>
+                    <td class="cell" width="200" valign="bottom" >
+                        <apex:selectRadio value="{!ExportControl__c.OpptyOrTransSpace__c}" >
+                            <apex:selectOptions value="{!lAnswerValues}" />
+                        </apex:selectRadio>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="cell" >
+                        <div style="padding-left: 26px;" ><nttdcore:DLabel name="DL66" default="Biological, chemical, or nuclear weapons, weapons of mass destruction or remediation of same?" labelParent="{!this}" /> 
+                        {!dLabel['DL66']}
+                        </div>
+                    </td>
+                    <td class="cell" width="200" valign="bottom" >
+                        <apex:selectRadio value="{!ExportControl__c.OpptyOrTransChemical__c}" >
+                            <apex:selectOptions value="{!lAnswerValues}" />
+                        </apex:selectRadio>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="cell" >
+                        <div style="padding-left: 26px;" ><nttdcore:DLabel name="DL67" default="Conventional weapons and related supplies or accessories?" labelParent="{!this}" /> 
+                        {!dLabel['DL67']}
+                        </div>
+                    </td>
+                    <td class="cell" width="200" valign="bottom" >
+                        <apex:selectRadio value="{!ExportControl__c.OpptyOrTransWeapons__c}" >
+                            <apex:selectOptions value="{!lAnswerValues}" />
+                        </apex:selectRadio>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="cell" >
+                        <div style="padding-left: 26px;" ><nttdcore:DLabel name="DL68" default="Personal protective equipment?" labelParent="{!this}" /> 
+                        {!dLabel['DL68']}
+                        </div>
+                    </td>
+                    <td class="cell" width="200" valign="bottom" >
+                        <apex:selectRadio value="{!ExportControl__c.OpptyOrTransProtectiveEquip__c}" >
+                            <apex:selectOptions value="{!lAnswerValues}" />
+                        </apex:selectRadio>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="cell" >
+                        <div style="padding-left: 26px;" ><nttdcore:DLabel name="DL69" default="Anti-terrorism, anti-narcotrafficking?" labelParent="{!this}" /> 
+                        {!dLabel['DL69']}
+                        </div>
+                    </td>
+                    <td class="cell" width="200" valign="bottom" >
+                        <apex:selectRadio value="{!ExportControl__c.OpptyOrTransTerrorism__c}" >
+                            <apex:selectOptions value="{!lAnswerValues}" />
+                        </apex:selectRadio>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="cell" >
+                        <div style="padding-left: 26px;" ><nttdcore:DLabel name="DL70" default="Government embassy or building?" labelParent="{!this}" /> 
+                        {!dLabel['DL70']}
+                        </div>
+                    </td>
+                    <td class="cell" width="200" valign="bottom" >
+                        <apex:selectRadio value="{!ExportControl__c.OpptyOrTransEmbassy__c}" >
+                            <apex:selectOptions value="{!lAnswerValues}" />
+                        </apex:selectRadio>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="cell" >
+                        <div style="padding-left: 26px;" ><nttdcore:DLabel name="DL71" default="Air or ocean port with both civilian AND military features?" labelParent="{!this}" /> 
+                        {!dLabel['DL71']}
+                        </div>
+                    </td>
+                    <td class="cell" width="200" valign="bottom" >
+                        <apex:selectRadio value="{!ExportControl__c.OpptyOrTransPort__c}" >
+                            <apex:selectOptions value="{!lAnswerValues}" />
+                        </apex:selectRadio>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="cell" >
+                        <div style="padding-left: 26px;" ><nttdcore:DLabel name="DL72" default="Facility security design for government or civilian facility, including air or ocean port?" labelParent="{!this}" /> 
+                        {!dLabel['DL72']}
+                        </div>
+                    </td>
+                    <td class="cell" width="200" valign="bottom" >
+                        <apex:selectRadio value="{!ExportControl__c.OpptyOrTransSecurity__c}" >
+                            <apex:selectOptions value="{!lAnswerValues}" />
+                        </apex:selectRadio>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="cell" >
+                        <div style="padding-left: 26px;" ><nttdcore:DLabel name="DL73" default="Nuclear energy or research applications?" labelParent="{!this}" /> 
+                        {!dLabel['DL73']}
+                        </div>
+                    </td>
+                    <td class="cell" width="200" valign="bottom" >
+                        <apex:selectRadio value="{!ExportControl__c.OpptyOrTransNuclear__c}" >
+                            <apex:selectOptions value="{!lAnswerValues}" />
+                        </apex:selectRadio>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="cell" >
+                        <div style="padding-left: 26px;" ><nttdcore:DLabel name="DL74" default="Biological, chemical or nuclear hospital or laboratory facilities including those for military or civilian hospitals?" labelParent="{!this}" /> 
+                        {!dLabel['DL74']} 
+                        </div>
+                    </td>
+                    <td class="cell" width="200" valign="bottom" >
+                        <apex:selectRadio value="{!ExportControl__c.OpptyOrTransHospital__c}" >
+                            <apex:selectOptions value="{!lAnswerValues}" />
+                        </apex:selectRadio>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="cell" >
+                        <div style="padding-left: 26px;" ><nttdcore:DLabel name="DL75" default="Public or private university projects in support research or studies other than studies of liberal arts?" labelParent="{!this}" /> 
+                        {!dLabel['DL75']} 
+                        </div>
+                    </td>
+                    <td class="cell" width="200" valign="bottom" >
+                        <apex:selectRadio value="{!ExportControl__c.OpptyOrTransUniversity__c}" >
+                            <apex:selectOptions value="{!lAnswerValues}" />
+                        </apex:selectRadio>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="cell" >
+                        <div style="padding-left: 26px;" ><nttdcore:DLabel name="DL76" default="Oil &amp; gas refinery, storage or operations of same, including remediation?" labelParent="{!this}" /> 
+                        {!dLabel['DL76']}
+                        </div>
+                    </td>
+                    <td class="cell" width="200" valign="bottom" >
+                        <apex:selectRadio value="{!ExportControl__c.OpptyOrTransOilandGas__c}" >
+                            <apex:selectOptions value="{!lAnswerValues}" />
+                        </apex:selectRadio>
+                    </td>
+                </tr>
+                </table>
+                </apex:outputPanel>
+                <apex:pageBlockSection collapsible="false" title="{!dLabel['DL77']}" />
+                <div class="customHelpText" >
+                    <div class="customHelpBody" ><nttdcore:DLabel name="DL78" default="The purpose of this section is to collect basic facts concerning tangible goods that may be export to or imported into the above-described final institution" labelParent="{!this}" />
+                        {!dLabel['DL78']}
+                    </div>
+                </div>  
+                <table class="list table-hover" width="100%" cellpadding="0" cellspacing="0" >
+                <tr>
+                    <td class="cell" ><nttdcore:DLabel name="DL79" default="Will AECOM PERMANENTLY import goods directly or indirectly to an intermediate location or the final destination in support of this transaction?" labelParent="{!this}" />
+                        {!dLabel['DL79']}
+                    </td>
+                    <td class="cell" width="200" valign="bottom" >
+                        <apex:selectRadio value="{!ExportControl__c.ImportPermanently__c}" >
+                            <apex:selectOptions value="{!lAnswerValues}" />
+                        </apex:selectRadio>
+                    </td>
+                </tr>
+                </table>                    
+                
+                <apex:pageBlockSection collapsible="false" title="{!dLabel['DL80']}" />
+                <div class="customHelpText" >
+                    <div class="customHelpBody" ><nttdcore:DLabel name="DL81" default="The purpose of this section is to collect supplemental business data concerning the opportunity or transaction that assist in completing the analysis." labelParent="{!this}" />
+                        {!dLabel['DL81']}
+                    </div>
+                </div>  
+                <apex:actionRegion >
+                  <table class="list table-hover" width="100%" cellpadding="0" cellspacing="0" >
+                    <apex:outputPanel id="SupplementalQ" >
+                    <tr>
+                        <td class="cell" ><nttdcore:DLabel name="DL82" default="Will AECOM stakeholders, including the requestor or project team travel internationally in support of this opportunity or transaction?" labelParent="{!this}" />
+                            {!dLabel['DL82']} 
+                        </td>
+                        <td class="cell" width="200" valign="bottom" >
+                            <apex:actionRegion >
+                                <apex:selectRadio id="travel" value="{!ExportControl__c.TravelInternationally__c}" onchange="showOrHideThirdPartyDescription()" >
+                                    <!--<apex:actionSupport event="onclick" rerender="SupplementalQ" />-->
+                                    <apex:selectOptions value="{!lAnswerValues}" />
+                                </apex:selectRadio>
+                            </apex:actionRegion>
+                        </td>
+                    </tr>
+                    <tr id="travel1" >
+                        <td class="cell" align="right" colspan="2" >
+                            <table style="width: 100%;" >
+                                <tr>
+                                    <td align="right" width="60%" valign="middle" ><nttdcore:DLabel name="DL83" default="If Yes, list the country or countries of travel:" labelParent="{!this}" />{!dLabel['DL83']}</td>
+                                    <td align="right" valign="top" >
+                                        <apex:inputTextarea id="travelText1" value="{!ExportControl__c.TravelCountries__c}" style="width: 98%; height: 60px; border-left: 5px solid red; padding: 10px" rendered="{!NOT(bReadOnly)}" />
+                                        <apex:inputTextarea value="{!ExportControl__c.TravelCountries__c}" style="width: 98%; height: 60px; border-left: 5px; padding: 10px" disabled="true" rendered="{!bReadOnly}" />
+                                    </td>
+                                </tr>
+                            </table>
+                            
+                        </td>
+                    </tr>
+                    <tr id="travel2" >
+                        <td class="cell" align="right" colspan="2" >
+                            <table style="width: 100%;" >
+                                <tr>
+                                    <td align="right" width="60%" valign="middle" ><nttdcore:DLabel name="DL84" default="If Yes, other than AECOM-assigned laptops, mobile phones or standard data devices, describe" labelParent="{!this}" /><nttdcore:DLabel name="DL85" default="any other equipment needed for travel in support of this opportunity or transaction.  If no other equipment, please write &ldquo;none.&rdquo;" labelParent="{!this}" /><nttdcore:DLabel name="DL86" default="If you will be taking AECOM-assigned laptops, mobile phones or standard data devices with you while traveling outside your home country," labelParent="{!this}" /><nttdcore:DLabel name="DL87" default="refer to AECOM IT policies concerning device security requirements and AECOM Corporate Security for international travel" labelParent="{!this}" /><nttdcore:DLabel name="DL88" default="requirements including travel safety:" labelParent="{!this}" />{!dLabel['DL84']} <br/>
+                                    {!dLabel['DL85']} 
+                            <br/><br/>
+                            {!dLabel['DL86']} <br/>{!dLabel['DL87']} <br/>{!dLabel['DL88']}</td>
+                                    <td align="right" valign="top" >
+                                        <apex:inputTextarea id="travelText2" value="{!ExportControl__c.TravelEquipment__c}" style="width: 98%; height: 120px; border-left: 5px solid red; padding: 10px" rendered="{!NOT(bReadOnly)}" />
+                                        <apex:inputTextarea value="{!ExportControl__c.TravelEquipment__c}" style="width: 98%; height: 120px; border-left: 5px; padding: 10px" disabled="true" rendered="{!bReadOnly}" />
+                                    </td>
+                                </tr>
+                            </table>
+                            
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="cell" ><nttdcore:DLabel name="DL89" default="Will AECOM employees be assigned to work abroad in support of this opportunity or transaction?  If &ldquo;Yes,&rdquo; contact AECOM&#39;s Global Mobility Team for international visa requirements." labelParent="{!this}" />
+                            {!dLabel['DL89']} 
+                        </td>
+                        <td class="cell" width="200" valign="bottom" >
+                            <apex:selectRadio value="{!ExportControl__c.AssignmentAbroad__c}" >
+                                <apex:selectOptions value="{!lAnswerValues}" />
+                            </apex:selectRadio>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="cell" ><nttdcore:DLabel name="DL90" default="Indicate the governing law of any bid or contract terms and conditions:" labelParent="{!this}" />
+                            {!dLabel['DL90']} 
+                        </td>
+                        <td class="cell" width="200" valign="bottom" >
+                            <!--<apex:actionRegion >-->
+                                <apex:inputField id="governing" value="{!ExportControl__c.GoverningLaw__c}" onchange="showOrHideThirdPartyDescription();" rendered="{!NOT(bReadOnly)}" />
+                                <apex:outputField value="{!ExportControl__c.GoverningLaw__c}" rendered="{!bReadOnly}" />
+                            <!--</apex:actionRegion>-->
+                        </td>
+                    </tr>
+                    <tr id="governingCountry" >
+                        <td class="cell" align="right" colspan="2" >
+                            <table style="width: 100%;" >
+                                <tr>
+                                    <td align="right" width="60%" valign="middle" ><nttdcore:DLabel name="DL91" default="If &ldquo;Other Country,&rdquo; identify the governing law country or countries:" labelParent="{!this}" />{!dLabel['DL91']}</td>
+                                    <td align="right" valign="top" >
+                                        <apex:inputTextarea id="governingText" value="{!ExportControl__c.OtherCountry__c}" style="width: 98%; height: 120px; border-left: 5px solid red; padding: 10px" rendered="{!NOT(bReadOnly)}" />
+                                        <apex:inputTextarea value="{!ExportControl__c.OtherCountry__c}" style="width: 98%; height: 120px; border-left: 5px; padding: 10px" disabled="true" rendered="{!bReadOnly}" />
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="cell" ><nttdcore:DLabel name="DL92" default="Has AECOM&#39;s International Tax Department reviewed the proposed opportunity or transaction? If &ldquo;No,&rdquo; contact AECOM&#39;s Tax Team for international tax guidance." labelParent="{!this}" />
+                            {!dLabel['DL92']}
+                        </td>
+                        <td class="cell" width="200" valign="bottom" >
+                            <apex:selectRadio value="{!ExportControl__c.InternationalTaxDepartmentReview__c}" >
+                                <apex:selectOptions value="{!lAnswerValues}" />
+                            </apex:selectRadio>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="cell" ><nttdcore:DLabel name="DL93" default="Have you obtained Geography approval to proceed with the project in the subject AECOM Geography? If &ldquo;No,&rdquo; review Delegation of Authority approval requirements" labelParent="{!this}" />
+                            {!dLabel['DL93']}
+                        </td>
+                        <td class="cell" width="200" valign="bottom" >
+                            <apex:selectRadio value="{!ExportControl__c.GeographyApproval__c}" >
+                                <apex:selectOptions value="{!lAnswerValues}" />
+                            </apex:selectRadio>
+                        </td>
+                    </tr>
+                   </apex:outputPanel>
+                </table>
+                </apex:actionRegion>
+            </apex:outputPanel>
+        </apex:pageBlock>
+            
+
+    </apex:form>
+    <!--<apex:relatedList list="ProcessSteps" />-->
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

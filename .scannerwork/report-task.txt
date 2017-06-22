@@ -1,0 +1,6 @@
+projectKey=AECOMKey
+serverUrl=http://localhost:9000
+serverVersion=6.4.0.25310
+dashboardUrl=http://localhost:9000/dashboard/index/AECOMKey
+ceTaskId=AVyNuvK9E4oV8r7o6jVS
+ceTaskUrl=http://localhost:9000/api/ce/task?id=AVyNuvK9E4oV8r7o6jVS

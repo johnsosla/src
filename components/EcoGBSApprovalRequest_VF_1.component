@@ -1,0 +1,20 @@
+<apex:component language="{!theLanguage}" controller="nttdcore.DLabelChildController" access="global" ><nttdcore:DLabel name="DL1" default="The following request for Global Business Services requires your approval:" labelParent="{!this}" componentContext="EcoGBSApprovalRequest_VF_1" /><apex:attribute name="theLanguage" type="String" required="true" description="language" access="global" /><apex:attribute name="theRecipient" type="User" required="true" description="recipient" access="global" /><apex:attribute name="theRelatedTo" type="SharedServicesRequest__c" required="true" description="related to" access="global" />
+        {!dlRoot.dLabel['DL1']}  
+        <br/>
+        <br/>
+        <b><nttdcore:DLabel name="DL2" default="Record Type:" labelParent="{!this}" componentContext="EcoGBSApprovalRequest_VF_1" />{!dlRoot.dLabel['DL2']}</b> {!theRelatedTo.RecordType.Name}
+        <br/>
+        <b><nttdcore:DLabel name="DL3" default="Request No.:" labelParent="{!this}" componentContext="EcoGBSApprovalRequest_VF_1" />{!dlRoot.dLabel['DL3']}</b> {!theRelatedTo.Name}
+        <br/>
+        <b><nttdcore:DLabel name="DL4" default="Requested By:" labelParent="{!this}" componentContext="EcoGBSApprovalRequest_VF_1" />{!dlRoot.dLabel['DL4']}</b> {!theRelatedTo.Requestor__r.Name}
+        <br/>
+        <b><nttdcore:DLabel name="DL5" default="Client/Vendor Name:" labelParent="{!this}" componentContext="EcoGBSApprovalRequest_VF_1" />{!dlRoot.dLabel['DL5']}</b>{!theRelatedTo.CustomerName__c} 
+        <br/>
+        <b><nttdcore:DLabel name="DL6" default="Operating Unit:" labelParent="{!this}" componentContext="EcoGBSApprovalRequest_VF_1" />{!dlRoot.dLabel['DL6']}</b>{!theRelatedTo.OUName__c} 
+        <br/>
+        <br/>
+        <a href="{!LEFT($Api.Partner_Server_URL_290,FIND('services',$Api.Partner_Server_URL_290)-1)}{!theRelatedTo.Id}" ><nttdcore:DLabel name="DL7" default="Click here to view request" labelParent="{!this}" componentContext="EcoGBSApprovalRequest_VF_1" />{!dlRoot.dLabel['DL7']}</a>
+        <br/>
+        <c:ECO_ApprovalRequestURL relatedtoid="{!theRelatedTo.Id}" />
+        <!--<a href = "{!ApprovalRequest.External_URL}" >Click here to approve</a>-->
+    <nttdcore:DLabelInit language="{!theLanguage}" labelParentInit="{!this}" /></apex:component>

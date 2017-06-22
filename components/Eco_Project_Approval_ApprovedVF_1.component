@@ -1,0 +1,19 @@
+<apex:component language="{!theLanguage}" access="global" ><apex:attribute name="theLanguage" type="String" required="true" description="language" access="global" /><apex:attribute name="theRecipient" type="Contact" required="true" description="recipient" access="global" /><apex:attribute name="theRelatedTo" type="pse__Proj__c" required="true" description="related to" access="global" />
+<apex:outputpanel > 
+<p>{!theRelatedTo.Name} {!$Label.Eco_Project_Approval_ApprovedVF_1_DL1}</p>
+<p>
+<b>{!$Label.Eco_Project_Approval_ApprovedVF_1_DL2}</b> {!theRelatedTo.Name}
+<br/>
+<b>{!$Label.Eco_Project_Approval_ApprovedVF_1_DL3}</b> {!theRelatedTo.ProjectLongName__c}
+<br/>
+<b>{!$Label.Eco_Project_Approval_ApprovedVF_1_DL4}</b> {!theRelatedTo.ProjectDescription__c}
+<br/>
+<b>{!$Label.Eco_Project_Approval_ApprovedVF_1_DL5}</b> {!theRelatedTo.EstimatedContractValue__c}
+</p>
+<!--<p>
+<a href = "{!theRelatedTo.Link}" > Project Link  </a>
+</p>-->
+<p><a href="{!LEFT($Api.Partner_Server_URL_290,FIND('services',$Api.Partner_Server_URL_290)-1)}{!theRelatedTo.Id}" >{!$Label.Eco_Project_Approval_ApprovedVF_1_DL6}
+         </a></p>
+</apex:outputpanel> 
+</apex:component>

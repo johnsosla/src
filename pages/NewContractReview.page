@@ -1,0 +1,90 @@
+<apex:page standardController="Contract_Review__c" showHeader="true" extensions="NewContractReviewController">												
+																	 
+<apex:form >
+
+		<apex:pageBlock title="{!$Label.CRS_Contract_Review_Request_Edit_Title}" id="ContractReviewRequestDetails">
+			
+			  <apex:pageBlockButtons location="both">
+	                <apex:commandButton value="{!$Label.CRS_Next_Button}" action="{!Next}"/>
+	                <apex:commandButton value="{!$Label.CRS_Cancel_Button}" action="{!Cancel}"/> 
+	                    
+	          </apex:pageBlockButtons>
+	          <apex:pageMessages />
+			 <apex:pageBlockSection title="{!$Label.CRS_New_VF_section_title}"  
+			 				id="information" 
+			 				columns="1">
+			 				<apex:pageMessage title="{!$Label.CRS_new_page_helptext}" severity="INFO" escape="false"/>
+
+
+			 				<!-- {!$Label.CRS_new_page_helptext}
+					<p>Please enter the Country and State/Province/Emirate in which your contract will be managed.  This will determine the review group your request is assigned to.</p>
+						
+					<p>If an opportunity exists within Salesforce, please identify it and the following pages will be pre-filled for you.  If there is no Salesforce Opportunity created please leave blank.</p>-->
+						
+                         <apex:inputField value="{!Contract_Review__c.Country__c}" > 
+                             <apex:actionSupport action="{!setMetroAreaVisibility}" event="onchange" focus="inp_area" id="as_country" reRender="information" />
+                         </apex:inputField>
+                         <apex:inputField value="{!Contract_Review__c.State_Province_Emirate__c}" id="inp_state"  > 
+                             <apex:actionSupport action="{!setMetroAreaVisibility}" event="onchange" focus="inp_area" id="as_state" reRender="information" />
+                         </apex:inputField>
+                         <apex:inputField value="{!Contract_Review__c.Area__c}" id="inp_area" rendered="{!metroAreaVisibility}" />
+                 
+					 	 <apex:inputField value="{!Contract_Review__c.Opportunity_GNG__c}" /> 
+					 	 <apex:inputField value="{!Contract_Review__c.Agreement__c}" /> 
+					 	 
+					 	 <apex:outputText value="{!Contract_Review__c.Status_Review__c}" rendered="false"/>
+					 	 <apex:outputText value="{!Contract_Review__c.Name}" rendered="false"/>
+					 	 <apex:outputText value="{!Contract_Review__c.OwnerId}" rendered="false"/>
+						<apex:outputText value="{!Contract_Review__c.OwnerId}" rendered="false"/>
+						<apex:outputText value="{!Contract_Review__c.Country__c}" rendered="false"/>
+						<apex:outputText value="{!Contract_Review__c.Second_Legal_User__c}" rendered="false"/>
+						<apex:outputText value="{!Contract_Review__c.State_Province_Emirate__c}" rendered="false"/>
+						<apex:outputText value="{!Contract_Review__c.Project_Manager__c}" rendered="false"/>
+						<apex:outputText value="{!Contract_Review__c.Business_Line__c}" rendered="false"/>
+						<apex:outputText value="{!Contract_Review__c.Project_Director__c}" rendered="false"/>
+						<apex:outputText value="{!Contract_Review__c.Preferred_Contract_Reviewer__c}" rendered="false"/>
+						<apex:outputText value="{!Contract_Review__c.Other_project_member__c}" rendered="false"/>
+						<apex:outputText value="{!Contract_Review__c.Date_Required__c}" rendered="false"/>
+						<apex:outputText value="{!Contract_Review__c.Risk_Level__c}" rendered="false"/>
+						<apex:outputText value="{!Contract_Review__c.External_Due_Date__c}" rendered="false"/>
+						<apex:outputText value="{!Contract_Review__c.CurrencyIsoCode}" rendered="false"/>
+						<apex:outputText value="{!Contract_Review__c.Date_received_by_Client__c}" rendered="false"/>
+						<apex:outputText value="{!Contract_Review__c.Estimated_Fee__c}" rendered="false"/>
+						<apex:outputText value="{!Contract_Review__c.Client_Vendor__c}" rendered="false"/>
+						<apex:outputText value="{!Contract_Review__c.Fee_Type__c}" rendered="false"/>
+						<apex:outputText value="{!Contract_Review__c.Client_vendor_as_named_on_the_contract__c}" rendered="false"/>
+						<apex:outputText value="{!Contract_Review__c.PI_Insurance_Amount__c}" rendered="false"/>
+						<apex:outputText value="{!Contract_Review__c.Country_of_incorporation_of_the_client_v__c}" rendered="false"/>
+						<apex:outputText value="{!Contract_Review__c.PL_Insurance_Amount__c}" rendered="false"/>
+						<apex:outputText value="{!Contract_Review__c.Client_Vendor_State_of_Incorporation__c}" rendered="false"/>
+						<apex:outputText value="{!Contract_Review__c.Limitation_of_Liability__c}" rendered="false"/>
+						<apex:outputText value="{!Contract_Review__c.Governing_Law__c}" rendered="false"/>
+						<apex:outputText value="{!Contract_Review__c.Insurance__c}" rendered="false"/>
+						<apex:outputText value="{!Contract_Review__c.Governing_Law_of_the_Contract_State__c}" rendered="false"/>
+						<apex:outputText value="{!Contract_Review__c.Comments__c}" rendered="false"/>
+						<apex:outputText value="{!Contract_Review__c.Review_Request_Type__c}" rendered="false"/>
+						<apex:outputText value="{!Contract_Review__c.Previously_reviewed__c}" rendered="false"/>
+						<apex:outputText value="{!Contract_Review__c.Contract_Type__c}" rendered="false"/>
+						<apex:outputText value="{!Contract_Review__c.Opportunity_GNG__c}" rendered="false"/>
+						<apex:outputText value="{!Contract_Review__c.Opportunity__c}" rendered="false"/>
+						<apex:outputText value="{!Contract_Review__c.Project__c}" rendered="false"/>
+						<apex:outputText value="{!Contract_Review__c.Request_Name__c}" rendered="false"/>
+						<apex:outputText value="{!Contract_Review__c.Description_Nature_of_Works_1__c}" rendered="false"/>
+						<apex:outputText value="{!Contract_Review__c.Legal_Team__c}" rendered="false"/>
+						<apex:outputText value="{!Contract_Review__c.Service_Type__c}" rendered="false"/>
+						<apex:outputText value="{!Contract_Review__c.significant_risks_identified__c}" rendered="false"/>
+						<apex:outputText value="{!Contract_Review__c.Federal_Contract__c}" rendered="false"/>
+						<apex:outputText value="{!Contract_Review__c.Status_Review__c}" rendered="false"/>
+						<apex:outputText value="{!Contract_Review__c.Submitted__c}" rendered="false"/>
+						<apex:outputText value="{!Contract_Review__c.Compliant__c}" rendered="false"/>
+						<apex:outputText value="{!Contract_Review__c.ORM_Comments__c}" rendered="false"/>
+						<apex:outputText value="{!Contract_Review__c.Next_Review_Date__c}" rendered="false"/>
+						<apex:outputText value="{!Contract_Review__c.Conditions_complete__c}" rendered="false"/>
+						<apex:outputText value="{!Contract_Review__c.Time_Submitted__c}" rendered="false"/>
+						<apex:outputText value="{!Contract_Review__c.Time_Reviewed__c}" rendered="false"/>
+			 	</apex:pageBlockSection>
+			<apex:pageMessages />
+	 	</apex:pageBlock>
+
+	</apex:form>
+</apex:page>

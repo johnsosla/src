@@ -1,0 +1,141 @@
+<apex:component ><div id="search" class="CoveoSearchInterface" data-enable-history="true">
+<span class="CoveoAnalytics"></span>
+<span class="CoveoTopAnalyticsSuggestions"></span>
+
+<div class="coveo-tab-section">
+  <a class="CoveoTab" data-id="Salesforce" data-caption="Salesforce" data-icon="coveo-sprites-tab-salesforce" data-expression="@sfid"></a>
+</div>
+
+<div class="coveo-search-section">
+  <div class="coveo-logo-column">
+    <div class="coveo-logo"></div>
+  </div>
+
+  <div class="coveo-searchBox-column">
+    <div class="coveo-search-section-wrapper">
+      <div class="CoveoSettings" data-include-in-menu=".CoveoShareQuery,.CoveoPreferencesPanel"></div>
+      <div class="CoveoSearchBox" data-activate-omnibox="true"></div>
+    </div>
+  </div>
+</div>
+
+<div class="coveo-results-section">
+  <div class="coveo-facet-column">
+    <div class="CoveoBreadcrumb"></div>
+    <div class="CoveoFacet" data-title="Type" data-field="@objecttype" data-number-of-values="5" data-tab="Salesforce"></div>
+<div class="CoveoFacet" data-title="Close quarter" data-field="@sfopportunityclosedquarterc" data-computed-field="@sfopportunityamountconverted" data-sort-criteria="AlphaDescending" data-tab="Salesforce"></div>
+<div class="CoveoFacet" data-title="Salesforce Account" data-field="@sfaccountname" data-computed-field="@sfopportunityamountconverted" data-sort-criteria="ComputedFieldDescending" data-number-of-values="7" data-tab="Salesforce"></div>
+<div class="CoveoFacet" data-title="Salesforce Owner" data-field="@sfownername" data-computed-field="@sfopportunityamountconverted" data-sort-criteria="ComputedFieldDescending" data-number-of-values="7" data-tab="Salesforce"></div>
+<div class="CoveoFacet" data-title="Opportunity Type" data-field="@sfopportunitytype" data-computed-field="@sfopportunityamountconverted" data-sort-criteria="ComputedFieldDescending" data-number-of-values="5" data-tab="Salesforce"></div>
+<div class="CoveoFacet" data-title="Opportunity Stage" data-field="@sfopportunitystagename" data-computed-field="@sfopportunityamountconverted" data-sort-criteria="ComputedFieldDescending" data-tab="Salesforce"></div>
+<div class="CoveoFacet" data-title="Lead Source" data-field="@sfleadsource" data-computed-field="@sfopportunityamountconverted" data-sort-criteria="ComputedFieldDescending" data-number-of-values="5" data-tab="Salesforce"></div>
+  </div>
+
+  <div class="coveo-results-column">
+    <div class="CoveoShareQuery"></div>
+
+    <div class="CoveoPreferencesPanel">
+      <div class="CoveoResultsPreferences"></div>
+      <div class="CoveoResultsFiltersPreferences"></div>
+    </div>
+
+    <div class="coveo-results-header">
+      <div class="coveo-summary-section">
+        <span class="CoveoQuerySummary"></span>
+        <span class="CoveoQueryDuration"></span>
+      </div>
+      <div class="coveo-sort-section">
+        <span class="CoveoSort" data-sort-criteria="relevancy" data-caption="Relevance"></span>
+<span class="CoveoSort" data-sort-criteria="date descending,date ascending" data-caption="Date"></span>
+<span class="CoveoSort" data-sort-criteria="@sfopportunityamountconverted descending,@sfopportunityamountconverted ascending" data-tab="Salesforce" data-caption="Amount"></span>
+      </div>
+      <div class='coveo-clear'></div>
+    </div>
+
+    <div class="CoveoHiddenQuery"></div>
+    <div class="CoveoDidYouMean"></div>
+    <div class="CoveoErrorReport" data-pop-up='false'></div>
+
+    <div class="CoveoResultList" data-wait-animation="fade">
+      <script class="result-template" type="application/json" data-template-id="Salesforce">
+        {
+          "fields": [
+            {
+              "field": "@sfaccountname",
+              "caption": "Account"
+            },
+            {
+              "field": "@sfownername",
+              "caption": "Owner"
+            },
+            {
+              "field": "@sfopportunityamountconverted",
+              "caption": "Total",
+              "helper": "currency"
+            },
+            {
+              "field": "@sfopportunitylicensingstotalcconverted",
+              "caption": "License",
+              "helper": "currency"
+            },
+            {
+              "field": "@sfopportunityamountsupportcconverted",
+              "caption": "Support",
+              "helper": "currency"
+            },
+            {
+              "field": "@sfopportunityconsultingstotalcconverted",
+              "caption": "PS",
+              "helper": "currency"
+            },
+            {
+              "field": "@sfopportunitystagename",
+              "caption": "Stage"
+            },
+            {
+              "field": "@sfopportunitydealtypec",
+              "caption": "Deal Type"
+            },
+            {
+              "field": "@sfopportunitycompetitionc",
+              "caption": "Competition",
+              "splitValues": true
+            },
+            {
+              "field": "@sfibdusername",
+              "caption": "ISR"
+            },
+            {
+              "field": "@sfopportunityregionc",
+              "caption": "Region"
+            },
+            {
+              "field": "@sfleadsource",
+              "caption": "Lead Source"
+            },
+            {
+              "field": "@sfleadstatus",
+              "caption": "Lead status"
+            },
+            {
+              "field": "@sysworktitle",
+              "caption": "Work title"
+            },
+            {
+              "field": "@sfemail",
+              "caption": "Email",
+              "helper": "email",
+              "htmlValue": "true"
+            },
+            {
+              "field": "@sfcontactphone",
+              "caption": "Phone"
+            }
+          ]
+        }
+      </script>
+    </div>
+    <div class="CoveoPager"></div>
+  </div>
+</div>
+</div></apex:component>

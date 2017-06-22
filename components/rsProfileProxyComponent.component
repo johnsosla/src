@@ -1,0 +1,99 @@
+<apex:component controller="rsProfileProxyController" allowDML="true">
+    <apex:attribute name="rsProfile" assignTo="{!profile}" description="" type="rsProfile" required="true"/>
+    <apex:attribute name="reRender" description="" type="String" required="false"/>
+
+    <script type='text/javascript'>
+        j$ = jQuery.noConflict();
+        //Because we have standard style sheets enabled on just this page, the enter key will trigger a page refresh. This function prevents that
+        function onEnter(ev)  {
+            if (window.event && window.event.keyCode == 13 || ev.which == 13) {
+                return false;
+            } else {
+                return true;
+            }
+         }
+
+        function confirmRemoveProxy(){
+            return confirm("{!$Label.Confirm_Remove_Proxy}");
+        }
+
+        function removeFloatover() {
+            j$('[id$="ProfileProxy"]').children().removeAttr('onblur onclick onmouseover onmouseout onfocus');
+            j$('[id$="ProfileProxy"]').children().attr("target","_blank");
+        }
+        j$(document).ready(function() {
+            removeFloatover();
+        });
+    </script>
+
+    <div class="panel panel-default">
+        <div class="panel-heading clearfix">
+            <h5 class="panel-title has-spinner" id="proxyHeader">{!$Label.Profile_Proxy} <img height="15" width="15" class="spinner" src="{!URLFOR($Resource.rs_bundle, '/images/loading.gif')}" alt="loading" title="loading"/></h5>
+
+            <apex:commandLink rendered="{!!hasProxy && canEdit && IsListMode}" value="{!$Label.Add_Proxy}" styleClass="pull-right {!IF(canEdit, '','disabled')} btn brandStyledBtn" reRender="{!reRender}" action="{!editPart}" onclick="if(!inProgress) showSectionSpinner('proxyHeader'); if (inProgress) return false; inProgress = true;" oncomplete="resetProgress(); focusField('editProfileProxy');">
+                <span title="{!$Label.Add_Proxy}" class="glyphicon glyphicon-plus"></span>
+            </apex:commandLink>
+        </div>
+
+        <div class="panel-body">
+
+            <apex:outputPanel layout="none" rendered="{!IsEditMode}">
+                <table class="table" >
+                    <tr>
+                        <td colspan="2" style="border-top:none;">
+                            <apex:inputField id="editProfileProxy" value="{!CurrentUser.Profile_Proxy__c}" style="padding-left:10px;" onkeypress="return onEnter(event);"/>
+                        </td>
+                    </tr>
+
+                </table>
+
+                <div class="col-md-4 text-center">
+                    <apex:commandLink action="{!savePart}" value="{!$Label.Save}" styleClass="btn brandStyledBtn" style="text-decoration:none;"  reRender="{!reRender}" onclick="if(inProgress) return false; showSectionSpinner('proxyHeader'); inProgress = true;" oncomplete="resetProgress();">
+                        <span class="glyphicon glyphicon-ok-circle" style="padding-right:3px;" />
+                    </apex:commandLink>
+                    &nbsp;
+                    <apex:commandLink action="{!cancelPart}" immediate="true" value="{!$Label.Cancel}" styleClass="btn btn--neutral" style="text-decoration:none;" reRender="{!reRender}" onclick="if(inProgress) return false; showSectionSpinner('proxyHeader'); inProgress = true;" oncomplete="resetProgress();">
+                         <span class="glyphicon glyphicon-remove-circle" />
+                    </apex:commandLink>
+                </div>
+
+            </apex:outputPanel>
+
+            <apex:outputPanel layout="none" rendered="{!IsListMode}">
+            <table width="100%">
+                <tr>
+                    <td colspan="2">
+                        <apex:outputPanel layout="none" rendered="{!hasProxy}">
+                            <div style="float:left; margin-right: 10px;">
+                                    <apex:image value="{!ProxyPhotoUrl}" />
+                            </div>
+                            <div style="float:left;">
+                                    <apex:outputField id="ProfileProxy" value="{!CurrentUser.Profile_Proxy__c}"/> <br />
+                                    <apex:outputLabel for="ProfileProxyDate" value="{!$Label.Date_Added}"/> &nbsp; <apex:outputField id="ProfileProxyDate" value="{!CurrentUser.Date_Proxy_Added__c}"/>
+                            </div>
+                            <div style="float:right;">
+                                <apex:commandLink onclick="if(inProgress) return false; showSectionSpinner('proxyHeader'); inProgress = true;" oncomplete="resetProgress();" value="{!$Label.Reassign_Proxy}" styleClass="btn brandStyledBtn {!IF(canEdit, '','disabled')}" style="text-decoration:none;" reRender="{!reRender}" action="{!editPart}" rendered="{!canEdit}">
+                                    <span class="glyphicon glyphicon-edit" />
+                                </apex:commandLink>
+                                <apex:commandLink onclick="if(inProgress) return false; if(!confirmRemoveProxy()) return false; showSectionSpinner('proxyHeader'); inProgress = true;" oncomplete="resetProgress();" value="{!$Label.Remove_Proxy}" styleClass="btn btn--neutral {!IF(canEdit, '','disabled')}" style="text-decoration:none;" reRender="{!reRender}" action="{!removeProxy}" rendered="{!canEdit}">
+                                    <span class="glyphicon glyphicon-remove" />
+                                </apex:commandLink>
+                            </div>
+                        </apex:outputPanel>
+
+                        <!--<apex:commandLink value="{!$Label.Add_Proxy}" styleClass="btn brandStyledBtn" style="text-decoration:none;" reRender="{!reRender}" action="{!editPart}" onclick="if(inProgress) return false; showSectionSpinner('proxyHeader'); inProgress = true;" oncomplete="resetProgress(); focusField('editProfileProxy');" rendered="{!!hasProxy && isOwner}">
+                            <span class="glyphicon glyphicon-edit" />
+                        </apex:commandLink>-->
+
+                        <apex:outputLabel rendered="{!!hasProxy && !isOwner}" value="{!$Label.No_Proxy_Assigned}" />
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                    </td>
+                </tr>
+            </table>
+            </apex:outputPanel>
+        </div>
+    </div>
+</apex:component>

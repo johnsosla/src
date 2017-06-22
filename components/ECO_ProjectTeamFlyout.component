@@ -1,0 +1,340 @@
+<apex:component layout="none" controller="ECO_ProjectTeamFlyoutController" allowDML="true" id="mainComponent">
+
+	<apex:attribute name="ProjectId" description="Parent Project ID" type="ID" assignTo="{!sProjectId}"  required="true"/>
+
+    <apex:attribute name="TabLocation" description="The top coordinate of the tab" type="Integer" required="false" default="330"/>
+
+	<apex:stylesheet value="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/css/font-awesome.min.css')}" />
+	
+	
+	<apex:includeScript value="{!$Resource.ECO_jQuery_1_11_2_min_js}"/>
+	<apex:includeScript value="{!URLFOR($Resource.ECO_jQueryUI_1_11_2, 'jquery-ui.min.js')}" />
+
+	<script>
+		$q = jQuery.noConflict();
+
+		var ProjectTeamFlyout = {
+			init : function(){
+
+				$q('body').on('click', ProjectTeamFlyout.hideContentFlyout);
+	       		
+	       		$q('#projectTeamPane').on('click', function(event) { 
+  					event.stopPropagation();
+	       		});
+	       		
+	       		$q('#projectTeamPane .tab').on('click', ProjectTeamFlyout.showContentFlyout);
+	       		
+	       		$q('#projectTeamPane .close').click(function(){
+	       			ProjectTeamFlyout.hideContentFlyout();
+	       		});
+			},
+
+			hideContentFlyout : function(){
+	       		var width = $q('#projectTeamPane').outerWidth() * -1 + 'px';
+	       		
+	       		$q('#projectTeamPane').animate({
+		       		right : width
+				  }, 550, 'easeInCubic');
+	        },
+	       
+	        showContentFlyout : function(event){
+	       		event.stopPropagation();
+	       		
+	       		if($q('#projectTeamPane').css('right') == '0px'){
+	       			ProjectTeamFlyout.hideContentFlyout();
+	       		}else{
+	       			$q('#projectTeamPane').animate({
+			       		right : 0
+					  }, 550, 'easeOutCubic');
+	       		}
+	        }
+	    }
+
+	    $q(document).ready(function (){
+	    	ProjectTeamFlyout.init();
+	    });
+    </script>
+
+    <style>
+    	/*
+				FLYOUT STYLES
+		*/
+
+		#projectTeamPane.projectTeamFlyout {
+			background-color:#f3f3f3;
+			position: fixed;
+			width: 725px;
+			right: -780px;
+			top: 100px;
+			height: 450px;
+
+			padding: 10px 30px 20px 20px;
+			border-right: none;
+			-webkit-border-top-left-radius: 20px;
+			-webkit-border-bottom-left-radius: 20px;
+			-moz-border-radius-topleft: 20px;
+			-moz-border-radius-bottomleft: 20px;
+			border-top-left-radius: 20px;
+			border-bottom-left-radius: 20px;
+			
+			margin-left: 42px;
+			min-height: 400px;
+			box-shadow: 0 0 10px #787878;
+			border: 1px solid #DEDEDE;
+		}
+
+		#projectTeamPane.projectTeamFlyout .tab {
+			position: absolute;
+			border-right: none;
+			background-color: #f3f3f3;
+			
+			-webkit-border-top-left-radius: 10px;
+			-webkit-border-top-right-radius: 10px;
+			-moz-border-radius-topleft: 10px;
+			border-top-left-radius: 10px;
+			cursor: pointer;
+			padding:7px 8px;
+			box-shadow:0 -3px 4px #959595;
+
+			top:{!TabLocation}px;
+			left: -57px;
+
+			-webkit-transform: rotate(-90deg); 
+			-moz-transform: rotate(-90deg);	
+			-ms-transform: rotate(-90deg);
+		}
+
+		#projectTeamPane.projectTeamFlyout .close {
+			color: #D6D6D6;
+			cursor: pointer;
+			display: block;
+			float: right;
+			font-family: 'Platform-Font', Helvetica, Arial, sans-serif;
+			padding-left: 25px;
+			padding-right: 20px;
+			text-align: right;
+			text-transform: uppercase;
+		}
+
+		#projectTeamPane.projectTeamFlyout .delete{
+			position: absolute;
+			top: 12px;
+			right: 7px;
+			padding: 6px 8px;
+		}
+
+		#projectTeamPane.projectTeamFlyout .delete:hover{
+			text-decoration:underline;
+		}
+
+		#projectTeamPane.projectTeamFlyout .header {
+			color: #333;
+			font-size: 25px;
+			padding-bottom: 15px;
+			padding-top: 10px;
+		}
+		
+		#projectTeamPane.projectTeamFlyout .body {
+			padding-right: 20px;
+			overflow: scroll;
+		}
+
+		#projectTeamPane.projectTeamFlyout select{
+			margin:2px 0 5px 0;
+		}
+
+		#projectTeamPane.projectTeamFlyout .table{
+			width: 100%;
+			max-width: 100%;
+			margin-bottom: 20px;
+			margin-top:15px;
+		}
+
+		#projectTeamPane.projectTeamFlyout .table th{
+			font-size: 1.05em;
+			font-weight: 600;
+			border-bottom: 2px solid rgba(0, 0, 0, 0.14);
+		}
+
+		#projectTeamPane.projectTeamFlyout .table-striped > tbody > tr:nth-child(4n), #projectTeamPane.projectTeamFlyout .table-striped > tbody > tr:nth-child(4n-1){
+			background-color: #f6f8fa;
+		}
+
+		#projectTeamPane.projectTeamFlyout .table td{
+			border-top: 1px solid rgba(0, 0, 0, 0.05);
+		}
+
+		#projectTeamPane.projectTeamFlyout .table>tbody>tr>td, .flyout .table>tbody>tr>th, .flyout .table>tfoot>tr>td, .flyout .table>tfoot>tr>th, .flyout .table>thead>tr>td, .flyout .table>thead>tr>th{
+			padding: 8px;
+			line-height: 1.42857143;
+			vertical-align: top;
+		}
+
+		#projectTeamPane.projectTeamFlyout .label-table{
+			display: inline-block;
+			width: 80%;
+			min-width: 8ex;
+			font-size: 1em;
+			max-width: 100px;
+			padding: 5px;
+			text-overflow: ellipsis;
+			overflow: hidden;
+		}
+
+		/* tables */
+		#projectTeamPane.projectTeamFlyout table.tablesorter {
+			font-family:arial;
+			background-color: #CDCDCD;
+			margin:10px 0pt 15px;
+			font-size: 8pt;
+			width: 100%;
+			text-align: left;
+		}
+
+		#projectTeamPane.projectTeamFlyout table.tablesorter thead tr th, table.tablesorter tfoot tr th {
+			background-color: #aebdee;
+			border: 1px solid #FFF;
+			font-size: 8pt;
+			padding: 4px;
+		}
+
+		#projectTeamPane.projectTeamFlyout table.tablesorter thead tr .header {
+			background-image: url(bg.gif);
+			background-repeat: no-repeat;
+			background-position: center right;
+			cursor: pointer;
+		}
+
+		#projectTeamPane.projectTeamFlyout table.tablesorter tbody td {
+			color: #3D3D3D;
+			padding: 4px;
+			background-color: #FFF;
+			vertical-align: top;
+			height: 20px;
+		}
+
+		#projectTeamPane.projectTeamFlyout table.tablesorter tbody tr.odd td {
+			background-color:#F0F0F6;
+		}
+
+		#projectTeamPane.projectTeamFlyout table.tablesorter thead tr .headerSortUp {
+			background-image: url(asc.gif);
+		}
+
+		#projectTeamPane.projectTeamFlyout table.tablesorter thead tr .headerSortDown {
+			background-image: url(desc.gif);
+		}
+
+		#projectTeamPane.projectTeamFlyout table.tablesorter thead tr .headerSortDown, table.tablesorter thead tr .headerSortUp {
+		background-color: #8dbdd8;
+		}
+
+		.noteText{
+			color:#818181;
+			font-style: italic;
+		}
+
+
+    </style>
+    
+	    <div id="projectTeamPane" class="projectTeamFlyout flyout">
+			<div class="close">
+				<i class="fa fa-arrow-right" style="color:#333;"></i>
+			</div>
+			<div class="tab">
+				{!$Label.Project_Team_Flyout_Project_Team}
+			</div>
+			<div class="header">
+				{!$Label.Project_Team_Flyout_Project_Team}
+			</div>
+
+			<apex:outputPanel id="projectTeamPanel">
+				<div>
+					<apex:pageBlock mode="mainDetail">
+						
+						<apex:pageBlockSection columns="1" collapsible="false" title="{!$Label.Project_Team_Flyout_List_of_Members}"></apex:pageBlockSection>
+
+						<apex:outputPanel rendered="{!IF(lProjectTeamMembers.size == 0, true, false)}">
+							<p>{!$Label.Project_Team_Flyout_No_Team_Members}</p>
+						</apex:outputPanel>
+						<apex:outputPanel rendered="{!IF(lProjectTeamMembers.size == 0, false, true)}">
+							<div class="list" style="overflow:scroll;height:200px;">
+								<table class="tablesorter" cellpadding="0" cellspacing="0">
+									<thead>
+										<tr>
+											<th>
+												{!$Label.Project_Team_Flyout_List_Heading_Role}
+											</th>
+											<th width="150px">
+												{!$Label.Project_Team_Flyout_List_Heading_Name}
+											</th>
+											<th>
+												{!$Label.Project_Team_Flyout_List_Heading_Title}
+											</th>
+											<th>
+												{!$Label.Project_Team_Flyout_List_Heading_Phone}
+											</th>
+											<th>
+												{!$Label.Project_Team_Flyout_List_Heading_Email}
+											</th>
+										</tr>
+									</thead>
+
+									<tbody>
+										<apex:repeat value="{!lProjectTeamMembers}" var="teamMember">
+											<tr>
+												<td>
+													<apex:outputField value="{!teamMember.ProjectRole__c}" />
+												</td>
+												<td>
+													<apex:outputField value="{!teamMember.Contact__c}" />
+												</td>
+												<td>
+													<apex:outputField value="{!teamMember.ProjectRoleTitle__c}" />
+												</td>												
+												<td>
+													<apex:outputField value="{!teamMember.Phone__c}" />
+												</td>
+												<td>
+													<apex:outputField value="{!teamMember.Email__c}" />
+												</td>
+											</tr>
+										</apex:repeat>
+									</tbody>
+								</table>
+							</div>
+
+							
+						</apex:outputPanel>
+						<br/>
+
+						<apex:actionRegion >
+							<apex:pageBlockSection columns="2" collapsible="false" title="{!$Label.Project_Team_Flyout_Add_a_Team_Member}">
+								<apex:pageBlockSectionItem >
+									<apex:pageBlockSection columns="1">
+										<apex:selectList size="1" multiselect="false" value="{!oProjectTeamMember.ProjectRole__c}">
+											<apex:selectOptions value="{!lTeamRoleTypes}" />
+										</apex:selectList>
+										
+										<apex:inputField value="{!oProjectTeamMember.Contact__c}"/>
+										<apex:inputField value="{!oProjectTeamMember.ProjectRoleTitle__c}"/>
+									
+										
+		 								<apex:pageBlockSectionItem >
+											<!--<apex:commandButton value="Add Team Member" action="{!saveTeamMember}" oncomplete="location.reload()"/>-->
+											<apex:commandButton value="{!$Label.Project_Team_Flyout_Add_Team_Member}" action="{!saveTeamMember}" reRender="projectTeamPanel"/>
+										</apex:pageBlockSectionItem>
+									</apex:pageBlockSection>
+								</apex:pageBlockSectionItem>
+								<apex:pageBlockSectionItem >
+									<apex:outputText >{!$Label.Project_Team_Flyout_Add_Team_Member_Note}</apex:outputText>
+								</apex:pageBlockSectionItem>
+							</apex:pageBlockSection>
+						</apex:actionRegion>
+					</apex:pageBlock>
+					
+				</div>
+			</apex:outputPanel>
+		</div>
+
+</apex:component>

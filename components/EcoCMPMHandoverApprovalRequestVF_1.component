@@ -1,0 +1,25 @@
+<apex:component language="{!theLanguage}" controller="nttdcore.DLabelChildController" access="global" ><apex:attribute name="theLanguage" type="String" required="true" description="language" access="global" /><apex:attribute name="theRecipient" type="Contact" required="true" description="recipient" access="global" /><apex:attribute name="theRelatedTo" type="ChangeManager__c" required="true" description="related to" access="global" />
+    <apex:outputpanel >
+        <p><nttdcore:DLabel name="DL1" default="The Project Manager role on the subject project is proposed to change as follows:" labelParent="{!this}" componentContext="EcoCMPMHandoverApprovalRequestVF_1" />
+        {!dlRoot.dLabel['DL1']}
+        </p><p>
+        <b><nttdcore:DLabel name="DL2" default="Outgoing PM:" labelParent="{!this}" componentContext="EcoCMPMHandoverApprovalRequestVF_1" />{!dlRoot.dLabel['DL2']}</b> {!theRelatedTo.OutgoingPM__c}
+        <br/>
+        <b><nttdcore:DLabel name="DL3" default="Incoming PM:" labelParent="{!this}" componentContext="EcoCMPMHandoverApprovalRequestVF_1" />{!dlRoot.dLabel['DL3']}</b> {!theRelatedTo.IncomingPM__c}
+        </p><p><nttdcore:DLabel name="DL4" default="A PM Handover has been completed.  Click on the link below to review the completed PM Handover form." labelParent="{!this}" componentContext="EcoCMPMHandoverApprovalRequestVF_1" />
+        {!dlRoot.dLabel['DL4']}
+        </p><p>
+        <b><nttdcore:DLabel name="DL5" default="Project Name:" labelParent="{!this}" componentContext="EcoCMPMHandoverApprovalRequestVF_1" />{!dlRoot.dLabel['DL5']}</b> {!theRelatedTo.ProjectName__c}
+        <br/>
+        <b><nttdcore:DLabel name="DL6" default="Project Number:" labelParent="{!this}" componentContext="EcoCMPMHandoverApprovalRequestVF_1" />{!dlRoot.dLabel['DL6']}</b> {!theRelatedTo.ProjectNumber__c}
+        <br/>
+        <b><nttdcore:DLabel name="DL7" default="Client:" labelParent="{!this}" componentContext="EcoCMPMHandoverApprovalRequestVF_1" />{!dlRoot.dLabel['DL7']}</b> {!theRelatedTo.Client__c}
+        </p><p>
+        <a href="{!LEFT($Api.Partner_Server_URL_290,FIND('services',$Api.Partner_Server_URL_290)-1)}{!theRelatedTo.Id}" ><nttdcore:DLabel name="DL8" default="Change Link" labelParent="{!this}" componentContext="EcoCMPMHandoverApprovalRequestVF_1" />
+         {!dlRoot.dLabel['DL8']}
+         </a>
+        <br/>
+        <a href="{!theRelatedTo.ProjectLink__c}" ><nttdcore:DLabel name="DL9" default="Project Link" labelParent="{!this}" componentContext="EcoCMPMHandoverApprovalRequestVF_1" /> {!dlRoot.dLabel['DL9']} </a>
+        </p>
+    </apex:outputpanel>
+<nttdcore:DLabelInit language="{!theLanguage}" labelParentInit="{!this}" /></apex:component>

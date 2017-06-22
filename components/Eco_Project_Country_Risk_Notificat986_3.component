@@ -1,0 +1,18 @@
+<apex:component language="{!theLanguage}" controller="nttdcore.DLabelChildController" access="global" ><nttdcore:DLabel name="DL1" default="The following project has been added to ePM with a work location risk rating >2.9. Contact the Project Manager for further information or to view the Project Plan.
+
+    Project Name: {{1}}
+
+    Client: {{2}}
+
+    Project Manager: {{3}}
+
+    Region: {{4}}
+
+    Business Line: {{5}}" labelParent="{!this}" componentContext="Eco_Project_Country_Risk_Notificat986_3" p1="{!theRelatedTo.ProjectLongName__c}" p2="{!theRelatedTo.PrimaryBillingClientNameOnly__c}" p3="{!theRelatedTo.pse__Project_Manager__r.Name}" p4="{!theRelatedTo.RegionOwningOrg__c}" p5="{!theRelatedTo.BusinessLineOwningOrg__c}" /><apex:attribute name="theLanguage" type="String" required="true" description="language" access="global" /><apex:attribute name="theRecipient" type="User" required="true" description="recipient" access="global" /><apex:attribute name="theRelatedTo" type="pse__Proj__c" required="true" description="related to" access="global" />
+{!dlRoot.dLabel['DL1']}
+
+    <!--Location: {!ProjectCountry_Risk__c.CountryName__c}
+
+    Risk Rating: {!ProjectCountry_Risk__c.Safety_Rating__c}-->
+    <c:ECO_ProjCountryRiskComponent objectid="{!theRelatedTo.id}" />
+<nttdcore:DLabelInit language="{!theLanguage}" labelParentInit="{!this}" /></apex:component>

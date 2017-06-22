@@ -1,0 +1,1038 @@
+<apex:page showHeader="true" sidebar="true" controller="rsSearchResumesController" id="p" action="{!loadAction}" docType="html-5.0">
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no"/>
+
+    <apex:stylesheet value="{!URLFOR($Resource.rs_libs, 'bootstrap/css/bootstrap.min.css')}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.rs_libs, 'qtip/jquery.qtip.min.css')}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.rs_bundle, 'css/profilescommon.css')}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.rs_bundle, 'css/buttonSection.css')}"/>
+
+    <style type="text/css">
+        h2, .h2 {
+            font-size: 12px;
+        }
+        h1, .h1, h2, .h2, h3, .h3 {
+            margin-top: 0px;
+            margin-bottom: 0px;
+        }
+        .form-control-override {
+            width: 100%;
+            height: 30px !important;
+            border-radius: 5px;
+        }
+        .collapsing {
+            -webkit-transition: none;
+            transition: none;
+        }
+        body {
+            font-size: 114%;
+        }
+        html body.sfdcBody {
+            padding: 10px !important;
+        }
+        .panel-default {
+            border-width: 0px;
+        }
+        .searchViewContainer {
+            height: 28px;
+        }
+        .panel-body {
+            padding-left: 0px;
+            padding-bottom: 0px;
+            padding-right: 0.1px;
+        }
+        #nav li.ui-state-active {
+            background-color: white;
+        }
+        #nav li a {
+            color: #015BA7;
+            display: block;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: bold;
+            padding-left: 0px;
+        }
+
+        #nav li a:visited {
+            color:#393939;
+        }
+
+        #nav li a:hover {
+            text-decoration: underline; /* changed from text:decoration:none */
+        }
+
+        /* selected link */
+        #nav li a:active {
+            color:#393939;
+        }
+        .ui-state-active {
+            font-weight: bold;
+            outline: none;
+        }
+        .pagingButtons {
+            padding: 4px 5px;
+            width: 28px;
+            margin: 0 2px;
+        }
+        .ui-state-default {
+            background-color: #f0f1f2;
+        }
+        .empty-column-content {
+            display: none;
+        }
+        .filterH {
+            display: none;
+        }
+        .hide {
+            display: none;
+        }
+        .rich-tabpanel-content {
+            background-color: #000000;
+        }
+        .boldFont {
+            font-weight: bold;
+            text-align: center;
+        }
+        .buttonPadding {
+            padding: .1em 0 .1em 0;
+            text-align: center;
+        }
+
+        .overflowClass {
+            overflow: auto;
+        }
+
+        select.custom {
+            padding: 0px;
+        }
+        .sfbtnOverrideBlue {
+            color:#fff !important;
+            background-color:#428bca !important;
+            background:#428bca !important;
+            border-color:#357ebd !important;
+            padding:5px 10px !important;
+            font-weight:400 !important;
+        }
+        .btn.sfbtnOverrideDefault {
+            margin: 0;
+            color: #222;
+            border-width: 1px !important;
+            border-top-width: 1px !important;
+            border-right-width-value: 1px !important;
+            border-bottom-width: 1px !important;
+            border-left-width-value: 1px !important;
+            border-left-width-ltr-source: physical !important;
+            border-left-width-rtl-source: physical !important;
+            border-right-width-ltr-source: physical !important;
+            border-right-width-rtl-source: physical !important;
+            border-style: solid !important;
+            border-top-style: solid !important;
+            border-right-style-value: solid !important;
+            border-bottom-style: solid !important;
+            border-left-style-value: solid !important;
+            border-left-style-ltr-source: physical !important;
+            border-left-style-rtl-source: physical !important;
+            border-right-style-ltr-source: physical !important;
+            border-right-style-rtl-source: physical !important;
+            -moz-border-top-colors: none !important;
+            -moz-border-right-colors: none !important;
+            -moz-border-bottom-colors: none !important;
+            -moz-border-left-colors: none !important;
+            border-image: none !important;
+            border-image-source: none !important;
+            border-image-slice: 100% 100% 100% 100% !important;
+            border-image-width: 1 1 1 1 !important;
+            border-image-outset: 0 0 0 0 !important;
+            border-image-repeat: stretch stretch !important;
+            border-right-color-value: rgb(170, 170, 170) !important;
+            border-left-color-value: rgb(170, 170, 170) !important;
+            border-left-color-ltr-source: physical !important;
+            border-left-color-rtl-source: physical !important;
+            border-right-color-ltr-source: physical !important;
+            border-right-color-rtl-source: physical !important;
+            border-color: #C3C3C3 #AAA #909090 !important;
+            border-top-color: #C3C3C3 !important;
+            border-bottom-color: #909090 !important;
+            padding:5px 10px !important;
+        }
+        .selectListOverride {
+            height: 26px !important;
+            border-color: #C3C3C3 #AAA #909090 !important;
+            border-top-color: #C3C3C3 !important;
+            border-bottom-color: #909090 !important;
+        }
+        @media all and (-ms-high-contrast: none), (-ms-high-contrast: active) {
+        /* IE10+ CSS styles go here */
+            .selectListOverride {
+                font-size: 12px;
+            }
+        }
+
+        .accordion-toggle:hover {
+            color: white;
+        }
+
+        a.accordion-toggle:after {
+            font-family: 'Glyphicons Halflings';
+            content: '\e114';
+            color: white;
+            vertical-align: text-bottom;
+        }
+        a.accordion-toggle.collapsed:after {
+            content: '\e080';
+        }
+        /* iPhone 1-3 */
+        @media only screen and (min-device-width : 320px) and (max-device-width : 480px) and (orientation : portrait) {
+            .overflowClass {
+                overflow: auto;
+                /*width: 290px;*/
+            }
+        }
+        /* iPhone 4 and 5 */
+        @media only screen and (min-device-width : 640px) and (max-device-width : 1136px) and (orientation : portrait), only screen and (min-device-width : 640px) and (max-device-width : 960px) and (orientation : portrait) {
+            .overflowClass {
+                  overflow: auto;
+                  /*width: 600px;*/
+            }
+        }
+    </style>
+
+    <script src="{!URLFOR($Resource.rs_libs, 'jquery/jquery.js')}" type="text/javascript" charset="utf-8"></script>
+    <script src="{!URLFOR($Resource.rs_libs, 'jqueryui/jquery-ui.js')}" type="text/javascript" charset="utf-8"></script>
+
+<apex:sectionHeader title="{!$Label.Professional_Search}" subtitle="{!$Label.AECOM_Professional_Search}" description=""/>
+
+<div class="pageContainer peopleProfilesPage container-fluid" >
+    <apex:form id="f" styleClass="form-horizontal">
+        <div class="modal" id="saveSearchModal">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                        <h4 class="modal-title">{!$Label.Save_Search_Criteria}</h4>
+                    </div>
+                    <div class="modal-body">
+                        <apex:outputLabel for="searchName" value="Search Name "/>&nbsp;
+                        <apex:inputText id="searchName" maxlength="50" value="{!Search.Name}"/>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn sfbtnOverrideDefault" data-dismiss="modal">Close</button>
+                        <button type="button" id="saveSearchModalButton" class="btn btn-primary sfbtnOverrideBlue" data-dismiss="modal">{!$Label.Save}</button>
+                        <button type="button" id="saveAsSearchModalButton" class="btn btn-primary sfbtnOverrideBlue" data-dismiss="modal">{!$Label.Save_As}</button>
+                    </div>
+                </div><!-- /.modal-content -->
+            </div><!-- /.modal-dialog -->
+        </div>
+        <apex:inputHidden value="{!oldSearchName}" id="oldSearchName"/>
+        <apex:actionFunction name="searchFunction" action="{!basicSearch}" reRender="resultTable,myButtons,error,error2,durationTaken" oncomplete="scroll();updateLinkOnSFOne();resetButtons();showTabs();" status="searchBtnStatus"/>
+        <apex:actionFunction name="saveSearchFunction" action="{!saveSearchView}" reRender="savedViews,error,error2" oncomplete="onSave();resetButtons();showTabs();"/>
+        <apex:actionFunction name="saveAsSearchFunction" action="{!saveAsSearchView}" reRender="savedViews,error,error2" oncomplete="onSave();resetButtons();showTabs();"/>
+        <apex:actionFunction name="setupAdvanced" action="{!setupAdvanced}" reRender="advancedPanel,savedViews,searchName,myPanel,error,error2,resultBlock" oncomplete="advancedTabSetup();toggleSearchView();"/>
+        <apex:actionFunction name="setupBasic" action="{!setupBasic}" reRender="basicPanel,savedViews,searchName,myPanel,error,error2,resultBlock" oncomplete="helpTextSetup();toggleSearchView();"/>
+        <apex:actionFunction name="automateFilterLogic" action="{!automateFilterLogic}" reRender="filterText"/>
+        <apex:actionFunction name="selectAll" action="{!selectAllSearchResults}" reRender="resultTable" status="selectStatus"/>
+        <apex:actionFunction name="resetSearch" action="{!reset}" rerender="savedViews,myPanel,myButtons,searchName,error,error2,resultTable,basicPanel,advancedPanel,resultBlock" oncomplete="onSave();resetButtons();helpTextSetup();showTabs();advancedTabSetup();"/>
+        <apex:pageMessages id="error2" escape="false"/>
+        <div>
+            <div class="form-group">
+                <div class="col-sm-offset-6"></div>
+            </div>
+        </div>
+        <div class="form-group text-center" style="margin-bottom:0px;">
+            <div class="searchViewContainer">
+                <div id="searchView" class="col-xs-12">
+                    <div class="form-group">
+                        <div class="col-xs-12" style="">
+                            <div style="float:left;"><apex:outputLabel styleClass="control-label" for="savedViews" value="{!$Label.Search_View}: "/></div>
+                            <div style="float:left; padding-left:10px;">
+                                <apex:selectList size="1" styleClass="form-control selectListOverride" id="savedViews" value="{!SelectedSavedSearch}">
+                                    <apex:selectOption itemValue="" itemLabel="--{!$Label.None}--"/>
+                                    <apex:selectOptions value="{!SavedSearches}"/>
+                                </apex:selectList>
+                            </div>
+                            <div style="float:left; padding-left:10px;">
+                                <apex:actionStatus id="goBtnStatus">
+                                    <apex:facet name="stop">
+                                        <apex:commandButton value="{!$Label.Go}" action="{!setSearch}" disabled="false" styleClass="btn sfbtnOverrideDefault" status="goBtnStatus" rerender="basicInput,myPanel,myButtons,searchName,error,error2,resultBlock,advancedPanel,basicPanel,resultBlock" oncomplete="advancedTabSetup();onSave();scroll();updateLinkOnSFOne();showTabs();" onclick="hideTabs();"/>
+                                    </apex:facet>
+                                    <apex:facet name="start">
+                                        <apex:outputPanel >
+                                            <apex:image value="/img/loading32.gif" style="height:15px"/>
+                                            <apex:commandButton value="{!$Label.Go}" action="{!setSearch}" styleClass="btn sfbtnOverrideDefault" disabled="true" status="goBtnStatus" oncomplete="onSave();scroll();updateLinkOnSFOne();showTabs();" onclick="hideTabs();"/>
+                                        </apex:outputPanel>
+                                    </apex:facet>
+                                </apex:actionStatus>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xs-12">
+                <div class="btn-group">
+                    <button type="button" id="searchButton" data-loading-text="Searching..." data-role="button" class="btn sfbtnOverrideDefault">{!$Label.Search}</button>
+                </div>
+                <div class="btn-group">
+                    <button type="button" id="resetButton" data-loading-text="Resetting..." data-role="button" class="btn sfbtnOverrideDefault">{!$Label.Reset_Search}</button>
+                </div>
+                <div class="btn-group">
+                    <button type="button" id="saveSearchButton" data-loading-text="Saving..." data-role="button" class="btn sfbtnOverrideDefault" data-toggle="modal" data-target="#saveSearchModal">{!$Label.Save_Search_Criteria}</button>
+                </div>
+            </div>
+        </div>
+        <div style="padding: 10px;"/>
+        <div class="panel panel-default">
+            <div class="panel-heading" style="background-color:#2a94d6; border: 1px solid #344a5f; ">
+                <h3 class="panel-title" style="color:#fff;"><span class="glyphicon glyphicon-search"/>&nbsp;Search</h3>
+            </div>
+            <div id="tabs" style="padding-top:12px;">
+                <ul id="nav" style="">
+                    <li><a href="#basicTab" onclick="toggleSearchView();" id="basicTabLink">{!$Label.Basic}</a></li>
+                    <li style="border-width: 1px 1px 0px 0px;"><a onclick="toggleSearchView();" href="#advancedTab" id="advancedTabLink">{!$Label.Advanced}</a></li>
+                </ul>
+
+                <div id="basicTab">
+                    <apex:outputPanel id="basicPanel">
+                        <div class="panel panel-default">
+                            <div class="panel-body" >
+                                <div style="border: 1px solid lightgray; padding: 10px; background-color: #f0f1f2;">
+                                    <div style="background-color: white; width:100%; height: 100%; padding: 15px;">
+                                        <div class="form-group">
+                                            <div class="col-xs-6 p-b-10">
+                                                <div class="form-group">
+                                                    <div class="col-md-3">
+                                                        <apex:outputLabel styleClass="control-label helpButton" value="{!$Label.Text_Search} " ><img src="/s.gif" class="helpOrb" title="{!$Label.Basic_Search_Help_Text}"/></apex:outputLabel>
+                                                    </div>
+                                                    <div class=" col-md-9">
+                                                        <apex:inputText id="basicInput" styleClass="form-control form-control-override" value="{!Search.TextSearch}"/>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-xs-offset-5"/>
+                                        </div>
+                                        <div class="form-group">
+                                            <div class="col-xs-6 p-b-10">
+                                                <div class="form-group">
+                                                    <div class="col-md-3">
+                                                        <apex:outputLabel for="firstName" styleClass="control-label" value="{!$Label.First_Name}"/>
+                                                    </div>
+                                                    <div class="col-md-9">
+                                                        <apex:inputText id="firstName" styleClass="form-control form-control-override" value="{!Search.FirstName}"/>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-xs-6 p-b-10">
+                                                <div class="form-group">
+                                                    <div class="col-md-3">
+                                                        <apex:outputLabel for="lastName" styleClass="control-label" value="{!$Label.Last_Name}"/>
+                                                    </div>
+                                                    <div class="col-md-9">
+                                                        <apex:inputText id="lastName" styleClass="form-control form-control-override" value="{!Search.LastName}"/>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <div class="col-xs-6 p-b-10">
+                                                <div class="form-group">
+                                                    <div class="col-md-3">
+                                                        <apex:outputLabel for="geography" styleClass="control-label" value="{!$Label.Geography}"/>
+                                                    </div>
+                                                    <div class="col-md-9">
+                                                        <apex:selectList id="geography" styleClass="form-control form-control-override" value="{!Search.Geography}" size="1">
+                                                            <apex:selectOptions value="{!Search.GeographyList}"/>
+                                                        </apex:selectList>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-xs-6 p-b-10">
+                                                <div class="form-group">
+                                                    <div class="col-md-3">
+                                                        <apex:outputLabel for="officeLocation" styleClass="control-label" value="{!$Label.Office_Location}"/>
+                                                    </div>
+                                                    <div class="col-md-9">
+                                                        <apex:selectList id="officeLocation" styleClass="form-control form-control-override" size="1" value="{!Search.OfficeLocation}">
+                                                            <apex:selectOptions value="{!Search.OfficeLocationList}"/>
+                                                            <apex:selectOptions value="{!Search.OfficeLocation2List}"/>
+                                                            <apex:selectOptions value="{!Search.OfficeLocation3List}"/>
+                                                        </apex:selectList>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <div class="col-xs-6 p-b-10">
+                                                <div class="form-group">
+                                                    <div class="col-md-3">
+                                                        <apex:outputLabel for="busiLine" styleClass="control-label" value="{!$Label.Business_Line}"/>
+                                                    </div>
+                                                    <div class="col-md-9">
+                                                        <apex:selectList id="busiLine" styleClass="form-control form-control-override" size="1" value="{!Search.BusinessLine}">
+                                                            <apex:selectOptions value="{!Search.BusinessLineList}"/>
+                                                        </apex:selectList>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-xs-6 p-b-10">
+                                                <div class="form-group">
+                                                    <div class="col-md-3">
+                                                        <apex:outputLabel for="country" styleClass="control-label" value="{!$Label.Country}"/>
+                                                    </div>
+                                                    <div class="col-md-9">
+                                                        <apex:selectList id="country" styleClass="form-control form-control-override" size="1" value="{!Search.Country}">
+                                                            <apex:selectOptions value="{!Search.CountryList}"/>
+                                                        </apex:selectList>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <div class="col-xs-6 p-b-10">
+                                                <div class="form-group">
+                                                    <div class="col-md-3">
+                                                        <apex:outputLabel for="licenseReg" styleClass="control-label" value="{!$Label.License_Reg}"/>
+                                                    </div>
+                                                    <div class="col-md-9">
+                                                        <apex:selectList id="licenseReg" styleClass="form-control form-control-override" size="1" value="{!Search.LicenseRegistration}">
+                                                            <apex:selectOptions value="{!Search.LicenseRegistrationList}"/>
+                                                        </apex:selectList>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-xs-6 p-b-10">
+                                                <div class="form-group">
+                                                    <div class="col-md-3">
+                                                        <apex:outputLabel for="licRegCountry" styleClass="control-label" value="{!$Label.Lic_Reg_Country}"/>
+                                                    </div>
+                                                    <div class="col-md-9">
+                                                        <apex:selectList id="licRegCountry" styleClass="form-control form-control-override" size="1" value="{!Search.LicenseRegistrationCountry}">
+                                                            <apex:selectOptions value="{!Search.CountryList}"/>
+                                                        </apex:selectList>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <div class="col-xs-6 p-b-10">
+                                                <div class="form-group">
+                                                    <div class="col-md-3">
+                                                        <apex:outputLabel for="certifiedPm" styleClass="control-label" value="{!$Label.PMC_Search_CertifiedPM}"/>
+                                                    </div>
+                                                    <div class="col-md-9">
+                                                        <apex:selectList id="certifiedPm" styleClass="form-control form-control-override" size="1" value="{!Search.CertifiedPm}">
+                                                            <apex:selectOptions value="{!Search.CertifiedPmList}"/>
+                                                        </apex:selectList>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <apex:outputPanel rendered="{!IsContentManager}">
+                                                <div class="col-xs-6 p-b-10">
+                                                    <div class="form-group">
+                                                        <div class="col-md-3">
+                                                            <apex:outputLabel for="includeInactiveB" value="{!$Label.Include_Inactive}"/>
+                                                        </div>
+                                                        <div class="col-md-9">
+                                                            <apex:inputCheckbox id="includeInactiveB" styleClass="" value="{!Search.Active}"/>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                        </apex:outputPanel>
+                                        </div>
+                                        <!-- <div class="form-group">
+                                            <div class="col-xs-6 p-b-10">
+                                                <div class="form-group">
+                                                    <div class="col-md-3">
+                                                        <apex:outputLabel for="languageInputB" value="{!$Label.Additional_Language}"/>
+                                                    </div>
+                                                    <div class="col-md-9">
+                                                        <apex:selectList id="languageInputB" styleClass="form-control form-control-override" value="{!Search.AdditionalLanguage}" multiselect="false" size="1">
+                                                            <apex:selectOption itemValue="EN" itemLabel="{!$Label.English}"/>
+                                                        </apex:selectList>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-xs-offset-5"/>
+                                        </div> -->
+                                        
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </apex:outputPanel>
+                </div>
+                <div id="advancedTab">
+                    <div class="panel panel-default">
+                    <div class="panel-body">
+                    <div style="border: 1px solid lightgray; padding: 10px; background-color: #f0f1f2;">
+                    <div style="background-color: white; width:100%; height: 100%; padding: 5px;">
+                    <apex:outputPanel id="advancedPanel">
+
+                        <apex:outputPanel id="advancedTablePanel">
+                        <table  id="advancedTable" class="table">
+                            <tbody>
+                                <tr>
+                                    <th> </th>
+                                    <th>{!$Label.Field}</th>
+                                    <th>{!$Label.Operator}</th>
+                                    <th colspan="2">{!$Label.Value}</th>
+                                </tr>
+                                <apex:variable var="i" value="{!0}"/>
+                                <apex:repeat value="{!Search.Conditions}" var="cond">
+                                    <apex:variable var="i" value="{!i+1}"/>
+                                    <tr>
+                                        <td>
+                                            <div class="form-group">
+                                                <div class="col-xs-12">
+                                                    <apex:outputLabel value="{!i}. " styleClass="filterH control-label"/>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="form-group">
+                                                <div class="col-xs-12">
+                                                    <apex:selectList styleClass="form-control form-control-override" value="{!cond.field}" size="1">
+                                                        <apex:selectOption itemValue="" itemLabel="--{!$Label.None}--"/>
+                                                        <apex:selectOptions value="{!Search.AdvancedFieldOptions}"/>
+                                                        <apex:actionSupport event="onchange" reRender="selectListPanel" />
+                                                    </apex:selectList>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td >
+                                        <apex:outputPanel id="selectListPanel">
+                                        <div class="form-group">
+                                            <div class="col-xs-12">
+                                                <apex:selectList styleClass="form-control form-control-override" value="{!cond.operator}" size="1" id="operatorList">
+                                                    <apex:selectOption itemValue="" itemLabel="--{!$Label.None}--"/>
+                                                    <apex:selectOptions value="{!cond.Operators}"/>
+                                                </apex:selectList>
+                                            </div>
+                                        </div>
+                                        </apex:outputPanel>
+                                        </td>
+                                        <td>
+                                           <div class="form-group">
+                                                <div class="col-xs-12">
+                                                    <apex:inputText value="{!cond.value}" styleClass="form-control form-control-override"/>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="form-group">
+                                                <div class="col-xs-12">
+                                                    <apex:outputLabel value=" {!$Label.AND}" rendered="{!IF(i<5,true,false)}" styleClass="filterS control-label"/>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </apex:repeat>
+                            </tbody>
+                        </table>
+                        </apex:outputPanel>
+                        <a href="#filterText" id="filterLogic" class="filterS" style="padding-left:15px;">{!$Label.Add_Filter_Logic}...</a>
+                        <br/>
+                        <div class="filterH" style="padding-left:15px;">
+                            <apex:commandLink id="addRowLink" value="Add Row" action="{!addRow}" reRender="advancedTablePanel" oncomplete="addRowClick();"/>
+                            <span id="removeRowUnLinked">{!$Label.Remove_Row}</span>
+                            <apex:commandLink id="removeRowLinked" action="{!removeRow}" rerender="advancedTablePanel" oncomplete="removeRowClick();">{!$Label.Remove_Row}</apex:commandLink>
+                            <br/>
+                            <apex:commandLink value="{!$Label.Clear_Filter_Logic}" id="clearFilter" action="{!clearLogic}" oncomplete="advancedTabSetup();" onclick="j$('#filterLogic').show();" reRender="advancedPanel"/>
+                            <br/>
+                            <span >{!$Label.Filter_Logic}:</span>
+                            <br/>
+                            <apex:inputText id="filterText" value="{!Search.Filter}"/>
+                            <br/>
+                            <apex:image value="/img/report_boolean_filter.gif"/>
+                        </div>
+                        <!-- <br/>
+                            <apex:outputPanel >
+                                <div class="form-group" style="padding-left:15px;">
+                                    <div class="col-xs-6">
+                                       <div class="form-group">
+                                            <div class="col-xs-6">
+                                               <apex:outputLabel for="languageInputA" value="{!$Label.Additional_Language}" styleClass="control-label"/>
+                                           </div>
+                                           <div class="col-xs-6">
+                                               <apex:selectList id="languageInputA" value="{!Search.AdditionalLanguage}" styleClass="form-control form-control-override" multiselect="false" size="1">
+                                                   <apex:selectOption itemValue="EN" itemLabel="{!$Label.English}"/>
+                                               </apex:selectList>
+                                           </div>
+                                       </div>
+                                    </div>
+                                    <div class="col-xs-offset-6"></div>
+                                </div>
+                            </apex:outputPanel> -->
+                        <br/>
+                        <apex:outputPanel rendered="{!IsContentManager}">
+                            <div class="form-group" style="padding-left:15px;">
+                                <div class="col-xs-6">
+                                    <div class="form-group">
+                                        <div class="col-xs-2">
+                                            <apex:outputLabel for="includeInactiveA" value="{!$Label.Include_Inactive}"/>
+                                        </div>
+                                        <div class="col-xs-6">
+                                            <apex:inputCheckbox id="includeInactiveA" value="{!Search.Active}" styleClass=""/>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-xs-offset-6"></div>
+                            </div>
+                        </apex:outputPanel>
+                    </apex:outputPanel>
+                    </div>
+                    </div>
+                    </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel panel-default">
+                <div class="panel-heading" style="background-color:#2a94d6; border: 1px solid #344a5f;">
+                    <h3 class="panel-title" style="color:#fff;"><a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#resultFields" href="#resultFields" id="collapseResultFields">{!$Label.Result_Fields}&nbsp;</a></h3>
+                </div>
+                <div class="panel-body panel-collapse collapse" id="resultFields" style="padding-top: 12px;">
+                    <apex:outputPanel id="resultBlock">
+                    <div style="border: 1px solid lightgray; padding: 10px; background-color: #f0f1f2;">
+                        <div style="background-color: white; width:100%; height: 100%; padding: 5px;">
+                        <table class="table">
+                            <thead>
+                                <th class="text-center">{!$Label.Available_Fields}</th>
+                                <th> </th>
+                                <th class="text-center">{!$Label.Selected_Fields}</th>
+                                <th> </th>
+                                <th> </th>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="width: 25%;">
+                                        <div>
+                                            <apex:selectList styleClass="form-control" size="8" value="{!Search.ResultFields}" multiselect="true">
+                                                <apex:selectOptions value="{!Search.ResultFieldOptions}"/>
+                                            </apex:selectList>
+                                        </div>
+                                    </td>
+                                    <td style="vertical-align: middle; width: 4%;">
+                                        <div class="buttonPadding"><label>{!$Label.Add}</label></div>
+                                        <div class="buttonPadding">
+                                            <apex:commandLink value="" action="{!moveFieldsRight}" reRender="resultBlock,error,error2" >
+                                                <img class="rightArrowIcon" src="/s.gif"/>
+                                            </apex:commandLink>
+                                        </div>
+                                        <div class="buttonPadding">
+                                            <apex:commandLink value="" action="{!moveFieldsLeft}" reRender="resultBlock">
+                                                <img class="leftArrowIcon" src="/s.gif"/>
+                                            </apex:commandLink>
+                                        </div >
+                                        <div class="buttonPadding"><label style="text-align: center">{!$Label.Remove}</label></div>
+                                    </td>
+                                    <td width="25%">
+                                        <div>
+                                            <apex:selectList styleClass="form-control" size="8" value="{!Search.SelectedFields}" multiselect="true" id="selectedList">
+                                                <apex:selectOptions value="{!Search.SelectedFieldOptions}"/>
+                                            </apex:selectList>
+                                        </div>
+                                    </td>
+                                    <td style="vertical-align: middle; width: 4%">
+                                        <div class="buttonPadding"><label style="text-align: center">{!$Label.Up}</label></div>
+                                        <div class="buttonPadding">
+                                            <apex:commandLink value="" action="{!moveFieldsUp}" reRender="selectedList" >
+                                                <img class="upArrowIcon" src="/s.gif"/>
+                                            </apex:commandLink>
+                                        </div>
+                                        <div class="buttonPadding">
+                                            <apex:commandLink value="" action="{!moveFieldsDown}" reRender="selectedList" >
+                                                <img class="downArrowIcon" src="/s.gif"/>
+                                            </apex:commandLink>
+                                        </div>
+                                        <div class="buttonPadding"><label style="text-align: center">{!$Label.Down}</label></div>
+                                    </td>
+                                    <td> </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        </div>
+                    </div>
+                    </apex:outputPanel>
+                </div>
+            </div>
+            <apex:pageMessages id="error" escape="false"/>
+
+            <!--Resume Generation-->
+            <div class="panel panel-default">
+                <div class="panel-heading" style="background-color:#2a94d6; border: 1px solid #344a5f;">
+                    <h3 class="panel-title" style="color:#fff;">{!$Label.Results}</h3>
+                </div>
+                <div class="panel-body" id="resultSection" style="padding-top: 12px;">
+                    <div id="resumeGenDiv">
+                        <div class="form-group">
+                            <div class="col-xs-4" style="">
+                                <apex:commandLink styleClass="btn sfbtnOverrideDefault" style="text-decoration:none;" value="{!$Label.Export_List}" action="{!generateExcel}" target="_blank"/>
+                            </div>
+                            <div class="col-xs-3"></div>
+                            <div class="col-xs-2" >
+                                <apex:selectList id="templateList" value="{!TemplateName}" styleClass="form-control selectListOverride" multiselect="false" size="1">
+                                    <apex:selectOption itemValue="none" itemLabel="{!$Label.Generation_None}"/>
+
+                                    <apex:selectOption itemValue="aecom_format" itemLabel="{!$Label.AECOM_Format}"/>
+                                    <apex:selectOption itemValue="aecom_plain" itemLabel="{!$Label.Plain_Format}"/>
+                                    <apex:selectOption itemValue="aecom_330" itemLabel="{!$Label.Format_330}"/>
+                                    <apex:selectOption itemValue="xml_output" itemLabel="{!$Label.XML_Output}"/>
+
+                                    <apex:actionSupport event="onchange" rerender="dlPanel" action="{!clearDownload}" status="AddStatus"/>
+                                </apex:selectList>
+                            </div>
+                            <div class="col-xs-3">
+                                <apex:outputPanel id="dlPanel" >
+                                    <apex:actionStatus id="AddStatus">
+                                        <apex:facet name="start">
+                                            <apex:outputPanel >
+                                                <apex:commandButton action="{!generateResumes}" value="{!$Label.Generating_CV_Resume}" status="AddStatus" styleClass="btn sfbtnOverrideDefault" style="text-decoration:none;" disabled="true"/>
+                                            </apex:outputPanel>
+                                        </apex:facet>
+                                        <apex:facet name="stop">
+
+                                            <apex:outputPanel >
+                                                <apex:commandLink onclick="if(!isValidTemplate()) return false;" action="{!generateResumes}" value="{!$Label.Generate_CV_Resume}" status="AddStatus" styleClass="btn sfbtnOverrideDefault" style="text-decoration:none;" reRender="dlPanel,error,error2"/>
+                                                &nbsp;
+                                                <apex:outputLink target="_blank" style="text-decoration:none;" rendered="{!ShowDownloadLink}" id="dlLink" value="{!DownloadLink}" styleClass="btn sfbtnOverrideDefault">
+                                                {!$Label.Click_To_Download}
+                                                </apex:outputLink>
+                                            </apex:outputPanel>
+                                        </apex:facet>
+                                    </apex:actionStatus>
+                                </apex:outputPanel>
+                            </div>
+                        </div>
+                        <div class="clearfix"/>
+                    </div>
+
+                    <br/>
+                    <!--END Resume Generation-->
+                    <div style="padding: 10px; background-color: #f0f1f2; border: 1px solid lightgray;">
+                        <div style="background-color: white; width:100%; height: 100%; padding: 5px;">
+                        <div class="overflowClass" id="resultTableDiv">
+                        <apex:outputPanel id="myPanel" >
+                            <apex:dataTable value="{!SearchResults}" var="result" id="resultTable" styleClass="table">
+
+                                <apex:column id="selectColumn" >
+                                    <apex:facet name="header">
+                                        <apex:actionStatus id="selectStatus">
+                                            <apex:facet name="stop">
+                                                <apex:inputCheckbox value="{!SelectAll}" onchange="selectAll();"/>
+                                            </apex:facet>
+                                            <apex:facet name="start">
+                                                <apex:image value="/img/loading32.gif" style="height:15px"/>
+                                            </apex:facet>
+                                        </apex:actionStatus>
+                                    </apex:facet>
+                                    <apex:inputCheckbox value="{!result.Selected}"/>
+                                </apex:column>
+
+                                <apex:column headerValue="{!$Label.Photo}">
+                                    <apex:image value="{!result.photoURL}" style="width: 64px; height: 64px; border-radius: 10px;"/>
+                                </apex:column>
+
+                                <!-- this misbehaves in firefox -->
+                                <!--<apex:column id="folCol" headerValue="Follow">
+                                    <chatter:follow id="follow" reRender="folCol" entityId="{!result.user.Id}"/>
+                                </apex:column> -->
+
+                                <apex:repeat var="cell" value="{!result.cells}">
+                                    <apex:column headerValue="test" rendered="{!IF(cell != 'DONTUSE', true, false)}">
+                                        <div style="{!IF(FIND('\r\n',JSENCODE(cell)) > 0 || LEN(cell) > 30, 'min-width: 30em;','')}margin: 0; overflow-y: auto;">
+                                            <apex:outputText escape="false" value="{!SUBSTITUTE(SUBSTITUTE(JSENCODE(cell),'\r\n','<br/>'),'\\','')}"/>
+                                        </div>
+                                    </apex:column>
+                                    <apex:column headerValue="test" rendered="{!IF(cell == 'DONTUSE', true, false)}">
+                                        <apex:outputLink value="/_ui/core/userprofile/UserProfilePage?u={!result.userId}&tab=Professional_Profile" target="_blank" id="userLink">{!result.userName}</apex:outputLink>
+                                    </apex:column>
+                                </apex:repeat>
+
+                                <apex:repeat var="header" value="{!Search.SelectedFieldOptions}">
+                                    <apex:column headerValue="{!header.Label}" styleClass="empty-column-content" />
+                                </apex:repeat>
+                            </apex:dataTable>
+                            <div class="text-center">
+                                <apex:outputLabel value="{!SearchDuration}" id="durationTaken"/>
+                            </div>
+                        </apex:outputPanel>
+                        </div>
+                        <div class="text-center" style="padding: 5px;">
+                             <apex:outputPanel id="myButtons">
+                                <span style="float: left;">{!$Label.Showing_Page} #{!PageNumber} {!$Label.Of} {!TotalPages}</span><span style="float: right;">{!$Label.Showing_Results} {!FromResult} - {!ToResult} {!$Label.Of} {!TotalSearchResults}</span>
+                                <div class="clearfix"/>
+                                <apex:commandButton action="{!Beginning}" title="Beginning" value="<<" disabled="{!disabledPrevious}" reRender="myPanel,myButtons" styleClass="btn pagingButtons"/>
+                                <apex:commandButton action="{!Previous}" title="Previous" value="<" disabled="{!disabledPrevious}" reRender="myPanel,myButtons" styleClass="btn pagingButtons"/>
+                                <apex:commandButton action="{!Next}" title="Next" value=">" disabled="{!disabledNext}" reRender="myPanel,myButtons" styleClass="btn pagingButtons"/>
+                                <apex:commandButton action="{!End}" title="End" value=">>" disabled="{!disabledNext}" reRender="myPanel,myButtons" styleClass="btn pagingButtons"/>
+                            </apex:outputPanel>
+                        </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </apex:form>
+    <div class="form-group">
+        <div class="col-xs-12 col-sm-12 col-md-12">
+            <c:rsPolicyGuidance />
+        </div>
+    </div>
+</div>
+
+
+    <script src="{!URLFOR($Resource.rs_libs, 'bootstrap/js/bootstrap.min.js')}" type="text/javascript" charset="utf-8"></script>
+    <script src="{!URLFOR($Resource.rs_libs, 'qtip/jquery.qtip.min.js')}" type="text/javascript" charset="utf-8"></script>
+    <script>
+        var j$ = jQuery.noConflict();
+        var number = 5;
+        var pbBody = j$('.overflowClass').first().css("width");
+        var isSF1 = ( typeof sforce != 'undefined' ) && sforce && sforce.one;
+        j$(function() {
+            j$( "#tabs" ).tabs({ active: 0});
+            if(!pbBody) {
+                pbBody = j$(window).width()-93;
+                if(!j$('#sidebarCell').hasClass('sidebarCollapsed')) pbBody -= 303;
+            }
+            j$('.filterH').hide();
+            onSave();
+             j$('#tabs').on("keypress", 'input:not([id$="searchName"])', function(e) {
+                if(window.event && window.event.keyCode == 13 || e.which == 13) {
+                    j$('#searchButton').button('loading');
+                    searchFunction();
+                    return false;
+                } else {
+                    return true;
+                }
+            });
+            j$(document).on('keypress','input[id$="searchName"]',function(e) {
+                if(window.event && window.event.keyCode == 13 || e.which == 13) {
+                    j$('#saveSearchModalButton').trigger('click');
+                    return false;
+                } else {
+                    return true;
+                }
+            });
+            j$('.indicator').on('click',function() {
+                if(j$('#sidebarCell').hasClass('sidebarCollapsed')) {
+                    j$('.overflowClass').css('width',j$(window).width()-303);
+                }
+                else {
+                    j$('.overflowClass').css('width',j$(window).width()-93);
+                }
+            });
+            j$('#advancedTabLink').click(function() {
+                j$('.filterH').hide();
+                setupAdvanced();
+            });
+            j$('#basicTabLink').click(function() {
+                number = 5;
+                j$('.filterS').show();
+                setupBasic();
+            });
+            if(!isSF1) {
+                j$('.overflowClass').css("width",pbBody);
+            }
+            if(  isSF1 ) {
+                // j$('#advancedTab').remove();
+                j$('#resumeGenDiv').remove();
+                j$('.bDescription').remove();
+                j$('.bPageTitle').remove();
+                // j$('#advancedTabLink').parent().remove();
+                // if(j$(window).width() > 700 && j$(window).width() != 1024) {
+                //     j$('.overflowClass').css("width",738);
+                // } else if(j$(window).width() == 1024) {
+                //     j$('.overflowClass').css("width",935);
+                // }
+            }
+            j$(window).on('resize',function() {
+                console.log('window resized ' + pbBody);
+                pbBody = j$('.container-fluid').first().css('width');
+                if( isSF1 ) {
+                    // if(j$(window).width() > 700 && j$(window).width() != 1024) {
+                    //     j$('.overflowClass').css("width",738);
+                    // } else if(j$(window).width() == 1024) {
+                    //     j$('.overflowClass').css("width",935);
+                    // }
+                } else {
+                    resizeCheck();
+                }
+            });
+
+            console.log('#### pbBody ' + pbBody);
+            buttonSetup();
+            helpTextSetup();
+        });
+        function setFocusOnLoad() {}
+        function resizeCheck() {
+            if(!isSF1) {
+                if(!j$('#sidebarCell').hasClass('sidebarCollapsed')) {
+                    j$('.overflowClass').css('width',j$(window).width()-303);
+                }
+                else {
+                    j$('.overflowClass').css('width',j$(window).width()-93);
+                }
+            }
+        }
+        function advancedTabSetup() {
+            console.log('#### ' + j$('[id$="filterText"]').val());
+            if(j$('[id$="filterText"]').val() == '') {
+                j$('.filterH').hide();
+                j$('.filterS').show();
+            } else {
+                j$('.filterH').show();
+                j$('.filterS').hide();
+            }
+            j$('#filterLogic').on("click",function(){
+                automateFilterLogic();
+                j$('.filterS').hide();
+                j$('.filterH').show();
+            });
+            j$('[id$="clearFilter"]').on("click",function(e) {
+                j$('.filterH').hide();
+                j$('.filterS').show();
+                number = 5;
+            });
+            j$('[id$="removeRowLinked"]').hide();
+            if(!isSF1) j$('.overflowClass').css("width",pbBody);
+        }
+        function onSave() {
+            j$('.hide').hide();
+            j$('.show').show();
+            j$('#falseBtn').click(function() {
+                j$('.hide').show();
+                j$('.show').hide();
+            });
+            if(!isSF1) j$('.overflowClass').css("width",pbBody);
+        }
+        function scroll() {
+            // Scroll is causing massive rendering issues on mobile, disabled for now.
+            if(!isSF1) {
+                j$('[id$="resultTable"]').get(0).scrollIntoView();
+            }
+        }
+        function addRowClick() {
+            number += 1;
+            console.log('#### search conditions: ' + number);
+            j$('.filterS').hide();
+            j$('.filterH').show();
+            j$('[id$="removeRowLinked"]').show();
+            j$('#removeRowUnLinked').hide();
+        }
+        function removeRowClick() {
+            number -= 1;
+            j$('.filterS').hide();
+            j$('.filterH').show();
+            console.log('#### search conditions: ' + number);
+            if(number > 5) {
+                j$('[id$="removeRowLinked"]').show();
+                j$('#removeRowUnLinked').hide();
+            } else {
+                j$('[id$="removeRowLinked"]').hide();
+                j$('#removeRowUnLinked').show();
+            }
+        }
+
+        function updateLinkOnSFOne() {
+            console.log('sf1 ' + isSF1);
+            if( isSF1 ) {
+                j$('a[id$=userLink]').each(function() {
+                    var href = decodeURIComponent(j$(this).attr('href'));
+                    var userId = href.substring(href.indexOf('u=')+2,href.indexOf('&'));
+                    console.log(href + 'href');
+                    console.log('userId ' + userId);
+                    j$(this).attr('href','#');
+                    j$(this).click(function(e) {
+                        e.preventDefault();
+                        window.open('/apex/rsSkillsAndQualifications?sfdc.userId='+userId+'&sfone=true');
+                    });
+                });
+            }
+            if(!isSF1) j$('.overflowClass').css("width",pbBody);
+        }
+
+        function buttonSetup() {
+            j$('#searchButton').click(function () {
+                var btn = j$(this);
+                hideTabs();
+                btn.button('loading');
+                searchFunction();
+            });
+            j$('#resetButton').click(function () {
+                var btn = j$(this);
+                btn.button('loading');
+                hideTabs();
+                resetSearch();
+            });
+            j$('#saveSearchModalButton').click(function() {
+                var btn = j$('#saveSearchButton');
+                btn.button('loading');
+                hideTabs();
+                saveSearchFunction();
+            });
+            j$('#saveAsSearchModalButton').click(function () {
+                var btn = j$('#saveSearchButton');
+                btn.button('loading');
+                hideTabs();
+                saveAsSearchFunction();
+            });
+            j$('#saveSearchButton').click(function() {
+                j$('[id$=oldSearchName]').val(j$('[id$=searchName]').val());
+            });
+        }
+        function resetButtons() {
+            j$('#searchButton').button('reset');
+            j$('#resetButton').button('reset');
+            j$('#saveSearchButton').button('reset');
+            resizeCheck();
+        }
+        function helpTextSetup() {
+            j$('.helpOrb').each(function() {
+                var elem = j$(this);
+                elem.qtip({
+                    content: true,
+                    events: {
+                        show: function(event, api) { elem.parent().removeClass('helpButton').addClass('helpButtonOn');},
+                        hide: function(event, api) { elem.parent().removeClass('helpButtonOn').addClass('helpButton');}
+                    }
+                });
+            });
+        }
+        function hideTabs() {
+            j$('li.ui-state-default').each(function() {
+                if(!j$(this).hasClass('ui-state-active')) j$(this).hide();
+            });
+        }
+        function showTabs() {
+            j$('li.ui-state-default').each(function() {
+                j$(this).show();
+            });
+        }
+        function toggleSearchView() {
+            j$('#searchView').toggle();
+        }
+
+        function getParameterByName(name) {
+            var url = (window.location != window.parent.location) ? document.referrer: document.location;
+            var match = RegExp('[?&]' + name + '=([^&]*)').exec(url);
+            var value = match && decodeURIComponent(match[1].replace(/\+/g, ' '));
+            console.log('getParameterByName for ' + name + ' returns : ' + value);
+            return value;
+        }
+        j$(window).load(function() {
+            if(getParameterByName("query")) {
+                scroll();
+            }
+        });
+
+        function isValidTemplate() {
+
+            var j$ = jQuery.noConflict();
+            var value = j$('[id$="templateList"]').val();
+            if(value === 'none') {
+                alert('{!$Label.Select_Template_Warning}');
+                return false;
+            }
+            return true;
+        }
+    </script>
+</apex:page>

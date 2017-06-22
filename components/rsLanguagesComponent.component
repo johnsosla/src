@@ -1,0 +1,275 @@
+<apex:component controller="rsLanguagesController" allowDML="true">
+
+    <apex:attribute name="rsProfile" assignTo="{!profile}" description="" type="rsProfile" required="true"/>
+
+    <apex:attribute name="reRender" description="" type="String" required="false"/>
+    <script type="text/javascript">
+        var j$ = jQuery.noConflict();
+        j$(document).ready(function() {
+            if( '{!IsSF1}' == 'true' ) {
+                j$('[id$=langAttachLink]').removeAttr('onclick href').parent().addClass('disabled');
+            }
+            helpTextSetup();
+            setLanguageRequiredFields();
+            setUpLanguageParts();
+        });
+
+        function setUpLanguageParts() {
+            j$('a[id$=moveLanguagePartUp]').each(function() {
+                if(j$(this).hasClass('0')) {
+                    j$(this).removeAttr('onclick href').parent().addClass('disabled');
+                    j$(this).click(function(e) {
+                        e.preventDefault();
+                    });
+                }
+            });
+            j$('a[id$=moveLanguagePartDown]').each(function() {
+                var arr = j$(this).attr('class').split(" ");
+                if((arr.length == 1 && arr[0] == '0')) {
+                    j$(this).removeAttr('onclick href').parent().addClass('disabled');
+                    j$(this).click(function(e) {
+                        e.preventDefault();
+                    });
+                }
+                else if (arr[0] == arr[1] || (arr[0] == '0' && arr[1].length == 0)) {
+                    j$(this).removeAttr('onclick href').parent().addClass('disabled');
+                    j$(this).click(function(e) {
+                        e.preventDefault();
+                    });
+                }
+            });
+        }
+
+        function setLanguageRequiredFields() {
+            //Required fields for this component
+            requiredFields = ['[id$=language_select]','[id$=LanguageSkill]','[id$=LanguageSkill]','[id$=LanguageLevel]'];
+        }
+    </script>
+
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h3 class="panel-title has-spinner pull-left" id="langHeader">{!$Label.Languages}&nbsp;<img height="15" width="15" class="spinner" src="{!URLFOR($Resource.rs_bundle, '/images/loading.gif')}" alt="loading" title="loading"/></h3>
+            <apex:commandLink value="" styleClass="{!IF(canEdit, '','disabled')} has-spinner pull-right " reRender="{!reRender}" action="{!newPart}" onclick="if(inProgress) return false; showSectionSpinner('langHeader'); inProgress = true;" oncomplete="resetProgress();setupFields();focusField('language_select');" rendered="{!IsListMode && canEdit}">
+                 <span title="{!$Label.Add}" class="glyphicon glyphicon-plus"></span>
+            </apex:commandLink>
+            <div class="clearfix"/>
+        </div>
+
+        <div class="panel-body">
+
+            <apex:outputPanel rendered="{!IsEditMode}">
+            <apex:actionRegion >
+
+                <table class="table" style="float:left;">
+                    <tr>
+                        <td style="border-top:none;">
+                            <apex:outputLabel for="language_select" value="{!$Label.Language}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['rs_Profile_Part__c'].fields['Language__c'].inlineHelpText}"/></apex:outputLabel>
+                        </td>
+                        <td style="border-top:none;">
+                            <div class="rsRequired">
+                                <div class="rsRequiredBlock"/>
+                                <apex:selectList id="language_select" value="{!CurrentPart.Language}" size="1" styleClass="">
+                                    <apex:selectOptions value="{!languageList}"/>
+                                </apex:selectList>
+                                <span class="rsError">{!$Label.Language} {!$Label.Is_Required}</span>
+                            </div>
+                        </td>
+                        <td style="border-top:none;">
+                            <apex:outputLabel for="LanguageSkill" value="{!$ObjectType['rs_Profile_Part__c'].fields['Language_Skill__c'].Label}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['rs_Profile_Part__c'].fields['Language_Skill__c'].inlineHelpText}"/></apex:outputLabel>
+                        </td>
+                        <td style="border-top:none;">
+                            <div class="rsRequired">
+                                <div class="rsRequiredBlock"/>
+                                <apex:selectList id="LanguageSkill" value="{!CurrentPart.LanguageSkill}" size="1" styleClass="">
+                                    <apex:selectOptions value="{!languageSkillList}"/>
+                                </apex:selectList>
+                                <span class="rsError">{!CurrentPart.LanguageSkill} {!$Label.Is_Required}</span>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <apex:outputLabel for="LanguageLevel" value="{!$ObjectType['rs_Profile_Part__c'].fields['Language_Level__c'].Label}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['rs_Profile_Part__c'].fields['Language_Level__c'].inlineHelpText}"/></apex:outputLabel>
+                        </td>
+                        <td colspan="3">
+                            <div class="rsRequired">
+                                <div class="rsRequiredBlock"/>
+                                <apex:selectList id="LanguageLevel" value="{!CurrentPart.LanguageLevel}" size="1" styleClass="">
+                                    <apex:selectOptions value="{!languageLevelList}"/>
+                                </apex:selectList>
+                                <span class="rsError">{!$ObjectType['rs_Profile_Part__c'].fields['Language_Level__c'].Label} {!$Label.Is_Required}</span>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+<br/><br/>
+                <div class="text-center">
+
+                    <apex:commandLink action="{!savePart}" value="{!$Label.Save}" styleClass="btn brandStyledBtn" reRender="{!reRender}" onclick="if(inProgress) return false; setLanguageRequiredFields();if(!checkRequiredFields()) return false; showSectionSpinner('langHeader'); inProgress = true;" oncomplete="resetProgress();">
+                         <span class="glyphicon glyphicon-ok-circle"></span>
+                    </apex:commandLink>
+                    &nbsp;
+                    <apex:commandLink action="{!saveAndApprove}" value="{!$Label.Save_And_Approve}" styleClass="btn brandStyledBtn" reRender="{!reRender}" onclick="if(inProgress) return false; setLanguageRequiredFields();if(!checkRequiredFields()) return false; showSectionSpinner('langHeader'); inProgress = true;" oncomplete="resetProgress();" rendered="{!isApprovable && CurrentPart.IsPendingOrInReview}">
+                         <apex:param value="{!CurrentPart.Id}" name="partId"/>
+                         <span class="glyphicon glyphicon-ok-circle"></span>
+                    </apex:commandLink>
+                    &nbsp;
+                    <apex:commandLink action="{!cancelPart}" immediate="true" value="{!$Label.Cancel}" styleClass="btn btn--neutral" reRender="{!reRender}" onclick="if(inProgress) return false; showSectionSpinner('langHeader'); inProgress = true;" oncomplete="resetProgress();">
+                         <span class="glyphicon glyphicon-remove-circle"></span>
+                    </apex:commandLink>
+                </div>
+            </apex:actionRegion>
+            </apex:outputPanel>
+
+            <apex:outputPanel rendered="{!IsViewMode}">
+                <div class="col-md-4 text-center">
+                    <apex:commandLink action="{!cancelPart}" immediate="true" value="{!$Label.Cancel}" styleClass="btn btn--neutral" reRender="{!reRender}" onclick="if(inProgress) return false; showSectionSpinner('langHeader'); inProgress = true;" oncomplete="resetProgress();">
+                         <span class="glyphicon glyphicon-remove-circle"></span>
+                    </apex:commandLink>
+                </div>
+                <br/>
+
+                <table class="table">
+                    <tr>
+                        <td>
+                            <apex:outputLabel value="{!$Label.Language}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['rs_Profile_Part__c'].fields['Language__c'].inlineHelpText}"/></apex:outputLabel>
+                        </td>
+                        <td>
+                            <apex:outputText value="{!CurrentPart.Language}"/>
+                        </td>
+                        <td>
+                            <apex:outputLabel value="{!$ObjectType['rs_Profile_Part__c'].fields['Language_Skill__c'].Label}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['rs_Profile_Part__c'].fields['Language_Skill__c'].inlineHelpText}"/></apex:outputLabel>
+                        </td>
+                        <td>
+                            <apex:outputText value="{!CurrentPart.LanguageSkill}"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <apex:outputLabel value="{!$ObjectType['rs_Profile_Part__c'].fields['Language_Level__c'].Label}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['rs_Profile_Part__c'].fields['Language_Level__c'].inlineHelpText}"/></apex:outputLabel>
+                        </td>
+                        <td colspan="3">
+                            <apex:outputText value="{!CurrentPart.LanguageLevel}"/>
+                        </td>
+                    </tr>
+                </table>
+            </apex:outputPanel>
+
+
+
+
+            <apex:outputPanel rendered="{!IsListMode}" id="langPanel">
+
+            <table id="regTable" class="table">
+                <thead>
+                    <tr>
+                        <th>{!$Label.Action}</th>
+                        <th>
+                            <apex:commandLink action="{!sortParts}" reRender="langPanel" onclick="if (inProgress) return false; inProgress = true;" oncomplete="resetProgress();sortOrderArrow(this.id);setUpLanguageParts();" value="{!$Label.Language}">
+                                <apex:param name="sortField" value="Skill_Language__c"/>
+                                <span class="toggleClassDown glyphicon glyphicon-chevron-down"></span>
+                                <span class="toggleClassUp glyphicon glyphicon-chevron-up"></span>
+                            </apex:commandLink>
+                        </th>
+                        <th>
+                            <apex:commandLink action="{!sortParts}" reRender="langPanel" onclick="if (inProgress) return false; inProgress = true;" oncomplete="resetProgress();sortOrderArrow(this.id);setUpLanguageParts();" value="{!$ObjectType['rs_Profile_Part__c'].fields['Language_Skill__c'].Label}">
+                                <apex:param name="sortField" value="Language_Skill__c"/>
+                                <span class="toggleClassDown glyphicon glyphicon-chevron-down"></span>
+                                <span class="toggleClassUp glyphicon glyphicon-chevron-up"></span>
+                            </apex:commandLink>
+                        </th>
+                        <th>
+                            <apex:commandLink action="{!sortParts}" reRender="langPanel" onclick="if (inProgress) return false; inProgress = true;" oncomplete="resetProgress();sortOrderArrow(this.id);setUpLanguageParts();" value="{!$ObjectType['rs_Profile_Part__c'].fields['Language_Level__c'].Label}">
+                                <apex:param name="sortField" value="Language_Level__c"/>
+                                <span class="toggleClassDown glyphicon glyphicon-chevron-down"></span>
+                                <span class="toggleClassUp glyphicon glyphicon-chevron-up"></span>
+                            </apex:commandLink>
+                        </th>
+                        <th class="text-center">{!$Label.Attachment}</th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                    <apex:repeat value="{!ViewParts}" var="part">
+                        <tr style="background-color:{!IF(part.ProfilePart.IsPendingOrInReview, 'LightYellow', 'white')};">
+                            <td>
+                                <div class="dropdown">
+                                    <button class="wrench btn-default btn-sm dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown">
+                                        <span class="glyphicon glyphicon-wrench"></span>
+                                    </button>
+                                    <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">
+                                        <li role="presentation">
+                                            <apex:commandLink tabindex="-1" html-data-role="menuitem" action="{!viewPart}" value="{!$Label.View}" reRender="{!reRender}" onclick="if(inProgress) return false; showSectionSpinner('langHeader'); inProgress = true;" oncomplete="resetProgress();">
+                                                <apex:param value="{!part.ProfilePart.Id}" name="partId"/>
+                                            </apex:commandLink>
+                                        </li>
+                                        <apex:outputPanel rendered="{!canEdit}" layout="none">
+                                            <li role="presentation">
+                                                <apex:commandLink tabindex="-1" html-data-role="menuitem" action="{!editPart}" value="{!$Label.Edit}" reRender="{!reRender}" rendered="{!canEdit}" onclick="if(inProgress) return false; showSectionSpinner('langHeader'); inProgress = true;" oncomplete="resetProgress();setupFields();">
+                                                    <apex:param value="{!part.ProfilePart.Id}" name="partId"/>
+                                                </apex:commandLink>
+                                            </li>
+                                            <li role="presentation" class="divider"></li>
+                                            <li>
+                                                <apex:commandLink tabindex="-1" html-data-role="menuitem" action="{!movePartUp}" value="{!$Label.Move_Part_Up}" styleClass="{!part.ProfilePart.PartSequence}" reRender="{!reRender}" oncomplete="resetProgress();" onclick="if(inProgress) return false; showSectionSpinner('langHeader'); inProgress = true;" id="moveLanguagePartUp">
+                                                    <apex:param value="{!part.ProfilePart.Id}" name="partId" />
+                                                </apex:commandLink>
+                                            </li>
+                                            <li>
+                                                <apex:commandLink tabindex="-1" html-data-role="menuitem" action="{!movePartDown}" value="{!$Label.Move_Part_Down}" styleClass="{!Parts.size - 1} {!part.ProfilePart.PartSequence}" reRender="{!reRender}" oncomplete="resetProgress();" onclick="if(inProgress) return false; showSectionSpinner('langHeader'); inProgress = true;" id="moveLanguagePartDown">
+                                                    <apex:param value="{!part.ProfilePart.Id}" name="partId" />
+                                                </apex:commandLink>
+                                            </li>
+                                            <li role="presentation" class="divider"></li>
+                                            <li role="presentation">
+                                                <apex:commandLink tabindex="-1" html-data-role="menuitem" value="{!$Label.Add_Attachment}" onclick="if(inProgress) return false; showSectionSpinner('langHeader'); inProgress = true; window.top.location.href='/apex/rsAttachment?partId={!part.ProfilePart.Id}&retUrl=/_ui/core/userprofile/UserProfilePage&ownerId={!profile.Id}&tab=Skills_and_Qualifications&tab.Skills_and_Qualifications.subtab=1';" oncomplete="resetProgress();" id="langAttachLink">
+                                                    <apex:param value="{!part.ProfilePart.Id}" name="partId"/>
+                                                </apex:commandLink>
+                                            </li>
+                                            <li role="presentation">
+                                                <apex:commandLink action="{!deleteAttachment}" reRender="{!reRender}" rendered="{!part.DeleteRender}" value="{!$Label.Remove_Attachment}" onclick="if(inProgress) return false; if(!confirmDeleteAttachment()) return false; showSectionSpinner('langHeader');">
+                                                    <apex:param name="attachmentId" value="{!part.ProfilePart.AttachmentId}"/>
+                                                    <apex:param name="partId" value="{!part.ProfilePart.Id}"/>
+                                                </apex:commandLink>
+                                            </li>
+                                            <li role="presentation" class="divider"></li>
+                                            <li role="presentation">
+                                                <apex:commandLink tabindex="-1" html-data-role="menuitem" action="{!deletePart}" value="{!$Label.Delete}" onclick="if(inProgress) return false; if(!confirmDeletePart()) return false; inProgress = true; showSectionSpinner('langHeader');" oncomplete="resetProgress(); setUpLanguageParts();" reRender="{!reRender}">
+                                                    <apex:param value="{!part.ProfilePart.Id}" name="partId"/>
+                                                </apex:commandLink>
+                                            </li>
+                                        </apex:outputPanel>
+                                        <apex:outputPanel layout="none" rendered="{!isApprovable && part.ProfilePart.IsPendingOrInReview}">
+                                            <li role="presentation" class="divider"></li>
+                                            <li role="presentation">
+                                                <apex:commandLink tabindex="-1" html-data-role="menuitem" action="{!approvePart}" value="{!$Label.Approve_Item}" reRender="{!reRender}" onclick="if(inProgress) return false; showSectionSpinner('langHeader'); inProgress = true;" oncomplete="resetProgress();">
+                                                    <apex:param value="{!part.ProfilePart.Id}" name="partId"/>
+                                                </apex:commandLink>
+                                            </li>
+                                        </apex:outputPanel>
+                                    </ul>
+                                </div>
+                            </td>
+                            <td>{!part.ProfilePart.Language}</td>
+                            <td>{!part.ProfilePart.LanguageSkill}</td>
+                            <td>{!part.ProfilePart.LanguageLevel}</td>
+                            <td>
+                                <div class="text-center">
+                                    <apex:outputLink value="/servlet/servlet.FileDownload?file={!part.ProfilePart.AttachmentId}" target="_blank">{!part.ProfilePart.AttachmentName}</apex:outputLink>
+                                </div>
+                            </td>
+                        </tr>
+                    </apex:repeat>
+                </tbody>
+            </table>
+
+            <c:rsPaginationComponent nextPage="{!getNextPage}" previousPage="{!getPreviousPage}" firstPage="{!getFirstPage}" lastPage="{!getLastPage}" viewIndex="{!ViewIndex}" viewLimit="{!ViewLimit}" totalParts="{!TotalParts}" pageNumber="{!PageNum}" numberOfPages="{!NumberOfPages}" rendered="{!TotalParts > ResultLimit}" reRender="{!reRender}"/>
+
+            </apex:outputPanel>
+
+
+
+        </div>
+    </div>
+
+</apex:component>

@@ -1,0 +1,87 @@
+<apex:component >
+
+    <apex:attribute name="viewIndex" description="" type="Integer"/>
+    <apex:attribute name="viewLimit" description="" type="Integer"/>
+    <apex:attribute name="totalParts" description="" type="Integer"/>
+    <apex:attribute name="pageNumber" description="" type="Integer"/>
+    <apex:attribute name="numberofPages" description="" type="Integer"/>
+    <apex:attribute name="nextPage" description="" type="ApexPages.Action"/>
+    <apex:attribute name="previousPage" description="" type="ApexPages.Action"/>
+    <apex:attribute name="firstPage" description="" type="ApexPages.Action"/>
+    <apex:attribute name="lastPage" description="" type="ApexPages.Action"/>
+    <apex:attribute name="reRender" description="" type="String" required="false"/>
+    <script type="text/javascript">
+        var j$ = jQuery.noConflict();
+        //AECR-298 blau, when there are multiple pages the pagination buttons scrolls
+        //the User back to the Header
+        function scrollToHeader(headerId) {
+            var splitHeaderId = headerId.split(",");
+            console.log(splitHeaderId[0].trim());
+            j$('[id$="' + splitHeaderId[0].trim() + '"]').get(0).scrollIntoView();
+        }
+
+        function getCookies() {
+            var cookies = [];
+            var all = document.cookie;
+            if( all === "" ) {
+                return cookies;
+            }
+            var list = all.split("; ");
+            for(var i = 0; i < list.length; i++) {
+                var cookie = list[i];
+                cookies.push(unescape(cookie));
+            }
+            return cookies;
+        }
+
+        function restoreCollapsedSections() {
+            var cookies = getCookies();
+            for(var i = 0; i < cookies.length; i++) {
+                var cookie = cookies[i].split("=");
+                var tabId = cookie[0];
+                var tabClass = cookie[1];
+                console.log('TabId: ' + tabId + ' TabClass: ' + tabClass);
+                if(j$('[id='+tabId+']').length) {
+                    if(tabClass.indexOf("collapsed") > -1) {
+                        j$('[id='+tabId+']').trigger("click");
+                    }
+                }
+            }
+        }
+    </script>
+
+    <table id="navTable" class="table">
+
+        <tr>
+            <td>{!viewIndex+1}-{!viewLimit} {!$Label.of} {!totalParts}</td>
+            <td class="text-right">
+                <apex:commandLink action="{!firstPage}" reRender="{!reRender}" styleClass="brandColor" oncomplete="scrollToHeader('{!reRender}');helpTextSetup();restoreCollapsedSections();">
+                    <span class="glyphicon glyphicon-backward brandColor"/>
+                    <apex:param name="pageChange" value="firstPage"/>
+                </apex:commandLink>
+                &nbsp;
+                <apex:commandLink action="{!previousPage}" reRender="{!reRender}" styleClass="brandColor" oncomplete="scrollToHeader('{!reRender}');helpTextSetup();restoreCollapsedSections();">
+                    <span class="glyphicon glyphicon-chevron-left brandColor"/>
+                    <apex:param name="pageChange" value="previousPage"/>
+                    {!$Label.Previous}
+                </apex:commandLink>
+                &nbsp;
+            </td>
+            <td>
+                 &nbsp;
+                <apex:commandLink action="{!nextPage}" reRender="{!reRender}" styleClass="brandColor" oncomplete="scrollToHeader('{!reRender}');helpTextSetup();restoreCollapsedSections();">
+                    {!$Label.Next}
+                    <span class="glyphicon glyphicon-chevron-right brandColor"/>
+                    <apex:param name="pageChange" value="nextPage"/>
+                </apex:commandLink>
+                &nbsp;
+                <apex:commandLink action="{!lastPage}" reRender="{!reRender}" styleClass="brandColor" oncomplete="scrollToHeader('{!reRender}');helpTextSetup();restoreCollapsedSections();">
+                    <span class="glyphicon glyphicon-forward b brandColor"/>
+                    <apex:param name="pageChange" value="lastPage"/>
+                </apex:commandLink>
+            </td>
+            <td class="text-right">{!$Label.Page} {!pageNumber} {!$Label.Of} {!numberOfPages}</td>
+        </tr>
+
+    </table>
+</apex:component>

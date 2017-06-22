@@ -1,0 +1,4 @@
+<apex:component controller="ECO_EmailApprovalController" access="global">
+	<apex:attribute name="relatedToId" assignTo="{!targetObjectId}" type="String" description="Id of the record whose approval process we want."/>
+	<apex:outputText value="{!RecalledComment}"/>
+</apex:component>

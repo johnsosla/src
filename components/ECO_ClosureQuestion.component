@@ -1,0 +1,83 @@
+<apex:component >
+	<apex:attribute name="pageController" description="controller" type="ECO_CloseoutApprovalPhaseController" required="true"/>
+	<apex:attribute name="questionField" description="question field" type="string" required="true"/>
+	<apex:attribute name="questionText" description="question text" type="string" required="true"/>
+	<apex:attribute name="noField" description="no field" type="string" required="true"/>
+	<apex:attribute name="yesno" description="true or false" type="boolean" required="true"/>
+	<apex:attribute name="questionType" description="true or false" type="string" default="1" required="false"/>
+	<apex:attribute name="noText" description="Text for the no option" type="string" default="If no, explain why:" required="false" />
+	<apex:attribute name="yesText" description="Test for the yes option" type="string" default="If yes, explain why:" required="false" />
+
+	<style>
+
+		.colA {
+			text-align:right;
+			vertical-align:middle !important;
+		}
+
+		.colB {
+			text-align:left;
+			vertical-align:middle !important;
+		}
+
+		.colC {
+			text-align:left s!important;
+			vertical-align:middle !important;
+		}	
+
+		.questions{
+			vertical-align:middle !important;
+			margin-left:3px;
+		}
+
+		/* CUSTOM HELP / GUIDANCE TEXT BOX */
+        /* CUSTOM HELP / GUIDANCE TEXT BOX */
+        .customHelpText{
+            padding: 7px;
+            border: 1px solid #85B3CE;
+            min-height: 30px;
+            display: block;
+            width: auto;
+            margin: 0 0 5px 0;
+            background-repeat: no-repeat;
+            border-radius: 4px;
+            background-color: #A2D3F1;
+            
+        }
+        .customHelpBody{
+            display:inline-block;
+            color:#;
+            max-width:95%;
+        }
+
+	</style>
+
+	<apex:actionRegion >
+		<table width="100%" cellpadding="0" cellspacing="0">
+
+			<tr>
+				<td class="questions">
+					<apex:outputLabel value="{!questionText}" />
+				</td>
+				<td class="questions" width="255px">
+					<apex:selectRadio value="{!pageController.oProject[questionField]}" layout="lineDirection">
+	                    <apex:selectOptions value="{!if(questionType=='1',pageController.types, pageController.types2)}"></apex:selectoptions>
+	                    <apex:actionSupport event="onchange" reRender="showText"/>
+	 				</apex:selectRadio>			
+				</td>
+			</tr>
+		</table>
+	</apex:actionRegion>
+	<apex:outputPanel id="showText">
+		<apex:outputPanel rendered="{!if(AND(pageController.oProject[questionField] == 'No',  NOT(yesno)), true, false)}">
+			<apex:outputLabel value="{!noText}" />
+			<apex:inputField style="width: 400px;"  value="{!pageController.oProject[noField]}" required="true" />
+		</apex:outputPanel>
+		<apex:outputPanel rendered="{!if(AND(pageController.oProject[questionField] == 'Yes', yesno), true, false)}">
+			<apex:outputLabel value="{!yesText}" />
+			<apex:inputField style="width: 400px;"  value="{!pageController.oProject[noField]}" required="true" />
+		</apex:outputPanel>
+		<br /><br />
+	</apex:outputPanel>
+
+</apex:component>

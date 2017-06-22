@@ -1,0 +1,1 @@
+<apex:page standardController="GFA_Library_Subtask__c" extensions="GFA_ActivateLibrarySubtaskController" action="{!activatePendingVersion}"/>

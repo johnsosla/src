@@ -1,0 +1,199 @@
+<apex:component controller="ECO_PMD_FinancialSummaryChart_Controller">
+    <apex:attribute name="projectId" description="Project Number" type="String" required="true" />
+    
+    <div ng-controller="dashFinancialSummaryController" class="panel panel-default dashbox">
+        <div class="panel-heading">
+            <a href="/apex/eco_pmd_financialdashboard?id={!projectId}">{!$Label.ECO_PMD_FINANCIALSUMMARY_TITLE} </a><span ng-Show="SFDCDATA.nodata"><b>{!$Label.ECO_PMD_NO_DATA}</b></span>
+        </div>
+        <div class="text-center" ng-hide="isLoaded">
+            <span class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span>
+        </div>
+        <div ng-show="isLoaded">
+            <table class="pmd-kpi">
+                <tr>
+                    <td>
+                        <div class="pmd-value" 
+                             ng-class="{'negative': SFDCDATA.GMNSR < 0}" 
+                             ng-bind="(SFDCDATA.GMNSR*100 | number:1) + '%'" />
+                        <div class="pmd-label">{!$Label.ECO_PMD_FINANCIALSUMMARY_GMNSR}</div>
+                    </td>
+                    <td>
+                        <div class="pmd-value" 
+                             style="color:lightgray;"
+                             ng-class="{'negative': SFDCDATA.PercentSpent > 100}" 
+                             ng-bind="(SFDCDATA.PercentSpent | number:0) + '%'" />
+                        <!--<div class="pmd-label">{!$Label.ECO_PMD_FINANCIALSUMMARY_ACCRUAL}</div>-->
+                        <div class="pmd-label">Percent Spent</div>
+                    </td>
+                    <td>
+                        <div class="pmd-value" 
+                             ng-class="{'negative': SFDCDATA.DSO < 0}" 
+                             ng-bind="(SFDCDATA.DSO | number:0)" />
+                        <div class="pmd-label">{!$Label.ECO_PMD_FINANCIALSUMMARY_DSO}</div>
+                    </td>
+                </tr>  
+                <tr>
+                    
+                    
+                </tr> 
+            </table>
+        </div>
+
+        <div class="panel-body">
+            <div ng-show="(SFDCDATA.isMissingMonthEndSnapshots==true)">
+                <button class="btn btn-default" ng-click="requestSnapshotRefresh()">Generate missing snapshots</button>
+            </div>
+            <div id="example">
+                <div class="demo-section k-content">
+                        <div id="chartFS" width='100%'></div>
+                </div>               
+            </div>
+        </div>
+        <c:ECO_PMD_PanelFooter panelId="FinSum">
+            <apex:outputText value="{!$Label.ECO_PMD_FINANCIALSUMMARY_MOREINFO_DETAILS}" escape="false" />
+            <div><br />Percent Spent shows the costs incurred inception to date as a percent of the approved total cost budget.</div>
+        </c:ECO_PMD_PanelFooter>
+    </div>
+
+    <script>
+    (function() {
+        angular
+        .module("ecopmd")
+        .controller("dashFinancialSummaryController",dashFinancialSummaryController);
+
+        function dashFinancialSummaryController($scope,$locale){
+            var scope = $scope;
+            loadData($scope);
+            $scope.isCollapsed = true;
+            $scope.isLoaded = false;
+            $scope.requestSnapshotRefresh = requestSnapshotRefresh;
+            
+            function createChart(elSpec) {
+                return $(elSpec).kendoChart({
+                    resizable: true,
+                    chartArea: {
+                        height: 250
+                    },
+                    dataSource: {
+                        data: $scope.SFDCDATA_Cost
+                    },
+                    legend: {
+                        position: "bottom"
+                    },
+                        seriesDefaults: {
+                        type: "line",
+                        stack: false
+                    },                    
+                    series: [{
+                            type: "column",
+                            field: "mtd_plan",
+                            name: "{!$Label.ECO_PMD_FINANCIALSUMMARY_COST_PLAN_MTD}",
+                            color: "#99CCFF",
+                            axis: "MTD"
+                        }, {
+                            type: "column",
+                            field: "mtd_actual",
+                            name: "{!$Label.ECO_PMD_FINANCIALSUMMARY_COST_MTD}",
+                            color: "#FF9933",
+                            axis: "MTD"
+                        }, {
+                            type: "line",
+                            field: "itd_plan",
+                            name: "{!$Label.ECO_PMD_FINANCIALSUMMARY_COST_PLAN_ITD}",
+                            color: "#0080ff",
+                            axis: "ITD"
+                        }, {
+                            type: "line",
+                            field: "itd_actual",
+                            name: "{!$Label.ECO_PMD_FINANCIALSUMMARY_COST_ITD}",
+                            color: "#cc6600",
+                            axis: "ITD"
+                        }],
+                        valueAxes: [{
+                            name: "MTD",
+                            title: { text: "{!$Label.ECO_PMD_FINANCIALSUMMARY_MTD_USD}" },
+                            labels: {template : "#= value/1000 #k"}
+                            // min: 0,
+                            //max: 161,
+                            //majorUnit: 32
+                        },{
+                            name: "ITD",
+                            title: { text: "{!$Label.ECO_PMD_FINANCIALSUMMARY_ITD_USD}" },
+                            labels: {template : "#= value/1000 #k"}
+                            //min: 0,
+                            //max: 100
+                        }],
+                    categoryAxis: {
+                        field: "kendoCategory",
+                        axisCrossingValues: [0,999999],
+                        labels: {
+                            rotation: 300//270
+                            ,template: '#= kendo.formatSnapshotDate(value).month #'
+                        }
+                    },
+                    tooltip: {
+                        visible: true,
+                        template: "#= series.name #: #= kendo.formatNum(value) # [#= kendo.formatSnapshotDate(category).date #]"
+                    }
+                }).data("kendoChart");
+            }
+          
+            function loadData($scope){
+                ECO_PMD_FinancialSummaryChart_Controller.ProjectSnapshot(
+                '{!projectId}',
+                function(result, event){
+                    if(event.status) {
+                        $scope.$apply(function(){
+                            $scope.SFDCDATA = result ;
+                            var d = mapSFDCResults(result);
+                            if (d.length < 6 ) {
+                                var missing = d.length - 6;
+                                for (var i = -1; i >= missing; i--) {
+                                    d.unshift({period: (i.toString() + ' months')})
+                                };
+                            }
+                            $scope.SFDCDATA_Cost = d.slice(- 6);
+                            $scope.isLoaded=true;
+                            var chart = createChart("#chartFS");
+                            chart.options.valueAxis[0].title.text = "MTD - " + $scope.SFDCDATA.currencyCode;
+                            chart.options.valueAxis[1].title.text = "ITD - " + $scope.SFDCDATA.currencyCode;
+                            // chart.options.categoryAxis.labels.step = (1 + Math.floor(result.financialSummaryData.length/24));
+                            chart.refresh();
+                            $(window).resize(function(){chart.refresh();});
+                        });
+                    }
+                });
+            }
+
+            function mapSFDCResults(result){
+                var months = []; // like { fiscl:"FY201501",field1:0,field2:0..}
+                angular.forEach(result["financialSummaryData"],function(val,idx){
+                    months.push({
+                          period: val.SnapshotFiscalMonth__c
+                        , kendoCategory: val.SnapshotFiscalMonth__c + '|' + val.SnapshotDate__c
+                        , itd_actual: val.CostITD__c
+                        , itd_plan: val.CostITDApproved__c
+                        , mtd_actual: val.CostMonthToDate__c
+                        , mtd_plan: val.CostMonthToDateApproved__c
+                    });                
+                });
+                return months;
+            }
+
+            function requestSnapshotRefresh(){
+                ECO_PMD_FinancialSummaryChart_Controller.SnapshotRefresh(
+                '{!projectId}',
+                function(result,event){
+                    if(event.status) {
+                        scope.$apply(function(){
+                            alert("Jobs queued. Allow up to 15 minutes to complete. ["+result.join(",")+"]");
+                            // let the user know the job was queued
+                        });
+                    }
+                });
+            }
+        }
+    })();   
+    </script>
+
+</apex:component>

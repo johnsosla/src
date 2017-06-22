@@ -1,0 +1,14 @@
+<apex:page standardController="Go_No_Go_Conversation__c" >
+
+<h4>Instructions:</h4>
+<ol type="A">
+ <li>This form records the outcome and guides the ‘Why-Go' process and is to be used for ALL proposals/projects irrespective of size.</li>
+ <li>Form is to be completed by the CAPTURE MANAGER and record the outcome of a ‘Why Go’ discussion conducted in accordance with the Go/No Go Procedure Q3AN-121-PR1.</li>
+ <li>The PROJECT SPONSOR/BID DIRECTOR  shall ensure all items on this form are appropriately completed and reflect the ‘Decision’ of the ‘Why Go’ discussion before submitting to the APPROVER.</li>
+ <li>The ‘Why Go Analysis’ must be completed prior to selecting ‘Capture Manager/Submitter Recommendations’ and approval decisions.</li>
+ <li>The APPROVER must be independent to the Go/No Go Team and selected in accordance with approval matrix in Section 4 of the Go/No Go Procedure Q3AN-121-PR1.</li>
+ <li>Before submitting for approval, all details in the ‘Approvers and Decisions’ section MUST be provided.</li>
+</ol>  
+
+
+</apex:page>

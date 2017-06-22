@@ -1,0 +1,144 @@
+<apex:page controller="ECO_DOA_ApprovalRequestController" showheader="true" sidebar="true" extensions="nttdcore.DLabelParentController" >
+
+<apex:stylesheet value="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css" />
+
+<style>
+    /*.customHelpText{
+		padding:20px 25px;
+		border:1px solid #85B3CE;
+		min-height:30px;
+		display:block;
+		width:auto;
+		margin:0;
+		background-color:#E3F0F8;
+		background-image: url('../img/icon/forecasts24.png');
+		background-position:1% 50%;
+		background-repeat:no-repeat;
+		border-radius:4px;
+		margin-bottom:15px;
+	}
+	.customHelpBody{
+		display:inline-block;
+		color:#;
+		max-width:95%;
+		margin-left:28px;
+    }*/
+    /* CUSTOM HELP / GUIDANCE TEXT BOX */
+        .customHelpText{
+            padding: 7px;
+            border: 1px solid #85B3CE;
+            min-height: 30px;
+            display: block;
+            width: auto;
+            margin: 0 0 5px 0;
+            background-repeat: no-repeat;
+            border-radius: 4px;
+            background-color: #A2D3F1;
+            
+        }
+        .customHelpBody{
+            display:inline-block;
+            color:#;
+            max-width:95%;
+        }
+    .questionCol {
+    	padding-top: 10px;  
+	}
+</style>
+
+<nttdcore:DLabel name="DL16" default="DOA Approval Request" labelParent="{!this}" /><nttdcore:DLabel name="DL17" default="New Request" labelParent="{!this}" /><apex:sectionheader title="{!dLabel['DL16']}" subtitle="{!dLabel['DL17']}" />
+<apex:pagemessages id="messages" />
+
+<c:ECO_CollapsibleSection sectiontitle="General Guidance Information" ><nttdcore:DLabel name="DL18" default="The Enterprise Delegations of Authority (DoA) defines those matters that require the authorization of specific members of senior management prior to proceeding.  Sub-DoA have also been developed for the individual business groups in instances where leadership has elected to handle specific matters requiring elevation pursuant to the DoA or delegate approval to certain business group executives.  As such, a global process has been developed that assures a consistent and orderly approach for obtaining review, input and approval of identified DoA matters." labelParent="{!this}" /><nttdcore:DLabel name="DL19" default="Answer the questions below to determine the appropriate form to complete for project and non-project related matters.  Reference the relevant DoA policy to determine the level of approval required (e.g., Risk Committee, Hub)." labelParent="{!this}" /> 
+		{!dLabel['DL18']} <br/><br/> 
+
+		{!dLabel['DL19']}
+</c:ECO_CollapsibleSection>
+	
+<apex:form >
+
+<apex:outputpanel id="wholeform" >
+
+	<nttdcore:DLabel name="DL20" default="DOA Request for Approval" labelParent="{!this}" /><apex:pageblock title="{!dLabel['DL20']}" mode="edit" >
+
+		<apex:pageblockbuttons location="top" >
+			<nttdcore:DLabel name="DL21" default="Back" labelParent="{!this}" /><apex:commandbutton value="{!dLabel['DL21']}" action="{!back}" />
+			<nttdcore:DLabel name="DL22" default="Create Request" labelParent="{!this}" /><apex:commandbutton action="{!createRequest}" value="{!dLabel['DL22']}" disabled="{!NOT(OR(IF(questionOne=='No', true, false), IF(questionTwo=='Yes', true, false), IF(questionThree != null, true, false)))}" />
+            <nttdcore:DLabel name="DL23" default="Risk Committee Review Procedure" labelParent="{!this}" /><apex:commandlink action="https://myecosystem.aecom.com/dept/risk/Pages/2%20Delegations-of-Authority.aspx" value="{!dLabel['DL23']}" target="_blank" styleclass="btn" style="text-decoration:none;padding:4px;" />
+		</apex:pageblockbuttons>
+		<div style="padding:0 12px;margin-top:7px" >
+
+		<apex:outputpanel >
+			<table><tr>
+			<td class="questionCol" >
+				<nttdcore:DLabel name="DL24" default="Are the DoA triggers project related?" labelParent="{!this}" /><apex:outputtext value="{!dLabel['DL24']}" />
+				</td>
+				<td>
+					<apex:selectradio value="{!questionOne}" layout="lineDirection" >
+		                <apex:selectoptions value="{!types}" />
+		                <apex:actionsupport event="onchange" action="{!answerone}" rerender="wholeform" />
+					</apex:selectradio>
+				</td>
+			</tr></table>	
+		</apex:outputpanel>
+
+		<apex:outputpanel rendered="{!IF(questionOne=='No', true, false)}" >
+			<nttdcore:DLabel name="DL25" default="Complete a Request for Approval (RFA) form by clicking the &amp;quot;Create Request&amp;quot; button above to submit for applicable business group or geography level approvals." labelParent="{!this}" /><apex:pagemessage escape="false" severity="INFO" summary="{!dLabel['DL25']}" /> 
+		</apex:outputpanel>
+
+		<apex:outputpanel rendered="{!IF(questionOne=='Yes', true, false)}" >
+			
+			<table><tr>
+			<td class="questionCol" >
+				<nttdcore:DLabel name="DL26" default="Are you only requesting Risk Committee advice as part of an initial pursuit (Phase 0)?" labelParent="{!this}" /><apex:outputtext value="{!dLabel['DL26']}" />
+				</td>
+				<td>
+					<apex:selectradio value="{!questionTwo}" layout="lineDirection" >
+		                <apex:selectoptions value="{!types}" />
+		                <apex:actionsupport event="onchange" action="{!answertwo}" rerender="wholeform" />
+					</apex:selectradio>
+				</td>
+			</tr></table>	
+		</apex:outputpanel>
+
+		<apex:outputpanel rendered="{!IF(questionTwo=='Yes', true, false)}" >
+			<nttdcore:DLabel name="DL27" default="A Phase 0 submittal does not need to follow a particular template, does not require prior submission to the relevant Risk Committee, and no formal approval decision is sought. The ORM Cover Memo is optional for this phase and may be used if desired by clicking the &amp;quot;Create Request&amp;quot; button above and submitting the request for review." labelParent="{!this}" /><apex:pagemessage severity="INFO" escape="false" summary="{!dLabel['DL27']}" /> 
+		</apex:outputpanel>
+
+		<apex:outputpanel rendered="{!IF(questionTwo=='No', true, false)}" >
+			
+			<table><tr>
+			<td class="questionCol" >
+				<nttdcore:DLabel name="DL28" default="Is approval by the Risk Committee (Geography or Enterprise) required?" labelParent="{!this}" /><apex:outputtext value="{!dLabel['DL28']}" />
+				</td>
+				<td>
+					<apex:selectradio value="{!questionThree}" layout="lineDirection" >
+		                <apex:selectoptions value="{!types}" />
+		                <apex:actionsupport event="onchange" action="{!answerthree}" rerender="wholeform" />
+						</apex:selectradio>
+				</td>
+			</tr></table>	
+		</apex:outputpanel>
+
+		<apex:outputpanel rendered="{!IF(questionThree=='Yes', true, false)}" >
+			<nttdcore:DLabel name="DL29" default="Completion of a Risk Committee Submittal Template (RCST) is required to seek approvals. Click on the &amp;quot;Create Request&amp;quot; button above for a link to the template and to submit the request for approval by the appropriate Risk Committee." labelParent="{!this}" /><apex:pagemessage severity="INFO" escape="false" summary="{!dLabel['DL29']}" /> 
+		</apex:outputpanel>
+
+		<apex:outputpanel rendered="{!IF(questionThree=='No', true, false)}" >
+			<nttdcore:DLabel name="DL30" default="Complete a Request for Approval (RFA) form by clicking the &amp;quot;Create Request&amp;quot; button above to submit for applicable business group or geography level approvals.
+			&lt;br /&gt;&lt;br /&gt;
+			For DCS users, submittal of the RFA will require the completion of a Request for Project Approval (RFPA) form.  A link to the RFPA template is provided on the RFA page." labelParent="{!this}" /><apex:pagemessage severity="INFO" escape="false" summary="{!dLabel['DL30']}" /> 
+		</apex:outputpanel>	
+
+		</div>
+		<br/><br/><br/>
+		
+	</apex:pageblock>
+
+
+</apex:outputpanel>
+
+</apex:form>
+
+
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

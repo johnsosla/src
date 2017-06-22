@@ -1,0 +1,21 @@
+<apex:component >
+    
+
+    
+    
+    <ul class="links">
+        <li class='menuTitleX' style="margin-left:0px!important">
+            <a href="{!$Label.Service_Catalog_support1_link}" target="_blank">{!$Label.Service_Catalog_support1_title}</a>
+        </li>
+        <li class='menuTitleX' style="margin-left:0px!important">
+            <a href="{!$Label.Service_Catalog_support2_link}" target="_blank">{!$Label.Service_Catalog_support2_title}</a>
+        </li>
+        <li class='menuTitleX' style="margin-left:0px!important">
+            <a href="{!$Label.Service_Catalog_support3_link}" target="_blank">{!$Label.Service_Catalog_support3_title}</a>
+        </li>
+        <li class='menuTitleX' style="margin-left:0px!important">
+            <a href="{!$Label.Service_Catalog_support4_link}" target="_blank">{!$Label.Service_Catalog_support4_title}</a>
+        </li>
+    </ul>    
+    
+</apex:component>

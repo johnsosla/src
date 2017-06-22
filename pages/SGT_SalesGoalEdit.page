@@ -1,0 +1,307 @@
+<apex:page showHeader="true" sidebar="true" standardController="SGT_Sales_Goal__c" extensions="SGT_SalesGoalEditController" applyHtmlTag="true">
+
+	<link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css" />
+	<script src="//code.jquery.com/jquery-1.10.2.js"></script>
+	<script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+
+
+	<apex:sectionHeader title="Sales Goal Edit" subtitle="{!IF(ISBLANK(salesGoal.obj.Name), 'New Sales Goal', salesGoal.obj.Name)}" />
+
+	<apex:form >
+		<apex:outputPanel id="pageMessages">
+			<apex:pageMessages />
+		</apex:outputPanel>
+
+		<apex:pageBlock title="Sales Goal Edit">
+
+			<apex:pageBlockButtons location="both">
+				<apex:commandButton value="Save" action="{!save}" />
+				<apex:commandButton value="Cancel" immediate="true" action="{!cancelEdit}" />
+			</apex:pageBlockButtons>
+
+			<apex:outputPanel rendered="{!rt.DeveloperName == 'Campaign_Sales_Goal'}">
+				<apex:pageBlockSection >
+					<apex:outputField value="{!salesGoal.obj.RecordTypeId}" />
+					<apex:inputField value="{!salesGoal.obj.Name}" required="true" />
+					<!-- <apex:inputField value="{!salesGoal.obj.Campaign__c}" required="true" /> -->
+					<apex:inputField value="{!salesGoal.obj.User__c}" />
+					<apex:inputField value="{!salesGoal.obj.Fiscal_Year__c}" required="true"/>
+					<apex:inputField value="{!salesGoal.obj.User_Role__c}" />
+					<apex:inputField value="{!salesGoal.obj.Calculation_in_Progress__c}" />
+				</apex:pageBlockSection>
+
+				<apex:pageBlockSection title="Performance (Salesforce)" columns="1">
+					<apex:inputField value="{!salesGoal.obj.Bookings_Goal__c}" />
+				</apex:pageBlockSection>
+
+				<apex:pageBlockSection title="Performance (Insight)" columns="1">
+					<apex:inputField value="{!salesGoal.obj.Insight_Bookings_Load_Date__c}" />
+
+					<apex:inputField value="{!salesGoal.obj.Insight_Bookings_YTD__c}" />
+
+					<apex:inputField value="{!salesGoal.obj.Utilization_Target__c}" />
+
+					<apex:inputField value="{!salesGoal.obj.YTD_Utilization__c}" />
+				</apex:pageBlockSection>
+
+
+				<apex:pageBlockSection title="Wins Performance" columns="1">
+					<apex:inputField value="{!salesGoal.obj.FY_Wins_Plan_Input__c}" required="true" />	
+				</apex:pageBlockSection>
+
+				<apex:pageBlockSection title="Comments" columns="1">
+					<apex:inputField value="{!salesGoal.obj.Comments__c}" />
+				</apex:pageBlockSection>
+
+
+			</apex:outputPanel>
+
+			<apex:outputPanel rendered="{!rt.DeveloperName == 'Business_Line_Sales_Goal'}">
+				<apex:pageBlockSection >
+					<apex:outputField value="{!salesGoal.obj.RecordTypeId}" />
+					<apex:inputField value="{!salesGoal.obj.Business_Line__c}" />
+					<apex:inputField value="{!salesGoal.obj.Name}" required="true" />
+					<apex:inputField value="{!salesGoal.obj.User__c}" />
+					<apex:inputField value="{!salesGoal.obj.Operating_Group__c}" required="true"/>
+					<apex:inputField value="{!salesGoal.obj.User_Role__c}" />
+					<apex:inputField value="{!salesGoal.obj.Fiscal_Year__c}" required="true"/>
+
+					<apex:inputField value="{!salesGoal.obj.Calculation_in_Progress__c}" rendered="{!salesGoal.obj.Calculation_in_Progress__c}" />
+				
+				</apex:pageBlockSection>
+
+				<apex:pageBlockSection title="Performance (Salesforce)" columns="1">
+					<apex:inputField value="{!salesGoal.obj.Bookings_Goal__c}" />
+				</apex:pageBlockSection>
+
+				<apex:pageBlockSection title="Performance (Insight)" columns="1">
+					<apex:inputField value="{!salesGoal.obj.Insight_Bookings_Load_Date__c}" />
+
+					<apex:inputField value="{!salesGoal.obj.Insight_Bookings_YTD__c}" />
+
+					<apex:inputField value="{!salesGoal.obj.Utilization_Target__c}" />
+
+					<apex:inputField value="{!salesGoal.obj.YTD_Utilization__c}" />
+				</apex:pageBlockSection>
+
+
+				<apex:pageBlockSection title="Wins Performance" columns="1">
+					<apex:inputField value="{!salesGoal.obj.FY_Wins_Plan_Input__c}" required="true" />	
+				</apex:pageBlockSection>
+
+				<apex:pageBlockSection title="Comments" columns="1">
+					<apex:inputField value="{!salesGoal.obj.Comments__c}" />
+				</apex:pageBlockSection>
+
+				<apex:pageBlockSection title="Criteria" columns="1">
+					<apex:outputPanel >
+						<apex:outputPanel id="filterLogic">
+				            <table class="filterTable">
+				                <tr>
+				                    <apex:outputPanel layout="none" rendered="{!showFilterLogic}">
+				                        <td>
+				                        </td>
+				                    </apex:outputPanel>
+				                    <th>Field</th>
+				                    <th class="operatorColumn">Operator</th>
+				                    <th>Value</th>
+				                </tr>
+				                <apex:repeat value="{!logicRows}" var="logicRow">
+				                    <c:SGT_LogicRow LogicRow="{!logicRow}" ShowNumbers="{!showFilterLogic}" />
+				                </apex:repeat>
+				            </table>
+
+				        </apex:outputPanel>
+
+				        <apex:outputPanel layout="block" styleClass="addRowSection">
+			                <apex:commandLink value="Add Row" action="{!addLogicRowAction}" reRender="filterLogic,pageMessages" />
+			                &nbsp; | &nbsp;
+			                <apex:commandLink value="Remove Row" action="{!removeLogicRowAction}" reRender="filterLogic,pageMessages" />
+
+			            </apex:outputPanel>
+
+			             <div>
+			                <apex:commandLink value="Add Filter Logic ..." action="{!addFilterAction}" rendered="{!!showFilterLogic}"/>
+			                <apex:outputPanel layout="none" id="FilterLogicOP" rendered="{!showFilterLogic}">
+			                    <apex:commandLink value="Clear Filter Logic" action="{!clearFilterAction}"/>
+			                </apex:outputPanel>
+			            </div>
+
+			            <div style="margin-top: 8px">
+			                <apex:outputPanel rendered="{!showFilterLogic}">
+			                <b>Filter Logic:</b> <br/>
+			                <apex:inputText value="{!filterLogic}" style="width: 200px; margin-top: 5px"/>
+			                </apex:outputPanel>
+			            </div>
+
+			            <div id="dialog" class="valueSelection" title="Select Values" style="display: none">
+
+						      <div id="checkboxList" style="max-height: 300px; overflow: scroll">
+
+
+						      </div>
+
+						      <button type="button" onclick="inputValues();" class="styledButton" >Insert Selected</button>
+
+						</div>
+					</apex:outputPanel>
+
+				</apex:pageBlockSection>
+
+			</apex:outputPanel>
+
+
+			<apex:outputPanel rendered="{!rt.DeveloperName == 'Employee_Goal'}">
+				<apex:pageBlockSection title="Information">
+					<apex:outputField value="{!salesGoal.obj.RecordTypeId}" />
+					<apex:outputField value="{!salesGoal.obj.OwnerId}" />
+
+					<apex:inputField value="{!salesGoal.obj.Name}" required="true"/>
+					<apex:inputField value="{!salesGoal.obj.Business_Line__c}" />
+					<apex:inputField value="{!salesGoal.obj.User__c}" required="true"/>
+					<apex:inputField value="{!salesGoal.obj.CurrencyIsoCode}" />
+
+					<apex:inputField value="{!salesGoal.obj.User_Role__c}" />
+					<apex:pageBlockSectionItem >
+					</apex:pageBlockSectionItem>
+
+					<apex:inputField value="{!salesGoal.obj.Fiscal_Year__c}" required="true"/>
+					<apex:pageBlockSectionItem >
+					</apex:pageBlockSectionItem>
+
+					<apex:inputField value="{!salesGoal.obj.Operating_Group__c}" required="true" />
+					<apex:pageBlockSectionItem >
+					</apex:pageBlockSectionItem>
+
+					<apex:inputField value="{!salesGoal.obj.Calculation_in_Progress__c}" rendered="{!salesGoal.obj.Calculation_in_Progress__c}" />
+
+
+				</apex:pageBlockSection>
+
+				<apex:pageBlockSection title="Performance (Salesforce)" columns="1">
+					<apex:inputField value="{!salesGoal.obj.Bookings_Goal__c}" />
+				</apex:pageBlockSection>
+
+				<apex:pageBlockSection title="Performance (Insight)" columns="1">
+					<apex:inputField value="{!salesGoal.obj.Insight_Bookings_Load_Date__c}" />
+
+					<apex:inputField value="{!salesGoal.obj.Insight_Bookings_YTD__c}" />
+
+					<apex:inputField value="{!salesGoal.obj.Utilization_Target__c}" />
+
+					<apex:inputField value="{!salesGoal.obj.YTD_Utilization__c}" />
+				</apex:pageBlockSection>
+
+
+				<apex:pageBlockSection title="Wins Performance" columns="1">
+					<apex:inputField value="{!salesGoal.obj.FY_Wins_Plan_Input__c}" required="true"/>	
+				</apex:pageBlockSection>
+
+				<apex:pageBlockSection title="Comments" columns="1">
+					<apex:inputField value="{!salesGoal.obj.Comments__c}" />
+				</apex:pageBlockSection>
+			</apex:outputPanel>
+			
+
+
+		</apex:pageBlock>
+
+	<script type="text/javascript">
+
+		function openSelectionDialog(evt, controlId, operandId, availableValues) {
+			if (evt.preventDefault) evt.preventDefault();
+	    	evt.returnValue = false;
+
+	    	// Store the ID of the current textbox that is being selected for, so we can reference it when the dialog is closed
+	    	window.currentControlId = controlId;
+
+
+	    	var currentOperand = $("[id='" + operandId + "']").val();
+
+	    	if (currentOperand == "") {
+	    		alert("Please select an operator");
+	    		return;
+	    	}
+
+	    	var inputType = (currentOperand == "eq" || currentOperand == "ne" || currentOperand == "in" || currentOperand == "ex") ? "checkbox" : "radio";
+	    	//var inputType = "checkbox";
+
+	    	// Get any current selected values, so we can pre-check them
+	    	var currentValues = $("[id='" + window.currentControlId + "']").val();
+	    	var currentValuesArray = currentValues.split(';');
+
+	    	// Build up a list of the available picklist options, and display the corresponding checkboxes in the dialog
+		    var selectionArray = availableValues.split(';');
+
+		    var checkboxListHtml = '';
+
+		    for (var i = 0; i < selectionArray.length; i++) {
+		    	var rowVal = selectionArray[i];
+		    	if (currentValuesArray != null && currentValuesArray.length > 0 && currentValuesArray.indexOf(rowVal) > -1) {
+		    		checkboxListHtml += '<input name="fieldValues" type="'+inputType+'" value="' + rowVal + '" checked/> ' + rowVal + ' <br/>';
+		    	}	
+		    	else {
+		    		checkboxListHtml += '<input name="fieldValues" type="'+inputType+'" value="' + rowVal + '" /> ' + rowVal + ' <br/>';	
+		    	}
+		    	
+		    }
+
+		    $("#checkboxList").html(checkboxListHtml);
+
+		    // Display the selection dialog
+
+	    	$("#dialog").dialog({
+		      modal: true,
+		      width: 400,
+		    });
+		}
+
+		function inputValues() {
+			var selectedValues = [];
+
+	        $('#checkboxList input:checked').each(function() {
+	            selectedValues.push(this.value);
+	        });
+
+			$("[id='" + window.currentControlId + "']").val(selectedValues.join(';'));
+
+			$("#dialog").dialog("close");
+		}
+
+	</script>
+
+	<style>
+	    .header-selectlist {
+	        padding-bottom: 15px;
+	        font-weight: bold;
+	    }
+	    .filterTable tr {
+	        height: 30px;
+	    }
+	    .filterTable tr:first-child {
+	        height: 20px;
+	    }
+	    .filterTable select.fieldSelect {
+	        width: 100%;
+	    }
+	    .filterTable select.operatorSelect {
+	        width: 85%;
+	    }
+	    .filterTable td {
+	        padding-right: 5px;
+	    }
+	    .addRowSection {
+	        margin-bottom: 10px;
+	    }
+	    .randomSelection {
+	        margin-top: 10px;
+	    }
+	    .currentPage {
+	        font-weight: bold;
+	    }
+	    .operatorColumn {
+	        width: 150px;
+	    }
+	</style>
+	</apex:form>
+</apex:page>

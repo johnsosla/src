@@ -1,0 +1,9 @@
+<apex:component language="{!theLanguage}" controller="nttdcore.DLabelChildController" access="global" ><nttdcore:DLabel name="DL1" default="The Export/Import Analysis Form has been {{1}} for {{2}}. 
+        
+        Project Name: {{3}}        
+        Requester: {{4}}
+        
+        Project Link
+        {{5}}" labelParent="{!this}" componentContext="ECO_Export_Control_Approved_Reject247_3" p1="{!theRelatedTo.ApprovalStatus__c}" p2="{!theRelatedTo.ProjectLongName__c}" p3="{!theRelatedTo.ProjectLongName__c}" p4="{!theRelatedTo.Owner.Name}" p5="{!theRelatedTo.ProjectLink__c}" /><apex:attribute name="theLanguage" type="String" required="true" description="language" access="global" /><apex:attribute name="theRecipient" type="User" required="true" description="recipient" access="global" /><apex:attribute name="theRelatedTo" type="ExportControl__c" required="true" description="related to" access="global" />
+        {!dlRoot.dLabel['DL1']}
+    <nttdcore:DLabelInit language="{!theLanguage}" labelParentInit="{!this}" /></apex:component>

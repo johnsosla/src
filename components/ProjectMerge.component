@@ -1,0 +1,147 @@
+<apex:component controller="ProjectExtension">
+    <apex:attribute name="prj" Description="The Project" type="Project__c" required="true" assignTo="{!project}"/>
+
+        <span style="font-family: Arial; font-size: 12pt;">
+            <b>
+                <apex:outputField value="{!prj.Owner_Client_Output__c}" />
+                <br/><apex:outputField value="{!prj.Project_Name__c}" />
+                <br/><apex:outputField value="{!prj.Location_Output__c}" />
+            </b>
+            <br/>
+            <b>  
+                <apex:outputField value="{!prj.Client_contract__c}" rendered="{!prj.RecordType.name=='Program'}" /> 
+                          <apex:outputField value="{!prj.Program_Master_Contract_Name__r.Client_contract__c}" rendered="{!AND(NOT(ISBLANK(prj.Program_Master_Contract_Name__r.Client_contract__c)), prj.RecordType.name=='Task Order')}" /> 
+                <apex:outputText value=", " rendered="{!AND(NOT(ISBLANK(prj.Program_Master_Contract_Name__r.Client_contract__c)), prj.RecordType.name=='Task Order')}" /> 
+                <apex:outputField value="{!prj.DO_TO_Number__c}" rendered="{!AND(NOT(ISBLANK(prj.DO_TO_Number__c)), prj.RecordType.name=='Task Order')}" /> 
+            </b>
+        </span>
+        <br /><br />
+        <apex:outputText escape="false" style="font-family: Arial; font-size: 9pt;" value="{!prj.Project_Description__c}" />
+        <br /><br />
+        <table style="font-family: Arial; font-size: 9pt;">
+            
+            <tr>
+                <td>
+                    <b> <apex:outputText value="Construction Cost:   " /></b>
+                </td>
+                <td align="right">
+                    <apex:outputText value="${0,number,###,###,###,###,###}">
+                        <apex:param value="{!prj.Search_Construction_Cost__c}" />
+                    </apex:outputText>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <b><apex:outputText value="Revenue:  " /></b>
+                </td>
+                <td align="right">
+                    <apex:outputText value="${0,number,###,###,###,###,###}">
+                        <apex:param value="{!prj.SearchFee__c}" />
+                    </apex:outputText>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <b><apex:outputText value="Dates of Service:  " /></b>
+                </td>
+                <td align="right">
+                    <apex:outputText value="{!prj.Date_Started__c} - {!prj.Search_Completion_Date__c}" />
+                </td>
+            </tr>
+        </table>
+        <br />
+        <br />
+        <apex:outputText style="font-weight:bold; font-family: Arial; font-size: 12pt;" value="Project Team" />
+        <br />
+        <br />
+        <apex:outputPanel rendered="{!AND(NOT(ISBLANK(prj.Project_Manager_User__c)), prj.Project_Manager_User__r.IsActive=True)}">
+            <apex:outputText value="{!prj.Project_Manager_User__r.Name + ', Project Manager'}" />        
+            <br />
+        </apex:outputPanel>
+        
+        <apex:repeat value="{!prj.PR_Team_Employees__r}" var="pt">
+            <apex:outputPanel rendered="{!pt.User_Status__c=='Active'}"> 
+                <apex:outputText value="{!pt.EmployeeUser__r.Name}"/> 
+                <br />
+            </apex:outputPanel>
+        </apex:repeat>
+        <br />
+        <apex:outputPanel rendered="{!hasReferences}">
+        <apex:outputText style="font-weight:bold; font-family: Arial; font-size: 12pt;" value="References" />
+        <br />
+        <br />
+           <apex:repeat value="{!prj.PR_Contacts__r}" var="ref">
+           <apex:OutputPanel rendered="{!NOT(ISBLANK(ref.Contact__r.Other_City__c))}">
+            <apex:outputtext value="{!ref.Contact__r.Name}" />
+            <br></br>
+            <apex:outputtext value="{!ref.Contact__r.Other_Street__c}" />
+            <br></br>
+            <apex:outputtext value="{!ref.Contact__r.Other_City__c}" />
+            <apex:outputText value=", " />
+            <apex:outputtext value="{!ref.Contact__r.Other_State_Province_Emerate__r.Name}" />
+            <apex:outputText value=" " />
+            <apex:outputtext value="{!ref.Contact__r.Other_Country__c}" />
+            <apex:outputText value=" " />
+            <apex:outputText value=" " />
+            <apex:outputtext value="{!ref.Contact__r.Other_Zip__c}" />
+            <br></br>
+            <b><apex:outputtext value="Phone:  " /></b>
+            <apex:outputtext value="{!ref.Contact__r.Phone}" />
+            <br></br>
+            <b><apex:outputtext value="Fax:  " />
+            </b>
+            <apex:outputtext value="{!ref.Contact__r.Fax}" />
+            <br></br>
+            <b><apex:outputtext value="Email:  " />
+            </b>
+            <apex:outputtext value="{!ref.Contact__r.Email}" rendered="{!Not(IsBlank(ref.Contact__r.Email))}" />
+            <br />
+            <br />
+                </apex:OutputPanel>
+
+        <apex:OutputPanel rendered="{!ISBLANK(ref.Contact__r.Other_City__c)}">
+            <apex:outputtext value="{!ref.Contact__r.Name}" />
+            <br></br>
+            <apex:outputtext value="{!ref.Contact__r.MailingStreet}" />
+            <br></br>
+            <apex:outputtext value="{!ref.Contact__r.MailingCity}" />
+            <apex:outputText value=", " />
+            <apex:outputtext value="{!ref.Contact__r.MailingState}" />
+            <apex:outputText value=" " />
+            <apex:outputtext value="{!ref.Contact__r.MailingCountry}" />
+            <apex:outputText value=" " />
+            <apex:outputText value=" " />
+            <apex:outputtext value="{!ref.Contact__r.MailingPostalCode}" />
+            <br></br>
+            <b><apex:outputtext value="Phone:  " /></b>
+            <apex:outputtext value="{!ref.Contact__r.Phone}" />
+            <br></br>
+            <b><apex:outputtext value="Fax:  " />
+            </b>
+            <apex:outputtext value="{!ref.Contact__r.Fax}" />
+            <br></br>
+            <b><apex:outputtext value="Email:  " />
+            </b>
+            <apex:outputtext value="{!ref.Contact__r.Email}" rendered="{!Not(IsBlank(ref.Contact__r.Email))}" />
+            <br />
+            <br />
+                </apex:OutputPanel></apex:repeat>
+        </apex:outputPanel>
+                
+        
+                
+<apex:outputPanel rendered="{!hasWonAwards}">                
+        <apex:outputText style="font-weight:bold; font-family: Arial; font-size: 12pt;" value="Awards" />
+        <br />
+        <apex:repeat value="{!prj.Awards__r}" var="awd">
+            <apex:outputpanel rendered="{!AND(awd.RecordType.DeveloperName=='Awards', awd.Award_Status__c=='Won', NOT(awd.Internal_Award__c))}">
+                <apex:outputtext value="{!awd.Name + ', '}" />
+                <apex:outputtext rendered="{!NOT(ISBLANK(awd.Presenting_Sponsoring_Organizaton__c))}" value="{!awd.Presenting_Sponsoring_Organizaton__r.Name + ', '}" />
+                <apex:outputText value="{0,date,yyyy}">
+                    <apex:param value="{!awd.Date_Award_Won__c}" /> 
+                </apex:outputText>
+                <br/>
+            </apex:outputpanel>
+        </apex:repeat>
+</apex:outputPanel>   
+</apex:component>

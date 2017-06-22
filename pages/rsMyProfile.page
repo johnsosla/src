@@ -1,0 +1,8 @@
+<apex:page showHeader="false" sidebar="false">
+    <script type="text/javascript">
+        function redirect() {
+            window.location = '/_ui/core/userprofile/UserProfilePage';
+        }
+        window.onload = redirect();
+    </script>
+</apex:page>

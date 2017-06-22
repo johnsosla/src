@@ -1,0 +1,10 @@
+<apex:component language="{!theLanguage}" controller="nttdcore.DLabelChildController" access="global" ><nttdcore:DLabel name="DL1" default="The subject project is scheduled to be closed on {{1}}.   Contact the Project Manager for further information or instructions.
+    
+    Project Number: {{2}}
+    Project Name: {{3}}
+    Project Manager: {{4}}
+    Scheduled Closure Date: {{5}}
+    
+    Link to Project: {{6}}" labelParent="{!this}" componentContext="EcoScheduledClosureEmail_VF_3" p1="{!theRelatedTo.ScheduledClosureDate__c}" p2="{!theRelatedTo.ProjectNumber__c}" p3="{!theRelatedTo.ProjectName__c}" p4="{!theRelatedTo.ProjectManager__c}" p5="{!theRelatedTo.ScheduledClosureDate__c}" p6="{!theRelatedTo.ProjectLink__c}" /><apex:attribute name="theLanguage" type="String" required="true" description="language" access="global" /><apex:attribute name="theRecipient" type="Contact" required="true" description="recipient" access="global" /><apex:attribute name="theRelatedTo" type="ChangeManager__c" required="true" description="related to" access="global" />
+    {!dlRoot.dLabel['DL1']}
+<nttdcore:DLabelInit language="{!theLanguage}" labelParentInit="{!this}" /></apex:component>

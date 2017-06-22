@@ -1,0 +1,300 @@
+<apex:component >
+    <apex:attribute name="Project" description="Project that will be worked on" type="GFA_Project" required="true"/>
+    <apex:attribute name="editMode" description="Attribute to tell whether the Project is being edited" type="Boolean" default="false" required="false"/>
+    <apex:attribute name="SelectedPhase" description="Id of selected Library Phase" type="String" required="false"/>
+    <apex:attribute name="SelectedTask" description="Id of selected Library Task" type="String" required="false"/>
+    <apex:attribute name="AvailableLibrarySubtasks" description="Library subtasks that are available to select" type="GFA_LibrarySubtask[]" required="false"/>
+    <apex:attribute name="AddLibrarySubtask" description="Apex action to add library subtask" type="ApexPages.Action" required="false"/>
+    <apex:attribute name="RemoveProjectSubtask" description="Apex action to remove a project subtask" type="ApexPages.Action" required="false"/>
+    <apex:attribute name="Filter" description="Filter for library subtasks" type="GFA_FilterManager" required="false"/>
+    <apex:attribute name="RefreshAvailableLibrarySubtasks" description="Apex action to refresh list of library subtasks" type="ApexPages.Action" required="false"/>
+    <apex:attribute name="ClearFilter" description="Apex action to clear filter and refresh list of library subtasks" type="ApexPages.Action" required="false"/>
+    <apex:attribute name="SelectedTaskName" description="Name of selected Library Task" type="String" required="false"/>
+
+    <!-- Pagination Attributes -->
+    <apex:attribute name="CheckAllAction" description="Apex action to check all current subtasks" type="ApexPages.Action" required="false"/>
+    <apex:attribute name="CheckAll" description="Boolean for checkAll value" type="Boolean" default="false" required="false"/>
+    <apex:attribute name="PreviousPage" description="Apex action to go to previous page" type="ApexPages.Action" required="false"/>
+    <apex:attribute name="SwitchToPage" description="Apex action to go to another page" type="ApexPages.Action" required="false"/>
+    <apex:attribute name="NextPage" description="Apex action to go to next page" type="ApexPages.Action" required="false"/>
+    <apex:attribute name="PageNumbers" description="List of Integers representing the pages availble" type="Integer[]" required="false"/>
+    <apex:attribute name="DisplayPage" description="Integer of the current page" type="Integer" required="false"/>
+
+    <apex:outputPanel id="projectTree">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>
+                        <apex:commandLink id="expandAll" styleClass="linkButton" reRender="btnPanel">
+                            <i class="fa fa-expand" aria-hidden="true"></i>
+                            Expand All
+                        </apex:commandLink>
+                        <apex:commandLink id="collapseAll" styleClass="linkButton" reRender="btnPanel">
+                            <i class="fa fa-compress" aria-hidden="true"></i>
+                            Collapse All
+                        </apex:commandLink>
+                    </th>
+                    <th colspan="4"></th>
+                    <th class="text-center"> </th>
+                    <th class="text-center">Applicable</th>
+                    <th class="text-center">Applicable Override</th>
+                    <th class="text-center">Impact Level</th>
+                    <th class="text-center">Critical Override</th>
+                    <th class="text-center"><apex:outputText value="Last Modified" rendered="{!!editMode}"/> </th>
+                </tr>
+            </thead>
+            <tbody>
+                <apex:repeat var="phase" value="{!Project.ProjectPhases}">
+                    <tr>
+                        <td colspan="11" data-toggle="collapse" data-target="phase{!phase.LibraryPhaseId}">
+                            <span><i class="fa fa-minus-circle"/> {!phase.LibraryPhaseName}</span>
+                        </td>
+                    </tr>
+                    <apex:repeat var="task" value="{!phase.ProjectTasks}">
+                        <tr class="collapse in phase{!phase.LibraryPhaseId}" >
+                            <td colspan="4" class="padding1" data-toggle="collapse" data-target="task{!task.LibraryTaskId}">
+                                <span><i class="fa fa-minus-circle"/> {!task.LibraryTaskName}</span>
+                            </td>
+                            <td >
+                                <apex:actionStatus id="addSubtaskButtonStatus" rendered="{!editMode}">
+                                    <apex:facet name="start">
+                                        <apex:image styleClass="actionButtonSpinner" value="/img/loading.gif"/>
+                                    </apex:facet>
+                                    <apex:facet name="stop">
+                                        <apex:commandButton value="+ Subtask" action="{!RefreshAvailableLibrarySubtasks}" status="addSubtaskButtonStatus" reRender="addSubtaskPanel" oncomplete="openModal('#addSubtaskModal'); setupExpandAndCollapse();" styleClass="mainButton">
+                                            <apex:param assignTo="{!SelectedTask}" value="{!task.LibraryTaskId}" name="selectedTask"/>
+                                            <apex:param assignTo="{!SelectedPhase}" value="{!phase.LibraryPhaseId}" name="selectedPhase"/>
+                                            <apex:param assignTo="{!SelectedTaskName}" value="{!task.LibraryTaskName}" name="selectedTaskName"/>
+                                        </apex:commandButton>
+                                    </apex:facet>
+                                </apex:actionStatus>
+                            </td>
+                            <td colspan="6"> </td>
+                        </tr>
+                        <apex:repeat var="subtask" value="{!task.ProjectSubtasks}">
+                            <tr class="collapse in phase{!phase.LibraryPhaseId} task{!task.LibraryTaskId}">
+                                <td colspan="5" class="padding2">
+                                    {!subtask.LibrarySubtaskName}
+                                </td>
+                                <td class="text-center">
+                                    <apex:outputText value="{!subtask.AddedBy}" />
+                                </td>
+                                <td class="text-center">
+                                    <apex:outputText value="{!IF(subtask.IsApplicable, 'Yes', 'No')}"/>
+                                </td>
+                                <td class="text-center">
+                                    <apex:outputField value="{!subtask.Obj.Is_PM_Visible__c}" rendered="{!!editMode}"/>
+                                    <apex:inputField value="{!subtask.Obj.Is_PM_Visible__c}" rendered="{!editMode && !subtask.IsApplicable}"/>
+                                </td>
+                                <td class="text-center">
+                                    <apex:outputText value="{!subtask.ImpactLevel}"/>
+                                </td>
+                                <td class="text-center">
+                                    <apex:outputField value="{!subtask.Obj.Is_Critical_Override__c}" rendered="{!!editMode}"/>
+                                    <apex:inputField value="{!subtask.Obj.Is_Critical_Override__c}" rendered="{!!subtask.IsCritical && editMode}"/>
+                                </td>
+                                <td class="text-center">
+                                    <apex:outputField value="{!subtask.Obj.LastModifiedDate}" rendered="{!!editMode}"/>
+                                    <apex:actionStatus id="removeSubtaskButtonStatus" rendered="{!editMode}">
+                                        <apex:facet name="start">
+                                            <apex:image styleClass="actionButtonSpinner" value="/img/loading.gif"/>
+                                        </apex:facet>
+                                        <apex:facet name="stop">
+                                            <apex:commandButton value="Delete" action="{!RemoveProjectSubtask}" status="removeSubtaskButtonStatus"  reRender="projectTree" oncomplete="setupExpandAndCollapse();" rendered="{!subtask.IsManualAdd}" styleClass="mainButton" onclick="if(!confirmDeletePart('subtask')) return false;">
+                                                <apex:param name="libPhaseId" value="{!phase.LibraryPhaseId}"/>
+                                                <apex:param name="libTaskId" value="{!task.LibraryTaskId}"/>
+                                                <apex:param name="libSubtaskId" value="{!subtask.LibrarySubtaskId}"/>
+                                            </apex:commandButton>
+                                        </apex:facet>
+                                    </apex:actionStatus>
+                                </td>
+                            </tr>
+                        </apex:repeat>
+                    </apex:repeat>
+                </apex:repeat>
+            </tbody>
+        </table>
+    </apex:outputPanel>
+    <apex:outputPanel rendered="{!editMode}" id="addSubtaskPanel">
+        <div class="modal" id="addSubtaskModal">
+            <div class="modal-dialog" style="width: 100%">
+                <div class="modal-content">
+                    <apex:outputPanel id="filterTable">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                            <h4 class="modal-title text-center">Select Subtask(s) for {!SelectedTaskName}</h4>
+
+                            <div class="filterSection">
+                                <table class="filterTable" style="display: inline-block;">
+                                    <tr>
+                                        <td>
+                                            <label>GFA Type:</label>
+                                            <apex:selectList value="{!Filter.ProjectSponsor}" size="1">
+                                                <apex:selectOptions value="{!Filter.ProjectSponsors}"/>
+                                            </apex:selectList>
+                                        </td>
+                                        <td>
+                                            <label>Operating Group:</label>
+                                            <apex:inputField value="{!Filter.subtask.Operating_Group__c}"/>
+                                        </td>
+                                        <td>
+                                            <label>Business Line:</label>
+                                            <apex:inputField value="{!Filter.subtask.Business_Line__c}"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <label>Risk Level:</label>
+                                            <apex:selectList value="{!Filter.RiskLevel}" size="1">
+                                                <apex:selectOptions value="{!Filter.RiskLevels}"/>
+                                            </apex:selectList>
+
+                                        </td>
+                                        <td>
+                                            <label>Discipline:</label>
+                                            <apex:selectList value="{!Filter.Discipline}" size="1">
+                                                <apex:selectOptions value="{!Filter.Disciplines}"/>
+                                            </apex:selectList>
+                                        </td>
+                                        <td>
+                                            <label>Impact Level:</label>
+                                            <apex:selectList value="{!Filter.ImpactLevel}" size="1">
+                                                <apex:selectOptions value="{!Filter.ImpactLevels}"/>
+                                            </apex:selectList>
+                                        </td>
+                                    </tr>
+                                </table>
+
+                                <div style="display: inline-block; vertical-align: top;">
+                                    <label>Scope of Service:</label>
+                                    <span style="display: inline-block; vertical-align: middle;">
+                                        <apex:inputField value="{!Filter.subtask.Scope_of_Service__c}"/>
+                                    </span>
+                                </div>
+
+                                <div class="centerButtonsGroup p10">
+                                    <apex:actionStatus id="refreshLibrarySubtaskButtonStatus" rendered="{!editMode}">
+                                        <apex:facet name="start">
+                                            <apex:image styleClass="actionButtonSpinner" value="/img/loading.gif"/>
+                                        </apex:facet>
+                                        <apex:facet name="stop">
+                                            <apex:outputPanel >
+                                                <div class="centerButtonsGroup">
+                                                    <apex:commandButton value="Go" action="{!RefreshAvailableLibrarySubtasks}" status="refreshLibrarySubtaskButtonStatus" reRender="librarySubtaskTable" styleClass="mainButton AE_Blue"/>
+                                                    <apex:commandButton value="Clear" styleClass="mainButton AE_Green" action="{!ClearFilter}" status="refreshLibrarySubtaskButtonStatus" reRender="librarySubtaskTable,filterTable"/>
+                                                </div>
+                                             </apex:outputPanel>
+                                        </apex:facet>
+                                    </apex:actionStatus>
+                                </div>
+                            </div>
+                        </div>
+                    </apex:outputPanel>
+
+                    <apex:outputPanel id="librarySubtaskTable">
+                        <div class="modal-body">
+                            <div class="centerButtonsGroup p10">
+                                <apex:actionStatus id="subtaskModalButtonsStatusTop" >
+                                    <apex:facet name="start">
+                                        <apex:image styleClass="actionButtonSpinner" value="/img/loading.gif"/>
+                                    </apex:facet>
+                                    <apex:facet name="stop">
+                                        <apex:outputPanel >
+                                            <apex:commandButton value="Add Selected" styleClass="mainButton AE_Blue" action="{!AddLibrarySubtask}" reRender="projectTree" oncomplete="closeModal('#addSubtaskModal'); setupExpandAndCollapse();" status="subtaskModalButtonsStatusTop"/>
+                                            <apex:commandButton value="Cancel" styleClass="mainButton AE_Green" reRender="projectTree" oncomplete="closeModal('#addSubtaskModal'); setupExpandAndCollapse();" status="subtaskModalButtonsStatusTop"/>
+                                        </apex:outputPanel>
+                                    </apex:facet>
+                                </apex:actionStatus>
+                            </div>
+                            <apex:outputPanel >
+                                <apex:commandLink value="< Previous" action="{!PreviousPage}" reRender="librarySubtaskTable"
+                                rendered="{!displayPage != 1}"/>
+
+                                <apex:repeat value="{!pageNumbers}" var="pageNumber">
+                                    &nbsp;
+                                    <apex:commandLink value="{!pageNumber}" action="{!SwitchToPage}" rendered="{!pageNumber != displayPage}" reRender="librarySubtaskTable">
+                                        <apex:param name="pageIndex" value="{!pageNumber}" />
+                                    </apex:commandLink>
+                                    <apex:outputText value="{!pageNumber}" rendered="{!pageNumber == displayPage}" styleClass="currentPage" />
+
+                                </apex:repeat>
+                                &nbsp;
+                                <apex:commandLink value="Next >" action="{!NextPage}" reRender="librarySubtaskTable" rendered="{!pageNumbers.size != displayPage &&AvailableLibrarySubtasks.size > 0}"/>
+                            </apex:outputPanel>
+                            <table class="table">
+                                <thead>
+                                    <th>
+                                        <apex:actionStatus id="checkAllStatus">
+                                            <apex:facet name="stop">
+                                                <apex:inputCheckbox value="{!CheckAll}">
+                                                    <apex:actionSupport event="onclick" action="{!CheckAllAction}" reRender="librarySubtaskTable" status="checkAllStatus"/>
+                                                </apex:inputCheckbox>
+                                            </apex:facet>
+                                            <apex:facet name="start">
+                                                <apex:image styleClass="actionButtonSpinner" value="/img/loading.gif"/>
+                                            </apex:facet>
+                                        </apex:actionStatus>
+                                    </th>
+                                    <th>Subtask Name</th>
+                                    <th>Discipline</th>
+                                    <th>Scope of Service</th>
+                                    <th>Risk Level</th>
+                                    <th>Impact Level</th>
+                                    <th>Group</th>
+                                    <th>Operating Group</th>
+                                    <th>Business Line</th>
+                                    <th>GFA Type</th>
+                                </thead>
+                                <tbody>
+                                    <apex:repeat value="{!AvailableLibrarySubtasks}" var="subtask">
+                                        <tr>
+                                            <td>
+                                                <apex:inputCheckbox value="{!subtask.IsSelected}"/>
+                                            </td>
+                                            <td>{!subtask.Name}</td>
+                                            <td>{!subtask.Discipline}</td>
+                                            <td>{!subtask.ScopeOfService}</td>
+                                            <td>{!subtask.RiskLevel}</td>
+                                            <td>{!subtask.ImpactLevel}</td>
+                                            <td>{!subtask.Group}</td>
+                                            <td>{!subtask.OperatingGroup}</td>
+                                            <td>{!subtask.BusinessLine}</td>
+                                            <td>{!subtask.ProjectSponsor}</td>
+                                        </tr>
+                                    </apex:repeat>
+                                </tbody>
+                            </table>
+                            <apex:outputPanel >
+                                <apex:commandLink value="< Previous" action="{!PreviousPage}" reRender="librarySubtaskTable" rendered="{!displayPage != 1}"/>
+
+                                <apex:repeat value="{!pageNumbers}" var="pageNumber">
+                                    &nbsp;
+                                    <apex:commandLink value="{!pageNumber}" action="{!SwitchToPage}" rendered="{!pageNumber != displayPage}" reRender="librarySubtaskTable">
+                                        <apex:param name="pageIndex" value="{!pageNumber}" />
+                                    </apex:commandLink>
+                                    <apex:outputText value="{!pageNumber}" rendered="{!pageNumber == displayPage}" styleClass="currentPage" />
+
+                                </apex:repeat>
+                                &nbsp;
+                                <apex:commandLink value="Next >" action="{!NextPage}" reRender="librarySubtaskTable" rendered="{!pageNumbers.size != displayPage &&AvailableLibrarySubtasks.size > 0}"/>
+                            </apex:outputPanel>
+                        </div>
+                    </apex:outputPanel>
+                    <div class="modal-footer centerButtonsGroup p10">
+                        <apex:actionStatus id="subtaskModalButtonsStatus" >
+                            <apex:facet name="start">
+                                <apex:image styleClass="actionButtonSpinner" value="/img/loading.gif"/>
+                            </apex:facet>
+                            <apex:facet name="stop">
+                                <apex:outputPanel >
+                                    <apex:commandButton value="Add Selected" styleClass="mainButton AE_Blue" action="{!AddLibrarySubtask}" reRender="projectTree" oncomplete="closeModal('#addSubtaskModal'); setupExpandAndCollapse();" status="subtaskModalButtonsStatus"/>
+                                    <apex:commandButton value="Cancel" styleClass="mainButton AE_Green" reRender="projectTree" oncomplete="closeModal('#addSubtaskModal'); setupExpandAndCollapse();" status="subtaskModalButtonsStatus"/>
+                                </apex:outputPanel>
+                            </apex:facet>
+                        </apex:actionStatus>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </apex:outputPanel>
+</apex:component>

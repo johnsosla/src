@@ -1,0 +1,19 @@
+<apex:component controller="Service_Catalog_TrendingTopicsController" >
+    <script type="text/javascript">
+        j$ = jquery.noConflict();
+
+    </script>
+    <ul class="links" >
+    
+    <apex:repeat value="{!trendData.topics }" var="topic" id="TrendTable"  >
+
+        <li class='menuTitleX' style="margin-left:0px!important">
+   
+                       <apex:outputLink value="{!strBaseURL}{!topic.id}" id="theLink">
+                        <apex:outputText value="{!topic.name}" />
+                       </apex:outputLink>
+ 
+        </li>
+    </apex:repeat>    
+    </ul>
+</apex:component>

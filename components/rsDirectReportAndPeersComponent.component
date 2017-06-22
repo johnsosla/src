@@ -1,0 +1,230 @@
+<apex:component controller="rsDirectReportAndPeersController" allowDML="true">
+<style type="text/css">
+    .modal .modal-body {
+        max-height: 420px;
+        overflow-y: auto;
+    }
+    .headerFont {
+        font-family: Arial,Helvetica,sans-serif;
+        font-weight: bold;
+    }
+    .titlePopUp {
+        font-size: 0.9em;
+        color: #666;
+    }
+</style>
+<script type="text/javascript">
+    var j$ = jQuery.noConflict();
+    function hideLoadingModal() {
+        j$('#loadingModal').modal('hide');
+    }
+    j$(document).on('show.bs.modal', '.modal', function(event) {
+        j$(this).appendTo(j$('body'));
+      })
+      .on('shown.bs.modal', '.modal.in', function(event) {
+        setModalsAndBackdropsOrder();
+      })
+      .on('hidden.bs.modal', '.modal', function(event) {
+        setModalsAndBackdropsOrder();
+      }).ready(function() {
+        j$('#directReportModal,#peerModal').on('hidden.bs.modal', function(){
+            resetPopups();
+        });
+      });
+
+    function setModalsAndBackdropsOrder() {
+      var modalZIndex = 1040;
+      j$('.modal.in').each(function(index) {
+        var j$modal = j$(this);
+        modalZIndex++;
+        j$modal.css('zIndex', modalZIndex);
+        j$modal.next('.modal-backdrop.in').addClass('hidden').css('zIndex', modalZIndex - 1);
+    });
+      j$('.modal.in:visible:last').focus().next('.modal-backdrop.in').removeClass('hidden');
+    }
+
+    function scroll(id) {
+        j$('[id$="' + id + '"]').get(0).scrollIntoView();
+    }
+
+</script>
+
+<apex:attribute name="rsProfile" assignTo="{!profile}" description="" type="rsProfile" required="true"/>
+<apex:attribute name="reRender" description="" type="String" required="false"/>
+
+<div class="modal" data-backdrop="static" id="loadingModal">
+    <div class="modal-dialog">
+        <div class="modal-body text-center">
+            <apex:image value="/img/loading32.gif"/>
+        </div>
+    </div>
+</div>
+
+<apex:actionFunction name="resetPopups" reRender="directReportButtonPanel,fullDirectReportPanel,fullPeerPanel,peerButtonPanel" action="{!resetLists}"/>
+
+<apex:outputPanel layout="none" rendered="{!DirectReportList.size > 0}">
+    <div class="panel-heading">
+        <h5 class="panel-title">{!$Label.Direct_Reports}</h5>
+        <apex:outputPanel rendered="{!DirectReportList.size == ListLimit}">
+            <a href="" style="float:right;" data-toggle="modal" onclick="scroll('tabs');" data-target="#directReportModal">{!$Label.Show_All}</a>
+        </apex:outputPanel>
+    </div>
+    <table class="table" width="100%">
+        <tbody>
+            <apex:repeat value="{!DirectReportList}" var="reportUser" >
+                <tr>
+                    <td width="5%" style="vertical-align:middle;">
+                        <apex:image width="30px" height="30px" value="{!reportUser.SmallPhotoUrl}" />
+                    </td>
+                    <td width="25%" style="vertical-align:middle;">
+                        <apex:outputLink target="_blank" styleClass="headerFont" value="/{!reportUser.Id}">{!reportUser.Name}</apex:outputLink>
+                    </td>
+                    <td width="25%" style="vertical-align:middle;">
+                        <apex:outputField value="{!reportUser.HR_Job_Title__c}" />
+                    </td>
+                    <td width="20%" style="vertical-align:middle;">
+                        <apex:outputField value="{!reportUser.Phone}" />
+                    </td>
+                    <td width="25%" style="vertical-align:middle;">
+                        <apex:outputText value="{!reportUser.City}," />&nbsp;<apex:outputText value="{!reportUser.State}" />&nbsp;<apex:outputText value="{!reportUser.PostalCode}" />
+                    </td>
+                </tr>
+            </apex:repeat>
+        </tbody>
+    </table>
+</apex:outputPanel>
+
+<br/> <br/>
+
+<apex:outputPanel layout="none" rendered="{!PeerList.size > 0}" >
+    <div class="panel-heading">
+        <h5 class="panel-title">{!$Label.Peers}</h5>
+        <apex:outputPanel rendered="{!PeerList.size == ListLimit}">
+            <a href="" style="float:right;" data-toggle="modal" onclick="scroll('tabs');" data-target="#peerModal">{!$Label.Show_All}</a>
+        </apex:outputPanel>
+    </div>
+    <table class="table" width="100%">
+        <tbody>
+            <apex:repeat value="{!PeerList}" var="peerUser" >
+                <tr>
+                    <td width="5%" style="vertical-align:middle;">
+                        <apex:image width="30px" height="30px" value="{!peerUser.SmallPhotoUrl}" />
+                    </td>
+                    <td width="25%" style="vertical-align:middle;">
+                        <apex:outputLink target="_blank" styleClass="headerFont" value="/{!peerUser.Id}">{!peerUser.Name}</apex:outputLink>
+                    </td>
+                    <td width="25%" style="vertical-align:middle;">
+                        <apex:outputField value="{!peerUser.HR_Job_Title__c}" />
+                    </td>
+                    <td width="20%" style="vertical-align:middle;">
+                        <apex:outputField value="{!peerUser.Phone}" />
+                    </td>
+                    <td width="25%" style="vertical-align:middle;">
+                        <apex:outputText value="{!peerUser.City}," />&nbsp;<apex:outputText value="{!peerUser.State}" />&nbsp;<apex:outputText value="{!peerUser.PostalCode}" />
+                    </td>
+                </tr>
+            </apex:repeat>
+        </tbody>
+    </table>
+</apex:outputPanel>
+
+<div class="modal" id="directReportModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h5 class="modal-title headerFont">{!$Label.All_Direct_Reports}</h5>
+            </div>
+            <div class="modal-body">
+                <apex:outputPanel id="fullDirectReportPanel" >
+                    <table class="table" width="100%">
+                        <tbody>
+                            <apex:repeat value="{!PopupDirectList}" var="popupDirectUser" >
+                                <tr>
+                                    <td style="vertical-align:middle;">
+                                        <apex:image width="30px" height="30px" value="{!popupDirectUser.SmallPhotoUrl}" />
+                                    </td>
+                                    <td style="vertical-align:middle;">
+                                        <apex:outputLink target="_blank" styleClass="headerFont" value="/{!popupDirectUser.Id}">{!popupDirectUser.Name}</apex:outputLink>
+                                        <br/>
+                                        <span class="titlePopUp"><apex:outputField value="{!popupDirectUser.HR_Job_Title__c}" /></span>
+                                    </td>
+                                    <td style="vertical-align:middle;">
+                                        <apex:outputField value="{!popupDirectUser.Phone}" />
+                                    </td>
+                                    <td style="vertical-align:middle;">
+                                        <apex:outputText value="{!popupDirectUser.City}," />&nbsp;<apex:outputText value="{!popupDirectUser.State}" />&nbsp;<apex:outputText value="{!popupDirectUser.PostalCode}" />
+                                    </td>
+                                </tr>
+                            </apex:repeat>
+                        </tbody>
+                    </table>
+                </apex:outputPanel>
+            </div>
+            <div class="modal-footer">
+                <apex:outputPanel id="directReportButtonPanel">
+                    <div style="float:right;">
+                        <apex:commandLink value="{!$Label.Previous}" action="{!directListPreviousPage}" reRender="directReportButtonPanel,fullDirectReportPanel" rendered="{!PopupDirectListOffset > 0}" html-data-toggle="modal" html-data-target="#loadingModal" oncomplete="hideLoadingModal();"/> &nbsp;
+                        <apex:commandLink value="{!$Label.Next}" action="{!directListNextPage}" reRender="directReportButtonPanel,fullDirectReportPanel" rendered="{!HasMoreDirectReports}" html-data-toggle="modal" html-data-target="#loadingModal" oncomplete="hideLoadingModal();"/>
+                    </div>
+                    <div class="clearfix"/>
+                </apex:outputPanel>
+                <div class="text-center">
+                    <button type="button" data-dismiss="modal">{!$Label.Done}</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="peerModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h5 class="modal-title headerFont">{!$Label.All_Peers}</h5>
+            </div>
+            <div class="modal-body">
+                <apex:outputPanel id="fullPeerPanel">
+                    <table class="table" width="100%">
+                        <tbody>
+                            <apex:repeat value="{!PopupPeerList}" var="popupPeerUser" >
+                                <tr>
+                                    <td style="vertical-align:middle;">
+                                        <apex:image width="30px" height="30px" value="{!popupPeerUser.SmallPhotoUrl}" />
+                                    </td>
+                                    <td style="vertical-align:middle;">
+                                        <apex:outputLink target="_blank" styleClass="headerFont" value="/{!popupPeerUser.Id}">{!popupPeerUser.Name}</apex:outputLink>
+                                        <br/>
+                                        <span class="titlePopUp"><apex:outputField value="{!popupPeerUser.HR_Job_Title__c}" /></span>
+                                    </td>
+                                    <td style="vertical-align:middle;">
+                                        <apex:outputField value="{!popupPeerUser.Phone}" />
+                                    </td>
+                                    <td style="vertical-align:middle;">
+                                        <apex:outputText value="{!popupPeerUser.City}," />&nbsp;<apex:outputText value="{!popupPeerUser.State}" />&nbsp;<apex:outputText value="{!popupPeerUser.PostalCode}" />
+                                    </td>
+                                </tr>
+                            </apex:repeat>
+                        </tbody>
+                    </table>
+                </apex:outputPanel>
+            </div>
+            <div class="modal-footer">
+                <apex:outputPanel id="peerButtonPanel">
+                    <div style="float:right;">
+                        <apex:commandLink value="{!$Label.Previous}" action="{!PeerListPreviousPage}" reRender="fullPeerPanel,peerButtonPanel" rendered="{!PopupPeerListOffset > 0}" html-data-toggle="modal" html-data-target="#loadingModal" oncomplete="hideLoadingModal();"/> &nbsp;
+                        <apex:commandLink value="{!$Label.Next}" action="{!PeerListNextPage}" reRender="fullPeerPanel,peerButtonPanel" rendered="{!HasMorePeers}" html-data-toggle="modal" html-data-target="#loadingModal" oncomplete="hideLoadingModal();"/>
+                    </div>
+                    <div class="clearfix"/>
+                </apex:outputPanel>
+                <div class="text-center">
+                    <button type="button" data-dismiss="modal">{!$Label.Done}</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+</apex:component>

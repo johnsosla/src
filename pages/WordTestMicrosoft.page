@@ -1,0 +1,37 @@
+<apex:page standardController="Project__c" showheader="false"  cache="true" contentType="application/msword"> 
+  <apex:variable value="{!Project__c}" var="prj"/>
+  
+  <apex:image url="/sfc/servlet.shepherd/version/download/06830000001CmrhAAC?asPdf=false&"/>
+ <apex:outputField value="{!prj.Image__c}"/>
+    <b><font size="5" face="Arial">
+<apex:outputField value="{!prj.Project_Name__c}"/> </font> </b>            
+   <br></br>
+   
+<b><font size="2" face="Arial">
+        <apex:outputField value="{!prj.Project_Description__c}"/></font></b> <br></br>
+        
+             
+      <font size="2"  face="Arial"><b>Actual Completion:      </b>
+       
+                      <apex:outputField value="{!prj.Date_Actual_Completion__c}"/> </font><br></br>
+
+          <b><font size="2"  face="Arial">Owners Total Cost:    </font></b> 
+                      <apex:outputField value="{!prj.Owners_Total_cost__c}"/> <br></br>
+                   
+<b><font size="2"  face="Arial">Revenue:         </font></b>   
+                    <apex:outputField value="{!prj.SearchFee__c}"/><br></br>
+
+
+<b><font size="2"  face="Arial">Dates of Service:  </font></b>   
+                    <apex:outputField value="{!prj.Date_Started__c}"/>-
+                    <apex:outputField value="{!prj.Search_Completion_Date__c}"/><br></br>
+
+
+     <b><font size="2" face="Arial">Project Team</font></b>   <br></br>
+     <apex:outputField value="{!prj.Project_Manager__c}"/>, 
+     <apex:outputField value="{!prj.Project_Manager_Status__c}"/><br></br>
+
+              
+    <b><font size="3" face="Arial">References</font></b>   <br></br>
+     
+</apex:page>

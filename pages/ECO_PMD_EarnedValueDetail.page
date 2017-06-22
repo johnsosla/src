@@ -1,0 +1,51 @@
+<apex:page standardcontroller="pse__Proj__c" extensions="ECO_PMD_EarnedValueDetail_Controller,nttdcore.DLabelParentController" >
+
+    <apex:stylesheet value="{!URLFOR($Resource.KendoUi, 'KendoUi/Style/kendo.common.min.css')}" /> 
+    <apex:stylesheet value="{!URLFOR($Resource.KendoUi, 'KendoUi/Style/kendo.default.min.css')}" /> 
+
+    <div ng-app="ecopmd" >
+        <apex:composition template="ECO_PMD_Chrome2" >
+            <apex:define name="head" >
+              <c:ECO_PMD_ag_grid_js />
+              <apex:includescript value="{!URLFOR($Resource.KendoUi, 'KendoUi/js/kendo.all.min.js')}" />
+            </apex:define>
+
+            <apex:define name="mainContent" >
+                <div class="ecopmd-ag-wrap" >
+                    <div>
+                        <div class="row nopadding" >
+                            <div class="col-md-4 nopadding" >   
+                                <c:ECO_PMD_EarnedValueChart projectid="{!pse__Proj__c.Id}" />
+                            </div>
+                             <div class="col-md-4 nopadding" >   
+                                <c:ECO_PMD_EarnedValueCPIChart projectid="{!pse__Proj__c.Id}" />
+                            </div>
+
+                            <div class="col-md-4 nopadding" >   
+                                <c:ECO_PMD_EarnedValueSPIChart projectid="{!pse__Proj__c.Id}" />
+                            </div>
+                        </div>
+                        <div class="clearfix" >
+                        </div> 
+                        <div class="row nopadding" >
+                            <div class="col-md-12 nopadding" > 
+                                <earned-value-report project-id="{!pse__Proj__c.Id}" project-name="{!pse__Proj__c.OracleProjectnumber__c} - {!pse__Proj__c.name}" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+           </apex:define>
+
+            <apex:define name="belowFooter" >
+                <c:ECO_PMD_NavigationBar_ng projectid="{!Id}" pagetitle="Earned Value Detail" />
+            </apex:define>
+
+        </apex:composition>
+    </div>
+    <script>
+        $("document").ready(function(){
+          $(".ag-tool-panel-container").children().eq(1).hide();
+          $(".ag-tool-panel-container").children().eq(0).css("height","100%");
+        })
+    </script>
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

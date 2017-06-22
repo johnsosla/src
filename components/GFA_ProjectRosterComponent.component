@@ -1,0 +1,67 @@
+<apex:component >
+    <apex:attribute name="projectRoster" description="Project Roster that will be worked on" type="GFA_ProjectRoster" required="true"/>
+    <apex:attribute name="editMode" description="Are we editing the Project Roster?"  type="Boolean" default="false" required="false"/>
+    <apex:outputPanel id="projectRosterComponent">
+        <div class="panel-body">
+             <table class="table">
+                <tbody>
+                    <tr>
+                        <td>
+                            <label>Team Member Name:</label>
+                        </td>
+                        <td>
+                            <apex:outputField value="{!projectRoster.obj.Team_Member_Name__c}" rendered="{!!editMode}"/>
+                            <apex:inputField value="{!projectRoster.obj.Team_Member_Name__c}" rendered="{!editMode}"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label>GFA Project:</label>
+                        </td>
+                        <td>
+                        <apex:outputLink value="/{!projectRoster.obj.GFA_Project__c}">{!projectRoster.obj.GFA_Project__r.Project_Name__c}</apex:outputLink>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label>Role: </label>
+                        </td>
+                        <td>
+                            <apex:outputField value="{!projectRoster.obj.Role__c}" rendered="{!!editMode}" />
+                            <apex:inputField value="{!projectRoster.obj.Role__c}" rendered="{!editMode}" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label>Is Acting Project Manager:</label>
+                        </td>
+                        <td>
+                            <apex:outputField value="{!projectRoster.obj.Is_Acting_Project_Manager__c}" rendered="{!!editMode}"/>
+                            <apex:inputCheckbox value="{!projectRoster.obj.Is_Acting_Project_Manager__c}" rendered="{!editMode}"/>
+                        </td>
+                    </tr>
+                    <apex:outputPanel rendered="{IF(ISNULL(projectRoster.obj.CreatedById)}">
+                        <tr>
+                            <td>
+                                <label>Created By:</label>
+                            </td>
+                            <td>
+                                <apex:outputField value="{!projectRoster.obj.CreatedById}" rendered="{!!editMode}" />
+                                <apex:outputField value="{!projectRoster.obj.CreatedById}" rendered="{!editMode}" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <label>Last Modified By:</label>
+                            </td>
+                            <td>
+                                <apex:outputField value="{!projectRoster.obj.LastModifiedById}" rendered="{!!editMode}" />
+                                <apex:outputField value="{!projectRoster.obj.LastModifiedById}" rendered="{!editMode}" />
+                            </td>
+                        </tr>
+                    </apex:outputPanel>
+                </tbody>
+            </table>
+        </div>
+    </apex:outputPanel>
+</apex:component>

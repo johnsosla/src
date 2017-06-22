@@ -1,0 +1,71 @@
+<apex:page showHeader="false" sidebar="false" standardController="PMCertReq__c" extensions="PMC_AttachmentsList_Controller">
+
+	<script type="text/javascript">
+		function viewAttachment(attachId) {
+			window.top.location = '/servlet/servlet.FileDownload?file=' + attachId;
+		}
+
+		function attachFile() {
+			window.top.location = '/p/attach/NoteAttach?pid={!PMCertReq__c.Id}&parentname={!PMCertReq__c.Name}&retURL='+encodeURIComponent('/{!PMCertReq__c.Id}');
+			return false;
+		}
+
+		function viewAllAttachments() {
+			window.top.location = '/ui/content/ViewAllNotesPage?id={!PMCertReq__c.Id}&retUrl='+encodeURIComponent('/{!PMCertReq__c.Id}');
+			return false;
+		}
+
+		function reloadTopWindow() {
+			window.top.location = '/{!PMCertReq__c.Id}';
+		}
+
+	</script>
+
+	<apex:form >
+		<apex:outputPanel style="margin-top: 20px" layout="block">
+			<apex:pageBlock title="{!$Label.PMCAT_Attachment}">
+				<apex:pageBlockButtons location="top">
+					<apex:commandButton value="{!$Label.PMCAT_AttachFile}" onclick="return attachFile();" />
+					<apex:commandButton value="{!$Label.PMCAT_ViewAll}" onclick="return viewAllAttachments();" rendered="{!attachments.size > 0}" />
+
+				</apex:pageBlockButtons>
+
+				 <apex:outputPanel rendered="{!attachments.size == 0}">
+					<table class="list" border="0" cellpadding="0" cellspacing="0">
+						<tbody>
+							<tr class="headerRow">
+								<th scope="col" class="noRowsHeader">{!$Label.PMCAT_NoRecords}</th>
+							</tr>
+						</tbody>
+					</table>
+				</apex:outputPanel>
+
+				<apex:pageBlockTable value="{!PMCertReq__c.Attachments}" var="attach" id="attachPb" rendered="{!attachments.size > 0}">
+					<apex:column headerValue="{!$Label.PMCAT_Action}" styleClass="actionColumn">
+
+						<a href="#" onclick="viewAttachment('{!attach.Id}');" class="actionLink">{!$Label.View}</a>
+
+						<apex:outputPanel rendered="{!attach.CreatedById == $User.Id}">
+							&nbsp;|&nbsp;
+							<apex:commandLink onclick="if(!confirm('{!$Label.PMCAT_AreYouSure}')){return false};" value="Del" styleClass="actionLink" action="{!deleteAttachment}" oncomplete="reloadTopWindow();">
+					            <apex:param name="attachmentId" value="{!attach.Id}" assignTo="{!attachmentId}"/>
+					        </apex:commandLink>
+							
+						</apex:outputPanel>
+					</apex:column>
+
+			
+					<apex:column headerValue="{!$Label.PMCAT_Title}">
+						<a href="#" onclick="viewAttachment('{!attach.Id}');">{!attach.Name}</a>
+
+					</apex:column>
+
+					<apex:column value="{!attach.LastModifiedDate}" />
+
+					<apex:column value="{!attach.CreatedById}" />
+
+				</apex:pageBlockTable>
+			</apex:pageBlock>
+		</apex:outputPanel>
+	</apex:form>
+</apex:page>

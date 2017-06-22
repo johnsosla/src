@@ -1,0 +1,97 @@
+<apex:component controller="rsPersonalController" allowDML="true">
+     <apex:attribute name="rsProfile" assignTo="{!profile}" description="" type="rsProfile" required="true"/>
+
+     <apex:attribute name="reRender" description="" type="String" required="false"/>
+
+     <script type="text/javascript">
+        var $j = jQuery.noConflict();
+        var tdArray = [];
+        var startingInt = 0;
+        $j(document).ready(function() {
+            $j( "#pInfoTabs").tabs({active: getTab('pInfoSubTab')});
+            //Function to reorder table caused by hidden td's in HR Data
+            $j('#hrDataTable > tbody > tr').each(function() {
+                $j(this).children().each(function() {
+                    if($j(this).children().first().css('display') != 'none') {
+                        tdArray.push($j(this));
+                    }
+                    $j(this).remove();
+                });
+                $j(this).remove();
+            });
+            if(tdArray.length % 4 != 0) {
+                tdArray[tdArray.length-1].attr('colspan',3);
+            }
+            for(var i = 0; i < tdArray.length; i += 4) {
+                var tr = $j('<tr></tr>');
+                tr.append(tdArray[i]);
+                if(i == 0) {
+                    tdArray[i].attr('width','20%');
+                }
+                if(tdArray[i+1]) {
+                    tr.append(tdArray[i+1]);
+                    if(i+1 == 1) {
+                        tdArray[i+1].attr('width','30%');
+                    }
+                }
+                if(tdArray[i+2]) {
+                    tr.append(tdArray[i+2]);
+                    if(i+2 == 1) {
+                        tdArray[i+2].attr('width','20%');
+                    }
+                }
+                if(tdArray[i+3]) {
+                    tr.append(tdArray[i+3]);
+                    if(i+3 == 1) {
+                        tdArray[i+3].attr('width','30%');
+                    }
+                }
+                tr.appendTo('#hrDataTable > tbody');
+            }
+            helpTextSetup();
+        });
+    </script>
+
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h5 class="panel-title">{!$Label.Organizational_Data}</h5>
+        </div>
+
+        <table id="organizationalTable" class="table" width="100%">
+            <tbody>
+                <tr>
+                    <td width="25%" ><apex:outputLabel for="superGeography" value="{!$ObjectType['User'].fields['SuperGeography__c'].Label}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['User'].fields['SuperGeography__c'].inlineHelpText}"/></apex:outputLabel></td>
+                    <td width="25%" ><apex:outputText id="superGeography" value="{!CurrentUser.Supergeography__c}"/></td>
+                    <td width="25%" ><apex:outputLabel for="district" value="{!$ObjectType['User'].fields['District__c'].Label}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['User'].fields['District__c'].inlineHelpText}"/></apex:outputLabel></td>
+                    <td width="25%" ><apex:outputText id="district" value="{!CurrentUser.District__c}"/></td>
+                </tr>
+                <tr>
+                    <td><apex:outputLabel for="subBusinessLine" value="{!$ObjectType['User'].fields['Sub_Business_Line__c'].Label}" /> </td>
+                    <td><apex:outputText id="subBusinessLine" value="{!CurrentUser.Sub_Business_Line__c}"/></td>
+                    <td><apex:outputLabel for="department" value="{!$ObjectType['User'].fields['Department'].Label}" /> </td>
+                    <td><apex:outputText id="Department" value="{!CurrentUser.Department}"/></td>
+                </tr>
+                <tr>
+                    <td><apex:outputLabel for="serviceLine" value="{!$ObjectType['User'].fields['Service_Line__c'].Label}" /> </td>
+                    <td><apex:outputText id="serviceLine" value="{!CurrentUser.Service_Line__c}"/></td>
+                    <td><apex:outputLabel for="country" value="{!$ObjectType['User'].fields['Country'].Label}" /> </td>
+                    <td><apex:outputText id="country" value="{!CurrentUser.Country}"/></td>
+                </tr>
+                <tr>
+                    <td><apex:outputLabel for="region" value="{!$ObjectType['User'].fields['Region__c'].Label}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['User'].fields['Region__c'].inlineHelpText}"/></apex:outputLabel></td>
+                    <td><apex:outputText id="region" value="{!CurrentUser.Region__c}"/></td>
+                    <td><apex:outputLabel for="businessLine" value="{!$ObjectType['User'].fields['Business_Line__c'].Label}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['User'].fields['Business_Line__c'].inlineHelpText}"/></apex:outputLabel></td>
+                    <td><apex:outputText id="businessLine" value="{!CurrentUser.Business_Line__c}"/></td>
+                </tr>
+                <tr>
+                    <td><apex:outputLabel for="geography" value="{!$ObjectType['User'].fields['Geography__c'].Label}" /> </td>
+                    <td><apex:outputText id="geography" value="{!CurrentUser.Geography__c}"/></td>
+                    <td></td><td></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <br /> <br />
+    </div>
+
+</apex:component>

@@ -1,0 +1,40 @@
+<apex:component layout="none" controller="CFM_LogicRowController">
+<apex:attribute name="LogicRow" type="CFM_LogicRow" description="The logic row to render" assignTo="{!LRow}"/>
+<apex:attribute name="ShowNumbers" type="Boolean" description="Show numbers to the left"/>
+<apex:attribute name="IsDefaultCriteriaRow" assignTo="{!isDefaultInclusionCriteria}" type="Boolean" description="Defines whether this logic row is on the default criteria page" />
+<tr>
+    <apex:outputPanel layout="none" rendered="{!ShowNumbers}">
+        <td>
+            {!LogicRow.Position}.
+        </td>
+    </apex:outputPanel>
+    <td>
+        <apex:selectList value="{!LogicRow.Field}" size="1" id="fieldList" styleClass="fieldSelect">
+            <apex:selectOptions value="{!FieldList}"/>
+            <apex:actionSupport event="onchange" reRender="operandList" status="operatorStatus" />
+        </apex:selectList>
+    </td>
+    <td>
+        <apex:outputPanel layout="block">
+            
+            <apex:selectList value="{!LogicRow.Operand}" size="1" id="operandList" styleClass="operatorSelect">
+                <apex:selectOptions value="{!OperandList}"/>
+            </apex:selectList>
+
+            <apex:actionStatus id="operatorStatus">
+                <apex:facet name="start">
+                    <apex:outputPanel >
+                        <img src="/img/loading32.gif" width="15" height="15" />
+                    </apex:outputPanel>            
+                </apex:facet>
+            </apex:actionStatus>
+            
+        </apex:outputPanel>
+    </td>
+    <td>
+        <apex:inputText value="{!LogicRow.LogicValue}"/>
+    </td>
+    <td><apex:outputText value="AND" rendered="{!(!LogicRow.IsLastRow && !ShowNumbers)}" />
+    </td>
+</tr>
+</apex:component>

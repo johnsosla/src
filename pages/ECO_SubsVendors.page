@@ -1,0 +1,374 @@
+<apex:page standardcontroller="pse__Proj__c" extensions="ECO_SubsVendorsController,nttdcore.DLabelParentController" showheader="true" sidebar="false" >
+    <apex:includeScript value="{!$Resource.ECO_jQuery_1_11_2_min_js}" />
+
+
+    <style>
+    a:hover {
+        background:#ffffff; /*BG color is a must for IE6*/
+        text-decoration:none;
+    } 
+    a.tooltip span {
+        display:none; 
+        padding:2px 3px; 
+        margin-left:8px; 
+        width:400px;
+    }
+    a.tooltip:hover span{
+        display:inline; 
+        position:absolute; 
+        background:#FFC; 
+        border:1px solid #cccccc; 
+        color:#000000;
+        z-index: 3000;
+    }
+        .searchText{
+            text-align:center;
+            font-weight:bold;
+            font-size:20px;
+        }
+
+        .message{
+            background-color: #A2D3F1;
+        }
+    </style>
+    
+    <script>
+        $(document).keypress(function(e) 
+        {
+            if(e.which == 13) 
+            {
+                e.preventDefault();
+                $("form[id$='topForm']").find("input[id$='SearchButton']").click();
+            }
+        });
+    </script>
+    <apex:form id="topForm" >
+        <div style="position:relative" >
+            <nttdcore:DLabel name="DL1" default="Subs and Vendors" labelParent="{!this}" /><apex:sectionHeader title="{!dLabel['DL1']}" subtitle="{!pse__Proj__c.ProjectSectionHeaderName__c}" />
+        </div>
+        <apex:pageMessages id="messages" />
+        <c:ECO_CollapsibleSection sectiontitle="General Guidance Information" uniqueid="1" ><nttdcore:DLabel name="DL2" default="Use this section to identify and list all subcontractors, subconsultants or vendors required for the project.  Contact Global Business Services (GBS) if the desired vendor or sub record does not exist or if the current contact details are incorrect." labelParent="{!this}" /><nttdcore:DLabel name="DL3" default="All required Subs and Vendors must be added to this list prior to requesting a Purchase Order and committing the expenditure in Oracle.   Upload the respective subcontracts in the Agreements section." labelParent="{!this}" /><nttdcore:DLabel name="DL4" default="It is the responsibility of the PM to review the insurances for any subs and ensure they match the requirements of the project.  If the insurances are not appropproriate then DoA approval may be required." labelParent="{!this}" /><nttdcore:DLabel name="DL5" default="NOTE: ePM is not linked to existing geography prequalification systems. Therefore, the PM should confirm that the subcontractor, subconsultant or vendor is approved or conditionally approved in the applicable geography prequalification system prior to use." labelParent="{!this}" />  
+             {!dLabel['DL2']}  
+            <br/><br/>
+            {!dLabel['DL3']}
+            <br/><br/>
+            {!dLabel['DL4']}
+            <br/><br/>
+            {!dLabel['DL5']}
+        </c:ECO_CollapsibleSection>
+                    
+        <nttdcore:DLabel name="DL6" default="Subs and Vendors" labelParent="{!this}" /><apex:pageBlock title="{!dLabel['DL6']}" >
+            <apex:pageBlockButtons location="top" >
+                <!--<apex:commandButton action="{!CreateUpdateVendor}" value="Create/Update Vendor" />-->
+                <apex:commandlink style="text-decoration: none;" action="{!URLFOR($action.SharedServicesRequest__c.new, null, [returl=$CurrentPage.url])}" target="_blank" >
+                    <nttdcore:DLabel name="DL7" default="Create/Update Vendor" labelParent="{!this}" /><apex:commandButton value="{!dLabel['DL7']}" />
+                </apex:commandlink>
+                <apex:commandlink style="text-decoration: none;" action="{!AddPO}" target="_blank" >
+                    <nttdcore:DLabel name="DL8" default="Add PO" labelParent="{!this}" /><apex:commandButton value="{!dLabel['DL8']}" />
+                </apex:commandlink>
+                <apex:commandlink style="text-decoration: none;" action="/apex/ECO_ProjectAgreement?ProjectId={!pse__Proj__c.id}" target="_blank" >
+                    <nttdcore:DLabel name="DL9" default="Create Agreement" labelParent="{!this}" /><apex:commandButton value="{!dLabel['DL9']}" />
+                </apex:commandlink>
+                <nttdcore:DLabel name="DL10" default="Save" labelParent="{!this}" /><apex:commandButton action="{!SaveVendorSites}" value="{!dLabel['DL10']}" />
+                <nttdcore:DLabel name="DL11" default="Return to Project" labelParent="{!this}" /><apex:commandButton action="{!ReturnToProject}" value="{!dLabel['DL11']}" />
+            </apex:pageBlockButtons>
+
+
+            <!--
+            <apex:pageBlockSection title="Subs Team" columns="1" collapsible="false">
+                <apex:pageBlockTable value="{!lVendorSubs}" var="item" width="100%" columnsWidth="60px" id="VendorSubTable">
+                    <apex:facet name="footer">
+                        <apex:commandLink action="{!addRecord}" value="Add New Sub" rerender="VendorSubTable" status="subsStatus">
+                            <apex:param name="object" value="VendorSub__c" assignTo="{!recordObjectType}"/>
+                        </apex:commandLink>
+                    </apex:facet>
+                    <apex:column >
+                        <apex:facet name="header">Actions</apex:facet>
+                        <apex:commandLink action="{!removeRecord}" value="Remove" rerender="VendorSubTable" status="subsStatus">
+                            <apex:param name="object" value="VendorSub__c" assignTo="{!recordObjectType}" />
+                            <apex:param name="objID" value="{!item.Id}" assignTo="{!recordObjectId}" />
+                        </apex:commandLink>
+                    </apex:column>
+                    <apex:column >
+                        <apex:facet name="header">Company</apex:facet>
+                        <apex:inputField value="{!item.Account__c}" />
+                    </apex:column>
+                    <apex:column >
+                        <apex:facet name="header">Services Type</apex:facet>
+                        <apex:inputField value="{!item.ServicesType__c}" />
+                    </apex:column>
+                    <apex:column >
+                        <apex:facet name="header">Contact Name</apex:facet>
+                        <apex:inputField value="{!item.ContactName__c}" />
+                    </apex:column>
+                    <apex:column >
+                        <apex:facet name="header">Phone</apex:facet>
+                        <apex:outputField value="{!item.Phone__c}" />
+                    </apex:column>
+                    <apex:column >
+                        <apex:facet name="header">Email</apex:facet>
+                        <apex:outputField value="{!item.Email__c}" />
+                    </apex:column>
+                </apex:pageBlockTable>
+                <apex:actionStatus id="subsStatus">
+                    <apex:facet name="start">
+                        <p style="padding-bottom:20px;text-align:center;" class="searchText"><img style="position:relative;top:12px;" src="/img/loading32.gif" /> Updating...</p>
+                    </apex:facet>
+                </apex:actionStatus>
+            </apex:pageBlockSection>
+            -->
+            <apex:outputPanel id="SiteTab" >
+            <apex:actionRegion ><nttdcore:DLabel name="DL12" default="Selected Subs/Vendors" labelParent="{!this}" /><nttdcore:DLabel name="DL29" default="Agreements" labelParent="{!this}" /><nttdcore:DLabel name="DL30" default="No Agreements were found." labelParent="{!this}" /><nttdcore:DLabel name="DL31" default="ePM Agreement Number" labelParent="{!this}" /><nttdcore:DLabel name="DL32" default="Record Type" labelParent="{!this}" /><nttdcore:DLabel name="DL33" default="Client/Sub/Vendor Name" labelParent="{!this}" /><nttdcore:DLabel name="DL34" default="Agreement Status" labelParent="{!this}" /><nttdcore:DLabel name="DL35" default="Agreement Amount(estimated)" labelParent="{!this}" /><nttdcore:DLabel name="DL36" default="Agreement Amount(confirmed)" labelParent="{!this}" /><nttdcore:DLabel name="DL37" default="Purchase Orders" labelParent="{!this}" /><nttdcore:DLabel name="DL38" default="No Purchase Orders were found." labelParent="{!this}" /><nttdcore:DLabel name="DL39" default="PO" labelParent="{!this}" /><nttdcore:DLabel name="DL40" default="Vendor" labelParent="{!this}" /><nttdcore:DLabel name="DL41" default="Amount" labelParent="{!this}" /><nttdcore:DLabel name="DL42" default="Status" labelParent="{!this}" />
+                <apex:pageBlockSection title="{!dLabel['DL12']}" columns="1" collapsible="false" />
+                <apex:outputPanel id="SitePanel" ><nttdcore:DLabel name="DL13" default="Updating..." labelParent="{!this}" /><nttdcore:DLabel name="DL14" default="No Subs/Vendors Were Selected." labelParent="{!this}" /><nttdcore:DLabel name="DL15" default="Action" labelParent="{!this}" /><nttdcore:DLabel name="DL16" default="Remove" labelParent="{!this}" /><nttdcore:DLabel name="DL17" default="Account Name" labelParent="{!this}" /><nttdcore:DLabel name="DL18" default="Account Name:" labelParent="{!this}" /><nttdcore:DLabel name="DL19" default="Address Line 1:" labelParent="{!this}" /><nttdcore:DLabel name="DL20" default="Address Line 2:" labelParent="{!this}" /><nttdcore:DLabel name="DL21" default="City:" labelParent="{!this}" /><nttdcore:DLabel name="DL22" default="State:" labelParent="{!this}" /><nttdcore:DLabel name="DL23" default="Country:" labelParent="{!this}" /><nttdcore:DLabel name="DL24" default="Oracle Vendor Number:" labelParent="{!this}" /><nttdcore:DLabel name="DL25" default="Oracle Vendor Site Number:" labelParent="{!this}" /><nttdcore:DLabel name="DL26" default="Insurances Match Project Requirement" labelParent="{!this}" /><nttdcore:DLabel name="DL27" default="DoA Approval Needed/Obtained" labelParent="{!this}" /><nttdcore:DLabel name="DL28" default="Sub on Local Approved Subs Register" labelParent="{!this}" />
+                    <apex:actionStatus id="SiteSelectUpdateStatus" >
+                        <apex:facet name="start" >
+                            <p style="padding-bottom:20px;" class="searchText" ><img style="position:relative;top:12px;" src="/img/loading32.gif" /> {!dLabel['DL13']}</p>
+                        </apex:facet>
+                        <apex:facet name="stop" >
+                            <apex:outputPanel >
+                                    <apex:pageMessage severity="INFO" rendered="{!IF(lstVendorSites.size > 0, false, true)}" summary="{!dLabel['DL14']}" /> 
+                                    <apex:outputPanel id="SiteSelect" rendered="{!if(lstVendorSites.size > 0, true, false)}" >
+
+                                    <div style="padding:0 12px;margin-top:7px" >
+                                        <apex:variable var="rowNumInd" value="{!0}" />
+                                        <apex:pageBlockTable value="{!lstVendorSites}" var="Site" rendered="{!if(lstVendorSites.size > 0, true, false)}" >
+                                            <apex:column headervalue="{!dLabel['DL15']}" >
+                                                <apex:variable var="rowNumInd" value="{!rowNumInd + 1}" />
+                                                <apex:commandLink value="{!dLabel['DL16']}" action="{!removeSiteVendoRowNum}" rerender="SiteTab" >
+                                                    <apex:param name="rowNumInd" value="{!rowNumInd}" assignto="{!removeSiteVendoRowNum}" />
+                                                </apex:commandLink>
+
+                                            </apex:column>  
+                                            <!--<apex:repeat value="{!$ObjectType.VendorSite__c.FieldSets.VendorFinder_Display_Fieldset}" var="SearchField">
+                                                <apex:column value="{!Site[SearchField]}" />
+                                            </apex:repeat>-->
+                                            <apex:column value="{!Site.VendorSiteID__c}" />
+                                            <apex:column >
+                                                <apex:facet name="header" >{!dLabel['DL17']}</apex:facet>
+                                                
+                                                <a class="tooltip" target="_blank" href="/{!Site.AccountID__c}" >{!Site.Site__r.AccountName__c}
+                                                    <span>
+                                                        <b>{!dLabel['DL18']}</b>&nbsp;{!Site.Site__r.AccountName__c}<br/>
+                                                        <b>{!dLabel['DL19']}</b>&nbsp;{!Site.Site__r.Address1__c}<br/>
+                                                        <b>{!dLabel['DL20']}</b>&nbsp;{!Site.Site__r.Address2__c}<br/>
+                                                        <b>{!dLabel['DL21']}</b>&nbsp;{!Site.Site__r.City__c}<br/>
+                                                        <b>{!dLabel['DL22']}</b>&nbsp;{!Site.Site__r.State__c}<br/>
+                                                        <b>{!dLabel['DL23']}</b>&nbsp;{!Site.Site__r.Country__c}<br/>
+                                                        <b>{!dLabel['DL24']}</b>&nbsp;{!Site.OracleVendorID__c}<br/>
+                                                        <b>{!dLabel['DL25']}</b>&nbsp;{!Site.OracleVendorSiteId__c}<br/>
+
+                                                    </span>
+                                                </a>
+                                            </apex:column>
+                                            <apex:column value="{!Site.Type__c}" />
+
+
+                                            <apex:column >
+                                                <apex:facet name="header" >
+                                                    <apex:outputPanel layout="block" >
+                                                        {!dLabel['DL26']}
+                                                        <c:ECO_HelpIcon helptext="Based upon the project or contract requirements, does the Selected Subcontractor have the required Insurance in order to complete the work?" />
+                                                    </apex:outputPanel>
+                                                </apex:facet>
+                                                <apex:inputCheckbox value="{!Site.Insurances__c}" disabled="{!If(Site.Type__c = 'Sub', false, true)}" />
+                                            </apex:column>
+                                            <apex:column >
+                                                <apex:facet name="header" >
+                                                    <apex:outputPanel layout="block" >
+                                                        {!dLabel['DL27']}
+                                                        <c:ECO_HelpIcon helptext="Does utilization of the Selected Subcontractor require DoA Approval? If so, has the neccesary DoA triggers been approved?" />
+                                                    </apex:outputPanel>
+                                                </apex:facet>
+                                                <apex:inputCheckbox value="{!Site.DoAApprovalNeededObtained__c}" disabled="{!If(Site.Type__c = 'Sub', false, true)}" />
+                                            </apex:column>
+                                            <apex:column >
+                                                <apex:facet name="header" >
+                                                    <apex:outputPanel layout="block" >
+                                                        {!dLabel['DL28']}
+                                                        <c:ECO_HelpIcon helptext="Sub is listed in the Geography/Region Sub Register (System/Database) and all requirements (e.g., agreements, insurance, ethics screening, etc.) have been/will be met" />
+                                                    </apex:outputPanel>
+                                                </apex:facet>
+                                                <apex:inputCheckbox value="{!Site.SubOnLocalApprovedRegister__c}" disabled="{!If(Site.Type__c = 'Sub', false, true)}" />
+                                            </apex:column>
+
+                                            
+                                        </apex:pageBlockTable>
+                                    </div>
+                                    <BR/><BR/><BR/> 
+                                    
+                                </apex:outputPanel> 
+                            </apex:outputPanel>                     
+                        </apex:facet>
+                    </apex:actionStatus>
+
+                    <!--<div style="padding:0 12px;margin-top:7px">
+
+                        <apex:outputText Value="No Agreements Were Found." rendered="{!IF(lstSitesSearchResults.size > 0, false, true)}" />
+
+                        <apex:pageBlockTable value="{!lstSitesSearchResults}" rendered="{!IF(lstSitesSearchResults.size > 0, true, false)}" var="Site">
+                            <apex:column width="200">
+                                <apex:facet name="header">Action</apex:facet>
+                                <apex:commandLink action="{!SelectSiteAsSub}" value="Add as Sub" rerender="SitePanel,messages" status="SiteSelectUpdateStatus">
+                                    <apex:param assignTo="{!idSiteID}" name="SiteID" value="{!Site.id}" />
+                                </apex:commandLink>&nbsp;&nbsp;&nbsp;&nbsp;
+                                <apex:commandLink action="{!SelectSiteAsVendor}" value="Add as Vendor" rerender="SitePanel,messages" status="SiteSelectUpdateStatus">
+                                    <apex:param assignTo="{!idSiteID}" name="SiteID" value="{!Site.id}" />
+                                </apex:commandLink>&nbsp;&nbsp;
+                            </apex:column>
+                            <apex:repeat value="{!$ObjectType.Site__c.FieldSets.pse_ClientFinder_Search_Result_Fieldset}" var="SearchField">
+                                <apex:column value="{!Site[SearchField]}" rendered="{!NOT(SearchField.label == 'Client Name')}" />
+                                <apex:column rendered="{!SearchField.label == 'Client Name'}">
+                                    <apex:facet name="header">Sub/Vendor Name</apex:facet>
+                                    {!Site[SearchField]}
+                                </apex:column>
+
+                            </apex:repeat>
+                        </apex:pageBlockTable>
+                    </div>-->
+
+
+                </apex:outputPanel> 
+
+            <apex:pageBlockSection title="{!dLabel['DL29']}" columns="1" collapsible="false" >
+            <apex:pageMessage severity="INFO" rendered="{!IF(lstAgreements.size > 0, false, true)}" summary="{!dLabel['DL30']}" /> 
+            <apex:pageBlockTable value="{!lstAgreements}" var="a" rendered="{!if(lstAgreements.size > 0, true, false)}" >
+<!--                <apex:repeat value="{!$ObjectType.ProjectAgreement__c.FieldSets.SubVendorView}" var="field">
+                    <apex:column value="{!a[field]}" />
+                </apex:repeat>-->
+                <apex:column headervalue="{!dLabel['DL31']}" >
+                    <apex:commandLink action="{!URLFOR($Action.Agreement__c.view, a.Agreement__r.Id, ['retURL'='/apex/ECO_SubsVendors?Id='+a.Agreement__r.Project__c])}" >
+                        <apex:outputField value="{!a.Agreement__r.Name}" />
+                    </apex:commandLink>
+                </apex:column>
+                <apex:column headervalue="{!dLabel['DL32']}" >
+                    <apex:outputField value="{!a.Agreement__r.RecordType.Name}" />
+                </apex:column>
+                <apex:column headervalue="{!dLabel['DL33']}" >
+                    <apex:outputField value="{!a.Agreement__r.VendorSite__r.AccountName__c}" rendered="{!a.Agreement__r.RecordType.Name == 'Sub'}" />
+                    <apex:outputField value="{!a.Agreement__r.Account__c}" rendered="{!a.Agreement__r.RecordType.Name != 'Sub'}" />
+                </apex:column>
+                <apex:column headervalue="{!dLabel['DL34']}" >
+                    <apex:outputField value="{!a.Agreement__r.AgreementStatus__c}" />
+                </apex:column>
+                <apex:column headervalue="{!dLabel['DL35']}" ><apex:outputField value="{!a.Agreement__r.AgreementAmountEstimated__c}" /></apex:column> 
+                <apex:column headervalue="{!dLabel['DL36']}" ><apex:outputField value="{!a.Agreement__r.Amount__c}" /></apex:column> 
+            </apex:pageBlockTable>
+            </apex:pageBlockSection>
+                
+            <apex:pageBlockSection title="{!dLabel['DL37']}" columns="1" collapsible="false" >
+            <apex:pageMessage severity="INFO" rendered="{!IF(lstPoheaders.size > 0, false, true)}" summary="{!dLabel['DL38']}" /> 
+            <apex:pageBlockTable value="{!lstPoheaders}" var="a" rendered="{!if(lstPoheaders.size > 0, true, false)}" >
+                
+                
+                <apex:column headervalue="{!dLabel['DL39']}" >
+                    <apex:outputlink value="{!URLFOR('/' + a.Id, null)}" >
+                        <apex:outputField value="{!a.Name}" />
+                    </apex:outputlink>
+                </apex:column>
+                <apex:column headervalue="{!dLabel['DL40']}" >
+                    <apex:outputField value="{!a.VendorName__c}" />
+                </apex:column>                
+                <apex:column headervalue="{!dLabel['DL41']}" >
+                    <apex:outputField value="{!a.Total__c}" />
+                </apex:column>                
+                <apex:column headervalue="{!dLabel['DL42']}" >
+                    <apex:outputField value="{!a.Status__c}" />
+                </apex:column>               
+            </apex:pageBlockTable>
+            </apex:pageBlockSection>                
+
+                <apex:outputPanel id="AddressInput" >
+                    <apex:actionFunction action="{!SearchSites}" name="SearchSites" rerender="SiteTab" status="SiteSearchUpdateStatus" />
+
+                    <div id="AddressInput" ><nttdcore:DLabel name="DL43" default="Search for Subs/Vendors" labelParent="{!this}" /><nttdcore:DLabel name="DL44" default="Account Name" labelParent="{!this}" /><nttdcore:DLabel name="DL45" default="City/Town" labelParent="{!this}" /><nttdcore:DLabel name="DL46" default="State/Province/Emirate" labelParent="{!this}" /><nttdcore:DLabel name="DL47" default="Country" labelParent="{!this}" />
+                    <apex:pageBlockSection title="{!dLabel['DL43']}" columns="2" collapsible="false" >
+                        <!--<apex:repeat value="{!$ObjectType.Site__c.FieldSets.pse_ClientFinder_Search_Fieldset}" var="FieldsForSearch">
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="{!FieldsForSearch.Label}" />
+                                <apex:inputField value="{!oSite[FieldsForSearch]}" required="false" />
+                            </apex:pageBlockSectionItem>
+                        </apex:repeat>-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="{!dLabel['DL44']}" />
+                                <apex:inputtext value="{!oSW.name}" required="false" />
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="{!dLabel['DL45']}" />
+                                <apex:inputtext value="{!oSW.city}" required="false" />
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="{!dLabel['DL46']}" />
+                                <apex:inputtext value="{!oSW.state}" required="false" />
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="{!dLabel['DL47']}" />
+                                <apex:inputtext value="{!oSW.country}" required="false" />
+                            </apex:pageBlockSectionItem>                        
+                    </apex:pageBlockSection>
+                    </div>
+                    <div style="text-align:center;" >
+                        <nttdcore:DLabel name="DL48" default="Show me vendors that are not in my Operating Unit" labelParent="{!this}" /><apex:outputLabel value="{!dLabel['DL48']}" />&nbsp;
+
+                        <apex:inputCheckbox value="{!bSearchOutsideUserOrg}" />
+                        <br/><br/>
+
+                        <nttdcore:DLabel name="DL49" default="Search" labelParent="{!this}" /><apex:commandButton id="SearchButton" action="{!SearchSites}" value="{!dLabel['DL49']}" rerender="SiteSearch, messages" status="SiteSearchUpdateStatus" />
+                    </div>
+                    
+                    <BR/><BR/><BR/>
+                </apex:outputPanel>
+
+                <apex:outputPanel id="SiteSearch" ><nttdcore:DLabel name="DL50" default="Updating..." labelParent="{!this}" /><nttdcore:DLabel name="DL51" default="Search Results" labelParent="{!this}" /><nttdcore:DLabel name="DL52" default="No Results Were Found." labelParent="{!this}" /><nttdcore:DLabel name="DL53" default="Action" labelParent="{!this}" /><nttdcore:DLabel name="DL54" default="Add as Sub" labelParent="{!this}" /><nttdcore:DLabel name="DL55" default="Add as Vendor" labelParent="{!this}" /><nttdcore:DLabel name="DL56" default="Sub/Vendor Name" labelParent="{!this}" />                      
+                    <apex:actionStatus id="SiteSearchUpdateStatus" >
+                        <apex:facet name="start" >
+                            <p style="padding-bottom:20px;" class="searchText" ><img style="position:relative;top:12px;" src="/img/loading32.gif" /> {!dLabel['DL50']}</p>
+                        </apex:facet>
+                        <apex:facet name="stop" >
+                            <apex:outputPanel >
+                            <apex:outputtext value="{!strSearchResults}" />
+
+                            <apex:outputPanel id="SiteSearchResult" rendered="{!booDisplaySiteSearchResult}" >
+                                <apex:pageBlockSection title="{!dLabel['DL51']}" columns="1" collapsible="false" />
+                                <div style="padding:0 12px;margin-top:7px" >
+
+                                    <apex:outputText value="{!dLabel['DL52']}" rendered="{!IF(lstSitesSearchResults.size > 0, false, true)}" />
+
+                                    <apex:pageBlockTable value="{!lstSitesSearchResults}" rendered="{!IF(lstSitesSearchResults.size > 0, true, false)}" var="Site" >
+                                        <apex:column width="200" >
+                                            <apex:facet name="header" >{!dLabel['DL53']}</apex:facet>
+                                            <apex:commandLink action="{!SelectSiteAsSub}" value="{!dLabel['DL54']}" rerender="SitePanel,messages" status="SiteSelectUpdateStatus" >
+                                                <apex:param assignto="{!idSiteID}" name="SiteID" value="{!Site.id}" />
+                                            </apex:commandLink>&nbsp;&nbsp;&nbsp;&nbsp;
+                                            <apex:commandLink action="{!SelectSiteAsVendor}" value="{!dLabel['DL55']}" rerender="SitePanel,messages" status="SiteSelectUpdateStatus" >
+                                                <apex:param assignto="{!idSiteID}" name="SiteID" value="{!Site.id}" />
+                                            </apex:commandLink>&nbsp;&nbsp;
+                                        </apex:column>
+                                        <apex:repeat value="{!$ObjectType.Site__c.FieldSets.pse_VendorSub_Search_Result_Fieldset}" var="SearchField" >
+                                            <apex:column value="{!Site[SearchField]}" rendered="{!NOT(SearchField.label == 'Client Name')}" />
+                                            <apex:column rendered="{!SearchField.label == 'Client Name'}" >
+                                                <apex:facet name="header" >{!dLabel['DL56']}</apex:facet>
+                                                {!Site[SearchField]}
+                                            </apex:column>
+
+                                        </apex:repeat>
+                                    </apex:pageBlockTable>
+                                </div>
+                                <BR/><BR/><BR/>
+                                <div style="text-align:center;" >
+                                    <apex:commandButton value="{!IF(bMore, 'Less', 'More')}" action="{!toggle}" rerender="SiteSearch" />
+                                </div>
+                            </apex:outputPanel>
+                            </apex:outputPanel>
+                        </apex:facet>
+                    </apex:actionStatus>
+                </apex:outputPanel> 
+            </apex:actionRegion>
+            </apex:outputPanel>
+        </apex:pageBlock>
+        <c:ECO_RiskFlyout projectid="{!oProject.Id}" planelement="Subs/Vendors" />
+        <c:ECO_AssumptionFlyout projectid="{!oProject.Id}" planelement="Subs/Vendors" />
+        <c:ECO_ProjectTeamFlyout projectid="{!oProject.Id}" />
+    </apex:form>
+
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

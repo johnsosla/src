@@ -1,0 +1,7 @@
+<apex:component language="{!theLanguage}" controller="nttdcore.DLabelChildController" access="global" ><nttdcore:DLabel name="DL1" default="{{1}} for {{2}} has been {{3}}. 
+PO Link: {{4}}{{5}}" labelParent="{!this}" componentContext="EcoPurchaseOrderApprovalVF_5" p1="{!theRelatedTo.Name}" p2="{!theRelatedTo.Project__r.Name}" p3="{!theRelatedTo.Status__c}" p4="{!LEFT($Api.Partner_Server_URL_290,FIND('services',$Api.Partner_Server_URL_290)-1)}" p5="{!theRelatedTo.Id}" /><apex:attribute name="theLanguage" type="String" required="true" description="language" access="global" /><apex:attribute name="theRecipient" type="User" required="true" description="recipient" access="global" /><apex:attribute name="theRelatedTo" type="POHeader__c" required="true" description="related to" access="global" />
+
+{!dlRoot.dLabel['DL1']}
+
+
+<nttdcore:DLabelInit language="{!theLanguage}" labelParentInit="{!this}" /></apex:component>

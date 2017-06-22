@@ -1,0 +1,3588 @@
+<apex:component layout="none">
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/ag-grid/2.3.5/ag-grid.min.css" rel="stylesheet" type="text/css"></link>
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/ag-grid/2.3.5/theme-fresh.min.css" rel="stylesheet" type="text/css"></link>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Faker/3.0.1/faker.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ag-grid/2.3.5/ag-grid.min.js"></script>
+
+<script src="{!$Resource.ECO_PMD_twygmbh_auto_height}"></script>
+
+<script src="https://use.fontawesome.com/35c04756f2.js"></script>
+
+<script id="kendo-extensions.js">
+    if (typeof(kendo)!=='undefined') {
+        kendo.formatDebug = function (dataItem,  series, value, category){
+            console.log(dataItem);
+            console.log(series);
+            console.log(value);
+            console.log(category);
+            return value.toString();
+        };
+        kendo.formatNum = function(value,places,isThousands) {
+              var pow =  places||2,
+                  group = isThousands?1000:1,
+                  ret = Math.round(Math.pow(10,pow)*(value/group))/Math.pow(10,pow);
+              return ret.toLocaleString()+(isThousands?"k":"");
+        };
+        kendo.formatK = function(value,places){
+            var pow =  places||0;
+            return kendo.formatNum(value,pow,true);
+        };
+        kendo.formatDate = function(asOf) {
+              var asOfDate = new Date(asOf),
+                  hasAsOf = (!isNaN(asOfDate.getTime())),
+                  asOfDisplay = (!hasAsOf)?"":asOfDate.toLocaleDateString(asOf);
+              return asOfDisplay;
+        };
+        kendo.formatGetFiscalMonthAsDate = function(str) {
+            // like FY2015-12, which is September 2015, js months are 0-11
+            var fy = parseInt(str.substring(2,6)),
+                fm = parseInt(str.substring(7,9)),
+                cy = fy + ((fm < 4 ) ? -1 : 0 ),
+                cm = fm + ((fm < 4 ) ? 9 : -3 ),
+                dt = new Date( cy , cm-1 );
+            return dt;
+        }
+        kendo.formatFiscalMonthAsDate = function(str) {
+            var dt = kendo.formatGetFiscalMonthAsDate(str),
+                dts = kendo.toString(dt,'MMM yyyy');
+            return dts;
+        };
+        kendo.formatSnapshotDate = function(str){
+            //like FY2015-09|43243242314 first is the fiscal month label, second is actual snapshotdate
+
+            var parsed = str.split("|"),
+                fiscalMonth = parsed[0];
+            if (parsed.length < 2) return { month: str, date: "NA"}; // not in the right format, return unaltered
+            var asOfDate = parsed[1],
+                ret = { month: kendo.formatFiscalMonthAsDate(fiscalMonth)
+                       ,date: asOfDate=="NA"?'':kendo.formatDate(parseInt(asOfDate)) };
+            return ret;
+        };
+    } else {
+        console.log('kendo not loaded -- cannot create formatK');
+    }
+</script>
+
+<script id="app.js">
+    (function () {
+        "use strict";
+
+        /**
+         * @ngdoc module
+         * @name ecopmd
+         *
+         * @requires components
+         * @requires services
+         * @requires agGrid
+         * @requires ui.bootstrap
+         * @requires pikaday
+         *
+         * @description
+         * Main application module
+         */
+        angular
+            .module('ecopmd', [
+                // Angular modules
+                'agGrid',
+
+                // custom modules
+                'components',
+                'services',
+
+                // 3rd Party modules
+                'ui.bootstrap',
+                'twygmbh.auto-height',
+             ]);
+
+        /**
+         * @ngdoc overview
+         *
+         * @name components
+         *
+         * @description
+         * base components module
+         */
+        angular
+            .module('components', []);
+
+        /**
+         * @ngdoc overview
+         *
+         * @name services
+         *
+         * @description
+         * base service module
+         */
+        angular
+            .module('services', []);
+    })();
+</script>
+
+<script id="services/Faker/faker.js">
+    (function() {
+        'use strict';
+
+        /**
+         * @ngdoc service
+         *
+         * @name services.service:faker
+         *
+         * @description
+         * service that loads faker for faking data  (if already loaded on the window)
+         */
+        angular
+            .module('services')
+            .factory('faker', faker);
+
+        faker.$inject = ['$window'];
+
+        function faker($window) {
+            return $window.faker;
+        }
+    })();
+</script>
+
+<script id="services/Underscore/underscore.js">
+    (function() {
+        'use strict';
+
+        /**
+         * @ngdoc service
+         *
+         * @name services.service:underscore
+         *
+         * @description
+         * service that loads underscore library (if already loaded on the window)
+         */
+        angular
+            .module('services')
+            .factory('underscore', underscore);
+
+        underscore.$inject = ['$window'];
+
+        function underscore($window) {
+            return $window._;
+        }
+    })();
+</script>
+
+<script id="services/PubSub/pub-sub-service.js">
+    (function() {
+        'use strict';
+
+        /**
+         * @ngdoc service
+         *
+         * @name services.service:PubSub
+         *
+         * @requires https://docs.angularjs.org/api/ng/service/$timeout
+         * @requires https://docs.angularjs.org/api/ng/service/$log
+         *
+         * @description
+         * service that handles pub/sub event emitting/subscribing
+         */
+        angular
+            .module('services')
+            .factory('PubSub', PubSub);
+
+        PubSub.$inject = ['$timeout', '$log'];
+
+        function PubSub($timeout, $log) {
+            /**
+             * @ngdoc property
+             *
+             * @name service
+             *
+             * @propertyOf services.service:PubSub
+             *
+             * @description
+             * public service interface
+             *
+             * <pre>{
+             *      topics          : Object,
+             *      subUid          : Number,
+             *      subscribe       : PubSub.subscribe,
+             *      subscribeOnce   : PubSub.subscribeOnce,
+             *      publish         : PubSub.publish,
+             *      unsubscribe     : PubSub.unsubscribe
+             * } </pre>
+             */
+            var service = {
+                topics          : {},                   // storage for topics that can be broadcast or listened to
+                subUid          : -1,                   // a topic identifier
+                subscribe       : subscribe,
+                subscribeOnce   : subscribeOnce,
+                publish         : publish,
+                unsubscribe     : unsubscribe
+            };
+
+            return service;
+
+            /**
+             * @ngdoc method
+             *
+             * @name subscribe
+             *
+             * @methodOf services.service:PubSub
+             *
+             * @param {String} topic topic name.
+             * @param {Function} callback callback function to execute on event.
+             * @param {Boolean} once checks if event will be triggered only one time (optional).
+             *
+             * @description
+             * subscribe to events of interest with a specific topic name and a
+             * callback function, to be executed when the topic/event is observed
+             *
+             * @returns {number} identifier for subscription
+             */
+            function subscribe(topic, callback, once) {
+                var token   = service.subUid += 1,
+                    obj     = {};
+
+                if(!service.topics[topic]) {
+                    service.topics[topic] = [];
+                }
+
+                obj.token       = token;
+                obj.callback    = callback;
+                obj.once        = !!once;
+
+                service.topics[topic].push(obj);
+
+                return token;
+            }
+
+            /**
+             * @ngdoc method
+             *
+             * @name subscribeOnce
+             *
+             * @methodOf services.service:PubSub
+             *
+             * @param {String} topic topic name
+             * @param {Function} callback callback function to execute on event
+             *
+             * @description
+             * subscribe to events of interest setting a flag indicating the event will be published only one time
+             */
+
+            function subscribeOnce(topic, callback) {
+                service.subscribe(topic, callback, true);
+            }
+
+            /**
+             * @ngdoc method
+             *
+             * @name publish
+             *
+             * @methodOf services.service:PubSub
+             *
+             * @param {String} topic topic name.
+             * @param {Object || Array} args the data to be passed.
+             *
+             * @description
+             * publish or broadcast events of interest with a specific topic name and arguments such as the data to pass along.
+             *
+             * @returns {Boolean} true if topic exists and event is published.
+             */
+            function publish(topic, args) {
+                var subscribers,
+                    len;
+
+                if(!service.topics[topic]) {
+                    return false;
+                }
+
+                $timeout(function() {
+                    subscribers = service.topics[topic];
+                    len         = subscribers ? subscribers.length : 0;
+
+                    while(len) {
+                        len -= 1;
+
+                        subscribers[len].callback(topic, args);
+
+                        // unsubscribe from event based on tokenized reference,
+                        // if subscriber's property once is set to true.
+                        if(subscribers[len].once) {
+                            service.unsubscribe(subscribers[len].token);
+                        }
+                    }
+                }, 0);
+
+                return true;
+            }
+
+            /**
+             * @ngdoc method
+             *
+             * @name unsubscribe
+             *
+             * @methodOf services.service:PubSub
+             *
+             * @param {Number} t topic name or token reference
+             *
+             * @description
+             * unsubscribe from a specific topic based on the topic name or based on a tokenized reference to the subscription.
+             */
+            function unsubscribe(t) {
+                var prop,
+                    len,
+                    tf = false;
+
+                for(prop in service.topics) {
+                    if(service.topics.hasOwnProperty(prop)) {
+                        if(service.topics[prop]) {
+                            len = service.topics[prop].length;
+
+                            while(len) {
+                                len -= 1;
+
+                                // if t is a tokenized reference to the subscription.
+                                // removes one subscription from the array.
+                                if(service.topics[prop][len].token === t) {
+                                    service.topics[prop].splice(len, 1);
+                                    return t;
+                                }
+
+                                // if t is the event type.
+                                // removes all the subscriptions that match the event type.
+                                if(prop === t) {
+                                    service.topics[prop].splice(len, 1);
+                                    tf = true;
+                                }
+                            }
+
+                            if(tf) {
+                                return t;
+                            }
+                        }
+                    }
+                }
+
+                return false;
+            }
+        }
+    })();
+</script>
+
+<script id="eco.pmd.earnedvalue.earnedValueData">
+    (function() {
+        'use strict';
+
+        // DEPENDS ON ECO_PMD_EarnedValueDetail_Controller.ProjectTaskDetails
+
+        angular
+            .module('services')
+            .service('earnedValueData', earnedValueData);
+
+       // earnedValueData.$inject = ['faker'];
+       // earnedValueDataMock.$inject = ['faker'];
+
+        function taskOutlineDataProcessor(){
+
+            function makeIterator(arrayParam){
+                var nextIndex = 0;
+                var array = arrayParam;
+                function isDone(){
+                    return nextIndex < array.length;
+                }
+                return {
+                   next: function(){
+                       return isDone() ?
+                           {value: array[nextIndex++], done: false} :
+                           {done: true};
+                   },
+                   current: function(){
+                        return isDone() ?
+                            {value: array[nextIndex], done: false} :
+                            {done: true};
+                   }
+                };
+            }
+
+            function tasksToTree(peers,iter){
+                var node;
+                while (!iter.current().done) {
+                    if (peers.length == 0) {
+                        peers.push({group:false, data:iter.next().value});
+                    } else {
+                        node = peers[peers.length-1];
+                        if (iter.current().value.taskLevel > node.data.taskLevel) {
+                            node.group = true;
+                            node.expanded= true;
+                            node.children=[];
+                            tasksToTree(node.children,iter);
+                        } else if (iter.current().value.taskLevel == node.data.taskLevel) {
+                            peers.push({group:false, data:iter.next().value});
+                        } else { return; }
+                    }
+                }
+                return peers;
+            }
+
+            function unflatten(arr) {
+              var tree = [],
+                  mappedArr = {},
+                  arrElem,
+                  mappedElem;
+
+              // First map the nodes of the array to an object -> create a hash table.
+              for(var i = 0, len = arr.length; i < len; i++) {
+                arrElem = arr[i];
+                mappedArr[arrElem.id] = arrElem;
+                mappedArr[arrElem.id]['children'] = [];
+              }
+
+
+              for (var id in mappedArr) {
+                if (mappedArr.hasOwnProperty(id)) {
+                  mappedElem = mappedArr[id];
+                  // If the element is not at the root level, add it to its parent array of children.
+                  if (mappedElem.parentid) {
+                    mappedArr[mappedElem['parentid']]['group']=true;
+                    mappedArr[mappedElem['parentid']]['expanded']=true;
+                    mappedArr[mappedElem['parentid']]['children'].push(mappedElem);
+                  }
+                  // If the element is at the root level, add it to first level elements array.
+                  else {
+                    tree.push(mappedElem);
+                  }
+                }
+              }
+              return tree;
+            }
+
+            return {
+                makeIterator:makeIterator,
+                tasksToTree: tasksToTree,
+                unflatten: unflatten
+            };
+        }
+
+        function earnedValueData() {
+
+            function loadData(vm,success,error){
+                ECO_PMD_EarnedValueDetail_Controller.ProjectTaskDetailsR3(
+                  vm.projectId,
+                  function(result, event){
+
+                    if(event.status){
+                        var emit = {
+                            tasks:mapSFDCResults(result.projectTasks, result.earnedValueTasks),
+                            totalRow:mapSFDCTotalRow(result.totalRow)
+                        };
+                        success(vm, emit);
+                    } else {
+                        error(result, event);
+                    }
+                });
+            }
+
+            var lastmodifieddate='';
+            function mapSFDCResults(result, earnedValueTasks) {
+                // assumes result is an array of objects
+                var data =[];
+                angular.forEach(result, function (val, key) {
+                  this.push(mapSFDCItem(val, key, earnedValueTasks));
+                  console.log('getDateFromUTC(val.LastModifiedDate)::::' + val.LastModifiedDate);
+                  if(getDateFromUTC(val.LastModifiedDate)!= 'NaN')
+                  {
+                    lastmodifieddate=getDateFromUTC(val.LastModifiedDate);
+                  }
+                  console.log(lastmodifieddate);
+                },data);
+                var rowData = [];
+                var outliner = taskOutlineDataProcessor();
+                rowData = outliner.unflatten(data);
+                return rowData;
+            }
+
+            function str(val) { if (typeof(val)=="undefined"||val==null) return ''; return val;}
+
+            function getDateFromUTC(d){
+                var gmt = new Date(d);
+                var localZoneDate = new Date(gmt.getUTCFullYear(),gmt.getUTCMonth(),gmt.getUTCDate());
+                return localZoneDate.valueOf();
+            }
+
+            function formatDate(d){
+                d = new Date(d);
+                // var monthAbr = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                var result = '';
+                var year = d.getUTCFullYear();
+                var month =  d.getUTCMonth() + 1;
+                var day = d.getUTCDate();
+                if(day < 10){
+                    day = '0' + day;
+                }
+                if(month < 10){
+                    month = '0' + month;
+                }
+                return day + '/' + month + '/' + year;
+            }
+
+            function formatNumber (num) {
+                 if(num){
+                     return num.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1,").split(/[.]/)[0];
+                 }
+                return num;
+            }
+
+            function findEarnedValueTask(earnedValueTasks,projectTaskId){
+                if(earnedValueTasks){
+                    for (var i = 0; i < earnedValueTasks.length; i++) {
+                       if (earnedValueTasks[i].ProjectTask__c === projectTaskId)
+                            return earnedValueTasks[i];
+                    }
+                }
+            }
+
+            function applyComputedValuesForProjectTask(val){
+
+                //  Keep these in synch with the actual computed fields on the pse__Project_Task__c object
+
+                // Computed fields from ProjectTask
+                //val.PMD__CPI__c = (val.PMD_TotalActualCost__c==0)?0:val.PMD_EarnedValue__c/val.PMD_TotalActualCost__c;
+                //val.PMD__SPI__c = (val.PMD_PlannedValue__c==0)?0:(val.PMD_Earnedvalue__c/val.PMD_PlannedValue__c);
+                val.PercentComplete__c = (val.PMD_TotalApprovedCost__c==0)?0:val.PMD_EarnedValue__c/val.PMD_TotalApprovedCost__c;
+                val.CostForecastTrend__c = val.PMD_TotalActualCost__c + val.CPI__c==0?0:(( val.PMD_TotalApprovedCost__c - val.PMD_EarnedValue__c )/ val.CPI__c);
+                val.RevenueBudgetVariance__c = val.PMD_RevenueBudgetCurrent__c - val.PMD_RevenueBudgetOriginal__c;
+                val.NetMarginBudgetVariance__c = val.PMD_NetMarginBudgetCurrent__c - val.PMD_NetMarginBudgetOriginal__c ;
+                val.CostBudgetVariance__c = val.PMD_TotalApprovedCost__c - val.PMD_CostBudgetOriginal__c ;
+                val.CostForecastVariance__c = val.PMD_TotalForecastCostPrevME__c - val.PMD_TotalEstimateCost__c ;
+
+                val.Duration__c                  = val.pse__End_Date__c - val.pse__Start_Date__c;
+                val.CostVariance__c              = val.PMD_PlannedCost__c - val.PMD_TotalActualCost__c;
+
+                val.ThreeMonthAverageBurnRate__c = (val.PMD_TotalActualCost__c - val.PMD_CostITD3FiscalMonthEndsAgo__c)/3;
+                val.RemainingMonthsinProject__c  = Math.max(0, val.ThreeMonthAverageBurnRate__c / (val.PMD_TotalApprovedCost__c - val.PMD_TotalActualCost__c));
+                val.PercentSpent__c              = val.PMD_TotalActualCost__c / val.PMD_TotalApprovedCost__c;
+                val.CostETC__c                   = val.PMD_TotalEstimateCost__c - val.PMD_TotalActualCost__c;
+                val.CostForecastTrend__c         = val.PMD_TotalActualCost__c + (val.CPI__c == 0?0:(( val.PMD_TotalApprovedCost__c - val.PMD_EarnedValue__c )/ val.CPI__c));
+            }
+
+            function mapSFDCTotalRow(val) {
+                applyComputedValuesForProjectTask(val);
+
+                return {
+                      Name: '{!JSENCODE($Label.ECOPMDTotalUCase)}'//"TOTAL"
+                    , evSPI                                   : val.PMD__SPI__c
+                    , evPlannedCostITD                        : val.PMD_PlannedCost__c
+                    , pctSpentITD                             : val.PercentSpent__c
+                    , evCostVariance                          : val.CostVariance__c
+                    , taskDisplay                             : '{!JSENCODE($Label.ECOPMDTotalUCase)}'//"TOTAL"
+                    , originalRevenue                         : val.PMD_RevenueBudgetOriginal__c
+                    , varianceRevenue                         : val.RevenueBudgetVariance__c
+                    , approvedRevenue                         : val.PMD_RevenueBudgetCurrent__c
+                    , originalNmnsr                           : val.PMD_NetMarginBudgetOriginal__c
+                    , varianceNmnsr                           : val.NetMarginBudgetVariance__c
+                    , approvedNmnsr                           : val.PMD_NetMarginBudgetCurrent__c
+                    , originalCostBudget                      : val.PMD_CostBudgetOriginal__c
+                    , varianceCostBudget                      : val.CostBudgetVariance__c
+                    , approvedCostBudget                      : val.PMD_TotalApprovedCost__c
+                    , costMTDPrev                             : val.PMD_CostPrevMTD__c
+                    , costMTD                                 : val.PMD_CostMTD__c
+                    , costITD                                 : val.PMD_TotalActualCost__c //val.TotalProjectFunctionalBurdenedCost__c
+                    , costETC                                 : val.CostETC__c
+                    , costEAC                                 : val.PMD_TotalEstimateCost__c // CostForecast__c
+                    , costEACPrev                             : val.PMD_TotalForecastCostPrevME__c
+                    , costEACChange                           : val.CostForecastVariance__c
+                    , costEACTrend                            : val.CostForecastTrend__c
+                    , pctCompleteITD                          : val.PercentComplete__c
+                    , evITD                                   : val.PMD_EarnedValue__c
+                    , evCPI                                   : val.PMD__CPI__c
+                };
+            }
+
+            function mapSFDCItem(val, key, earnedValueTasks) {
+                applyComputedValuesForProjectTask(val);
+                var evt = findEarnedValueTask(earnedValueTasks,val.Id);
+                //var ldate = ') Last Updated: ' + lastmodifieddate;
+                var ldate = ') ' + '{!$Label.ECOPMDLastUpdated}' + ': ' + lastmodifieddate;
+                $('.additionalInfo').text('Currency: (' + val.CurrencyIsoCode + ldate);
+                $('.additionalInfo').text('{!JSENCODE($Label.ECOPMDCurrency)}' + ': (' + val.CurrencyIsoCode + ldate);
+
+                var result = {
+                    id:val.Id,parentid:val.pse__Parent_Task__c, group:false, expanded:false,
+                    data:{
+                          Id                                      : val.Id
+                        , ProjectTaskNumber__c                    : val.ProjectTaskNumber__c
+                        , Name                                    : val.Name
+                        , pse__Order__c                           : val.pse__Order__c
+                        , pse__Hierarchy_Depth__c                 : val.pse__Hierarchy_Depth__c
+                        , IsChargeable__c                         : val.IsChargeable__c
+                        , IsBillable__c                           : val.IsBillable__c
+                        , IsTopLevelTask__c                       : val.IsTopLevelTask__c
+                        , FinancialTask__c                        : val.FinancialTask__c
+                        , pse__Parent_Task__r_Name                : (typeof val.pse__Parent_Task__r == 'undefined')? undefined : val.pse__Parent_Task__r.Name
+                        , pse__Parent_Task__r_Id                  : (typeof val.pse__Parent_Task__r == 'undefined')? undefined : val.pse__Parent_Task__r.Id
+                        , evSPI                                   : val.PMD__SPI__c
+                        , evScheduleVariance                      : val.ScheduleVariance__c
+                        , evPlannedCostITD                        : val.PMD_PlannedCost__c
+                        , duration                                : val.Duration__c
+                        , pctSpentITD                             : val.PercentSpent__c
+                        , evCostVariance                          : val.CostVariance__c
+                        , taskDisplay                             : ((typeof val.ProjectTaskNumber__c  == 'undefined')? "" : (val.ProjectTaskNumber__c + " - ")) + val.Name
+                        , originalRevenue                         : val.PMD_RevenueBudgetOriginal__c
+                        , varianceRevenue                         : val.RevenueBudgetVariance__c
+                        , approvedRevenue                         : val.PMD_RevenueBudgetCurrent__c
+                        , originalNmnsr                           : val.PMD_NetMarginBudgetOriginal__c
+                        , varianceNmnsr                           : val.NetMarginBudgetVariance__c
+                        , approvedNmnsr                           : val.PMD_NetMarginBudgetCurrent__c
+                        , originalCostBudget                      : val.PMD_CostBudgetOriginal__c
+                        , varianceCostBudget                      : val.CostBudgetVariance__c
+                        , approvedCostBudget                      : val.PMD_TotalApprovedCost__c
+                        , costMTDPrev                             : val.PMD_CostPrevMTD__c
+                        , costMTD                                 : val.PMD_CostMTD__c
+                        , costITD                                 : val.PMD_TotalActualCost__c //val.TotalProjectFunctionalBurdenedCost__c
+                        , costETC                                 : val.CostETC__c
+                        , costEAC                                 : val.PMD_TotalEstimateCost__c // CostForecast__c
+                        , costEACPrev                             : val.PMD_TotalForecastCostPrevME__c
+                        , costEACChange                           : val.CostForecastVariance__c
+                        , costEACTrend                            : val.CostForecastTrend__c
+                        , pctCompleteITD                          : val.PercentComplete__c
+                        , evITD                                   : val.PMD_EarnedValue__c
+                        , evCPI                                   : val.PMD__CPI__c
+                        , approvedStart                           : getDateFromUTC(val.pse__Start_Date__c)
+                        , approvedEnd                             : getDateFromUTC(val.pse__End_Date__c)
+                        , forecastStart                           : getDateFromUTC(val.ForecastStartDate__c)
+                        , forecastEnd                             : getDateFromUTC(val.ForecastEndDate__c)
+                        , burnAvg                                 : val.ThreeMonthAverageBurnRate__c
+                        , burnETC                                 : val.RemainingMonthsatBurnRate__c
+                        , burnDur                                 : val.RemainingMonthsinProject__c
+                    }
+                };
+
+                if (false && evt != null) {
+                    // compute EV based on most recent committed EV
+                    result.data.evITD = evt.EarnedValue__c*100; // 100 ONLY for APRIL 7, 2016 -- ticket US-04012
+                    var ev      = result.data.evITD;
+                    var costITD = result.data.costITD;
+                    var planITD = result.data.evPlannedCostITD;
+                    result.data.evCPI = (typeof(costITD)==="undefined"||costITD===null||costITD===0)? 'no cost': (ev / costITD);
+                    result.data.evSPI = (typeof(planITD)==="undefined"||planITD===null||planITD===0)? 'no plan': (ev / planITD);
+                    result.data.pctCompleteITD = evt.PercentComplete__c/100;
+                }
+                return result;
+            };
+
+            var labels = {
+                  evSPI: '{!JSENCODE($ObjectType.pse__Project_Task__c.Fields.SPI__c.Label)}'
+                , evScheduleVariance: '{!JSENCODE($ObjectType.pse__Project_Task__c.Fields.ScheduleVariance__c.Label)}'
+                , evPlannedCostITD: '{!JSENCODE($ObjectType.pse__Project_Task__c.Fields.PlannedCost__c.Label)}'
+                , duration: '{!JSENCODE($ObjectType.pse__Project_Task__c.Fields.Duration__c.Label)}'
+                , pctSpentITD: '{!JSENCODE($ObjectType.pse__Project_Task__c.Fields.PercentSpent__c.Label)}'
+                , evCostVariance: '{!JSENCODE($ObjectType.pse__Project_Task__c.Fields.CostVariance__c.Label)}'
+                , taskDisplay: '{!JSENCODE($Label.ECOPMDTaskDisplay)}'
+                , originalRevenue: '{!JSENCODE($ObjectType.pse__Project_Task__c.Fields.RevenueBudgetOriginal__c.Label)}'
+                , varianceRevenue: '{!JSENCODE($ObjectType.pse__Project_Task__c.Fields.RevenueBudgetVariance__c.Label)}'
+                , approvedRevenue: '{!JSENCODE($ObjectType.pse__Project_Task__c.Fields.RevenueBudgetCurrent__c.Label)}'
+                , originalNmnsr: '{!JSENCODE($ObjectType.pse__Project_Task__c.Fields.NetMarginBudgetOriginal__c.Label)}'
+                , varianceNmnsr: '{!JSENCODE($ObjectType.pse__Project_Task__c.Fields.NetMarginBudgetVariance__c.Label)}'
+                , approvedNmnsr: '{!JSENCODE($ObjectType.pse__Project_Task__c.Fields.NetMarginBudgetCurrent__c.Label)}'
+                , originalCostBudget: '{!JSENCODE($ObjectType.pse__Project_Task__c.Fields.CostBudgetOriginal__c.Label)}'
+                , varianceCostBudget: '{!JSENCODE($ObjectType.pse__Project_Task__c.Fields.CostBudgetVariance__c.Label)}'
+                , approvedCostBudget: '{!JSENCODE($ObjectType.pse__Project_Task__c.Fields.TotalApprovedCost__c.Label)}'
+                , costMTDPrev: '{!JSENCODE($ObjectType.pse__Project_Task__c.Fields.CostPrevMTD__c.Label)}'
+                , costMTD: '{!JSENCODE($ObjectType.pse__Project_Task__c.Fields.CostMTD__c.Label)}'
+                , costITD: '{!JSENCODE($ObjectType.pse__Project_Task__c.Fields.TotalProjectFunctionalBurdenedCost__c.Label)}'
+                , costETC: '{!JSENCODE($ObjectType.pse__Project_Task__c.Fields.CostETC__c.Label)}'
+                , costEAC: '{!JSENCODE($ObjectType.pse__Project_Task__c.Fields.CostForecast__c.Label)}'
+                , costEACPrev: '{!JSENCODE($ObjectType.pse__Project_Task__c.Fields.TotalForecastCostPrevME__c.Label)}'
+                , costEACChange: '{!JSENCODE($ObjectType.pse__Project_Task__c.Fields.CostForecastVariance__c.Label)}'
+                , costEACTrend: '{!JSENCODE($ObjectType.pse__Project_Task__c.Fields.CostForecastTrend__c.Label)}'
+                , pctCompleteITD: '{!JSENCODE($ObjectType.pse__Project_Task__c.Fields.PercentComplete__c.Label)}'
+                , evITD: '{!JSENCODE($ObjectType.pse__Project_Task__c.Fields.EarnedValue__c.Label)}'
+                , evCPI: '{!JSENCODE($ObjectType.pse__Project_Task__c.Fields.CPI__c.Label)}'
+                , approvedStart: '{!JSENCODE($ObjectType.pse__Project_Task__c.Fields.pse__Start_Date__c.Label)}'
+                , approvedEnd: '{!JSENCODE($ObjectType.pse__Project_Task__c.Fields.pse__End_Date__c.Label)}'
+                , forecastStart: '{!JSENCODE($ObjectType.pse__Project_Task__c.Fields.ForecastStartDate__c.Label)}'
+                , forecastEnd: '{!JSENCODE($ObjectType.pse__Project_Task__c.Fields.ForecastEndDate__c.Label)}'
+                , burnAvg: '{!JSENCODE($ObjectType.pse__Project_Task__c.Fields.ThreeMonthAverageBurnRate__c.Label)}'
+                , burnETC: '{!JSENCODE($ObjectType.pse__Project_Task__c.Fields.RemainingMonthsatBurnRate__c.Label)}'
+                , burnDur: '{!JSENCODE($ObjectType.pse__Project_Task__c.Fields.RemainingMonthsinProject__c.Label)}'
+
+                // Column Groups
+                , group: '{!JSENCODE($Label.ECOPMDGroup)}'
+                , details: '{!JSENCODE($Label.ECOPMDDetails)}'
+                , business: '{!JSENCODE($Label.ECOPMDBusiness)}'
+                , cost: '{!JSENCODE($Label.ECOPMDCost)}'
+                , periods: '{!JSENCODE($Label.ECOPMDPeriods)}'
+                , taskData: '{!JSENCODE($Label.ECOPMDTaskData)}'
+                , revenue: '{!JSENCODE($Label.ECOPMDRevenue)}'
+                , netMargin: '{!JSENCODE($Label.ECOPMDNetMargin)}'
+                , earnedValue: '{!JSENCODE($Label.ECOPMDEarnedValue)}'
+                , approved: '{!JSENCODE($Label.ECOPMDApproved)}'
+                , forecast: '{!JSENCODE($Label.ECOPMDForecast)}'
+                , burnRate: '{!JSENCODE($Label.ECOPMDBurnRate)}'
+                , itd: '{!JSENCODE($Label.ECOPMDITD)}'
+                , eacCheck: '{!JSENCODE($Label.ECOPMDEACCheck)}'
+                // Button and other labels
+                , lookbackPeriod: '{!JSENCODE($Label.ECOPMDLookBackPeriod)}'
+                , lookbackCount: '{!JSENCODE($Label.ECOPMDLookBackCount)}'
+                , filter: '{!JSENCODE($Label.ECOPMDFilter)}'
+                , export: '{!JSENCODE($Label.ECOPMDExport)}'
+                , expandAll: '{!JSENCODE($Label.ECOPMDExpandAll)}'
+                , collapseAll: '{!JSENCODE($Label.ECOPMDCollapseAll)}'
+                , expandAllColumns: '{!JSENCODE($Label.ECOPMDExpandAllColumns)}'
+                , collapseAllColumns: '{!JSENCODE($Label.ECOPMDCollapseAllColumns)}'
+                , hideToolPanel: '{!JSENCODE($Label.ECOPMDHideToolPanel)}'
+                , showToolPanel: '{!JSENCODE($Label.ECOPMDShowToolPanel)}'
+            };
+
+            return {
+                getData: loadData,
+                labels: labels
+            };
+
+        }
+    }());
+</script>
+
+<script id="eco.pmd.earnedvalue.taskDetailData">
+    (function() {
+        'use strict';
+
+        // DEPENDS ON ECO_PMD_EarnedValueDetail_Controller.ProjectTaskDetails
+
+        angular
+            .module('services')
+            .service('taskDetailData', taskDetailData);
+
+        function taskOutlineDataProcessor(){
+
+            function unflatten(arr) {
+              var tree = [],
+                  mappedArr = {},
+                  arrElem,
+                  mappedElem;
+
+              // First map the nodes of the array to an object -> create a hash table.
+              for(var i = 0, len = arr.length; i < len; i++) {
+                arrElem = arr[i];
+                mappedArr[arrElem.id] = arrElem;
+                mappedArr[arrElem.id]['children'] = [];
+              }
+
+
+              for (var id in mappedArr) {
+                if (mappedArr.hasOwnProperty(id)) {
+                  mappedElem = mappedArr[id];
+                  // If the element is not at the root level, add it to its parent array of children.
+                  if (mappedElem.parentid) {
+                    mappedArr[mappedElem['parentid']]['group']=true;
+                    mappedArr[mappedElem['parentid']]['expanded']=true;
+                    mappedArr[mappedElem['parentid']]['children'].push(mappedElem);
+                  }
+                  // If the element is at the root level, add it to first level elements array.
+                  else {
+                    tree.push(mappedElem);
+                  }
+                }
+              }
+              return tree;
+            }
+
+            return {
+                unflatten: unflatten
+            };
+        }
+
+        function taskDetailData() {
+
+            function loadData(vm,success,error){
+                ECO_PMD_EarnedValueDetail_Controller.ProjectTaskDetailsR4(
+                  vm.projectId,
+                  function(result, event){
+
+                    if(event.status){
+                        var strategies = result.budgetStrategyCostRevenue.split("/");
+                        var isCostTopTask = (strategies.length==2 && strategies[0]=='Top Task');
+                        var isRevenueTopTask = (strategies.length==2 && strategies[1]=='Top Task');
+                        var emit = {
+                            tasks:mapSFDCResults(result.projectTasks, isCostTopTask,isRevenueTopTask), //result.earnedValueTasks),
+                            totalRow:mapSFDCTotalRow(result.totalRow, isCostTopTask,isRevenueTopTask),
+                            additionalInfo:getAdditionalInfo(result),
+                            isCostTopTask: isCostTopTask,
+                            isRevenueTopTask: isRevenueTopTask
+                        };
+                        success(vm, emit);
+                    } else {
+                        error(result, event);
+                    }
+                });
+            }
+
+            function getAdditionalInfo(result){
+                //var curr = 'Currency: (' + result.currencyIsoCode + ') ';
+                var curr = '{!JSENCODE($Label.ECOPMDCurrency)}' + ': (' + result.currencyIsoCode + ') ';
+                var ld ='n/a';
+                if (typeof(result.lastModifiedDate)!='undefined'){
+                    var d = new Date(result.lastModifiedDate);
+                    ld = d.toLocaleDateString();
+                }
+                //var ldate = 'Last Updated: ' + ld;
+                var ldate = '{!$Label.ECOPMDLastUpdated}' + ': ' + ld;
+                var text = curr + ldate;
+                var tipOver = "&#x00BB;"
+                //var tipText = 'Budget Strategies (Cost/Revenue): ' + result.budgetStrategyCostRevenue;
+                var tipText = '{!JSENCODE($Label.ECOPMDBudgetStrategies)}' + ': ' + result.budgetStrategyCostRevenue;
+                var html = '<span id="additionalInfoTooltip" data-toggle="tooltip" title="'+tipText+'" style="cursor:help;">'+text+' '+tipOver+'</span>';
+                // jQuery(".post-date").html('<span id="additionalInfoTooltip" data-toggle="tooltip" title="Cost/Revenue Budget Strategies: '+" href="" style="cursor:help;">blah</span>').tooltip()
+                return html;
+            }
+
+            function mapSFDCResults(result, isCostTopTask,isRevenueTopTask) {
+                // assumes result is an array of objects
+                var data =[];
+                angular.forEach(result, function (val, key) {
+                  this.push(mapSFDCItem(val, key, isCostTopTask, isRevenueTopTask));
+                },data);
+                var rowData = [];
+                var outliner = taskOutlineDataProcessor();
+                rowData = outliner.unflatten(data);
+                return rowData;
+            }
+
+            function str(val) { if (typeof(val)=="undefined"||val==null) return ''; return val;}
+
+            function getDateFromUTC(d){
+                var gmt = new Date(d);
+                var localZoneDate = new Date(gmt.getUTCFullYear(),gmt.getUTCMonth(),gmt.getUTCDate());
+                return localZoneDate.valueOf();
+            }
+
+            function formatDate(d){
+                d = new Date(d);
+                // var monthAbr = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                var result = '';
+                var year = d.getUTCFullYear();
+                var month =  d.getUTCMonth() + 1;
+                var day = d.getUTCDate();
+                if(day < 10){
+                    day = '0' + day;
+                }
+                if(month < 10){
+                    month = '0' + month;
+                }
+                return day + '/' + month + '/' + year;
+            }
+
+            function formatNumber (num) {
+                 if(num){
+                     return num.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1,").split(/[.]/)[0];
+                 }
+                return num;
+            }
+
+            function findEarnedValueTask(earnedValueTasks,projectTaskId){
+                if (earnedValueTasks){
+                    for (var i = 0; i < earnedValueTasks.length; i++) {
+                       if (earnedValueTasks[i].ProjectTask__c === projectTaskId)
+                            return earnedValueTasks[i];
+                    }
+                }
+            }
+
+            function applyComputedValuesForProjectTask(val){
+
+                //  Keep these in synch with the actual computed fields on the pse__Project_Task object
+                // Computed fields from ProjectTask
+                //val.pmd_cPI, val.pmd_SPI -- do not compute here - need accruals US-04464
+                var ratioComplete             = ((val.pmd_TotalApprovedCost==0)?0:val.pmd_EarnedValue/val.pmd_TotalApprovedCost)
+                val.percentComplete           = 100*ratioComplete;
+                val.revenueBudgetVariance     = val.pmd_RevenueBudgetCurrent - val.pmd_RevenueBudgetOriginal;
+                val.netMarginBudgetVariance   = val.pmd_NetMarginBudgetCurrent - val.pmd_NetMarginBudgetOriginal ;
+                val.costBudgetVariance        = val.pmd_TotalApprovedCost - val.pmd_CostBudgetOriginal ;
+                val.costForecastVariance      = val.pmd_TotalForecastCostPrevME - val.pmd_TotalEstimateCost ;
+                var eacTrendCPISameasTrend1   = val.pmd_TotalActualCost + (val.pmd_CPI == 0?0:(( val.pmd_TotalApprovedCost - val.pmd_EarnedValue )/ val.pmd_CPI));
+                var eacTrend1                 = val.percentComplete==0 ? val.pmd_TotalApprovedCost : (val.pmd_TotalActualCost / ratioComplete);
+                var eacTrend2                 = val.pmd_TotalActualCost + (val.pmd_TotalApprovedCost * (1 - ratioComplete));
+                val.costForecastTrend         = eacTrend1;
+                val.costTrendForecastVariance = val.pmd_TotalEstimateCost - val.costForecastTrend ;
+
+                val.duration                  = (val.endDate - val.startDate)/(24*60*60*1000);
+                val.costVariance              = val.pmd_PlannedCost - val.pmd_TotalActualCost;
+                val.scheduleVariance          = val.pmd_EarnedValue - val.pmd_PlannedValue;
+
+                val.threeMonthAverageBurnRate = (val.pmd_TotalActualCost - val.pmd_CostITD3FiscalMonthEndsAgo)/3;
+                var actualToComplete = (val.pmd_TotalApprovedCost - val.pmd_TotalActualCost);
+                var monthsAtBurn = (actualToComplete <= 0 || val.threeMonthAverageBurnRate == 0) ? 0 : (actualToComplete/val.threeMonthAverageBurnRate);
+                val.remainingMonthsAtBurnRate = (val.threeMonthAverageBurnRate == 0) ? 'n/a' : ((monthsAtBurn > 360) ? '>360': monthsAtBurn);
+                var end = new Date(val.endDate), now = new Date();
+                val.remainingMonthsInTask  = (now > end) ? 0 : ((end.getFullYear()-now.getFullYear())*12)+(end.getMonth()-now.getMonth());
+                val.percentSpent              = val.pmd_TotalActualCost / val.pmd_TotalApprovedCost;
+                val.costETC                   = val.pmd_TotalEstimateCost - val.pmd_TotalActualCost;
+                val.isTopLevelTask            = (typeof(val.parentTaskId)=='undefined');
+            }
+
+            function mapSFDCTotalRow(val, isCostTopTask, isRevenueTopTask) {
+                applyComputedValuesForProjectTask(val);
+
+                return {
+                      Name: '{!JSENCODE($Label.ECOPMDTotalUCase)}'//"TOTAL"
+                    , evSPI                                   : val.pmd_SPI
+                    , evPlannedCostITD                        : val.pmd_PlannedCost
+                    , pctSpentITD                             : val.percentSpent
+                    , evCostVariance                          : val.costVariance
+                    , evScheduleVariance                      : val.scheduleVariance
+                    , taskDisplay                             : '{!JSENCODE($Label.ECOPMDTotalUCase)}'//"TOTAL"
+                    , originalRevenue                         : val.pmd_RevenueBudgetOriginal
+                    , varianceRevenue                         : val.revenueBudgetVariance
+                    , approvedRevenue                         : val.pmd_RevenueBudgetCurrent
+                    , originalNmnsr                           : val.pmd_NetMarginBudgetOriginal
+                    , varianceNmnsr                           : val.netMarginBudgetVariance
+                    , approvedNmnsr                           : val.pmd_NetMarginBudgetCurrent
+                    , originalCostBudget                      : val.pmd_CostBudgetOriginal
+                    , varianceCostBudget                      : val.costBudgetVariance
+                    , approvedCostBudget                      : val.pmd_TotalApprovedCost
+                    , costMTDPrev                             : val.pmd_CostPrevMTD
+                    , costMTD                                 : val.pmd_CostMTD
+                    , costITD                                 : val.pmd_TotalActualCost //val.TotalProjectFunctionalBurdenedCost
+                    , costETC                                 : val.costETC
+                    , costEAC                                 : val.pmd_TotalEstimateCost // CostForecast
+                    , costEACPrev                             : val.pmd_TotalForecastCostPrevME
+                    , costEACChange                           : val.costForecastVariance
+                    , costEACTrend                            : val.costForecastTrend
+                    , costEACTrendVariance                    : val.costTrendForecastVariance
+                    , pctCompleteITD                          : val.percentComplete
+                    , evITD                                   : val.pmd_EarnedValue
+                    , evCostAccruals                          : val.pmd_CostAccruals
+                    , evPlannedValue                          : val.pmd_PlannedValue
+                    , evCPI                                   : val.pmd_CPI
+                    , approvedStart                           : getDateFromUTC(val.startDate)
+                    , approvedEnd                             : getDateFromUTC(val.endDate)
+                    , forecastStart                           : getDateFromUTC(val.forecastStartDate)
+                    , forecastEnd                             : getDateFromUTC(val.forecastEndDate)
+                    , burnAvg                                 : val.threeMonthAverageBurnRate
+                    , burnETC                                 : val.remainingMonthsAtBurnRate
+                    , burnDur                                 : val.remainingMonthsInProject
+                };
+            }
+
+            function mapSFDCItem(val, key, isCostTopTask, isRevenueTopTask) {
+                applyComputedValuesForProjectTask(val);
+                //var evt = findEarnedValueTask(earnedValueTasks,val.id);
+                var hideRevenue  = !(val.isTopLevelTask && isRevenueTopTask)
+                  , hideCostPlan = !(!isCostTopTask || (val.isTopLevelTask && isCostTopTask));
+                var result = {
+                    id:val.id,parentid:val.parentTaskId, group:false, expanded:false,
+                    data:{
+                          Id                                      : val.id
+                        , ProjectTaskNumber                       : val.projectTaskNumber
+                        , Name                                    : val.name
+                        , taskDisplay                             : ((typeof val.projectTaskNumber  == 'undefined') ?
+                                                                     "" : (val.projectTaskNumber + " - ")) + val.name
+                        //, pse__Order                              : val.pse__Order
+                        //, pse__Hierarchy_Depth                    : val.pse__Hierarchy_Depth
+                        //, IsChargeable                            : val.isChargeable
+                        //, IsBillable                              : val.isBillable
+                        , IsTopLevelTask                          : val.isTopLevelTask
+                        //, FinancialTask                           : val.FinancialTask
+                        , evSPI                                   : hideCostPlan ? '': val.pmd_SPI
+                        , evScheduleVariance                      : hideCostPlan ? '': val.scheduleVariance
+                        , evPlannedCostITD                        : hideCostPlan ? '': val.pmd_PlannedCost
+                        , duration                                : val.duration
+                        , pctSpentITD                             : hideCostPlan ? '': val.percentSpent
+                        , evCostVariance                          : hideCostPlan ? '': val.costVariance
+                        , originalRevenue                         : hideRevenue ? '': val.pmd_RevenueBudgetOriginal
+                        , varianceRevenue                         : hideRevenue ? '': val.revenueBudgetVariance
+                        , approvedRevenue                         : hideRevenue ? '': val.pmd_RevenueBudgetCurrent
+                        , originalNmnsr                           : hideRevenue ? '': val.pmd_NetMarginBudgetOriginal
+                        , varianceNmnsr                           : hideRevenue ? '': val.netMarginBudgetVariance
+                        , approvedNmnsr                           : hideRevenue ? '': val.pmd_NetMarginBudgetCurrent
+                        , originalCostBudget                      : hideCostPlan ? '': val.pmd_CostBudgetOriginal
+                        , varianceCostBudget                      : hideCostPlan ? '': val.costBudgetVariance
+                        , approvedCostBudget                      : hideCostPlan ? '': val.pmd_TotalApprovedCost
+                        , costMTDPrev                             : val.pmd_CostPrevMTD
+                        , costMTD                                 : val.pmd_CostMTD
+                        , costITD                                 : val.pmd_TotalActualCost //val.TotalProjectFunctionalBurdenedCost
+                        , costETC                                 : hideCostPlan ? '': val.costETC
+                        , costEAC                                 : hideCostPlan ? '': val.pmd_TotalEstimateCost // CostForecast
+                        , costEACPrev                             : hideCostPlan ? '': val.pmd_TotalForecastCostPrevME
+                        , costEACChange                           : hideCostPlan ? '': val.costForecastVariance
+                        , costEACTrend                            : hideCostPlan ? '': val.costForecastTrend
+                        , costEACTrendVariance                    : hideCostPlan ? '': val.costTrendForecastVariance
+                        , pctCompleteITD                          : hideCostPlan ? '': val.percentComplete
+                        , evITD                                   : hideCostPlan ? '': val.pmd_EarnedValue
+                        , evCostAccruals                          : hideCostPlan ? '': val.pmd_CostAccruals
+                        , evPlannedValue                          : hideCostPlan ? '': val.pmd_PlannedValue
+                        , evCPI                                   : hideCostPlan ? '': val.pmd_CPI
+                        , approvedStart                           : getDateFromUTC(val.startDate)
+                        , approvedEnd                             : getDateFromUTC(val.endDate)
+                        , forecastStart                           : getDateFromUTC(val.forecastStartDate)
+                        , forecastEnd                             : getDateFromUTC(val.forecastEndDate)
+                        , burnAvg                                 : val.threeMonthAverageBurnRate
+                        , burnETC                                 : hideCostPlan ? '': val.remainingMonthsAtBurnRate
+                        , burnDur                                 : val.remainingMonthsInTask
+                    }
+                };
+
+                // REMOVED CALCS BASED ON EVTask -- evCPI, evSPI, pctCompleteITD, evITD
+                return result;
+            };
+
+            var labels = {
+                  evSPI: '{!JSENCODE($ObjectType.pse__Project_Task__c.Fields.SPI__c.Label)}'
+                , evScheduleVariance: '{!JSENCODE($Label.ECOPMDEVScheduleVariance)}' //'Schedule Variance (EV)' //'{!JSENCODE($ObjectType.pse__Project_Task__c.Fields.ScheduleVariance__c.Label)}'
+                , evPlannedCostITD: '{!JSENCODE($ObjectType.pse__Project_Task__c.Fields.PlannedCost__c.Label)}'
+                , duration: '{!JSENCODE($ObjectType.pse__Project_Task__c.Fields.Duration__c.Label)}'
+                , pctSpentITD: '{!JSENCODE($ObjectType.pse__Project_Task__c.Fields.PercentSpent__c.Label)}'
+                , evCostVariance: '{!JSENCODE($Label.ECOPMDEVCostVariance)}' //'Cost Variance (EV)' //'{!JSENCODE($ObjectType.pse__Project_Task__c.Fields.CostVariance__c.Label)}'
+                , taskDisplay: '{!JSENCODE($Label.ECOPMDTaskDisplay)}'
+                , originalRevenue: '{!JSENCODE($ObjectType.pse__Project_Task__c.Fields.RevenueBudgetOriginal__c.Label)}'
+                , varianceRevenue: '{!JSENCODE($ObjectType.pse__Project_Task__c.Fields.RevenueBudgetVariance__c.Label)}'
+                , approvedRevenue: '{!JSENCODE($ObjectType.pse__Project_Task__c.Fields.RevenueBudgetCurrent__c.Label)}'
+                , originalNmnsr: '{!JSENCODE($ObjectType.pse__Project_Task__c.Fields.NetMarginBudgetOriginal__c.Label)}'
+                , varianceNmnsr: '{!JSENCODE($ObjectType.pse__Project_Task__c.Fields.NetMarginBudgetVariance__c.Label)}'
+                , approvedNmnsr: '{!JSENCODE($ObjectType.pse__Project_Task__c.Fields.NetMarginBudgetCurrent__c.Label)}'
+                , originalCostBudget: '{!JSENCODE($ObjectType.pse__Project_Task__c.Fields.CostBudgetOriginal__c.Label)}'
+                , varianceCostBudget: '{!JSENCODE($ObjectType.pse__Project_Task__c.Fields.CostBudgetVariance__c.Label)}'
+                , approvedCostBudget: '{!JSENCODE($ObjectType.pse__Project_Task__c.Fields.TotalApprovedCost__c.Label)}'
+                , costMTDPrev: '{!JSENCODE($ObjectType.pse__Project_Task__c.Fields.CostPrevMTD__c.Label)}'
+                , costMTD: '{!JSENCODE($ObjectType.pse__Project_Task__c.Fields.CostMTD__c.Label)}'
+                , costITD: '{!JSENCODE($Label.ECOPMDCostITD)}' //'Cost ITD' //'{!JSENCODE($ObjectType.pse__Project_Task__c.Fields.TotalProjectFunctionalBurdenedCost__c.Label)}'
+                , costETC: '{!JSENCODE($ObjectType.pse__Project_Task__c.Fields.CostETC__c.Label)}'
+                , costEAC: '{!JSENCODE($Label.ECOPMDCostForecast)}' //'Cost Forecast / EAC' //{!JSENCODE($ObjectType.pse__Project_Task__c.Fields.CostForecast__c.Label)}'
+                , costEACPrev: '{!JSENCODE($ObjectType.pse__Project_Task__c.Fields.TotalForecastCostPrevME__c.Label)}'
+                , costEACChange: '{!JSENCODE($ObjectType.pse__Project_Task__c.Fields.CostForecastVariance__c.Label)}'
+                , costEACTrend: '{!JSENCODE($Label.ECOPMDCostEACTrend)}' //'EAC Trend 1' //'{!JSENCODE($ObjectType.pse__Project_Task__c.Fields.CostForecastTrend__c.Label)}'
+                , costEACTrendVariance: '{!JSENCODE($Label.ECOPMDCostEACTrendVariance)}' //'Cost Forecast Trend Variance'
+                , pctCompleteITD: '{!JSENCODE($ObjectType.pse__Project_Task__c.Fields.PercentComplete__c.Label)}'
+                , evITD: '{!JSENCODE($ObjectType.pse__Project_Task__c.Fields.EarnedValue__c.Label)}'
+                , evCostAccruals: '{!JSENCODE($Label.ECOPMDEVCostAccruals)}' //'Accrued Costs'
+                , evPlannedValue: '{!JSENCODE($Label.ECOPMDEVPlannedValue)}' //'Planned Value ITD'
+                , evCPI: '{!JSENCODE($Label.ECOPMDEVCPI)}' //'CPI' // '{!JSENCODE($ObjectType.pse__Project_Task__c.Fields.CPI__c.Label)}'
+                , approvedStart: '{!JSENCODE($ObjectType.pse__Project_Task__c.Fields.pse__Start_Date__c.Label)}'
+                , approvedEnd: '{!JSENCODE($ObjectType.pse__Project_Task__c.Fields.pse__End_Date__c.Label)}'
+                , forecastStart: '{!JSENCODE($ObjectType.pse__Project_Task__c.Fields.ForecastStartDate__c.Label)}'
+                , forecastEnd: '{!JSENCODE($ObjectType.pse__Project_Task__c.Fields.ForecastEndDate__c.Label)}'
+                , burnAvg: '{!JSENCODE($ObjectType.pse__Project_Task__c.Fields.ThreeMonthAverageBurnRate__c.Label)}'
+                , burnETC: '{!JSENCODE($ObjectType.pse__Project_Task__c.Fields.RemainingMonthsatBurnRate__c.Label)}'
+                , burnDur: '{!JSENCODE($Label.ECOPMDRemainingMonthsShort)}' //'Remaining Months' //'{!JSENCODE($ObjectType.pse__Project_Task__c.Fields.RemainingMonthsinProject__c.Label)}'
+
+                // Column Groups
+                , group: '{!JSENCODE($Label.ECOPMDGroup)}'
+                , details: '{!JSENCODE($Label.ECOPMDDetails)}'
+                , business: '{!JSENCODE($Label.ECOPMDBusiness)}'
+                , cost: '{!JSENCODE($Label.ECOPMDCost)}'
+                , costApproved: '{!JSENCODE($Label.ECOPMDCost)}' //'Cost' //'Cost - Budget'
+                , costForecast: '{!JSENCODE($Label.ECOPMDCost)}' //'Cost' //'Cost - Forecast'
+                , costActuals: '{!JSENCODE($Label.ECOPMDCost)}' //'Cost' //'Cost - Actuals'
+                , periods: '{!JSENCODE($Label.ECOPMDPeriods)}'
+                , taskData: '{!JSENCODE($Label.ECOPMDTaskData)}'
+                , revenue: '{!JSENCODE($Label.ECOPMDRevenue)}' //'Revenue' //'Revenue - Budget'//'{!JSENCODE($Label.ECOPMDRevenue)}'
+                , netMargin: '{!JSENCODE($Label.ECOPMDNetMarginLong)}' //'Net Margin' //'Net Margin - Budget'//'{!JSENCODE($Label.ECOPMDNetMargin)}'
+                , earnedValue: '{!JSENCODE($Label.ECOPMDEarnedValue)}'
+                , approved: '{!JSENCODE($Label.ECOPMDApproved)}'
+                , forecast: '{!JSENCODE($Label.ECOPMDForecast)}'
+                , burnRate: '{!JSENCODE($Label.ECOPMDBurnRate)}'
+                , itd: '{!JSENCODE($Label.ECOPMDITD)}'
+                , eacCheck: '{!JSENCODE($Label.ECOPMDEACCheck)}'
+                // Button and other labels
+                , lookbackPeriod: '{!JSENCODE($Label.ECOPMDLookBackPeriod)}'
+                , lookbackCount: '{!JSENCODE($Label.ECOPMDLookBackCount)}'
+                , filter: '{!JSENCODE($Label.ECOPMDFilter)}'
+                , export: '{!JSENCODE($Label.ECOPMDExport)}'
+                , expandAll: '{!JSENCODE($Label.ECOPMDExpandAll)}'
+                , collapseAll: '{!JSENCODE($Label.ECOPMDCollapseAll)}'
+                , expandAllColumns: '{!JSENCODE($Label.ECOPMDExpandAllColumns)}'
+                , collapseAllColumns: '{!JSENCODE($Label.ECOPMDCollapseAllColumns)}'
+                , hideToolPanel: '{!JSENCODE($Label.ECOPMDHideToolPanel)}'
+                , showToolPanel: '{!JSENCODE($Label.ECOPMDShowToolPanel)}'
+            };
+
+            return {
+                getData: loadData,
+                labels: labels
+            };
+
+        }
+    }());
+</script>
+
+<script id="services/TaskSummary/task-summary.service.js">
+    (function() {
+        'use strict';
+
+        /**
+         * @ngdoc service
+         *
+         * @name services.service:TaskSummary
+         *
+         * @requires https://docs.angularjs.org/api/ng/service/$timeout
+         * @requires https://docs.angularjs.org/api/ng/service/$q
+         *
+         * @description
+         * service that handles communication with salesforce ECO_PMD_Top10TaskSummary_Controller
+         */
+        angular
+            .module('services')
+            .factory('TaskSummary', TaskSummary);
+
+        TaskSummary.$inject = ['$timeout', '$filter', '$q', 'PubSub', 'taskDetailData']; //'earnedValueData'];
+
+        function TaskSummary($timeout, $filter, $q, PubSub, taskDetailDataSource ) { //earnedValueDataSource) {
+
+            /**
+             * @ngdoc property
+             *
+             * @name service
+             *
+             * @propertyOf services.service:PubSub
+             *
+             * @description
+             * public service interface
+             *
+             * <pre>{
+             *      topEmployees            : Object,
+             *      getTaskSummary     : TaskSummary.taskSummary
+             * } </pre>
+             */
+            var service = {
+                taskSummary        : [],
+                getTaskSummary     : getTaskSummary,
+                labels             : taskDetailDataSource.labels
+            };
+
+            return service;
+
+            /**
+             * @ngdoc method
+             *
+             * @name subscribeOnce
+             *
+             * @methodOf services.service:PubSub
+             *
+             * @param {String} projectId Salesforce Project ID
+             *
+             * @description
+             * Retrieves all data necessary to populate the TaskSummary Dashboard panel
+             */
+            function getTaskSummary(vm) {
+                var listDeferred = $q.defer();
+
+                var provider = taskDetailDataSource; // earnedValueDataSource;
+
+                provider.getData(vm,
+                function(vm,emit){
+                    service.taskSummary = emit ; //result;
+                    PubSub.publish('get-task-summarys', service.taskSummary);
+                    // console.log('service.taskSummary', service.taskSummary);
+
+                    vm.data = vm.data || emit.tasks;
+                    vm.grid.api.setRowData(vm.data);
+                    vm.totalRow = vm.totalRow || emit.totalRow;
+                    jQuery('.additionalInfo').html(emit.additionalInfo).tooltip();
+                }, function(result,event){
+                    PubSub.publish('get-task-summarys-error', event);
+                });
+
+               /*ECO_PMD_EarnedValueDetail_Controller.EarnedValueTable(
+                  projectId,
+                  function(result, event){
+                    if(event.status) {
+                        // set data
+                        service.taskSummary = result;
+                        PubSub.publish('get-task-summarys', service.taskSummary);
+
+                        console.log('service.taskSummary', service.taskSummary);
+                    }
+                  });
+                */
+
+                return listDeferred.promise;
+            }
+
+        }
+    })();
+</script>
+
+<script type="text/ng-template" id="task-summary-report.directive.html">
+    <style type="text/css">
+        .ag-header-group-text {
+            white-space: normal;
+            margin-left: 2px;
+        }
+        .ag-header-cell-text {
+            white-space: normal;
+            font-size: smaller;
+        }
+        .bs .btn {
+            padding: 4px;
+        }
+        .bs .row .x {
+            margin-top:4px;
+            margin-bottom:2px;
+        }
+        .bs .row .info {
+            padding-top:1em;
+            font-style:italic;
+            color:lightgray;
+        }
+        .bs .navbar {
+            margin-bottom:2px;
+        }
+        div.ag-fresh div#borderLayout_eRootPanel div#centerRow div#east {
+            float: left !important;
+        }
+        /*.watermark {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            opacity: 0.25;
+            font-size: 3em;
+            width: 100%;
+            text-align: center;
+            z-index: 1000;
+        }*/
+        @media screen and (-ms-high-contrast: active), (-ms-high-contrast: none) {
+           /* IE10+ specific styles go here */
+           .ag-header-cell-text{ font-size:80%;}
+        }
+    </style>
+    <div class="container-fluid">
+        <div id="eco-grid-actions" class="row">
+            <div class="col-md-3 info" style="margin-top: -15px">
+                <span ng-bind="'Total Records ' + vm.grid.api.getModel().getVirtualRowCount()"></span>
+                <BR />
+                <span class="additionalInfo"/>
+            </div>
+            <div class="col-md-4">
+                <input type="text" class="form-control ng-pristine ng-untouched ng-valid" ng-model="vm.grid.quickFilterText" placeholder="filter...">
+            </div>
+            <div class="col-md-5 text-right">
+                <button class="btn btn-info" ng-click="vm.toggleColumnGroups(true)" ng-bind="vm.labels.expandAllColumns"></button>
+                <button class="btn btn-info" ng-click="vm.toggleColumnGroups(false)" ng-bind="vm.labels.collapseAllColumns"></button>
+                <button class="btn btn-primary" ng-click="vm.toggleToolPanel()" ng-bind="vm.showToolPanel ? vm.labels.hideToolPanel : vm.labels.showToolPanel"></button>
+                <button class="btn btn-primary" ng-click="vm.export()" ng-bind="vm.labels.export"></button>
+            </div>
+        </div>
+        <div class="clearfix">
+        </div>
+        <div id="grid" ng-style="{width: vm.getWrapWidth()}" class="row">
+            <div ag-grid="vm.grid" class="ag-fresh"
+                 auto-height="yes" additional-height="80"
+                 ng-style="{width: vm.showToolPanel ? 'calc(100% + 200px)' : '100%'}" >
+                <!-- <div class="watermark" ng-show="!gridOptions.data.length">No data available</div> -->
+            </div>
+        </div>
+    </div>
+</script>
+
+<script id="components/TaskSummaryReport/task-summary-report-directive.js">
+    (function() {
+         'use strict';
+
+         /**
+         * @ngdoc directive
+         *
+         * @name components.directive:taskSummaryReport
+         *
+         * @scope
+         *
+         * @restrict E
+         *
+         * @param {Object} date prepopulate the datepicker with a date using this value
+         * @param {String} fieldName label for the datepicker to help identify it better from consuming components
+         *
+         * @description
+         * Implementation of taskSummaryReport component. Used for start/end date selection for snapshots. Uses Pikaday
+         * for date selection functionality.
+         */
+         angular
+            .module('components')
+            .directive('taskSummaryReport', taskSummaryReport);
+
+         taskSummaryReport.$inject = [];
+
+         function taskSummaryReport() {
+            var directive =  {
+                restrict            : 'EA',
+                controller          : TaskSummaryReportController,
+                controllerAs        : 'vm',
+                bindToController    : true,
+                templateUrl         : 'task-summary-report.directive.html',
+                link                : linkFunc,
+                scope               : {
+                    projectName  : '@',
+                    projectId    : '@'
+                }
+            };
+
+            return directive;
+
+            /**
+             * @ngdoc method
+             *
+             * @name linkFunc
+             *
+             * @methodOf components.directive:taskSummaryReport
+             *
+             * @param {Object} scope component scope
+             * @param {Object} el DOM element reference for component template
+             * @param {Object} attr DOM attribute reference
+             * @param {Object} ctrl component controller reference
+             *
+             * @description
+             * Link Function declaration/implementation for taskSummaryReport component. Wires up datepicker
+             * to open when calendar icon is clicked.
+             */
+             function linkFunc(scope, el, attr, ctrl) {
+                // needed for ng-style to refresh on resize -- see getWrapWidth
+                angular.element(window).on('resize', function() {
+                    scope.$apply();
+                });
+             }
+         }
+
+         /**
+         * @ngdoc controller
+         *
+         * @name components.controller:TaskSummaryReportController
+         *
+         * @requires $filter
+         * @requires accountsReceivableDataMock
+         *
+         * @description
+         * Controller declaration/implementation for components.taskSummaryReport directive
+         */
+         angular
+            .module('components')
+            .controller('TaskSummaryReportController', TaskSummaryReportController);
+
+         TaskSummaryReportController.$inject = ['TaskSummary', 'PubSub', '$timeout', '$filter'];
+
+         function TaskSummaryReportController(TaskSummary, PubSub, $timeout, $filter) {
+            var vm = this;
+
+            vm.labels = TaskSummary.labels;
+
+            // ColumnDefs here from XLS generator
+            var columnDefs = [
+                  { field: 'taskDisplay', headerName: vm.labels.taskDisplay, valueGetter:  groupValueGetter, headerGroup: vm.labels.taskData, cellRenderer: {renderer: 'group', innerRenderer:function(params){return params.data.taskDisplay;}}, width: 250 }
+                , { field: 'originalRevenue', headerName: vm.labels.originalRevenue, headerGroup: vm.labels.revenue, headerGroupShow: 'open', cellRenderer:  currencyCellRenderer, cellStyle:  cellStyler, width: 90 }
+                , { field: 'varianceRevenue', headerName: vm.labels.varianceRevenue, headerGroup: vm.labels.revenue, headerGroupShow: 'open', cellRenderer:  currencyCellRenderer, cellStyle:  cellStyler, width: 120 }
+                , { field: 'approvedRevenue', headerName: vm.labels.approvedRevenue, headerGroup: vm.labels.revenue, cellRenderer:  currencyCellRenderer, cellStyle:  cellStyler, width: 120 }
+                , { field: 'originalNmnsr', headerName: vm.labels.originalNmnsr, headerGroup: vm.labels.netMargin, headerGroupShow: 'open', cellRenderer:  currencyCellRenderer, cellStyle:  cellStyler, width: 90 }
+                , { field: 'varianceNmnsr', headerName: vm.labels.varianceNmnsr, headerGroup: vm.labels.netMargin, headerGroupShow: 'open', cellRenderer:  currencyCellRenderer, cellStyle:  cellStyler, width: 110 }
+                , { field: 'approvedNmnsr', headerName: vm.labels.approvedNmnsr, headerGroup: vm.labels.netMargin, cellRenderer:  currencyCellRenderer, cellStyle:  cellStyler, width: 110 }
+                , { field: 'originalCostBudget', headerName: vm.labels.originalCostBudget, headerGroup: vm.labels.costApproved, headerGroupShow: 'open', cellRenderer:  currencyCellRenderer, cellStyle:  cellStyler, width: 100 }
+                , { field: 'varianceCostBudget', headerName: vm.labels.varianceCostBudget, headerGroup: vm.labels.costApproved, cellRenderer:  currencyCellRenderer, cellStyle:  cellStyler,headerGroupShow: 'open', width: 100 }
+                , { field: 'approvedCostBudget', headerName: vm.labels.approvedCostBudget, headerGroup: vm.labels.costApproved, cellRenderer:  currencyCellRenderer, cellStyle:  cellStyler, width: 100 }
+                , { field: 'costEACPrev', headerName: vm.labels.costEACPrev, headerGroup: vm.labels.costForecast, headerGroupShow: 'open', cellRenderer:  currencyCellRenderer, cellStyle:  cellStyler, width: 100 }
+                , { field: 'costEACChange', headerName: vm.labels.costEACChange, headerGroup: vm.labels.costForecast, headerGroupShow: 'open', cellRenderer:  currencyCellRenderer, cellStyle:  cellStyler, width: 100 }
+                , { field: 'costEAC', headerName: vm.labels.costEAC, headerGroup: vm.labels.costForecast, cellRenderer:  currencyCellRenderer, cellStyle:  cellStyler, width: 100 }
+                , { field: 'costETC', headerName: vm.labels.costETC, headerGroup: vm.labels.costActuals, headerGroupShow: 'open', cellRenderer:  currencyCellRenderer, cellStyle:  cellStyler, width: 100 }
+                , { field: 'costITD', headerName: vm.labels.costITD, headerGroup: vm.labels.costActuals, cellRenderer:  currencyCellRenderer, cellStyle:  cellStyler, width: 100 }
+                //, { field: 'costMTDPrev', headerName: vm.labels.costMTDPrev, headerGroup: vm.labels.cost, headerGroupShow: 'open', cellRenderer:  currencyCellRenderer, cellStyle:  cellStyler, width: 100 }
+                , { field: 'costMTD', headerName: vm.labels.costMTD, headerGroup: vm.labels.costActuals, headerGroupShow: 'open', cellRenderer:  currencyCellRenderer, cellStyle:  cellStyler, width: 100 }
+                , { field: 'costEACTrend', headerName: vm.labels.costEACTrend, headerGroup: vm.labels.eacCheck, headerGroupShow: 'open', cellRenderer:  currencyCellRenderer, cellStyle:  cellStyler, width: 100 }
+                , { field: 'costEACTrendVariance', headerName: vm.labels.costEACTrendVariance, headerGroup: vm.labels.eacCheck, headerGroupShow: 'open', cellRenderer:  currencyCellRenderer, cellStyle:  cellStyler, width: 100 }
+                , { field: 'pctCompleteITD', headerName: vm.labels.pctCompleteITD, headerGroup: vm.labels.earnedValue, cellRenderer:  percent100CellRenderer, cellStyle:  cellStyler, width: 100 }
+                , { field: 'evITD', headerName: vm.labels.evITD, headerGroup: vm.labels.earnedValue, headerGroupShow: 'open', cellRenderer:  currencyCellRenderer, cellStyle:  cellStyler, width: 100 }
+                , { field: 'evCostAccruals', headerName: vm.labels.evCostAccruals, headerGroup: vm.labels.earnedValue, headerGroupShow: 'open', cellRenderer:  currencyCellRenderer, cellStyle:  cellStyler, width: 100 }
+                , { field: 'evCPI', headerName: vm.labels.evCPI, headerGroup: vm.labels.earnedValue, headerGroupShow: 'open', cellRenderer:  numberCellRenderer, cellStyle:  cellStyler, width: 100 }
+                , { field: 'approvedStart', headerName: vm.labels.approvedStart, headerGroup: vm.labels.approved, headerGroupShow: 'open', valueGetter:  dateCellRenderer, cellStyle:  cellStyler, width: 100 }
+                , { field: 'approvedEnd', headerName: vm.labels.approvedEnd, headerGroup: vm.labels.approved, valueGetter:  dateCellRenderer, cellStyle:  cellStyler, width: 100 }
+                , { field: 'forecastStart', headerName: vm.labels.forecastStart, headerGroup: vm.labels.forecast, headerGroupShow: 'open', valueGetter:  dateCellRenderer, cellStyle:  cellStyler, width: 100 }
+                , { field: 'forecastEnd', headerName: vm.labels.forecastEnd, headerGroup: vm.labels.forecast, valueGetter:  dateCellRenderer, cellStyle:  cellStyler, width: 100 }
+                , { field: 'burnAvg', headerName: vm.labels.burnAvg, headerGroup: vm.labels.burnRate, cellRenderer:  currencyCellRenderer, cellStyle:  cellStyler, width: 100 }
+                , { field: 'burnETC', headerName: vm.labels.burnETC, headerGroup: vm.labels.burnRate, headerGroupShow: 'open', cellRenderer:  currencyCellRenderer, cellStyle: {'text-align':'right'}, width: 100 }
+                , { field: 'burnDur', headerName: vm.labels.burnDur, headerGroup: vm.labels.burnRate, headerGroupShow: 'open', cellRenderer:  numberCellRenderer, cellStyle:  cellStyler, width: 100 }
+            ];
+            // Discover the column groups
+           var colGroups = [];
+           angular.forEach(columnDefs, function(value, key) {
+              if(value.headerGroup && (colGroups.indexOf(value.headerGroup)<0)) this.push(value.headerGroup);
+           }, colGroups);
+           vm.columnGroups = colGroups;
+
+
+
+            /**
+             * @ngdoc property
+             *
+             * @name numberWidth
+             *
+             * @methodOf components.controller:CommitmentReportController
+             *
+             * @description
+             * number width placeholder
+             */
+            var numberWidth = 90;
+
+            /**
+             * @ngdoc property
+             *
+             * @name dateWidth
+             *
+             * @methodOf components.controller:CommitmentReportController
+             *
+             * @description
+             * date width placeholder
+             */
+            var dateWidth = 75;
+
+            /**
+             * @ngdoc property
+             *
+             * @name showToolPanel
+             *
+             * @methodOf components.controller:CommitmentReportController
+             *
+             * @description
+             * toggle placeholder for toolpanel
+             */
+            vm.showToolPanel = false;
+
+            /**
+             * @ngdoc property
+             *
+             * @name projectTitle
+             *
+             * @methodOf components.controller:TaskSummaryReportController
+             *
+             * @description
+             * Id for project.
+             */
+             vm.projectTitle = '';
+
+            /**
+             * @ngdoc property
+             *
+             * @name projectId
+             *
+             * @methodOf components.controller:TaskSummaryReportController
+             *
+             * @description
+             * Id for project.
+             */
+             vm.projectId = '';
+
+            /**
+             * @ngdoc property
+             *
+             * @name projectName
+             *
+             * @methodOf components.controller:TaskSummaryReportController
+             *
+             * @description
+             * Name of tht project.
+             */
+             vm.projectName = '';
+
+            /**
+             * @ngdoc property
+             *
+             * @name showToolPanel
+             *
+             * @methodOf components.controller:TaskSummaryReportController
+             *
+             * @description
+             * Used to toggle the tool panel.
+             */
+            vm.showToolPanel = true;
+
+            /**
+             * @ngdoc property
+             *
+             * @name grid
+             *
+             * @methodOf components.controller:TaskSummaryReportController
+             *
+             * @description
+             * Options used in the UI grid.
+             */
+            vm.grid = {
+                columnDefs: columnDefs,
+                enableFilter: true,
+                enableSorting: true,
+                toolPanelSuppressValues: true,
+                toolPanelSuppressGroups: true,
+                showToolPanel: vm.showToolPanel,
+                headerHeight: 105,
+                groupHeaders: true,
+                pinnedColumnCount: 1,
+                rowsAlreadyGrouped: true,
+                pmdShowInThousands: false,
+                pmdShowCents: true,
+                icons: {
+                    groupExpanded: '<i class="fa fa-minus-square-o"/>',
+                    groupContracted: '<i class="fa fa-plus-square-o"/>'
+                }
+            };
+
+            /**
+             * @ngdoc method
+             *
+             * @name groupValueGetter
+             *
+             * @methodOf components.controller:TaskSummaryReportController
+             *
+             * @description
+             * initialization method for the component
+             */
+           function groupValueGetter(params) {
+                return params.data.taskDisplay;
+           }
+           /**
+             * @ngdoc method
+             *
+             * @name currencyCellRenderer
+             *
+             * @methodOf components.controller:TaskSummaryReportController
+             *
+             * @description
+             * initialization method for the component
+             */
+            function currencyCellRenderer(params) {
+                var showInThousands = false;
+                var showCents =  showInThousands?false:true;
+                return (typeof params.value === 'number')?$filter('number')(params.value/(showInThousands?1000:1), (showCents?2:0)):params.value;
+           }
+
+           /**
+             * @ngdoc method
+             *
+             * @name integerCellRenderer
+             *
+             * @methodOf components.controller:TaskSummaryReportController
+             *
+             * @description
+             * initialization method for the component
+             */
+            function integerCellRenderer(params) {
+               return (typeof params.value === 'number')?$filter('number')(params.value, 0):params.value;
+            }
+
+           /**
+             * @ngdoc method
+             *
+             * @name percentCellRenderer
+             *
+             * @methodOf components.controller:TaskSummaryReportController
+             *
+             * @description
+             * initialization method for the component
+             */
+            function percentCellRenderer(params) {
+               return (typeof params.value === 'number')?$filter('number')(params.value*100, 0)+"%":params.value;
+            }
+             /**
+             * @ngdoc method
+             *
+             * @name percent100CellRenderer
+             *
+             * @methodOf components.controller:TaskSummaryReportController
+             *
+             * @description
+             * initialization method for the component
+             */
+            function percent100CellRenderer(params) {
+               return (typeof params.value === 'number')?$filter('number')(params.value, 0)+"%":params.value;
+            }
+            /**
+             * @ngdoc method
+             *
+             * @name dateCellRenderer
+             *
+             * @methodOf components.controller:TaskSummaryReportController
+             *
+             * @description
+             * initialization method for the component
+             */
+             function dateCellRenderer(params) {
+               //  if (params.value==null) return '';
+               // return $filter('date')(new Date(params.value),'dd-MMM-yy');
+               //return $filter('datetmUTC')(new Date(params.value), 'dd-MM-yyyy');
+                return $filter('date')(params.data[params.colDef.field], 'shortDate');
+             }
+
+            /**
+             * @ngdoc method
+             *
+             * @name numberCellRenderer
+             *
+             * @methodOf components.controller:TaskSummaryReportController
+             *
+             * @description
+             * initialization method for the component
+             */
+             function numberCellRenderer(params) {
+               return (typeof(params.value)=='undefined'||params.value=='')?'':$filter('number')(params.value, 2);
+             }
+
+            /**
+             * @ngdoc method
+             *
+             * @name cellStyler
+             *
+             * @methodOf components.controller:TaskSummaryReportController
+             *
+             * @description
+             * initialization method for the component
+             */
+            function cellStyler(params) {
+                var result = {};
+                if (typeof params.value === 'number' || params.value instanceof Date) {
+                    result['text-align'] = 'right';
+                }
+                return result;
+            }
+
+            /**
+             * @ngdoc method
+             *
+             * @name activate
+             *
+             * @methodOf components.controller:TaskSummaryReportController
+             *
+             * @description
+             * initialization method for the component
+             */
+             vm.toggleToolPanel = function (ev) {
+               var elWrap = $("div.ag-fresh")[0];
+               //elWrap.style.display = 'none';
+               vm.showToolPanel = !vm.showToolPanel;
+               vm.grid.api.showToolPanel(vm.showToolPanel);
+               //elWrap.style.display = '';
+           };
+
+            vm.getWrapWidth = function(){
+              var elWrap = document.querySelector("div#AppBodyHeader")
+                , elSide = document.querySelector("td#sidebarCell")
+                , desiredWidth = elWrap.clientWidth - elWrap.offsetLeft - elSide.offsetWidth
+                , desiredWidthPx =  desiredWidth.toString() + "px";
+              //console.log(elWrap.clientWidth);console.log(elSide.offsetWidth);console.log(desiredWidthPx);
+              return desiredWidthPx;
+            };
+
+            /**
+             * @ngdoc method
+             *
+             * @name activate
+             *
+             * @methodOf components.controller:TaskSummaryReportController
+             *
+             * @description
+             * initialization method for the component
+             */
+            vm.toggleColumnGroups = function (expand) {
+               vm.columnGroups.forEach(function (name) {
+                   var group = vm.grid.columnApi.getColumnGroup(name);
+                   vm.grid.columnApi.columnGroupOpened(group, expand);
+               });
+            };
+
+             vm.export = function () {
+                                var fileName = 'Task Summary - ' + vm.projectName + '.csv';
+                                console.debug('exporting as', fileName);
+                                vm.grid.api.exportDataAsCsv({
+                                    skipHeader: false,
+                                    skipFooters: false,
+                                    skipGroups: false,
+                                    fileName: fileName
+                                });
+                            }
+
+            // vm.onBtExport = function() {
+            //     console.log('ExportToCsv clicked!');
+            //     var params = {
+            //         skipHeader: vm.skipHeader === true,
+            //         skipFooters: vm.skipFooters === true,
+            //         skipGroups: vm.skipGroups === true,
+            //         fileName: vm.fileName
+            //     };
+
+            //     if (vm.customHeader) {
+            //         params.customHeader = '[[[ This ia s sample custom header - so meta data maybe?? ]]]\n';
+            //     }
+            //     if (vm.customFooter) {
+            //         params.customFooter = '[[[ This ia s sample custom footer - maybe a summary line here?? ]]]\n';
+            //     }
+
+            //     vm.grid.api.exportDataAsCsv(params);
+            // };
+
+            /**
+             * @ngdoc method
+             *
+             * @name formatCommitments
+             *
+             * @methodOf components.controller:TaskSummaryReportController
+             *
+             * @param {String} message Message received as result of a PUBLISH command issued by another client
+             * @param {String} answer Passed back from PUBLISH command.
+             *
+             * @description
+             * Formates the data for use in the UI
+             */
+            var formatTaskSummarys = function(message, emit) {
+                vm.grid.api.setRowData(emit.tasks);
+                vm.grid.api.setFloatingTopRowData([emit.totalRow]);
+            };
+            var displayError = function(message, event){
+                //$(".ag-overlay-loading-center").html('There was an unexpected error. '+ event.message);
+                $(".ag-overlay-loading-center").html('{!JSENCODE($Label.ECOPMDUnexpectedError)}' + ' '+ event.message);
+            };
+
+            /**
+             * @ngdoc method
+             *
+             * @name activate
+             *
+             * @methodOf components.controller:TaskSummaryReportController
+             *
+             * @description
+             * initialization method for the component
+             */
+            var activate = function() {
+                $timeout(function() {
+                    // set subscribe method
+                    // connect to get-task-summarys service and pass project id
+                    PubSub.subscribe('get-task-summarys-error', displayError);
+                    PubSub.subscribe('get-task-summarys', formatTaskSummarys);
+                    TaskSummary.getTaskSummary(vm);
+                }, 0);
+            };
+
+            activate();
+        }
+    })();
+</script>
+
+<script id="services/EarnedValue/earned-value.service.js">
+    (function() {
+        'use strict';
+
+        /**
+         * @ngdoc service
+         *
+         * @name services.service:TaskSummary
+         *
+         * @requires https://docs.angularjs.org/api/ng/service/$timeout
+         * @requires https://docs.angularjs.org/api/ng/service/$q
+         *
+         * @description
+         * service that handles communication with salesforce ECO_PMD_Top10TaskSummary_Controller
+         */
+        angular
+            .module('services')
+            .factory('EarnedValue', EarnedValue);
+
+        EarnedValue.$inject = ['$timeout', '$filter', '$q', 'PubSub', 'taskDetailData'];
+
+        function EarnedValue($timeout, $filter, $q, PubSub, taskDetailDataSource) {
+
+            /**
+             * @ngdoc property
+             *
+             * @name service
+             *
+             * @propertyOf services.service:PubSub
+             *
+             * @description
+             * public service interface
+             *
+             * <pre>{
+             *      topEmployees            : Object,
+             *      getEarnedValue     : EarnedValue.earnedValue
+             * } </pre>
+             */
+            var service = {
+                earnedValue        : [],
+                getEarnedValue     : getEarnedValue,
+                labels             : taskDetailDataSource.labels
+            };
+
+            return service;
+
+            /**
+             * @ngdoc method
+             *
+             * @name subscribeOnce
+             *
+             * @methodOf services.service:PubSub
+             *
+             * @param {String} projectId Salesforce Project ID
+             *
+             * @description
+             * Retrieves all data necessary to populate the TaskSummary Dashboard panel
+             */
+            function getEarnedValue(vm) {
+                var listDeferred = $q.defer();
+
+                var provider = taskDetailDataSource;
+
+                provider.getData(vm, function(vm,emit){
+                    service.earnedValue = emit ; //result;
+                    PubSub.publish('get-earned-value', service.earnedValue);
+                    // console.log('service.earnedValue', service.earnedValue);
+                    vm.data = vm.data || emit.tasks;
+                    vm.grid.api.setRowData(vm.data);
+                    vm.totalRow = vm.totalRow || emit.totalRow;
+                    jQuery('.additionalInfo').html(emit.additionalInfo).tooltip();
+                }, function(result,event){
+                    PubSub.publish('get-earned-value-error', event);
+                });
+
+                return listDeferred.promise;
+            }
+        }
+    })();
+</script>
+
+<script type="text/ng-template" id="earned-value-report.directive.html">
+    <div class="container-fluid">
+        <style>
+            .ag-header-group-text {
+                white-space: normal;
+                margin-left: 2px;
+            }
+            .ag-header-cell-text {
+                white-space: normal;
+                font-size: smaller;
+            }
+            div.ag-fresh div#borderLayout_eRootPanel div#centerRow div#east {
+                float: left !important;
+            }
+            @media screen and (-ms-high-contrast: active), (-ms-high-contrast: none) {
+               /* IE10+ specific styles go here */
+               .ag-header-cell-text{ font-size:80%;}
+            }
+        </style>
+
+        <div class="row">
+            <div class="col-md-4 info" style="margin-top: -2px; color: #cccccc; font-style: italic;">
+                <span ng-bind="'Total Records ' + vm.grid.api.getModel().getVirtualRowCount()"></span>
+                <BR />
+                <span class="additionalInfo"/>
+            </div>
+            <div class="col-md-2">
+                <input type="text" class="form-control" ng-model="vm.grid.quickFilterText" placeholder="filter..." >
+            </div>
+            <div class="col-md-6 pull-right">
+                <button class="btn btn-info" ng-click="vm.toggleColumnGroups(true)" ng-bind="vm.labels.expandAllColumns"></button>
+                <button class="btn btn-info" ng-click="vm.toggleColumnGroups(false)" ng-bind="vm.labels.collapseAllColumns"></button>
+                <button class="btn btn-primary" ng-click="vm.toggleToolPanel()" ng-bind="vm.showToolPanel ? vm.labels.hideToolPanel : vm.labels.showToolPanel"></button>
+            </div>
+        </div>
+        <div class="clearfix">
+        </div>
+        <div id="grid" ng-style="{width: vm.getWrapWidth()}" class="row">
+            <div ag-grid="vm.grid" class="ag-fresh"
+                 style="height:500px;"
+                 ng-style="{width: vm.showToolPanel ? 'calc(100% + 200px)' : '100%'}" >
+            </div>
+        </div>
+
+       <!-- <div ag-grid="vm.grid" ng-style="{width: vm.showToolPanel ? 'calc(100% + 200px)' : '100%'}" style="height:700px;" class="ag-fresh" /> -->
+    </div>
+</script>
+
+<script id="components/EarnedValueReport/earned-value-report-directive.js">
+    (function() {
+        'use strict';
+
+        /**
+        * @ngdoc directive
+        *
+        * @name components.directive:taskSummaryReport
+        *
+        * @scope
+        *
+        * @restrict E
+        *
+        * @param {Object} date prepopulate the datepicker with a date using this value
+        * @param {String} fieldName label for the datepicker to help identify it better from consuming components
+        *
+        * @description
+        * Implementation of taskSummaryReport component. Used for start/end date selection for snapshots. Uses Pikaday
+        * for date selection functionality.
+        */
+        angular
+           .module('components')
+           .directive('earnedValueReport', earnedValueReport);
+
+        earnedValueReport.$inject = [];
+
+        function earnedValueReport() {
+           var directive =  {
+               restrict            : 'EA',
+               controller          : EarnedValueReportController,
+               controllerAs        : 'vm',
+               bindToController    : true,
+               templateUrl         : 'earned-value-report.directive.html',
+               link                : linkFunc,
+               scope               : {
+                   projectName  : '@',
+                   projectId    : '@'
+               }
+           };
+
+           return directive;
+
+           /**
+            * @ngdoc method
+            *
+            * @name linkFunc
+            *
+            * @methodOf components.directive:taskSummaryReport
+            *
+            * @param {Object} scope component scope
+            * @param {Object} el DOM element reference for component template
+            * @param {Object} attr DOM attribute reference
+            * @param {Object} ctrl component controller reference
+            *
+            * @description
+            * Link Function declaration/implementation for taskSummaryReport component. Wires up datepicker
+            * to open when calendar icon is clicked.
+            */
+            function linkFunc(scope, el, attr, ctrl) {
+               // needed for ng-style to refresh on resize -- see getWrapWidth
+                angular.element(window).on('resize', function() {
+                    scope.$apply();
+                });
+            }
+        }
+
+        /**
+        * @ngdoc controller
+        *
+        * @name components.controller:TaskSummaryReportController
+        *
+        * @requires $filter
+        * @requires accountsReceivableDataMock
+        *
+        * @description
+        * Controller declaration/implementation for components.taskSummaryReport directive
+        */
+        angular
+           .module('components')
+           .controller('EarnedValueReportController', EarnedValueReportController);
+
+        EarnedValueReportController.$inject = ['EarnedValue', 'PubSub', '$timeout', '$filter'];
+
+        function EarnedValueReportController(EarnedValue, PubSub, $timeout, $filter) {
+            var vm = this;
+            //vm.$scope = $scope;
+            vm.showToolPanel = false;
+
+            var numberWidth = 90;
+            var dateWidth = 75;
+            var showInThousands = false;
+            var showCents = showInThousands?false:true;
+
+            vm.labels = EarnedValue.labels;
+
+            var columnDefs = [
+                  { field: 'taskDisplay', headerName: vm.labels.taskDisplay, valueGetter:  groupValueGetter, headerGroup: vm.labels.taskData, cellRenderer:  {renderer: 'group', innerRenderer:function(params){return params.data. taskDisplay;}}, width: 250 }
+                , { field: 'originalCostBudget', headerName: vm.labels.originalCostBudget, headerGroup: vm.labels.approved, cellRenderer:  currencyCellRenderer, cellStyle:  cellStyler, width:  numberWidth }
+                , { field: 'varianceCostBudget', headerName: vm.labels.varianceCostBudget, headerGroup: vm.labels.approved, headerGroupShow: 'open', cellRenderer:  currencyCellRenderer, cellStyle:  cellStyler, width:  numberWidth }
+                , { field: 'approvedCostBudget', headerName: vm.labels.approvedCostBudget, headerGroup: vm.labels.approved, cellRenderer:  currencyCellRenderer, cellStyle:  cellStyler, width:  numberWidth }
+                , { field: 'duration', headerName: vm.labels.duration, headerGroup: vm.labels.approved, headerGroupShow: 'open', cellRenderer:  integerCellRenderer, cellStyle:  cellStyler, width:  numberWidth }
+                , { field: 'costITD', headerName: vm.labels.costITD, headerGroup: vm.labels.itd, cellRenderer:  currencyCellRenderer, cellStyle:  cellStyler, width:  numberWidth }
+                , { field: 'pctSpentITD', headerName: vm.labels.pctSpentITD, headerGroup: vm.labels.itd, headerGroupShow: 'open', cellRenderer:  percentCellRenderer, cellStyle:  cellStyler, width:  numberWidth }
+                , { field: 'pctCompleteITD', headerName: vm.labels.pctCompleteITD, headerGroup: vm.labels.itd, headerGroupShow: 'open', cellRenderer:  percent100CellRenderer, cellStyle:  cellStyler, width:  numberWidth }
+                , { field: 'evITD', headerName: vm.labels.evITD, headerGroup: vm.labels.earnedValue, cellRenderer:  currencyCellRenderer, cellStyle:  cellStyler, width:  numberWidth }
+                , { field: 'evCostAccruals', headerName: vm.labels.evCostAccruals, headerGroup: vm.labels.earnedValue, headerGroupShow: 'open', cellRenderer:  currencyCellRenderer, cellStyle:  cellStyler, width: numberWidth }
+                , { field: 'evCPI', headerName: vm.labels.evCPI, headerGroup: vm.labels.earnedValue, cellRenderer:  currencyCellRenderer, cellStyle:  cellStyler, width:  numberWidth }
+                , { field: 'evPlannedValue', headerName: vm.labels.evPlannedValue, headerGroup: vm.labels.earnedValue, headerGroupShow: 'open', cellRenderer:  currencyCellRenderer, cellStyle:  cellStyler, width: numberWidth }
+                , { field: 'evSPI', headerName: vm.labels.evSPI, headerGroup: vm.labels.earnedValue, cellRenderer:  currencyCellRenderer, cellStyle:  cellStyler, width:  numberWidth }
+                , { field: 'evCostVariance', headerName: vm.labels.evCostVariance, headerGroup: vm.labels.earnedValue, headerGroupShow: 'open', cellRenderer:  currencyCellRenderer, cellStyle:  cellStyler, width:  numberWidth }
+                , { field: 'evScheduleVariance', headerName: vm.labels.evScheduleVariance, headerGroup: vm.labels.earnedValue, headerGroupShow: 'open', cellRenderer:  integerCellRenderer, cellStyle:  cellStyler, width:  numberWidth }
+                , { field: 'costEAC', headerName: vm.labels.costEAC, headerGroup: vm.labels.eacCheck, cellRenderer:  currencyCellRenderer, cellStyle:  cellStyler, width:  numberWidth }
+                , { field: 'costEACTrend', headerName: vm.labels.costEACTrend, headerGroup: vm.labels.eacCheck, headerGroupShow: 'open', cellRenderer:  currencyCellRenderer, cellStyle:  cellStyler, width:  numberWidth }
+                , { field: 'costEACTrendVariance', headerName: vm.labels.costEACTrendVariance, headerGroup: vm.labels.eacCheck, headerGroupShow: 'open', cellRenderer:  currencyCellRenderer, cellStyle:  cellStyler, width:  numberWidth }
+            ];
+
+            vm.grid =
+                {
+                    columnDefs : columnDefs,
+                    headerHeight: 105,
+                    groupHeaders: true,
+                    pinnedColumnCount: 1,
+                    showToolPanel: vm.showToolPanel,
+                    toolPanelSuppressValues: true,
+                    toolPanelSuppressGroups: true,
+                    rowsAlreadyGrouped: true,
+                    pmdShowInThousands: false,
+                    pmdShowCents: true,
+                    icons: {
+                         groupExpanded: '<i class="fa fa-minus-square-o"/>',
+                         groupContracted: '<i class="fa fa-plus-square-o"/>'
+                     },
+                    onReady: activate
+                };
+
+            // Discover the column groups
+            var colGroups = [];
+            angular.forEach(vm.grid.columnDefs,
+                function(value, key) {
+                    if(value.headerGroup && (colGroups.indexOf(value.headerGroup)<0)) this.push(value.headerGroup);
+                }, colGroups);
+            vm.columnGroups = colGroups;
+
+            function groupValueGetter(params) {
+                 return params.data.taskDisplay;
+            }
+
+            function dateCellRenderer(params) {
+                return $filter('date')(params.value, 'shortDate');
+            }
+
+            function currencyCellRenderer(params) {
+                return (typeof params.value === 'number')?$filter('number')(params.value/(showInThousands?1000:1), (showCents?2:0)) :params.value;
+            }
+
+            function integerCellRenderer(params) {
+                return (typeof params.value === 'number')?$filter('number')(params.value, 0):params.value;
+            }
+
+            function percentCellRenderer(params) {
+                return (typeof params.value === 'number')?$filter('number')(params.value*100, 0)+"%":params.value;
+            }
+
+            function percent100CellRenderer(params) {
+                return (typeof params.value === 'number')?$filter('number')(params.value, 0)+"%":params.value;
+            }
+
+            function cellStyler(params) {
+                var result = {};
+                if (typeof params.value === 'number' || params.value instanceof Date) {
+                    result['text-align'] = 'right';
+                }
+                return result;
+            }
+
+            vm.toggleToolPanel = function (ev) {
+                var elWrap = $("div.ag-fresh")[0];
+                elWrap.style.display = 'none';
+                vm.showToolPanel = !vm.showToolPanel;
+                vm.grid.api.showToolPanel(vm.showToolPanel);
+                elWrap.style.display = '';
+            };
+
+            vm.getWrapWidth = function(){
+              var elWrap = document.querySelector("div#AppBodyHeader")
+                , elSide = document.querySelector("td#sidebarCell")
+                , desiredWidth = elWrap.clientWidth - elWrap.offsetLeft - elSide.offsetWidth
+                , desiredWidthPx =  desiredWidth.toString() + "px";
+              //console.log(elWrap.clientWidth);console.log(elSide.offsetWidth);console.log(desiredWidthPx);
+              return desiredWidthPx;
+            };
+
+            vm.toggleColumnGroups = function (expand) {
+                vm.columnGroups.forEach(function (name) {
+                    var group = vm.grid.columnApi.getColumnGroup(name);
+                    vm.grid.columnApi.columnGroupOpened(group, expand);
+                });
+            }
+
+            var formatEarnedValue = function(message, emit) {
+                vm.grid.api.setRowData(emit.data);
+                vm.grid.api.setFloatingTopRowData([emit.totalRow]);
+            };
+
+            var displayError = function(message, event){
+                //$(".ag-overlay-loading-center").html('There was an unexpected error. '+ event.message);
+                $(".ag-overlay-loading-center").html('{!JSENCODE($Label.ECOPMDUnexpectedError)}' + ' '+ event.message);
+            };
+
+            var activate = function() {
+                $timeout(function() {
+                    // set subscribe method
+                    // connect to get-task-summarys service and pass project id
+                    PubSub.subscribe('get-earned-value-error', displayError);
+                    PubSub.subscribe('get-earned-value', formatEarnedValue);
+                    EarnedValue.getEarnedValue(vm);
+                }, 0);
+            };
+
+            activate();
+        }
+    })();
+</script>
+
+<script id="services/CommitmentReport/commitments.service.js">
+    (function() {
+        'use strict';
+
+        /**
+         * @ngdoc service
+         *
+         * @name services.service:Commitments
+         *
+         * @requires https://docs.angularjs.org/api/ng/service/$timeout
+         * @requires https://docs.angularjs.org/api/ng/service/$q
+         *
+         * @description
+         * service that handles communication with salesforce ECO_PMD_Top10Commitments_Controller
+         */
+        angular
+            .module('services')
+            .factory('Commitments', Commitments);
+
+        Commitments.$inject = ['$timeout', '$q', 'PubSub'];
+
+        function Commitments($timeout, $q, PubSub) {
+
+            /**
+             * @ngdoc property
+             *
+             * @name service
+             *
+             * @propertyOf services.service:PubSub
+             *
+             * @description
+             * public service interface
+             *
+             * <pre>{
+             *      topEmployees            : Object,
+             *      getCommitments     : Commitments.commitment
+             * } </pre>
+             */
+            var service = {
+                commitment         : [],
+                getCommitments     : getCommitments
+            };
+
+            return service;
+
+            /**
+             * @ngdoc method
+             *
+             * @name subscribeOnce
+             *
+             * @methodOf services.service:PubSub
+             *
+             * @param {String} projectId Salesforce Project ID
+             *
+             * @description
+             * Retrieves all data necessary to populate the Commitments Dashboard panel
+             */
+            function getCommitments(projectId) {
+                var listDeferred = $q.defer();
+
+                ECO_PMD_Commitment_Controller.ProjectScheduleTasks(
+                  projectId,
+                  function(result, event){
+                    if(event.status) {
+                        // set data
+                        service.commitment = result;
+                        PubSub.publish('get-commitments', service.commitment);
+
+                        console.log('service.commitment', service.commitment);
+                    }
+                  });
+
+                return listDeferred.promise;
+            }
+
+        }
+    })();
+</script>
+
+<script type="text/ng-template" id="commitment-report.directive.html">
+    <style type="text/css">
+        .ag-header-cell-text {
+            white-space: normal;
+        }
+        .bs .btn {
+            padding: 4px;
+        }
+        .bs .row .xx {
+            margin-top:4px;
+            margin-bottom:2px;
+        }
+        .bs .row .info {
+            padding-top:1em;
+            font-style:italic;
+            color:lightgray;
+        }
+        .bs .navbar {
+            margin-bottom:2px;
+        }
+        div.ag-fresh div#borderLayout_eRootPanel div#centerRow div#east {
+            float: left !important;
+        }
+        @media screen and (-ms-high-contrast: active), (-ms-high-contrast: none) {
+           /* IE10+ specific styles go here */
+           .ag-header-cell-text{ font-size:80%;}
+        }
+    </style>
+    <div class="container-fluid">
+    <div class="row">
+        <div class="col-md-2 info">
+            <span ng-bind="'Total Records ' + vm.grid.api.getModel().getVirtualRowCount()"></span>
+        </div>
+        <div class="col-md-4">
+            <input type="text" class="form-control ng-pristine ng-untouched ng-valid" ng-model="vm.grid.quickFilterText" placeholder="filter...">
+        </div>
+        <div class="col-md-6 text-right">
+            <button class="btn btn-info" ng-click="vm.toggleColumnGroups(true)">Expand All Columns</button>
+            <button class="btn btn-info" ng-click="vm.toggleColumnGroups(false)">Collapse All Columns</button>
+            <button class="btn btn-primary" ng-click="vm.toggleToolPanel()" ng-bind="vm.showToolPanel ? 'Hide Tool Panel' : 'Show Tool Panel'"></button>
+        </div>
+    </div>
+    <div class="clearfix">
+    </div>
+    <div id="grid" ng-style="{width: vm.getWrapWidth()}" class="row">
+        <div ag-grid="vm.grid" class="ag-fresh"
+             auto-height="yes" additional-height="80"
+             ng-style="{width: vm.showToolPanel ? 'calc(100% + 200px)' : '100%'}" >
+        </div>
+    </div>
+</script>
+
+<script id="components/CommitmentReport/commitment-report.directive.js">
+    (function() {
+        'use strict';
+
+        /**
+         * @ngdoc directive
+         *
+         * @name components.directive:commitmentReport
+         *
+         * @scope
+         *
+         * @restrict E
+         *
+         * @param {Object} date prepopulate the datepicker with a date using this value
+         * @param {String} fieldName label for the datepicker to help identify it better from consuming components
+         *
+         * @description
+         * Implementation of commitmentReport component. Used for start/end date selection for snapshots. Uses Pikaday
+         * for date selection functionality.
+         */
+         angular
+            .module('components')
+            .directive('commitmentReport', commitmentReport);
+
+         commitmentReport.$inject = [];
+
+         function commitmentReport() {
+            var directive =  {
+                restrict            : 'EA',
+                controller          : CommitmentReportController,
+                controllerAs        : 'vm',
+                bindToController    : true,
+                templateUrl         : 'commitment-report.directive.html',
+                link                : linkFunc,
+                scope               : {
+                    projectName  : '@',
+                    projectId    : '@'
+                }
+            };
+
+            return directive;
+
+            /**
+             * @ngdoc method
+             *
+             * @name linkFunc
+             *
+             * @methodOf components.directive:commitmentReport
+             *
+             * @param {Object} scope component scope
+             * @param {Object} el DOM element reference for component template
+             * @param {Object} attr DOM attribute reference
+             * @param {Object} ctrl component controller reference
+             *
+             * @description
+             * Link Function declaration/implementation for commitmentReport component. Wires up datepicker
+             * to open when calendar icon is clicked.
+             */
+             function linkFunc(scope, el, attr, ctrl) {
+               // needed for ng-style to refresh on resize -- see getWrapWidth
+                angular.element(window).on('resize', function() {
+                    scope.$apply();
+                });
+             }
+         }
+
+        /**
+         * @ngdoc controller
+         *
+         * @name components.controller:CommitmentReportController
+         *
+         * @requires $filter
+         * @requires accountsReceivableDataMock
+         *
+         * @description
+         * Controller declaration/implementation for components.commitmentReport directive
+         */
+         angular
+            .module('components')
+            .controller('CommitmentReportController', CommitmentReportController);
+
+         CommitmentReportController.$inject = ['Commitments', 'PubSub', '$timeout', '$filter'];
+
+         function CommitmentReportController(Commitments, PubSub, $timeout, $filter) {
+            var vm = this;
+
+            var columnDefs = [
+                 {headerName: '{!JSENCODE($Label.ECOPMDTaskNumber)}', field: "ProjectTaskNumber", width: 90}
+                ,{headerName: '{!JSENCODE($Label.ECOPMDTaskName)}', field: "ProjectTaskName", width: 150}
+                // PO LINE DESCRIPTION
+                ,{headerName: '{!JSENCODE($Label.ECOPMDSupplierNumber)}', field: "SupplierNumber", width: 90}
+                ,{headerName: '{!JSENCODE($Label.ECOPMDSupplierName)}', field: "SupplierName", width: 180}
+                ,{headerName: '{!JSENCODE($Label.ECOPMDExpenditureType)}', field: "ExpenditureType", width: 180}
+                ,{headerName: '{!JSENCODE($Label.ECOPMDPONumber)}', field: "PONumber", width: 120}
+                ,{headerName: '{!JSENCODE($Label.ECOPMDPOLineNumber)}', field: "POLine", width: 90}
+                ,{headerName: '{!JSENCODE($Label.ECOPMDPOCurrency)}', field: "POCurrency", width: 90}
+                ,{headerName: '{!JSENCODE($Label.ECOPMDPOLineAmount)}', field: "POLineAmount", width: 90
+                  , cellRenderer: currencyCellRenderer, cellStyle:  cellStyler}
+                //,{headerName: "Invoiced Amount", field: "POAmountBilled", width: 100
+                //  , cellRenderer: currencyCellRenderer, cellStyle:  cellStyler}
+                //,{headerName: "Paid Amount", field: "PaidAmount", width: 100}
+                //,{headerName: "PO Balance", field: "POBalance", width: 100}
+                //,{headerName: "Functional PO Amount", field: "POAmountBilled__c", width: 100}
+                //,{headerName: "Functional InvoicedAmount", field: "FInvoicedAmount", width: 100}
+                //,{headerName: "Functional Paid Amount", field: "FPaidAmount", width: 100}
+                //,{headerName: "Functional PO Balance", field: "FPOBalance", width: 100}
+            ];
+            var groupAggFields =  ['POLineAmount'];
+            /**
+             * @ngdoc property
+             *
+             * @name numberWidth
+             *
+             * @methodOf components.controller:CommitmentReportController
+             *
+             * @description
+             * number width placeholder
+             */
+            var numberWidth = 90;
+
+            /**
+             * @ngdoc property
+             *
+             * @name dateWidth
+             *
+             * @methodOf components.controller:CommitmentReportController
+             *
+             * @description
+             * date width placeholder
+             */
+            var dateWidth = 75;
+
+            /**
+             * @ngdoc property
+             *
+             * @name showToolPanel
+             *
+             * @methodOf components.controller:CommitmentReportController
+             *
+             * @description
+             * toggle placeholder for toolpanel
+             */
+            vm.showToolPanel = false;
+
+            /**
+             * @ngdoc property
+             *
+             * @name projectTitle
+             *
+             * @methodOf components.controller:CommitmentReportController
+             *
+             * @description
+             * Id for project.
+             */
+             vm.projectTitle = '';
+
+            /**
+             * @ngdoc property
+             *
+             * @name projectId
+             *
+             * @methodOf components.controller:CommitmentReportController
+             *
+             * @description
+             * Id for project.
+             */
+             vm.projectId = '';
+
+            /**
+             * @ngdoc property
+             *
+             * @name projectName
+             *
+             * @methodOf components.controller:CommitmentReportController
+             *
+             * @description
+             * Name of tht project.
+             */
+             vm.projectName = '';
+
+            /**
+             * @ngdoc property
+             *
+             * @name showToolPanel
+             *
+             * @methodOf components.controller:CommitmentReportController
+             *
+             * @description
+             * Used to toggle the tool panel.
+             */
+            vm.showToolPanel = true;
+
+            /**
+             * @ngdoc property
+             *
+             * @name grid
+             *
+             * @methodOf components.controller:CommitmentReportController
+             *
+             * @description
+             * Options used in the UI grid.
+             */
+            vm.grid = {
+                columnDefs: columnDefs,
+                groupAggFields: groupAggFields,
+                headerHeight: 55,
+                pmdShowInThousands: false,
+                pmdShowCents: true,
+                enableFilter: true,
+                enableSorting: true,
+                toolPanelSuppressValues: true,
+                showToolPanel: vm.showToolPanel,
+                enableColResize: true
+            };
+
+            /**
+             * @ngdoc method
+             *
+             * @name dateCellRenderer
+             *
+             * @methodOf components.controller:CommitmentReportController
+             *
+             * @description
+             * initialization method for the component
+             */
+            function dateCellRenderer(params) {
+               return $filter('date')(params.value, 'shortDate');
+            };
+
+            /**
+             * @ngdoc method
+             *
+             * @name numberCellRenderer
+             *
+             * @methodOf components.controller:CommitmentReportController
+             *
+             * @description
+             * initialization method for the component
+             */
+            function numberCellRenderer(params) {
+               return (typeof(params.value)=='undefined'||params.value=='')?'':$filter('number')(params.value, 2);
+            };
+
+            function currencyCellRenderer(params) {
+                var options = params.api.gridOptionsWrapper.gridOptions;
+                var showInThousands = (typeof(options.pmdShowInThousands)=='undefined')?false:options.pmdShowInThousands;
+                var showCents = (typeof(options.pmdShowCents)=='undefined')?(showInThousands?true:false):options.pmdShowCents;
+                return (typeof params.value === 'number')?$filter('number')(params.value/(showInThousands?1000:1), (showCents?2:0)):params.value;
+            }
+
+            /**
+             * @ngdoc method
+             *
+             * @name cellStyler
+             *
+             * @methodOf components.controller:CommitmentReportController
+             *
+             * @description
+             * initialization method for the component
+             */
+            function cellStyler(params) {
+               var result = {};
+               if (typeof params.value === 'number' || params.value instanceof Date) {
+                   result['text-align'] = 'right';
+               }
+               return result;
+            };
+
+            /**
+             * @ngdoc method
+             *
+             * @name activate
+             *
+             * @methodOf components.controller:CommitmentReportController
+             *
+             * @description
+             * initialization method for the component
+             */
+            vm.toggleToolPanel = function (ev) {
+               var elWrap = $("div.ag-fresh")[0];
+               elWrap.style.display = 'none';
+               vm.showToolPanel = !vm.showToolPanel;
+               vm.grid.api.showToolPanel(vm.showToolPanel);
+               elWrap.style.display = '';
+            };
+
+            vm.getWrapWidth = function(){
+              var elWrap = document.querySelector("div#AppBodyHeader")
+                , elSide = document.querySelector("td#sidebarCell")
+                , desiredWidth = elWrap.clientWidth - elWrap.offsetLeft - elSide.offsetWidth
+                , desiredWidthPx =  desiredWidth.toString() + "px";
+              //console.log(elWrap.clientWidth);console.log(elSide.offsetWidth);console.log(desiredWidthPx);
+              return desiredWidthPx;
+            };
+
+            /**
+             * @ngdoc method
+             *
+             * @name activate
+             *
+             * @methodOf components.controller:CommitmentReportController
+             *
+             * @description
+             * initialization method for the component
+             */
+            vm.toggleColumnGroups = function (expand) {
+               var groups = [];
+               groups.forEach(function (name) {
+                   var group = vm.grid.columnApi.getColumnGroup(name);
+                   vm.grid.columnApi.columnGroupOpened(group, expand);
+               });
+            };
+
+            vm.onBtExport = function() {
+                console.log('Export clicked!');
+                var params = {
+                    skipHeader: vm.skipHeader === true,
+                    skipFooters: vm.skipFooters === true,
+                    skipGroups: vm.skipGroups === true,
+                    fileName: vm.fileName
+                };
+
+                if (vm.customHeader) {
+                    params.customHeader = '[[[ This ia s sample custom header - so meta data maybe?? ]]]\n';
+                }
+                if (vm.customFooter) {
+                    params.customFooter = '[[[ This ia s sample custom footer - maybe a summary line here?? ]]]\n';
+                }
+
+                vm.grid.api.exportDataAsCsv(params);
+            };
+
+            /**
+             * @ngdoc method
+             *
+             * @name formatCommitments
+             *
+             * @methodOf components.controller:CommitmentReportController
+             *
+             * @param {String} message Message received as result of a PUBLISH command issued by another client
+             * @param {String} answer Passed back from PUBLISH command.
+             *
+             * @description
+             * Formates the data for use in the UI
+             */
+            var formatCommitments = function(message, data) {
+                var angularUIGrid = data;
+
+                // double the size several times (plunker complained till I trimmed down angularUIGrid.json)
+                // angularUIGrid = angularUIGrid.concat(angularUIGrid);
+                vm.grid.api.setRowData(angularUIGrid);
+                console.log('vm.grid', vm.grid);
+                console.log(angularUIGrid);
+            };
+
+            /**
+             * @ngdoc method
+             *
+             * @name activate
+             *
+             * @methodOf components.controller:CommitmentReportController
+             *
+             * @description
+             * initialization method for the component
+             */
+            var activate = function() {
+                $timeout(function() {
+                    // set subscribe method
+                    // connect to commitments service and pass project id
+                    PubSub.subscribe('get-commitments', formatCommitments);
+                    Commitments.getCommitments(vm.projectId);
+                }, 0);
+            };
+
+            activate();
+        }
+    })();
+</script>
+
+<script id="services/CostDetails.js">
+    (function() {
+        'use strict';
+
+        /**
+         * @ngdoc service
+         *
+         * @name services.service:costDetails
+         *
+         * @requires https://docs.angularjs.org/api/ng/service/$timeout
+         * @requires https://docs.angularjs.org/api/ng/service/$q
+         *
+         * @description
+         * service that handles communication with salesforce ECO_PMD_CostDetail_Controller
+         */
+        angular
+            .module('services')
+            .factory('CostDetails', CostDetails);
+
+        CostDetails.$inject = ['$timeout', '$q', 'PubSub'];
+
+        function CostDetails($timeout, $q, PubSub) {
+
+            /**
+             * @ngdoc property
+             *
+             * @name service
+             *
+             * @propertyOf services.service:PubSub
+             *
+             * @description
+             * public service interface
+             *
+             * <pre>{
+             *      topEmployees            : Object,
+             *      getCostDetails     : CostDetails.costDetails
+             * } </pre>
+             */
+            var service = {
+                costDetails         : [],
+                getCostDetails     : getCostDetails
+            };
+
+            return service;
+
+            /**
+             * @ngdoc method
+             *
+             * @name subscribeOnce
+             *
+             * @methodOf services.service:PubSub
+             *
+             * @param {String} projectId Salesforce Project ID
+             * @param {String} layout Which CostDetail layout [AllCosts, etc.
+             *
+             * @description
+             * Retrieves all data necessary to populate the CostDetail reports
+             */
+
+            function EXAMPLE_PUBSUB_getCostDetails(projectId,layout) {
+                var listDeferred = $q.defer();
+
+                ECO_PMD_CostDetail_Controller.GetCostDistLines(  // TODO
+                  projectId,
+                  function(result, event){
+                    if(event.status) {
+                        // set data
+                        service.costDetails = result;
+                        PubSub.publish('get-cost-details', service.costDetails);
+                        //console.log('service.costDetails', service.costDetails);
+                    }
+                  }, function(result,event){
+                    PubSub.publish('get-cost-details-error', event);
+                });
+
+                return listDeferred.promise;
+            }
+            function EXAMPLE_NOT_PUBSUB_loadData(vm,callback){
+                ECO_PMD_EarnedValueDetail_Controller.EarnedValueTable(
+                  vm.projectId,
+                  function(result, event){
+                    if(event.status){
+                        callback(vm, mapSFDCResults(result));
+                    }
+                });
+            }
+            function getCostDetails(projectId,layout){
+                if (layout=='RecentCosts') {
+                    return getCostDetailsViaExpendItems(null,layout);
+                } else {
+                    return getCostDetailsViaExpendItems(projectId,layout);
+                    //return getCostDetailsViaCostDistLines(projectId,layout);
+                }
+            }
+
+            function getCostDetailsViaCostDistLines(projectId,layout) {
+
+                //may need to pass in the overlay target (do with all imports?) //TODO
+                var listDeferred = $q.defer();
+
+                var projectNum = projectId; //'a32e00000002t8x'; //document.getElementById('acctSearch').value;
+                var pageLength = 2500;
+                var cum = [];
+
+                function loadNextPage(result , event) {
+                    if (event.status) {
+                        var count = cum.length + result.length;
+                        //$(".ag-overlay-loading-center").html('<i class="fa fa-spinner fa-pulse"></i> Loaded '+count.toLocaleString()+' records...');
+                        $(".ag-overlay-loading-center").html('<i class="fa fa-spinner fa-pulse"></i> ' + '{!JSENCODE($Label.ECOPMDLoaded)}' + ' '+count.toLocaleString()+' ' + '{!JSENCODE($Label.ECOPMDRecords)}');
+                        if (result!=null) cum = cum.concat(result);
+                        // console.log(result.length);
+                        if (result.length >= pageLength && result.length != 0) {
+                            // console.log( 'Load GetCostDistLines - '+count );
+                            ECO_PMD_CostDetail_Controller.GetCostDistLines(
+                                projectNum, result[result.length-1].CostDistLine_Id, layout,
+                                loadNextPage,
+                                {escape: true});
+                        } else {
+                            // console.log( 'Loaded GetCostDistLines = '+count );
+
+                            service.costDetails = cum;
+                            PubSub.publish('get-cost-details', service.costDetails);
+                            //console.log('service.costDetails', service.costDetails);
+                            //TODO -- get vm the right value // $timeout(function() { vm.costDetailData = cum; });
+                            var MSG_NORECORDSFOUND = '{!JSENCODE($Label.ECOPMDNoRecordsFound)}';//'No records were found.';
+                            if (count === 0) {
+                                $(".ag-overlay-loading-center").html(MSG_NORECORDSFOUND);
+                            }
+                        }
+                    } else if (event.type === 'exception') {
+                        var MSG_LOADERROR = '{!JSENCODE($Label.ECOPMDErrorLoadingData)}';//'Error loading data. Use Back or reload to try again. (Error logged to console.)';
+                        console.log(event);
+                        $(".ag-overlay-loading-center").html(MSG_LOADERROR);
+                    } else {
+                        console.log(event.message);
+                    }
+                }
+
+                //console.log( 'Load GetCostDistLines - 0' );
+                ECO_PMD_CostDetail_Controller.GetCostDistLines(
+                    projectNum, null, layout,
+                    loadNextPage,
+                    {escape: true});
+
+                return listDeferred.promise;
+            }
+
+            function getCostDetailsViaExpendItems(projectId,layout) {
+                //may need to pass in the overlay target (do with all imports?) //TODO
+                var listDeferred = $q.defer();
+
+                //var projectNum = projectId; //'a32e00000002t8x'; //document.getElementById('acctSearch').value;
+                var projectNum = projectId; //'a32e00000002t8x'; //document.getElementById('acctSearch').value;
+                var pageLength = 2500;
+                var cum = [];
+
+                function loadNextPage(result , event) {
+                    if (event.status) {
+                        var count = cum.length + result.length;
+                        //$(".ag-overlay-loading-center").html('<i class="fa fa-spinner fa-pulse"></i> Loaded '+count.toLocaleString()+' records...');
+                        $(".ag-overlay-loading-center").html('<i class="fa fa-spinner fa-pulse"></i> ' + '{!JSENCODE($Label.ECOPMDLoaded)}' + ' '+count.toLocaleString()+' ' + '{!JSENCODE($Label.ECOPMDRecords)}');
+                        if (result!=null) cum = cum.concat(result);
+                        // console.log(result.length);
+                        if (result.length >= pageLength && result.length != 0) {
+                            // console.log( 'Load GetCostDistLines - '+count );
+                            ECO_PMD_CostDetail_Controller.GetCostDistLinesViaExpendItems(
+                                projectId, result[result.length-1].ExpenditureItem_ProjectId, result[result.length-1].ExpenditureItem_Id, layout,
+                                loadNextPage,
+                                {escape: true});
+                        } else {
+                            // console.log( 'Loaded GetCostDistLines = '+count );
+
+                            service.costDetails = cum;
+                            PubSub.publish('get-cost-details', service.costDetails);
+                            //console.log('service.costDetails', service.costDetails);
+                            //TODO -- get vm the right value // $timeout(function() { vm.costDetailData = cum; });
+                            var MSG_NORECORDSFOUND = '{!JSENCODE($Label.ECOPMDNoRecordsFound)}';//'No records were found.';
+                            if (count === 0) {
+                                $(".ag-overlay-loading-center").html(MSG_NORECORDSFOUND);
+                            }
+                        }
+                    } else if (event.type === 'exception') {
+                        var MSG_LOADERROR = '{!JSENCODE($Label.ECOPMDErrorLoadingData)}';//'Error loading data. Use Back or reload to try again. (Error logged to console.)';
+                        console.log(event);
+                        $(".ag-overlay-loading-center").html(MSG_LOADERROR);
+                    } else {
+                        console.log(event.message);
+                    }
+                }
+
+                //console.log( 'Load GetCostDistLines - 0' );
+                ECO_PMD_CostDetail_Controller.GetCostDistLinesViaExpendItems(
+                    projectId, null, null, layout,
+                    loadNextPage,
+                    {escape: true});
+
+                return listDeferred.promise;
+            }
+        }
+    })();
+</script>
+
+<script id="services/CostDetailTransformer.js">
+    (function() {
+        'use strict';
+
+        angular
+            .module('services')
+            .factory('CostDetailTransformer', CostDetailTransformer);
+
+        CostDetailTransformer.$inject = ['$filter', '$timeout', 'underscore'];
+
+        function CostDetailTransformer($filter, $timeout, _) {
+
+            var lookbackPeriodCounts = [{id:(12*100),name:'All'}];
+            for(var i=1;i <=12;i++) { lookbackPeriodCounts.push({id:i,name:i.toString()});}
+
+            var lookbackPeriodNames = [];
+
+            function transformData(data, lookback, lookbackCount, fieldForPeriodColumns) {
+                lookbackPeriodNames = [];
+                fieldForPeriodColumns = fieldForPeriodColumns || 'ExpenditureItem_Quantity';
+                var sortedData = _.sortBy(data, 'CostDistLine_PADate');
+                var lookbackPeriods = calculateLookbackPeriods(sortedData, lookback, lookbackCount);
+                return {
+                    periodNames: lookbackPeriodNames,
+                    lookbackCounts: lookbackPeriodCounts,
+                    data: sortedData.map(transformRow(lookbackPeriods, fieldForPeriodColumns))
+                };
+            }
+
+            function calculateLookbackPeriods(data, lookback, lookbackCount) {
+
+                var getPeriod = function(cdl){return {d:getWeekEnd(cdl.CostDistLine_PADate)
+                                                     ,n:displayWeekEnding(getWeekEnd(cdl.CostDistLine_PADate),cdl.CostDistLine_PAPeriodName)}};
+                var allPeriods = _.uniq(
+                                    _.map(data,getPeriod)
+                                    ,false
+                                    ,function(it){return it.d;});
+
+                lookback = lookback || _.last(allPeriods); // use most recent period if lookback is not specified
+                lookbackCount = lookbackCount || 6;
+                var periods = allPeriods.filter(function (it) { return it.d <= lookback; });
+                var periodNames = _.last(_.uniq(_.map(periods,'n')),lookbackCount);
+                periods = _.filter(periods, function(it){return _.contains(periodNames,it.n);});
+                //periods = _.indexBy( periods ,'d');
+                return periods;
+            }
+
+            function str(val) { if (typeof(val)=="undefined"||val==null) return ''; return val;}
+
+            function transformRow(lookbackPeriods, fieldForPeriodColumns) {
+                return function (row) {
+                    var projectNumber = row.ExpenditureItem_ProjectNumber
+                    , projectName = row.ExpenditureItem_ProjectName
+                    , taskNumber = row.ExpenditureItem_ProjectTaskNumber
+                    , taskName = row.ExpenditureItem_ProjectTaskName
+                    , personId = row.ExpenditureItem_PersonId
+                    , vendorId = row.ExpenditureItem_VendorId
+                    , expenditureCategory = row.ExpenditureItem_ExpenditureType.split(/[\s-]+/)[0]
+                    , result = {
+                        project: (str(projectNumber)=='' ? '': projectNumber + " - ") + projectName,
+                        task: (str(taskNumber)=='' ? '': taskNumber + " - ") + taskName,
+                        expenditureItemName: row.ExpenditureItem_ExpenditureItemID, // "",
+                        expenditureItemType: row.ExpenditureItem_ExpenditureType,
+                        expenditureCategory: expenditureCategory,
+                        expenditureOrgId: row.ExpenditureItem_ExpenditureOrgId,
+                        costDistributionLine: row.CostDistLine_LineNumber, // "",
+                        plReportCategory: row.CostDistLine_PLReportCategory,
+                        personId: personId,
+                        employeeNumber: row.EmployeeNumber,
+                        employeeName: row.EmployeeName,
+                        employeeClassification: row.EmployeeClassification,
+                        vendorId: vendorId,
+                        vendorName: row.VenderName,
+                        // personOrVendor: row.EmployeeName
+                            // || (row.ExpenditureItem_VendorId === "null" ? null : row.ExpenditureItem_VendorId)
+                            // || row.ExpenditureItem_PersonId,
+                        personOrVendor: row.EmployeeName
+                            || (row.VenderName === "null" ? 'VENDOR-' + row.ExpenditureItem_VendorId : row.VenderName)
+                            || ((typeof(row.ExpenditureItem_PersonId)=='undefined')?'':('PERSONID-' + (row.ExpenditureItem_PersonId||''))),
+                        uom: row.CostDistLine_UOM, //"",
+                        quantity: row.CostDistLine_Quantity, //row.ExpenditureItem_Quantity,
+                        laborHours: row.CostDistLine_PLLaborHours,
+                        projectCurrencyCode: row.CostDistLine_ProjectCurrencyCode,
+                        projectBurdenedCost: row.CostDistLine_ProjectBurdenedCost,
+                        projectRawCost: row.CostDistLine_ProjectRawCost,
+                        functionalCurrencyCode: row.CostDistLine_ProjectFunctionalCurrencyCode,
+                        functionalBurdenedCost: row.CostDistLine_ProjectFunctionalBurdenedCost,
+                        functionalRawCost: row.CostDistLine_DenomRawCost,
+                        denomCurrencyCode: row.CostDistLine_DenomCurrencyCode,
+                        denomBurdenedCost: row.CostDistLine_DenomBurdenedCost,
+                        denomRawCost:      row.CostDistLine_DenomRawCost,
+                        inceptionToDate: row[fieldForPeriodColumns],
+                        monthToDate: 0,
+                        yearToDate: 0,
+                        glPeriodName: row.CostDistLine_GLPeriodName,
+                        glFiscalMonth: row.CostDistLine_GLFiscalMonth,
+                        glDate: getDate(row.CostDistLine_GLDate).isoDateString,
+                        expenditureItemDate: getDate(row.ExpenditureItem_ExpenditureItemDate).isoDateString,
+                        paPeriodName: row.CostDistLine_PAPeriodName,
+                        paFiscalMonth: row.CostDistLine_PAFiscalMonth,
+                        paPeriodNameDisplay: displayWeekEnding(getWeekEnd(row.CostDistLine_PADate),row.CostDistLine_PAPeriodName),
+                        paPeriodDate: getDate(getWeekEnd(row.CostDistLine_PADate)).isoDateString,
+                        paDate: getDate(row.CostDistLine_PADate).isoDateString,
+                        operatingGroup: row.OperatingGroup,
+                        geographyName: row.GeographyName,
+                        region: row.Region,
+                        district: row.District,
+                        businessLineName: row.BusinessLineName,
+                        subBusinessLineName: row.SubBusinessLineName
+                    };
+                    var lookbackPeriod = _.find(lookbackPeriods,function(it){return it.d===getWeekEnd(row.CostDistLine_PADate);});
+                    if (typeof(lookbackPeriod)!='undefined') {
+                        if (!_.contains(lookbackPeriodNames, lookbackPeriod.n)) {
+                            lookbackPeriodNames.push(lookbackPeriod.n);
+                        }
+                        result[lookbackPeriod.n] = row[fieldForPeriodColumns];
+                    } else if (getWeekEnd(row.CostDistLine_PADate) < _.first(lookbackPeriods).d) {
+                        result.itdPriorToLookbacks = row[fieldForPeriodColumns];
+                    }
+                    if (row.CostDistLine_PAPeriodName.indexOf($filter('date')(new Date(), 'MMM') + '-' + $filter('date')(new Date(), 'yy')) !== -1) {
+                        result.monthToDate = row[fieldForPeriodColumns];
+                    }
+                    if (row.CostDistLine_PAPeriodName.indexOf('F-'+$filter('date')(new Date(), 'yy')) !== -1) {
+                        result.yearToDate = row[fieldForPeriodColumns];
+                    }
+                    return result;
+                }
+            }
+            function getWeekEnd( utcMilliseconds ){
+                //return utcMilliseconds;
+                var msd = new Date( utcMilliseconds);
+                var dayNum = msd.getUTCDay();
+                var adjustToFriday = (dayNum==6?6:(5-dayNum));
+                return utcMilliseconds + (adjustToFriday*24*60*60*1000);
+            }
+            function displayWeekEnding(weDate,periodName){
+                return formatDateSortable(weDate) + ' | ' + periodName;
+            };
+            function formatDateSortable(d){
+                d = new Date(d);
+                var result = '';
+                var year = d.getUTCFullYear();
+                var month =  d.getUTCMonth() + 1;
+                var day = d.getUTCDate();
+                month = ('0' + month).slice(-2);
+                day = ('0' + day).slice(-2);
+                return year + '-' + month + '-' + day;
+            }
+
+            // Dates
+            // - arrive as UTC Javascript milliseconds
+            // - transformed to ISO8601 string in ag-grid (so they sort and export)
+            // - displayed by UTC+timezone->toLocaleDateString
+            //   new Date(Date.parse("ISODATE_YYYY-MM-DD")+(new Date().getTimezoneOffset()*60*1000)).toLocaleDateString()
+
+            function getDate(msUTC){
+                return {  msUTC:msUTC
+                        , jsUTC:(new Date(msUTC))
+                        , jsTimezone:(new Date(msUTC+(new Date().getTimezoneOffset()*60*1000)))
+                        , isoDateString:(new Date(msUTC).toISOString().substring(0,10))
+                        , localeDateString:(new Date(msUTC+(new Date().getTimezoneOffset()*60*1000))).toLocaleDateString()
+                        , weekEndIsoDateString:(new Date(getWeekEnd(msUTC)).toISOString().substring(0,10))
+                };
+            }
+
+            return {
+                transformData: transformData,
+                getWeekEnd : getWeekEnd
+            }
+        }
+    }());
+</script>
+
+<script type="text/ng-template" id="cost-detail-report.directive.html">
+    <div class="container-fluid">
+        <style>
+        .ag-header-cell-text {
+            white-space: normal;
+            font-size: smaller;
+        }
+        div.ag-fresh div#borderLayout_eRootPanel div#centerRow div#east {
+            float: left !important;
+        }
+        @media screen and (-ms-high-contrast: active), (-ms-high-contrast: none) {
+           /* IE10+ specific styles go here */
+           .ag-header-cell-text{ font-size:80%;}
+        }
+        </style>
+        <div class="row">
+            <!-- <div class="col-md-2 lead"> --><!-- ng-bind="vm.projectName"> -->
+            <!-- </div> -->
+            <div class="col-md-12">
+                <div class="form-inline pull-right">
+                    <label for="paPeriodSelect" ng-bind="vm.labels.lookbackPeriod"></label>
+                    <select id="paPeriodSelect" class="form-control"
+                            ng-model="vm.selectedPeriod" ng-options="period.periodName for period in vm.paPeriods" ></select>
+                    &nbsp;
+                    <label for="lookbackCountSelect" ng-bind="vm.labels.lookbackCount"></label>
+                    <select id="lookbackCountSelect" class="form-control"
+                            ng-model="vm.lookbackCount"  ng-options="count.id as count.name for count in vm.lookbackCounts" ></select>
+                    &nbsp;&nbsp;&nbsp;
+                    <input type="text" class="form-control"
+                           ng-model="vm.grid.quickFilterText" style="width: 100px;" placeholder="{{vm.labels.filter}}" >
+                    &nbsp;&nbsp;&nbsp;
+                    <button class="btn btn-info" ng-click="vm.toggleColumnGroups(true)" ng-bind="vm.labels.expandAllColumns"></button>
+                    <button class="btn btn-info" ng-click="vm.toggleColumnGroups(false)" ng-bind="vm.labels.collapseAllColumns"></button>
+                    <button class="btn btn-info" ng-click="vm.grid.api.expandAll()" ng-bind="vm.labels.expandAll"></button>
+                    <button class="btn btn-info" ng-click="vm.grid.api.collapseAll()" ng-bind="vm.labels.collapseAll"></button>
+                    <button class="btn btn-primary" ng-click="vm.export()" ng-bind="vm.labels.export"></button>
+                    <button class="btn btn-primary" ng-click="vm.exportAll()" ng-bind="vm.labels.exportAll"></button>
+                    <button class="btn btn-primary" ng-click="vm.toggleToolPanel()" ng-bind="vm.showToolPanel ? vm.labels.hideToolPanel : vm.labels.showToolPanel"></button>
+                </div>
+            </div>
+        </div>
+        <div class="clearfix">
+        </div>
+        <div id="grid" ng-style="{width: vm.getWrapWidth()}" class="row">
+            <div ag-grid="vm.grid" class="ag-fresh"
+                 auto-height="yes" additional-height="80"
+                 ng-style="{width: vm.showToolPanel ? 'calc(100% + 200px)' : '100%'}" >
+            </div>
+        </div>
+
+        <!-- <div id="pmdgrid" ag-grid="vm.grid" class="ag-fresh" auto-height="yes" additional-height="80" /> -->
+    </div>
+</script>
+
+<script id="components/CostDetailReport/cost-detail-report.directive.js">
+    (function() {
+        'use strict';
+
+        /**
+         * @ngdoc directive
+         *
+         * @name components.directive:commitmentReport
+         *
+         * @scope
+         *
+         * @restrict E
+         *
+         * @description
+         * Implementation of costDetailReport component.
+         */
+         angular
+            .module('components')
+            .directive('costDetailReport', costDetailReport);
+
+         costDetailReport.$inject = [];
+
+         function costDetailReport() {
+            var directive =  {
+                restrict            : 'EA',
+                controller          : CostDetailReportController,
+                controllerAs        : 'vm',                   // TODO ctrl here, vm in orig code
+                bindToController    : true,
+                templateUrl         : 'cost-detail-report.directive.html',
+                link                : linkFunc,
+                scope: {
+                    projectName: '@',
+                    projectId: '@',
+                    layout: '@',
+                    data: '=',
+                    labels: '='
+                }
+
+            };
+
+            return directive;
+
+            /**
+             * @ngdoc method
+             *
+             * @name linkFunc
+             *
+             * @methodOf components.directive:costDetailReport
+             *
+             * @param {Object} scope component scope
+             * @param {Object} el DOM element reference for component template
+             * @param {Object} attr DOM attribute reference
+             * @param {Object} ctrl component controller reference
+             *
+             * @description
+             * Link Function declaration/implementation for costDetailReport component.
+             */
+            function linkFunc(scope, el, attr, ctrl) {
+               // needed for ng-style to refresh on resize -- see getWrapWidth
+                angular.element(window).on('resize', function() {
+                    scope.$apply();
+                });
+             }
+         }
+
+        /**
+         * @ngdoc controller
+         *
+         * @name components.controller:CostDetailReportController
+         *
+         * @requires $filter
+         * @requires CostDetails
+         *
+         * @description
+         * Controller declaration/implementation for components.costDetailReport directive
+         */
+         angular
+            .module('components')
+            .controller('CostDetailReportController', CostDetailReportController);
+
+         CostDetailReportController.$inject = ['CostDetails', 'CostDetailTransformer', 'PubSub', '$timeout', '$filter', 'underscore'];
+
+         function CostDetailReportController(CostDetails, CostDetailTransformer, PubSub, $timeout, $filter, _) {
+            var vm = this; //TODO is vm here versus ctrl in the model?
+            var getWeekEnd = CostDetailTransformer.getWeekEnd;
+
+            vm.projectTitle = '';
+            vm.projectId = '';
+            vm.projectName = '';
+
+            // Layout-specific values
+            vm.layout = vm.layout || 'AllCosts'; // one of AllCosts, LabourHours, LabourCost, ODCExpenses, ODCSubs, RecentCosts
+            var layoutToPeriodField  = {
+                        AllCosts: 'CostDistLine_ProjectFunctionalBurdenedCost',
+                        LabourHours: 'CostDistLine_PLLaborHours', //'ExpenditureItem_Quantity',
+                        LabourCost: 'CostDistLine_ProjectFunctionalBurdenedCost',
+                        ODCExpenses: 'CostDistLine_ProjectFunctionalBurdenedCost',
+                        ODCSubs: 'CostDistLine_ProjectFunctionalBurdenedCost',
+                        RecentCosts: 'CostDistLine_ProjectFunctionalBurdenedCost'
+            };
+
+            var layoutToGroupKeys = {
+                AllCosts: ['task', 'expenditureItemType'],
+                LabourHours: [ 'task', 'personOrVendor',  'expenditureItemType' ],
+                LabourCost: [ 'task', 'personOrVendor', 'expenditureItemType' ],
+                ODCExpenses: [ 'task', 'expenditureCategory', 'expenditureItemType' ],
+                ODCSubs: [ 'task', 'personOrVendor', 'expenditureItemType' ],
+                RecentCosts: ['project','task', 'expenditureItemType', 'personOrVendor']
+            };
+
+            vm.labels = {
+                // Columns
+                project: '{!JSENCODE($ObjectType.ExpendItem__c.Fields.Project__c.Label)}',
+                task: '{!JSENCODE($ObjectType.ExpendItem__c.Fields.ProjectTask__c.Label)}',
+                expenditureItemName: '{!JSENCODE($ObjectType.ExpendItem__c.Fields.ExpenditureItemID__c.Label)}',
+                expenditureItemType: '{!JSENCODE($ObjectType.ExpendItem__c.Fields.ExpenditureType__c.Label)}',
+                expenditureCategory: '{!JSENCODE($Label.ECOPMDExpenditureCategory)}',
+                expenditureOrgId: '{!JSENCODE($Label.ECOPMDExpenditureOrg)}',
+                costDistributionLine: '{!JSENCODE($ObjectType.CostDistLine__c.Fields.LineNumber__c.Label)}',
+                plReportCategory: '{!JSENCODE($Label.ECO_PMD_PLReportCategory)}',
+                personId: '{!JSENCODE($ObjectType.ExpendItem__c.Fields.PersonId__c.Label)}',
+                employeeNumber: '{!JSENCODE($Label.ECOPMDEmployeeNumber)}',
+                employeeClassification: '{!JSENCODE($Label.ECOPMDEmployeeClassification)}',
+                vendorId: '{!JSENCODE($ObjectType.ExpendItem__c.Fields.VendorId__c.Label)}',
+                personOrVendor: '{!JSENCODE($Label.ECOPMDPersonOrVendorName)}',
+                projectCurrencyCode: '{!JSENCODE($Label.ECOPMDProjectCurrency)}',
+                projectBurdenedCost: '{!JSENCODE($Label.ECOPMDProjectBurdenedCost)}',
+                projectRawCost: '{!JSENCODE($Label.ECOPMDProjectRawCostShort)}', //'Prj. Raw Cost',
+                functionalCurrencyCode: '{!JSENCODE($Label.ECOPMDProjectFunctionalCurrencyCode)}',
+                functionalBurdenedCost: '{!JSENCODE($Label.ECOPMDProjectFunctionalBurdenedCost)}',
+                functionalRawCost: '{!JSENCODE($Label.ECOPMDFunctionalRawCostShort)}', //'Func. Raw Cost',
+                denomCurrencyCode: '{!JSENCODE($Label.ECOPMDDenomCurrencyCodeShort)}', //'Denom Currency',
+                denomBurdenedCost: '{!JSENCODE($Label.ECOPMDDenomBurdenedCostShort)}', //'Denom Burdened Cost',
+                denomRawCost: '{!JSENCODE($Label.ECOPMDDenomRawCostShort)}', //'Denom Raw Cost',
+                quantity: '{!JSENCODE($ObjectType.ExpendItem__c.Fields.Quantity__c.Label)}',
+                uom: '{!JSENCODE($ObjectType.ExpendItem__c.Fields.UOM__c.Label)}',
+                laborHours: '{!JSENCODE($ObjectType.ExpendItem__c.Fields.PLLaborHours__c.Label)}',
+                priorPeriods: '{!JSENCODE($Label.ECOPMDPriorPeriods)}',
+                inceptionToDate: '{!JSENCODE($Label.ECOPMDInceptionToDate)}',
+                monthToDate: '{!JSENCODE($Label.ECOPMDMonthToDate)}',
+                yearToDate: '{!JSENCODE($Label.ECOPMDYearToDate)}',
+                glPeriodName: '{!JSENCODE($ObjectType.CostDistLine__c.Fields.GLPeriodName__c.Label)}',
+                glFiscalMonth: '{!JSENCODE($ObjectType.CostDistLine__c.Fields.GLFiscalMonth__c.Label)}',
+                glDate: '{!JSENCODE($ObjectType.CostDistLine__c.Fields.GLDate__c.Label)}',
+                expenditureItemDate: '{!JSENCODE($ObjectType.ExpendItem__c.Fields.ExpenditureItemDate__c.Label)}',
+                paPeriodName: '{!JSENCODE($ObjectType.CostDistLine__c.Fields.PAPeriodName__c.Label)}',
+                paPeriodNameDisplay: '{!JSENCODE($ObjectType.CostDistLine__c.Fields.PAPeriodName__c.Label)} Sortable',
+                paFiscalMonth: '{!JSENCODE($ObjectType.CostDistLine__c.Fields.PAFiscalMonth__c.Label)}',
+                paDate: '{!JSENCODE($ObjectType.CostDistLine__c.Fields.PADate__c.Label)}',
+                paPeriodDate: '{!JSENCODE($Label.ECOPMDWeekEnding)}', //'Week ending',
+                operatingGroup: '{!JSENCODE($ObjectType.OrganizationString__c.Fields.OperatingGroup__c.Label)}',
+                geographyName: '{!JSENCODE($ObjectType.OrganizationString__c.Fields.GeographyName__c.Label)}',
+                region: '{!JSENCODE($ObjectType.OrganizationString__c.Fields.Region__c.Label)}',
+                district: '{!JSENCODE($ObjectType.OrganizationString__c.Fields.District__c.Label)}',
+                businessLineName: '{!JSENCODE($ObjectType.OrganizationString__c.Fields.BusinessLineName__c.Label)}',
+                subBusinessLineName: '{!JSENCODE($ObjectType.OrganizationString__c.Fields.SubBusinessLineName__c.Label)}',
+                // Column Groups
+                group: '{!JSENCODE($Label.ECOPMDGroup)}',
+                details: '{!JSENCODE($Label.ECOPMDDetails)}',
+                business: '{!JSENCODE($Label.ECOPMDBusiness)}',
+                cost: '{!JSENCODE($Label.ECOPMDCost)}',
+                periods: '{!JSENCODE($Label.ECOPMDPeriods)}',
+                // Button and other labels
+                lookbackPeriod: '{!JSENCODE($Label.ECOPMDLookBackPeriod)}',
+                lookbackCount: '{!JSENCODE($Label.ECOPMDLookBackCount)}',
+                filter: '{!JSENCODE($Label.ECOPMDFilter)}',
+                export: '{!JSENCODE($Label.ECOPMDExport)}',
+                exportAll: '{!JSENCODE($Label.ECOPMDExportAll)}', // 'Export All', //<!--'{!JSENCODE($Label.ECOPMDExportAll)}',-->
+                expandAll: '{!JSENCODE($Label.ECOPMDExpandAll)}',
+                collapseAll: '{!JSENCODE($Label.ECOPMDCollapseAll)}',
+                expandAllColumns: '{!JSENCODE($Label.ECOPMDExpandAllColumns)}',
+                collapseAllColumns: '{!JSENCODE($Label.ECOPMDCollapseAllColumns)}',
+                hideToolPanel: '{!JSENCODE($Label.ECOPMDHideToolPanel)}',
+                showToolPanel: '{!JSENCODE($Label.ECOPMDShowToolPanel)}'
+            };
+
+            var numberWidth = 90;
+            var dateWidth = 75;
+            var columnDefs = []; // calculated onReady -- normally static and here
+
+            vm._lookbackCount = 6;
+            vm._data = [];
+            vm._selectedPeriod = null;
+            vm.showToolPanel = true;
+
+            vm.grid = {
+               //TODO columnDefs: columnDefs,
+               headerCellRenderer: headerCellRenderer,
+               groupHeaders: true,
+               groupKeys: layoutToGroupKeys[vm.layout],
+               groupHidePivotColumns: true,
+               groupIncludeFooter: false,
+               groupColumnDef: {
+                   width: 300,
+                   headerName: vm.labels.group,
+                   cellRenderer: {
+                       renderer: 'group'
+                   },
+                   cellStyle: cellStyler
+               },
+               headerHeight: 105,
+               pinnedColumnCount: 1,
+               showToolPanel: vm.showToolPanel,
+               toolPanelSuppressValues: true,
+               enableColResize: true,
+               enableSorting: true,
+               enableFilter: true,
+               pmdShowInThousands: false,
+               pmdShowCents: true,
+               onReady: onReady
+            };
+
+            function buildColumnDefs(periodNames) {
+                var beforeColumnDefs = [
+                    { field: 'project', headerName: vm.labels.project,  cellStyle: cellStyler, cellRenderer: textCellRenderer, hide:true },
+                    { field: 'task', headerName: vm.labels.task,  cellStyle: cellStyler, cellRenderer: textCellRenderer },
+                    { field: 'expenditureItemName', headerName: vm.labels.expenditureItemName, headerGroup: vm.labels.details, cellStyle: cellStyler, width: 100 },
+                    { field: 'costDistributionLine', headerName: vm.labels.costDistributionLine, headerGroup: vm.labels.details, headerGroupShow: 'open',cellStyle: cellStyler, width: 70 },
+                    { field: 'personOrVendor', headerName: vm.labels.personOrVendor, headerGroup: vm.labels.details, cellStyle: cellStyler },
+                    //{ field: 'employeeNumber', headerName: vm.labels.employeeNumber, headerGroup: vm.labels.details, headerGroupShow: 'open', cellStyle: cellStyler, width: 80 },
+                    { field: 'employeeClassification', headerName: vm.labels.employeeClassification, headerGroup: vm.labels.details, headerGroupShow: 'open', cellStyle: cellStyler, width: 200 },
+                    { field: 'expenditureCategory', headerName: vm.labels.expenditureCategory, headerGroup: vm.labels.details,headerGroupShow: 'open', cellStyle: cellStyler, width: 60 },
+                    { field: 'plReportCategory', headerName: vm.labels.plReportCategory, headerGroup: vm.labels.details, headerGroupShow: 'open', cellStyle: cellStyler, width: 100 },
+                    { field: 'expenditureItemType', headerName: vm.labels.expenditureItemType, headerGroup: vm.labels.details, cellStyle: cellStyler, width: 160 },
+                    { field: 'expenditureOrgId', headerName: vm.labels.expenditureOrgId, headerGroup: vm.labels.details, headerGroupShow: 'open', cellStyle: cellStyler, width: 100 },
+                    { field: 'operatingGroup', headerName: vm.labels.operatingGroup, headerGroup: vm.labels.business, headerGroupShow: 'open', cellStyle: cellStyler, width: 100 },
+                    { field: 'geographyName', headerName: vm.labels.geographyName, headerGroup: vm.labels.business, headerGroupShow: 'open', cellStyle: cellStyler, width: 100 },
+                    { field: 'region', headerName: vm.labels.region, headerGroup: vm.labels.business, headerGroupShow: 'open', cellStyle: cellStyler, width: 100 },
+                    { field: 'district', headerName: vm.labels.district, headerGroup: vm.labels.business, headerGroupShow: 'open', cellStyle: cellStyler, width: 100 },
+                    { field: 'businessLineName', headerName: vm.labels.businessLineName, headerGroup: vm.labels.business, cellStyle: cellStyler, width: 130 },
+                    { field: 'subBusinessLineName', headerName: vm.labels.subBusinessLineName, headerGroup: vm.labels.business, headerGroupShow: 'open', cellStyle: cellStyler, width: 130 },
+                    { field: 'paFiscalMonth', headerName: vm.labels.paFiscalMonth, headerGroup: vm.labels.cost, headerGroupShow: 'open', cellStyle: cellStyler, width: 130 },
+                    { field: 'paPeriodDate', headerName: vm.labels.paPeriodDate, headerGroup: vm.labels.cost, headerGroupShow: 'open', cellRenderer: dateCellRenderer, cellStyle: cellStyler, width: 130 },
+                    { field: 'paPeriodName', headerName: vm.labels.paPeriodName, headerGroup: vm.labels.cost, headerGroupShow: 'open', cellStyle: cellStyler, width: 130 },
+                    { field: 'paDate', headerName: vm.labels.paDate, headerGroup: vm.labels.cost, headerGroupShow: 'open', cellRenderer: dateCellRenderer, cellStyle: cellStyler, width: 130 },
+                    { field: 'glFiscalMonth', headerName: vm.labels.glFiscalMonth, headerGroup: vm.labels.cost, headerGroupShow: 'open', cellStyle: cellStyler, width: 130 },
+                    { field: 'glPeriodName', headerName: vm.labels.glPeriodName, headerGroup: vm.labels.cost, headerGroupShow: 'open', cellStyle: cellStyler, width: 130 },
+                    { field: 'glDate', headerName: vm.labels.glDate, headerGroup: vm.labels.cost, headerGroupShow: 'open', cellRenderer: dateCellRenderer, cellStyle: cellStyler, width: 130 },
+                    { field: 'expenditureItemDate', headerName: vm.labels.expenditureItemDate, headerGroup: vm.labels.cost, headerGroupShow: 'open', cellRenderer: dateCellRenderer, cellStyle: cellStyler, width: 130 },
+                    { field: 'quantity', headerName: vm.labels.quantity, headerGroup: vm.labels.cost, headerGroupShow: 'open', cellRenderer: numberCellRenderer, cellStyle: cellStyler, width: 80 },
+                    { field: 'uom', headerName: vm.labels.uom, headerGroup: vm.labels.cost, headerGroupShow: 'open', cellStyle: cellStyler, width: 80 },
+                    { field: 'laborHours', headerName: vm.labels.laborHours, headerGroup: vm.labels.cost, headerGroupShow: 'open', cellRenderer: numberCellRenderer, cellStyle: cellStyler, width: 80 },
+                    { field: 'projectBurdenedCost', headerName: vm.labels.projectBurdenedCost, headerGroup: vm.labels.cost, headerGroupShow: 'open', cellRenderer: numberCellRenderer, cellStyle: cellStyler, width: 130 },
+                    { field: 'projectRawCost', headerName: vm.labels.projectRawCost, headerGroup: vm.labels.cost, headerGroupShow: 'open', cellRenderer: numberCellRenderer, cellStyle: cellStyler, width: 130 },
+                    { field: 'projectCurrencyCode', headerName: vm.labels.projectCurrencyCode, headerGroup: vm.labels.cost, headerGroupShow: 'open', cellStyle: cellStyler, width: 100 },
+                    { field: 'functionalRawCost', headerName: vm.labels.functionalRawCost, headerGroup: vm.labels.cost, headerGroupShow: 'open', cellRenderer: numberCellRenderer, cellStyle: cellStyler, width: 130 },
+                    { field: 'functionalBurdenedCost', headerName: vm.labels.functionalBurdenedCost, headerGroup: vm.labels.cost, cellRenderer: numberCellRenderer, cellStyle: cellStyler, width: 130 },
+                    { field: 'functionalCurrencyCode', headerName: vm.labels.functionalCurrencyCode, headerGroup: vm.labels.cost, headerGroupShow: 'open', cellStyle: cellStyler, width: 130 },
+                    /*
+                    { field: 'denomRawCost', headerName: vm.labels.denomRawCost, headerGroup: vm.labels.cost, cellRenderer: numberCellRenderer, cellStyle: cellStyler, width: 130 },
+                    { field: 'denomBurdenedCost', headerName: vm.labels.denomBurdenedCost, headerGroup: vm.labels.cost, cellRenderer: numberCellRenderer, cellStyle: cellStyler, width: 130 },
+                    { field: 'denomCurrencyCode', headerName: vm.labels.denomCurrencyCode, headerGroup: vm.labels.cost, headerGroupShow: 'open', cellStyle: cellStyler, width: 130 },
+                    */
+                    { field: 'itdPriorToLookbacks', headerName: 'Prior Periods', cellRenderer: numberCellRenderer, headerGroup: vm.labels.periods, headerGroupShow: 'open', width: 100, cellStyle: cellStyler }
+                ];
+                var afterColumnDefs = [
+                    { field: 'inceptionToDate', headerName: vm.labels.inceptionToDate, cellRenderer: detailSummaryCellRenderer, headerGroup: vm.labels.periods, width: 80, cellStyle: cellStyler },
+                    { field: 'monthToDate', headerName: vm.labels.monthToDate, width: 80, cellRenderer: detailSummaryCellRenderer, cellStyle: cellStyler },
+                    { field: 'yearToDate', headerName: vm.labels.yearToDate, width: 80, cellRenderer: detailSummaryCellRenderer, cellStyle: cellStyler }
+                ];
+                return beforeColumnDefs
+                    .concat(periodNames.map(function (period) {
+                        return { field: period, headerName: period, cellRenderer: numberCellRenderer, headerGroup: vm.labels.periods, headerGroupShow: 'open', width: 130, cellStyle: cellStyler };
+                    }))
+                    .concat(afterColumnDefs);
+            }
+
+            function detailSummaryCellRenderer(params) {
+                if (params.node.allChildrenCount) {
+                    return numberCellRenderer(params);
+                } else {
+                    return '';  // for fields that are just there to provide summaries, do not display values at the detail level
+                }
+            }
+
+            function dateCellRenderer(params) {
+                 return params.value; //return $filter('date')(params.value, 'shortDate');
+            };
+
+            function numberCellRenderer(params) {
+               return (typeof(params.value)=='undefined'||params.value=='')?'':$filter('number')(params.value, 2);
+            };
+
+            function textCellRenderer(params){
+                return (typeof(params.value)=='undefined'||params.value=='')?'':params.value.replace(/&amp;/, '&');
+            };
+
+            function headerCellRenderer(params) {
+                var eHeader =
+                '<span class="ag-header-cell-text">'
+                + params.colDef.headerName.split(" | ").join("<br />")
+                +'</span>';
+                return eHeader;
+            }
+
+            function cellStyler(params) {
+               var result = {};
+               if (params.colDef.headerName === 'Prior Periods' || params.colDef.headerName === 'ITD') {
+                   result['background-color'] = '#D9EAF7';
+               }
+               if (params.node.level === 0) {
+                   result['font-weight'] = 'bold';
+                   result['font-style'] = 'normal';
+                   result['background-color'] = '#D9EAF7';
+               }
+               if (params.node.level === 1) {
+                   result['font-style'] = 'normal';
+                   result['background-color'] = '#D9EAF7';
+               }
+               if (params.node.level === 2) {
+                   result['font-style'] = 'normal';
+               }
+               if (typeof(params.value) === 'number' || params.colDef.headerGroup === 'Periods') {
+                   result['text-align'] = 'right';
+                   if (params.value < 0) {
+                       result['color'] = '#d81e05';
+                   }
+               }
+               return result;
+            };
+
+            function dataSort(it) {
+                return it.task.split(".").map(function(v) { return v.length > 10 ? v : ('0000000000'+v).substr(-10); } ).join('.')
+                    + '.' + it.expenditureCategory
+                    + '.' + it.personId
+                    + '.' + it.paPeriodDate;
+            }
+
+            function defaultGroupComparator(valueA, valueB, nodeA, nodeB) {
+                // adapted from later version of ag-grid
+                var exists = function (value) {
+                    if (value === null || value === undefined || value === '') {
+                        return false;
+                    }
+                    else {
+                        return true;
+                    }
+                };
+
+                var defaultComparator = function (valueA, valueB) {
+                    var valueAMissing = valueA === null || valueA === undefined;
+                    var valueBMissing = valueB === null || valueB === undefined;
+                    if (valueAMissing && valueBMissing) {
+                        return 0;
+                    }
+                    if (valueAMissing) {
+                        return -1;
+                    }
+                    if (valueBMissing) {
+                        return 1;
+                    }
+                    if (typeof valueA === "string") {
+                        try {
+                            // using local compare also allows chinese comparisons
+                            return valueA.localeCompare(valueB);
+                        }
+                        catch (e) {
+                        }
+                    }
+                    if (valueA < valueB) {
+                        return -1;
+                    }
+                    else if (valueA > valueB) {
+                        return 1;
+                    }
+                    else {
+                        return 0;
+                    }
+                };
+                var nodeAIsGroup = exists(nodeA) && nodeA.group;
+                var nodeBIsGroup = exists(nodeB) && nodeB.group;
+                var bothAreGroups = nodeAIsGroup && nodeBIsGroup;
+                var bothAreNormal = !nodeAIsGroup && !nodeBIsGroup;
+                if (bothAreGroups) {
+                    return defaultComparator(nodeA.key, nodeB.key);
+                }
+                else if (bothAreNormal) {
+                    return defaultComparator(valueA, valueB);
+                }
+                else if (nodeAIsGroup) {
+                    return 1;
+                }
+                else {
+                    return -1;
+                }
+            }
+
+            function buildGrid() {
+                //TODO
+                var result = CostDetailTransformer.transformData(vm.data, vm.selectedPeriod.periodDate, vm.lookbackCount, layoutToPeriodField[vm.layout]);
+                vm.lookbackCounts = result.lookbackCounts;
+                vm.grid.api.setColumnDefs(buildColumnDefs(result.periodNames));
+                vm.grid.groupAggFields = [ 'laborHours', 'projectBurdenedCost', 'projectRawCost', 'functionalBurdenedCost', 'functionalRawCost','itdPriorToLookbacks', 'inceptionToDate', 'monthToDate', 'yearToDate' ].concat(result.periodNames);
+                var group = vm.grid.columnApi.getColumnGroup(vm.labels.periods);
+                vm.grid.columnApi.columnGroupOpened(group, true);
+                vm.grid.api.setRowData(_.sortBy(result.data, dataSort));
+            }
+
+            function setPaPeriods() {
+                vm.paPeriods = _.chain(vm.data)
+                    .map(function (it) {
+                        return { periodName: it.CostDistLine_PAPeriodName, periodDate: getWeekEnd(it.CostDistLine_PADate) };
+                    })
+                    .uniq(false, function (it) { return it.periodName; })
+                    .sortBy('periodDate')
+                    .value();
+                vm.selectedPeriod = _.last(vm.paPeriods);
+            }
+
+            Object.defineProperty(vm, 'lookbackCount', {
+                get: function () {
+                    return vm._lookbackCount;
+                },
+                set: function (value) {
+                    vm._lookbackCount = parseInt(value);
+                    buildGrid();
+                }
+            });
+
+            Object.defineProperty(vm, 'selectedPeriod', {
+                get: function () {
+                    return vm._selectedPeriod;
+                },
+                set: function (value) {
+                    vm._selectedPeriod = value;
+                    buildGrid();
+                }
+            });
+
+            Object.defineProperty(vm, 'data', {
+                get: function () { return vm._data; },
+                set: function (value) {
+                    vm._data = value;
+                    setPaPeriods();
+                }
+            });
+
+            function onReady() {
+                if (vm.data.length > 0) vm.grid.api.setRowData(vm.data);
+            }
+
+            vm.toggleToolPanel = function (ev) {
+              // var elWrap = $("div.ag-fresh")[0];
+              // elWrap.style.display = 'none';
+               vm.showToolPanel = !vm.showToolPanel;
+               vm.grid.api.showToolPanel(vm.showToolPanel);
+              // elWrap.style.display = '';
+            };
+
+            vm.getWrapWidth = function(){
+              var elWrap = document.querySelector("div#AppBodyHeader")
+                , elSide = document.querySelector("td#sidebarCell")
+                , desiredWidth = elWrap.clientWidth - elWrap.offsetLeft - elSide.offsetWidth
+                , desiredWidthPx =  desiredWidth.toString() + "px";
+              //console.log(elWrap.clientWidth);console.log(elSide.offsetWidth);console.log(desiredWidthPx);
+              return desiredWidthPx;
+            };
+
+
+            vm.toggleColumnGroups = function (expand) {
+               var groups = ['Details', 'Business', 'Cost', 'Periods'];
+               groups = [vm.labels.details,vm.labels.business, vm.labels.cost,vm.labels.periods];
+               groups.forEach(function (name) {
+                   var group = vm.grid.columnApi.getColumnGroup(name);
+                   vm.grid.columnApi.columnGroupOpened(group, expand);
+               });
+            };
+
+            vm.removeRowGroups = function(){
+                var groupedCols = vm.grid.columnApi.getPivotedColumns();
+                for (var i=groupedCols.length;i>0;i--){
+                   vm.grid.columnApi.removePivotColumn(vm.grid.columnApi.getPivotedColumns()[0]);
+                }
+                // getPivotedColumns will be getRowGroupColumns in ag-grid 3 and above
+            }
+
+            vm.exportAll = function(){
+                vm.removeRowGroups();
+                vm.grid.columnApi.hideColumn('project',false)
+                vm.toggleColumnGroups(true);
+                vm.export();
+            }
+
+            vm.export = function() {
+                var params = {
+                    skipHeader: vm.skipHeader === true,
+                    skipFooters: vm.skipFooters === true,
+                    skipGroups: vm.skipGroups === true,
+                    fileName: vm.fileName
+                };
+
+                if (vm.customHeader) {
+                    params.customHeader = '[[[ This ia s sample custom header - so meta data maybe?? ]]]\n';
+                }
+                if (vm.customFooter) {
+                    params.customFooter = '[[[ This ia s sample custom footer - maybe a summary line here?? ]]]\n';
+                }
+
+                vm.grid.api.exportDataAsCsv(params);
+            };
+
+            function formatCostDetails(message, data) {
+                vm.data = data;
+                return;
+                //TODO
+                var angularUIGridData = data;
+                vm.grid.api.setRowData(angularUIGridData);
+                console.log('vm.grid', vm.grid);
+                console.log(angularUIGridData);
+            };
+
+            var displayError = function(message, event){
+                //$(".ag-overlay-loading-center").html('There was an unexpected error. '+ event.message);
+                $(".ag-overlay-loading-center").html('{!JSENCODE($Label.ECOPMDUnexpectedError)}' + ' '+ event.message);
+            };
+
+            function activate() {
+                $timeout(function() {
+                    // set subscribe method
+                    // connect to costdetails service and pass project id
+                    PubSub.subscribe('get-cost-details', formatCostDetails);
+                    PubSub.subscribe('get-cost-details-error', displayError);
+                    CostDetails.getCostDetails(vm.projectId, vm.layout);
+                }, 0);
+            };
+
+            activate();
+        }
+    })();
+</script>
+
+<!-- ADD REVENUE DETAILS -->
+<!-- ADD AR BILLING -->
+
+</apex:component>

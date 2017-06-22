@@ -1,0 +1,4 @@
+<apex:page standardController="ParticipantAcknowledgement__c" renderAs="pdf" showHeader="false" sidebar="false" applyBodyTag="false">
+
+<c:INC_EnrollmentLetterComponent EP="{!ParticipantAcknowledgement__c.ParticipantID__c}" PA="{!ParticipantAcknowledgement__c}" />
+</apex:page>

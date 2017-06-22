@@ -1,0 +1,2 @@
+<apex:page extensions="newOpportunityDepartmentRedirect" standardController="Opportunity_Department__c" action="{!runModify}">
+</apex:page>

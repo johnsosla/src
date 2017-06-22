@@ -1,0 +1,175 @@
+<apex:component controller="INC_ChoseIncentivePlanController" allowdml="true">
+<apex:attribute assignTo="{!fromWizard}" name="fromWizardVal" description="Set for wizard No, Yes" type="String"/>
+<apex:includeScript value="{!$Resource.ECO_jQuery_1_11_2_min_js}"/>
+<apex:includeScript value="{!URLFOR($Resource.ECO_jQueryUI_1_11_2, 'jquery-ui.min.js')}" />
+<script>
+    $j = jQuery.noConflict();
+        function rerenderQuestionSections()
+        {
+            rerenderQuestions();
+        }
+    
+        function selectPlanFromList(planId) {
+            selectPlan(planId);
+            enableNextButton();
+        }
+    </script> 
+    
+    <style>
+    .halfWidthWrapper {
+            width:20%;
+            display:inline-block;
+            float:left;
+    }
+        
+    #results{
+        margin-left:20%;
+        padding-left:20px;
+    }
+    .validicon{
+        height: 32px;
+        width: 32px;
+    }
+    .notvalid{
+        display:none;
+          height: 10px;
+         width: 10px;
+    }
+    #status2{
+        padding-left: 5px;
+        margin-left: 5px;
+        position: absolute;
+    }
+    </style>
+    
+    <apex:actionFunction id="rerenderQuestions" name="rerenderQuestions" rerender="blockpb2, block2"/>
+    <apex:actionFunction id="selectPlan" name="selectPlan" action="{!selectPlanForEnrollment}" rerender="blockpb2, block2">
+        <apex:param id="paramPlanId" name="planId" value="" />
+    </apex:actionFunction>
+
+    <apex:pageMessages />
+    
+    <apex:sectionHeader title="{!$Label.DTWINCCPCIncentive_Plan_Questionnaire}" subtitle="{!$Label.DTWINCCPCEnrollment_Application}" rendered="{!NOT(fromWizard='Yes')}" help="http://my.aecomnet.com/portal/site/Intranet/menuitem.4bb5ad8d27dddb3d13bd6e20c43611ca/?vgnextoid=4699bc2ceae8e410VgnVCM100000089e1bacRCRD&vgnextchannel=c7e1b267a0f9c410VgnVCM100000089e1bacRCRD&vgnextfmt=default"/>
+    <apex:outputPanel rendered="{!fromWizard='Yes'}">
+     
+        <div class="pbSubheader tertiaryPalette"><h3>{!$Label.DTWINCCPCIncentive_Plan_Questionnaire}</h3></div>
+    </apex:outputPanel>
+    <apex:inputHidden value="{!EnrollmentPlan.ProjectGeography__c}"/>
+    <apex:inputHidden value="{!EnrollmentPlan.FPPOverallEligibility_c__c}"/>    
+    <apex:inputHidden value="{!EnrollmentPlan.TMPlanOverallEligibility__c}"/>
+    
+    <apex:pageBlock title="{!$Label.DTWINCCPCIncentive_Plan_Questionnaire}">
+    <apex:pageBlockButtons >
+    <apex:outputPanel id="thepage">
+    
+    <apex:commandButton value="{!$Label.DTWINCCPCSearch_Plans}" action="{!submitQuestionnairre}" />
+    
+    <apex:commandButton value="{!$Label.DTWINCCPCSAVE}" action="{!selectplanforenrollment}" />
+     
+    <apex:commandButton value="{!$Label.DTWINCCPCReturn_To_Application}" action="{!returnHome}" rendered="{!fromWizard='No'}"/>
+    </apex:outputpanel>
+    </apex:pageBlockButtons>
+        
+        <!-- If the project is eligible for more than 1 incentive plan, present a short Q&A Selecting the right incentive plan for your project -->
+        <apex:pageBlockSection columns="1" id="blockpb3">
+         
+            <apex:outputPanel >{!$Label.DTWINCCPCWould_you_like_to_be_Guided_or_Manually_select_an_Incentive_Plan}
+                <apex:actionRegion >
+               
+                <apex:selectRadio layout="lineDirection" value="{!selectedSelectionMethod}" label="{!$Label.DTWINCCPCSelection_Method}" required="true">
+                    <apex:selectOptions value="{!SelectionMethods}"/>
+                    <apex:actionSupport event="onchange" rerender="blockpb3" action="{!manualSelection}"/>
+                </apex:selectRadio>
+                </apex:actionRegion>
+            </apex:outputPanel>     
+                
+            <apex:outputPanel id="block3" rendered="{!selectedSelectionMethod=='Guided'}">
+          
+                <apex:outputLabel value="{!$Label.DTWINCCPCPlease_Answer_the_Following_Questions}" style="font-weight: bold;"/><br/>
+                
+                {!$Label.DTWINCCPCHas_the_contract_been_fully_executed_by_the_client_and_AECOM}<br/>  <!-- If no, Application should not be started until contract is fully executed  -->
+                     
+                <apex:selectRadio layout="lineDirection" value="{!question1Answer}" label="{!$Label.DTWINCCPCQuestion_1}">
+                    <apex:selectOptions value="{!YesNoOptions}"/>
+                </apex:selectRadio>
+                 
+               {!$Label.DTWINCCPCIs_work_on_this_project_performed_by_AECOM_employees_in_multiple_countr}<br/> <!-- (If yes, go to Net Margin form instead of gross margin form) -->
+               
+                <apex:selectRadio layout="lineDirection" value="{!question2Answer}" label="{!$Label.DTWINCCPCQuestion_2}">
+                    <apex:selectOptions value="{!YesNoOptions}"/>
+                </apex:selectRadio>
+                 
+                {!$Label.DTWINCCPCAre_scope_of_work_and_budget_defined}<br/>  <!-- (if no, direct to T&M plan form)  -->
+                
+                <apex:selectRadio layout="lineDirection" value="{!question3Answer}" label="{!$Label.DTWINCCPCQuestion_3}">
+                    <apex:selectOptions value="{!YesNoOptions}"/>
+                </apex:selectRadio>
+               
+                {!$Label.DTWINCCPCDo_contract_provisions_allow_for_the_ability_to_manage_costs}
+                <br/>
+                <ul>
+                
+                   <li>{!$Label.DTWINCCPCGenerally_if_billing_is_done_in_a_Lump_Sum_Milestone_or_complete_ma}</li>
+                <li>
+                 {!$Label.DTWINCCPCA_T_amp_M_w_cap_project_with_billing_based_on_varied_labor}
+                 </li>
+                <li> 
+                {!$Label.DTWINCCPCIf_you_are_unsure_how_to_respond_to_this_question_consult_with_your_Fi}
+                  </li>
+                </ul>
+ <!-- (if no, go to T&M plan form). --> 
+
+                <apex:selectRadio layout="lineDirection" value="{!question4Answer}" label="{!$Label.DTWINCCPCQuestion_4}">
+                    <apex:selectOptions value="{!YesNoOptions}"/>
+                </apex:selectRadio>
+            </apex:outputPanel>
+            
+            <apex:outputPanel rendered="{!availablePlans.size > 0}">
+            <script>
+                $j = jQuery.noConflict();
+                $j(document).ready(function() {
+                $j(".plansClass").click(function() {
+                    selectedBox = this.name;
+                    $j(".plansClass").each(function() {
+                        if ( this.name  == selectedBox )
+                        {
+                            this.checked = true;
+                        }
+                        else
+                        {
+                            this.checked = false;
+                        };        
+                    });
+                });    
+            });
+            </script> 
+                <apex:actionStatus id="planSelect">
+                   <apex:facet name="start">
+                     <img src="/img/waiting_dots.gif" border="0" width="156" height="25"/>
+                   </apex:facet>
+                </apex:actionStatus>
+                
+                <apex:outputLabel value="{!$Label.DTWINCCPCAvailable_Plans}" style="font-weight: bold;"/>
+                <apex:pageBlockTable value="{!availablePlans}" var="plan" columnsWidth="{!if(NOT(fromWizard='Yes'),'75px,80px,10px,100px,417px,95px,425px','75px,80px,10px,100px,417px,95px,425px')}">
+                    <!--<apex:column headervalue=""><apex:commandButton value="Select Plan" onclick="selectPlanFromList('{!plan.Id}'); return false;" rerender="tabs" status="planSelect"/></apex:column>  -->
+                    
+                    <apex:column headerValue="{!$Label.DTWINCCPCSelect}"><apex:inputCheckbox styleClass="plansClass" value="{!plan.Selected}" /></apex:column>
+                    
+                    <apex:column headervalue="{!$Label.DTWINCCPCContract_Type}" value="{!plan.plan.ContractType__c}"></apex:column>
+                   
+                    <apex:column headervalue="{!$Label.DTWINCCPCValid}">
+                        <apex:image styleclass="{!IF(Contains(enrollmentplan.IncentiveProject__r.ContractTypeShortName__c, plan.plan.ContractType__c), 'validicon', 'notvalid')}" value="/img/func_icons/util/checkmark16.gif" id="someImage" width="16" height="16"/>
+                    </apex:column>
+                     
+                    <apex:column headervalue="{!$Label.DTWINCCPCContract_Sub_Type}" value="{!plan.plan.ContractSubType__c}"></apex:column>
+                     
+                    <apex:column headervalue="{!$Label.DTWINCCPCValid}" value="{!plan.translatedPlanCriteria}"></apex:column>
+                    
+                    <apex:column headervalue="{!$Label.DTWINCCPCGeography}" value="{!plan.plan.GeographyAllocation__c}"></apex:column>
+                    
+                    <apex:column headervalue="{!$Label.DTWINCCPCHelp_Text}" value="{!plan.translatedHelpText}"></apex:column>
+                </apex:pageBlockTable>
+            </apex:outputPanel>
+        </apex:pageBlockSection>
+    </apex:pageBlock>
+</apex:component>

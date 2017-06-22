@@ -1,0 +1,19 @@
+<apex:component language="{!theLanguage}" controller="nttdcore.DLabelChildController" access="global" ><apex:attribute name="theLanguage" type="String" required="true" description="language" access="global" /><apex:attribute name="theRecipient" type="User" required="true" description="recipient" access="global" /><apex:attribute name="theRelatedTo" type="SharedServicesRequest__c" required="true" description="related to" access="global" />
+    <apex:outputpanel ><nttdcore:DLabel name="DL1" default="The following request for Global Business Services has been rejected:" labelParent="{!this}" componentContext="EcoGBSRequestRejected_VF_1" /><nttdcore:DLabel name="DL7" default="If you have any questions regarding the rejection, please contact the approver listed on the request form." labelParent="{!this}" componentContext="EcoGBSRequestRejected_VF_1" />
+        {!dlRoot.dLabel['DL1']}  
+        <br/>
+        <br/>
+        <b><nttdcore:DLabel name="DL2" default="Record Type:" labelParent="{!this}" componentContext="EcoGBSRequestRejected_VF_1" />{!dlRoot.dLabel['DL2']}</b> {!theRelatedTo.RecordType.Name}
+        <br/>
+        <b><nttdcore:DLabel name="DL3" default="Request No.:" labelParent="{!this}" componentContext="EcoGBSRequestRejected_VF_1" />{!dlRoot.dLabel['DL3']}</b> {!theRelatedTo.Name}
+        <br/>
+        <b><nttdcore:DLabel name="DL4" default="Requested By:" labelParent="{!this}" componentContext="EcoGBSRequestRejected_VF_1" />{!dlRoot.dLabel['DL4']}</b> {!theRelatedTo.Requestor__r.Name}
+        <br/>
+        <b><nttdcore:DLabel name="DL5" default="Client/Vendor Name:" labelParent="{!this}" componentContext="EcoGBSRequestRejected_VF_1" />{!dlRoot.dLabel['DL5']}</b>{!theRelatedTo.CustomerName__c} 
+        <br/>
+        <b><nttdcore:DLabel name="DL6" default="Operating Unit:" labelParent="{!this}" componentContext="EcoGBSRequestRejected_VF_1" />{!dlRoot.dLabel['DL6']}</b>{!theRelatedTo.OUName__c} 
+        <br/>
+        <br/>
+        {!dlRoot.dLabel['DL7']}    
+    </apex:outputpanel>
+<nttdcore:DLabelInit language="{!theLanguage}" labelParentInit="{!this}" /></apex:component>

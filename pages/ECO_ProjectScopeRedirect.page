@@ -1,0 +1,3 @@
+<apex:page standardController="Packages__c" extensions="ECO_ProjectScopeRedirectController" action="{!redirect}" >
+
+</apex:page>

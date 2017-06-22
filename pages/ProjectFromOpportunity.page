@@ -1,0 +1,79 @@
+<apex:page standardController="Opportunity" extensions="ProjectOpportunityExtension" title="Create Project from Opportunity">
+
+<style>
+	.newVal {
+		color: blue;
+	}
+</style>
+<apex:sectionHeader title="Create Project from Opportunity" subtitle="New Project {!project.Name}"/>
+
+<apex:pageMessages />
+
+<apex:form >
+<apex:pageBlock mode="maindetail" rendered="{!AND(validOpportunity, NOT(projectExists) )}">
+	<apex:pageBlockButtons >
+		<apex:commandButton action="{!saveProject}" value="Create Project"/>
+		<apex:commandLink action="{!cancel}" value="Cancel"/>
+	</apex:pageBlockButtons>
+	
+	<apex:pageBlockSection columns="2">
+		<apex:pageBlockSectionItem ><br/><apex:outputLabel style="font-weight:bold;" value="Opportunity"/></apex:pageBlockSectionItem>
+		<apex:pageBlockSectionItem ><apex:outputLabel style="font-weight:bold;" value="==>"/><apex:outputLabel style="font-weight:bold;" value="Project"/></apex:pageBlockSectionItem>
+		<apex:outputField value="{!opportunity.RecordTypeId}"/>
+		<apex:outputField value="{!project.RecordTypeId}" label="==>"/> 
+		
+		<apex:pageBlockSectionItem rendered="{!project.RecordType.Name=='Task Order'}"/>
+		<apex:inputField value="{!project.Program_Master_Contract_Name__c}" required="true" rendered="{!project.RecordType.Name=='Task Order'}"/>
+		
+		<apex:repeat value="{!fieldMap}" var="fld">
+			<apex:outputField value="{!opp[fld.Name]}" label="{!$ObjectType['Opportunity'].Fields[fld.Name].Label}"/>
+			<apex:pageBlockSectionItem >
+				<apex:outputLabel value="==>"/>
+				<apex:outputPanel >
+					<apex:outputField styleClass="newVal" value="{!project[fld.Project_Field_Name__c]}"/>
+				</apex:outputPanel>
+				
+			</apex:pageBlockSectionItem>
+			
+		</apex:repeat>		
+	</apex:pageBlockSection>
+	
+	<apex:pageBlockTable value="{!stateList}" var="st">
+		<apex:column value="{!st.Project_StateProvEmirate__r.State__c}"/>
+		<apex:column value="{!st.Project_StateProvEmirate__r.Country__c}"/>
+	</apex:pageBlockTable>
+	
+	<apex:pageBlockTable value="{!prAccounts}" var="pr">
+		<apex:column value="{!pr.PR_Accts__c}"/>
+		<apex:column value="{!pr.PR_Account_Role__c}"/>
+	</apex:pageBlockTable>
+	
+</apex:pageBlock>
+
+<apex:outputPanel rendered="{!NOT(validOpportunity)}">
+	<apex:pageMessage summary="Opportunity Stage 5B or 6 is required before creating a Project" severity="error" strength="3" />
+	<apex:pageBlock mode="maindetail">
+		<apex:pageBlockButtons location="bottom">
+			<apex:commandLink action="{!cancel}" value="Go Back"/>
+		</apex:pageBlockButtons>
+
+	</apex:pageBlock>
+</apex:outputPanel>
+
+<apex:outputPanel rendered="{!projectExists}">
+	<apex:pageMessage summary="A project already exists for this Opportunity or with the same project number" severity="error" strength="3" />
+	<apex:pageBlock mode="maindetail">
+		<apex:pageBlockButtons location="bottom">
+			<apex:commandButton action="{!'/' + project.ID}" value="Open Project"/>
+			<apex:commandLink action="{!cancel}" value="Cancel"/>
+		</apex:pageBlockButtons>
+		<apex:pageBlockSection columns="1">
+			<apex:outputField value="{!project.Name}"/>
+		</apex:pageBlockSection>
+	</apex:pageBlock>
+</apex:outputPanel>
+
+
+
+</apex:form>
+</apex:page>

@@ -1,0 +1,60 @@
+<apex:component allowDML="true" controller="rsAdministrationNotesController">
+    <apex:attribute name="rsProfile" description="" assignTo="{!profile}" type="rsProfile" required="true"/>
+    <apex:attribute name="reRender" description="" type="String" required="false" />
+
+    <div class="panel panel-default">
+            <div class="panel-heading clearfix">
+                <h5 class="panel-title has-spinner" id="adminNotesHeader"><img height="15" width="15" class="spinner" src="{!URLFOR($Resource.rs_bundle, '/images/loading.gif')}" alt="loading" title="loading"/></h5>
+                <apex:commandLink rendered="{!IsListMode && canEdit}" value="" styleClass="pull-right {!IF(canEdit, '','disabled')}" reRender="{!reRender}" action="{!editPart}" onclick="if(inProgress) return false; showSectionSpinner('adminNotesHeader'); inProgress = true;" oncomplete="resetProgress(); focusField('miscNotesEdit');">
+                    <img src="/img/func_icons/util/pencil12.gif" alt="{!$Label.Edit}" title="{!$Label.Edit}"/>
+                </apex:commandLink>
+            </div>
+
+            <div class="panel-body">
+                <table width="100%">
+                    <apex:outputPanel layout="none" rendered="{!IsContentManager}">
+                        <tr>
+                            <td style="border-top:none;">
+                                <h5>
+                                    <apex:outputLabel value="{!$ObjectType['User'].fields['rs_Miscellaneous_Notes__c'].Label}"/>
+                                </h5>
+                                <br/>
+                                <apex:inputTextarea readonly="{!!IsEditMode}" rows="5" value="{!Profile.MiscellaneousNotes}" id="miscNotesEdit" styleClass="aecom-input"/>
+                            </td>
+                        </tr>
+                    </apex:outputPanel>
+                    <tr>
+                        <td>
+                            <h5>
+                                <apex:outputLabel value="{!$ObjectType['User'].fields['rs_Note_To_User__c'].Label}"/>
+                            </h5>
+                            <br/>
+                            <apex:inputTextarea readonly="{!!IsEditMode}" rows="5" value="{!Profile.NoteToUser}" styleClass="aecom-input"/>
+                        </td>
+                    </tr>
+                    <apex:outputPanel layout="none" rendered="{!IsContentManager}">
+                        <tr>
+                            <td>
+                                <h5>
+                                    <apex:outputLabel value="{!$ObjectType['User'].fields['rs_Note_To_Employee__c'].Label}"/>
+                                </h5><br/>
+                                <apex:inputTextarea readonly="{!!IsEditMode}" rows="5" value="{!Profile.NoteToEmployee}" styleClass="aecom-input"/>
+                            </td>
+                        </tr>
+                    </apex:outputPanel>
+                </table>
+
+                <br/>
+
+                <div class="col-md-4 text-center">
+                    <apex:commandLink action="{!savePart}" value="{!$Label.Save}" reRender="{!reRender}" styleClass="btn brandStyledBtn" onclick="if(inProgress) return false; showSectionSpinner('adminNotesHeader'); inProgress = true;" oncomplete="resetProgress();" rendered="{!IsEditMode}">
+                        <span class="glyphicon glyphicon-ok-circle" />
+                    </apex:commandLink>
+                    <apex:commandLink action="{!cancelPart}" value="{!$Label.Cancel}" reRender="{!reRender}" styleClass="btn btn--neutral" onclick="if(inProgress) return false; showSectionSpinner('adminNotesHeader'); inProgress = true;" oncomplete="resetProgress();" rendered="{!IsEditMode}">
+                        <span class="glyphicon glyphicon-remove-circle" />
+                    </apex:commandLink>
+                </div>
+            </div>
+        </div>
+
+</apex:component>

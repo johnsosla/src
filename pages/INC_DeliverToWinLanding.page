@@ -1,0 +1,314 @@
+<apex:page controller="INC_DeliverToWinLandingController">
+
+    <style type="text/css">
+        .clearfix:after { 
+           content: " ";
+           display: block; 
+           height: 0; 
+           clear: both;
+        }
+        .verticalAlign {
+          position: relative;
+          top: 50%;
+          transform: translateY(-50%);
+        }
+    </style>
+
+    <apex:form >
+        <apex:outputPanel id="all">
+            <apex:outputPanel id="landingpage" rendered="{!AND(!bMore, !bMoreProj, !bMoreAck)}">
+
+                <div class="clearfix" style="background-color: #1ebdec; width: 1000px; height: 200px">
+                    <div style="float: left">
+                        <apex:image id="theImage" value="{!$Resource.INC_LandingPageBanner_Left}" height="200" />
+                    </div>
+
+                    <div style="float: left; height: 200px; color: #fff">
+                        <div style="margin-left: 50px; font-size: 5em" class="verticalAlign">
+                            {!$Label.DTWNPWBHC6}
+                        </div>
+                    </div>
+
+                </div>
+                <br/><br/>
+              
+                <apex:pageBlock title="{!$Label.DTWINCDTWLWorkflow}" rendered="{!lstApprovalItemShort.size > 0}">
+                    <apex:pageBlockButtons location="top">
+                        <apex:commandButton value="{!$Label.DTWINCDTWLManageAll}" action="{!more}" reRender="all"/>
+                    </apex:pageBlockButtons>
+
+                            <apex:pageBlockTable value="{!lstApprovalItemShort}" var="item">
+                                <apex:column >
+                               
+                                    <apex:facet name="header">{!$Label.DTWINCDTWLName} </apex:facet>
+                                    <apex:outputLink value="/{!item.objectId}">{!item.name}</apex:outputLink>
+                                </apex:column>
+                                <apex:column >
+                                
+                                    <apex:facet name="header">{!$Label.DTWINCDTWLProjectNumber}</apex:facet>
+                                    <apex:outputText value="{!item.projectNum}" />
+                                </apex:column>
+                                <apex:column >
+                                
+                                    <apex:facet name="header">{!$Label.DTWINCDTWLFormOwner}</apex:facet>
+                                    <apex:outputText value="{!item.oEP.WorkflowOwner__c}" />
+                                </apex:column>
+                                <apex:column >
+                               
+                                    <apex:facet name="header">{!$Label.DTWINCDTWLGrossRevenueBacklog}</apex:facet>
+                                    <apex:outputField value="{!item.oEP.IncentiveProject__r.GRBacklog__c}"/>
+                                </apex:column>
+                                <apex:column >
+                                
+                                    <apex:facet name="header">{!$Label.DTWINCDTWLType} </apex:facet>
+                                    <apex:outputText value="{!item.Type}" />
+                                </apex:column>
+                                <apex:column >
+                                
+                                    <apex:facet name="header">{!$Label.DTWINCDTWLFormStatusAge}</apex:facet>
+                                    <apex:outputText value="{!item.formstatusage}" />
+                                </apex:column>
+                                <apex:column >
+                                
+                                    <apex:facet name="header">{!$Label.DTWINCDTWLStatus} </apex:facet>
+                                    <apex:outputText value="{!item.status}" />
+                                </apex:column>
+
+
+                            </apex:pageBlockTable>      
+                </apex:pageBlock>
+               
+                <apex:pageBlock title="{!$Label.DTWINCDTWLAcknowledgements}" rendered="{!lstApprovalItemShortPA.size > 0}">
+                    <apex:pageBlockButtons location="top">
+                     
+                        <apex:commandButton value="{!$Label.DTWINCDTWLManageAll}" action="{!moreAck}" reRender="all"/>
+                    </apex:pageBlockButtons>
+
+                            <apex:pageBlockTable value="{!lstApprovalItemShortPA}" var="item">
+                                <apex:column >
+                                
+                                    <apex:facet name="header">{!$Label.DTWINCDTWLName}</apex:facet>
+                                    <apex:outputLink value="/{!item.objectId}">{!item.name}</apex:outputLink>
+                                </apex:column>
+                                <apex:column >
+                                
+                                    <apex:facet name="header">{!$Label.DTWINCDTWLProjectNumber} </apex:facet>
+                                    <apex:outputText value="{!item.projectNum}" />
+                                </apex:column>
+                                <apex:column >
+                                 
+                                    <apex:facet name="header">{!$Label.DTWINCDTWLType}</apex:facet>
+                                    <apex:outputText value="{!item.Type}" />
+                                </apex:column>
+                                <apex:column >
+                               
+                                    <apex:facet name="header">{!$Label.DTWINCDTWLSubmittedDate}</apex:facet>
+                                    <apex:outputText value="{0,date,dd/MM/yyyy}" >
+                                        <apex:param value="{!item.submitDate}" />
+                                    </apex:outputText>
+                                </apex:column>
+                                <apex:column >
+                                
+                                    <apex:facet name="header">{!$Label.DTWINCDTWLStatus}</apex:facet>
+                                    <apex:outputText value="{!item.status}" />
+                                </apex:column>
+                                <apex:column >
+                              
+                                    <apex:facet name="header">{!$Label.DTWINCDTWLLastApprover}</apex:facet>
+                                    <apex:outputText value="{!item.lastActor}" />
+                                </apex:column>
+
+                            </apex:pageBlockTable>      
+                </apex:pageBlock>
+
+
+                <table width="100%">
+                    <tr width="100%">
+                    <td width="70%">
+                   
+                        <apex:pageBlock title="{!$Label.DTWINCDTWLMyEnrolledProjects}">
+                            <apex:pageBlockButtons location="top">
+                            
+                                <apex:commandButton value="{!$Label.DTWINCDTWLManageAll}" action="{!moreproj}" reRender="all"/>
+                            </apex:pageBlockButtons>
+                            <apex:pageBlockTable value="{!lstIPShort}" var="proj">
+                                <apex:repeat value="{!$ObjectType.IncentiveProject__c.FieldSets.LandingPageDisplay}" var="field">
+                                    <apex:column >
+                                   
+                                        <apex:facet name="{!$label.DTWINCDTWLheader}">{!field.label}</apex:facet>
+                                        <apex:outputField value="{!proj[field]}" rendered="{!field != 'Name'}" />
+                                        <!--<apex:outputLink value="/{!proj.id}" rendered="{!field == 'Name'}">{!proj[field]}</apex:outputLink>-->
+                                        <apex:outputPanel rendered="{!field == 'Name'}">
+                                            <apex:outputLink value="/apex/INC_ShowEnrollmentMetrics?id={!proj.EnrollmentPlan__c}&loc=3">{!proj[field]}</apex:outputLink>
+                                    </apex:outputPanel>
+                                    </apex:column>
+                                </apex:repeat>
+
+                            </apex:pageBlockTable>
+                        </apex:pageBlock>
+
+                    </td>
+                    <td width="30%">
+                    
+                        <apex:pageBlock title="{!$Label.DTWINCDTWLResources} ">
+
+                        <ul>
+                            <apex:repeat value="{!lstResources}" var="res">
+                                <li><apex:outputLink value="{!res.Link__c}">{!res.name}</apex:outputLink></li>
+                            </apex:repeat>
+                        </ul>
+
+                        </apex:pageBlock>
+
+                        <br/><br/>
+                        <center>
+                        
+                            <apex:commandButton action="/apex/INC_IncentiveSearch" value="{!$Label.DTWINCDTWLProjectSearch}" />
+                        </center>
+                    </td>
+                    </tr>
+                </table>
+         
+                <apex:pageBlock title="{!$Label.DTWINCDTWLDashboard}">
+                    <table>
+                    <apex:repeat value="{!lstCharts}" var="chart">                        
+                        <tr>
+                            <td><analytics:reportChart size="medium" ReportId="{!chart.Col_1_Chart__c}" showRefreshButton="true"/></td>
+                            <td><analytics:reportChart size="medium" ReportId="{!chart.Col_2_Chart__c}" showRefreshButton="true"/></td>
+                        </tr>
+                        <tr>
+                            <td><analytics:reportChart size="medium" ReportId="{!chart.Col_3_Chart__c}" showRefreshButton="true"/></td>
+                            <td><analytics:reportChart size="medium" ReportId="{!chart.Col_4_Chart__c}" showRefreshButton="true"/></td>
+                        </tr>                        
+                    </apex:repeat>
+                    </table>
+                </apex:pageBlock>
+
+            </apex:outputPanel>
+            <apex:outputPanel id="more" rendered="{!bMore}">
+           
+                <apex:pageBlock title="{!$Label.DTWINCDTWLWorkflow} ">
+                    <apex:pageBlockButtons location="top">
+                    
+                        <apex:commandButton value="{!$Label.DTWINCDTWLBack}" action="{!less}" reRender="all"/>
+                    </apex:pageBlockButtons>    
+
+                            <apex:pageBlockTable value="{!lstApprovalItem}" var="item">
+                                <apex:column >
+                                
+                                    <apex:facet name="header">{!$Label.DTWINCDTWLName}</apex:facet>
+                                    <apex:outputLink value="/{!item.objectId}">{!item.name}</apex:outputLink>
+                                </apex:column>
+                                <apex:column >
+                               
+                                    <apex:facet name="header">{!$Label.DTWINCDTWLProjectNumber} </apex:facet>
+                                    <apex:outputText value="{!item.projectNum}" />
+                                </apex:column>
+                                <apex:column >
+                                
+                                    <apex:facet name="header">{!$Label.DTWINCDTWLFormOwner}</apex:facet>
+                                    <apex:outputText value="{!item.oEP.WorkflowOwner__c}" />
+                                </apex:column>
+                                <apex:column >
+                               
+                                    <apex:facet name="header">{!$Label.DTWINCDTWLFormGrossRevenueBacklog}</apex:facet>
+                                    <apex:outputField value="{!item.oEP.IncentiveProject__r.GRBacklog__c}"/>
+                                </apex:column>
+                                <apex:column >
+                               
+                                    <apex:facet name="header">{!$Label.DTWINCDTWLFormType} </apex:facet>
+                                    <apex:outputText value="{!item.Type}" />
+                                </apex:column>
+                                <apex:column >
+                               
+                                    <apex:facet name="header">{!$Label.DTWINCDTWLFormStatusAge}</apex:facet>
+                                    <apex:outputText value="{!item.formstatusage}" />
+                                </apex:column>
+                                <apex:column >
+                               
+                                    <apex:facet name="header">{!$Label.DTWINCDTWLStatus}</apex:facet>
+                                    <apex:outputText value="{!item.status}" />
+                                </apex:column>
+
+                            </apex:pageBlockTable>  
+
+
+                </apex:pageBlock>
+
+            </apex:outputPanel>
+            <apex:outputPanel rendered="{!bMoreAck}">
+              
+                <apex:pageBlock title="{!$Label.DTWINCDTWLAcknowledgements}">
+                    <apex:pageBlockButtons location="top">
+                    
+                        <apex:commandButton value="{!$Label.DTWINCDTWLBack}" action="{!lessAck}" reRender="all"/>
+                    </apex:pageBlockButtons>    
+
+                            <apex:pageBlockTable value="{!lstApprovalItemPA}" var="item">
+                                <apex:column >
+                                 
+                                    <apex:facet name="header">{!$Label.DTWINCDTWLName} </apex:facet>
+                                    <apex:outputLink value="/{!item.objectId}">{!item.name}</apex:outputLink>
+                                </apex:column>
+                                <apex:column >
+                                 
+                                    <apex:facet name="header">{!$Label.DTWINCDTWLProjectNumber}</apex:facet>
+                                    <apex:outputText value="{!item.projectNum}" />
+                                </apex:column>
+                                <apex:column >
+                                
+                                    <apex:facet name="header">{!$Label.DTWINCDTWLType}</apex:facet>
+                                    <apex:outputText value="{!item.Type}" />
+                                </apex:column>
+                                <apex:column >
+                                
+                                    <apex:facet name="header">{!$Label.DTWINCDTWLSubmittedDate}</apex:facet>
+                                    <apex:outputText value="{0,date,dd/MM/yyyy}" >
+                                        <apex:param value="{!item.submitDate}" />
+                                    </apex:outputText>
+                                </apex:column>
+                                <apex:column >
+                               
+                                    <apex:facet name="header">{!$Label.DTWINCDTWLStatus}</apex:facet>
+                                    <apex:outputText value="{!item.status}" />
+                                </apex:column>
+                                <apex:column >
+                                
+                                    <apex:facet name="header">{!$Label.DTWINCDTWLLastApprover}</apex:facet>
+                                    <apex:outputText value="{!item.lastActor}" />
+                                </apex:column>
+
+                            </apex:pageBlockTable>  
+
+
+                </apex:pageBlock>
+
+            </apex:outputPanel>
+            <apex:outputPanel rendered="{!bMoreProj}">
+            
+                <apex:pageBlock title="{!$Label.DTWINCDTWLMyEnrolledProjects}">
+                    <apex:pageBlockButtons location="top">
+                  
+                        <apex:commandButton value="{!$Label.DTWINCDTWLBack}" action="{!lessproj}" reRender="all"/>
+                    </apex:pageBlockButtons>
+
+                    <apex:pageBlockTable value="{!lstIP}" var="proj">
+                        <apex:repeat value="{!$ObjectType.IncentiveProject__c.FieldSets.LandingPageDisplay}" var="field">
+                            <apex:column >
+                                <apex:facet name="header">{!field.label}</apex:facet>
+                                <apex:outputField value="{!proj[field]}" rendered="{!field != 'Name'}" />
+                                <apex:outputPanel rendered="{!field == 'Name'}">
+                                    <apex:outputLink value="/apex/INC_ShowEnrollmentMetrics?id={!proj.EnrollmentPlan__c}&loc=3">{!proj[field]}</apex:outputLink>
+                                </apex:outputPanel>
+                            </apex:column>
+                        </apex:repeat>
+
+                    </apex:pageBlockTable>
+                </apex:pageBlock>
+
+            </apex:outputPanel>
+        </apex:outputPanel>
+    </apex:form>
+
+
+</apex:page>

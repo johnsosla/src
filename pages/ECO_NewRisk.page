@@ -1,0 +1,7 @@
+<apex:page standardController="Risk__c">
+    <apex:detail subject="{!Risk__c.Id}" relatedList="false" title="true" inlineEdit="true"/>
+    <apex:form >
+        <apex:inputField value="{!Risk__c.Name}"/>
+    </apex:form>
+    
+</apex:page>

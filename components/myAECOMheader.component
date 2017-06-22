@@ -1,0 +1,249 @@
+<apex:component >
+    <link href="{!URLFOR($Resource.Service_Catalog_Main,'ServicesCatalog/css/page_formats.css')}" rel="stylesheet" type="text/css" media="screen" />
+    <link href="{!URLFOR($Resource.Service_Catalog_Main,'ServicesCatalog/css/navigation.css')}" rel="stylesheet" type="text/css" media="screen" />
+    <link href="{!URLFOR($Resource.Service_Catalog_Main,'ServicesCatalog/css/style_general.css')}" rel="stylesheet" type="text/css" media="screen" />
+    <link href="{!URLFOR($Resource.Service_Catalog_Main,'ServicesCatalog/css/print.css')}" rel="stylesheet" type="text/css" media="print" />
+    
+                        <div id="head" class="clearfix">
+                            <a name="top" id="top"></a>
+                            <div id="util" class="clearfix">
+                                <!-- begin site control area -->
+                                <script type="text/javascript">
+    function submitIntranetSearchForm(searchForm){
+        if (document.getElementById("iframe.search_terms").value != "") {
+            buildIntranetKeywordFields();
+            document.intranetSearch.submit();
+        }
+        else {
+            alert("Keyword is required to perform a search.");
+            return false;
+        }
+    }
+
+    function submitPeopleSearchForm(searchForm){
+        if (document.getElementById("iframe.strSearch").value != "") {
+            document.peopSearch.submit();
+        }
+        else {
+            alert("Keyword is required to perform a search.");
+            return false;
+        }
+    }
+
+    function buildIntranetKeywordFields(){
+        var could_contain = 'OPERATOR_COULD_CONTAIN';
+        var could_contain_phrase = 'OPERATOR_COULD_CONTAIN_PHRASE';
+        var delimiter = '|';
+
+        var keyword = document.getElementById("iframe.search_terms").value;
+
+        var restriction = could_contain;
+        if (keyword.indexOf('"') == 0 && keyword.length > 1 && keyword.indexOf('"',1) == keyword.length - 1){
+            //it is a phrase
+            restriction = could_contain_phrase;
+            keyword = keyword.substring(1,keyword.length-1);
+        }
+        document.getElementById("iframe.hdn_keywords").value = restriction + delimiter + keyword;
+    }
+                                </script>
+                           <div id="headContainer">     
+                                <ul class="floatRight">
+                                    <li><a href="http://www.aecom.com" target="_blank">www.aecom.com</a></li>
+                                    <li class="search">
+                                        <!-- Begin Modification by AP on 05/11/2010 -->
+                                        <form id="peopSearch" name="peopSearch" action="https://aecom--c.na13.visual.force.com/apex/rsSearchResumes" method="get">
+                                            <table>
+                                                <tr>
+                                                    <td>
+                                                        <input name="query" type="text" class="searchtext" value="People" onfocus="javascript:this.value=''" />
+                                                    </td>
+                                                    <td>
+                                                        <input name="btnPeopSearch" id="btnPeopSearch" class="srchBtn" type="submit" value="Go" onclick="submitPeopleSearchForm(this.form)" onkeypress="if(event.keyCode==13){submitIntranetSearchForm(this.form);return false;}" />
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </form>
+                                        <!-- End Modification by AP on 05/11/2010 -->
+                                    </li>
+                                    <li class="search">
+                                        <form id="intranetSearch" name="intranetSearch" action="http://my.aecomnet.com/portal/site/Intranet/advancedsearchresults/" method="post">
+                                            <table>
+                                                <tr>
+                                                    <td>
+                                                        <input type="hidden" name="iframe.hdn_keywords" id="iframe.hdn_keywords" />
+                                                        <input type="hidden" name="iframe.hdn_languages" id="iframe.hdn_languages" value="en_US" />
+                                                        <input type="hidden" name="iframe.hdn_locale" id="iframe.hdn_locale" value="en_US" />
+                                                        <input name="iframe.search_terms" id="iframe.search_terms" type="text" class="searchtext" value="Intranet" onfocus="javascript:this.value=''" onkeypress="if(event.keyCode==13){submitIntranetSearchForm(this.form);return false;}" />
+                                                    </td>
+                                                    <td>
+                                                        <input name="btnIntranetSearch" id="btnIntranetSearch" class="srchBtn" type="button" value="Go" onclick="submitIntranetSearchForm(this.form);" />
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </form>
+                                    </li>
+                                    <li><a href="http://my.aecomnet.com/portal/site/Intranet/advancedsearch/">Advanced Search</a></li>
+                                    <li> <a style="position:absolute; top:0; right:-24px; width:12px; height:12px; padding:0px; margin:0px; border:0px;" href="http://intranet.aecomnet.com/administration/" target="_blank"></a> </li>
+                                </ul>
+                                <!-- end site control area -->
+                            </div>
+                        </div>
+                        <div id="corpId"><a href="http://my.aecomnet.com/">
+                        <img id="intranetLogo" src="{!URLFOR($Resource.Service_Catalog_Main,'ServicesCatalog/images/intranetLogo.gif')}" alt="AECOM Intranet" name="intranetLogo" width="228" height="35" border="0" /></a>
+                        <img id="printLogo" src="{!URLFOR($Resource.Service_Catalog_Main,'ServicesCatalog/images/AECOM_logo_bk.gif')}" alt="AECOM logo" width="86" height="50"></img><a href="http://www.aecom.com" target="_blank">
+                        <img id="corpLogo" src="{!URLFOR($Resource.Service_Catalog_Main,'ServicesCatalog/images/aecomCorpLogo.gif')}" alt="AECOM Intranet" name="intranetLogo" width="118" height="35" border="0"></img></a></div>
+                        <div id="navigation" class="clearfix">
+                            <!-- begin horizontal nav area -->
+                            <ul id="globalNav" class="clearfix">
+                                <li class="topNav">
+                                    <a href="http://my.aecomnet.com/Intranet/Employee">Employee</a>
+                                    <ul>
+                                        <li><a href="http://my.aecomnet.com/Intranet/Employee/Benefits">Benefits</a></li>
+                                        <li><a href="http://my.aecomnet.com/Intranet/Employee/Career+development">Career development</a></li>
+                                        <li><a href="http://my.aecomnet.com/Intranet/Employee/Expenses">Expenses</a></li>
+                                        <li><a href="http://my.aecomnet.com/Intranet/About/Manager+Resource+Center">Manager communications</a></li>
+                                        <li><a href="http://my.aecomnet.com/Intranet/Employee/New+hire+orientation">New hire orientation</a></li>
+                                        <li><a href="http://my.aecomnet.com/Intranet/Employee/Pay">Pay</a></li>
+                                        <li><a href="http://my.aecomnet.com/Intranet/Employee/Recruitment">Recruitment</a></li>
+                                        <li><a href="http://my.aecomnet.com/Intranet/Employee/Time+off+and+leave">Time off and leave</a></li>
+                                        <li><a href="http://my.aecomnet.com/Intranet/Employee/Timesheets">Timesheets</a></li>
+                                    </ul>
+                                </li>
+                                <li class="topNav">
+                                    <a href="http://my.aecomnet.com/Intranet/Projects+and+clients">Projects and clients</a>
+                                    <ul>
+                                        <li><a href="http://my.aecomnet.com/Intranet/Projects+and+clients/Business+development">Business development</a></li>
+                                        <li><a href="http://my.aecomnet.com/Intranet/Projects+and+clients/Project+delivery+and+management">Project delivery and management</a></li>
+                                        <li><a href="http://my.aecomnet.com/Intranet/Projects+and+clients/Quality">Quality</a></li>
+                                        <li><a href="http://my.aecomnet.com/Intranet/Projects+and+clients/Risk+and+legal">Risk and legal</a></li>
+                                        <li><a href="http://my.aecomnet.com/Intranet/Projects+and+clients/Safety">Safety</a></li>
+                                    </ul>
+                                </li>
+                                <li class="topNav">
+                                    <a href="http://my.aecomnet.com/Intranet/Knowledge+and+training">Knowledge and training</a>
+                                    <ul>
+                                        <li><a href="http://my.aecomnet.com/Intranet/Knowledge+and+training/Knowledge+sharing">Knowledge sharing</a></li>
+                                        <li><a href="http://my.aecomnet.com/Intranet/Knowledge+and+training/Reference">Reference</a></li>
+                                        <li><a href="http://sharepoint.aecomnet.com/tpn/home">Technical Practice Network</a></li>
+                                        <li><a href="http://my.aecomnet.com/Intranet/Knowledge+and+training/Training+and+development">Training and development</a></li>
+                                    </ul>
+                                </li>
+                                <li class="topNav">
+                                    <a href="http://my.aecomnet.com/Intranet/Company">Company</a>
+                                    <ul>
+                                        <li><a href="http://my.aecomnet.com/Intranet/Company/Awards+and+recognition">Awards and recognition</a></li>
+                                        <li><a href="http://my.aecomnet.com/Intranet/AECOM+Corporate/Brand+Marketing+Center">Brand and marketing</a></li>
+                                        <li><a href="http://my.aecomnet.com/Intranet/Company/Business+structure">Business structure</a></li>
+                                        <li><a href="http://my.aecomnet.com/Intranet/Company/Meetings+and+conferencing">Meetings and conferencing</a></li>
+                                        <li><a href="http://my.aecomnet.com/Intranet/Company/Leadership+and+initiatives">Leadership and initiatives</a></li>
+                                        <li><a href="http://my.aecomnet.com/Intranet/Company/Offices+and+contacts">Offices and contacts</a></li>
+                                        <li><a href="http://my.aecomnet.com/Intranet/Company/News+and+events">News and events</a></li>
+                                        <li><a href="http://my.aecomnet.com/Intranet/Company/Policies+and+values">Policies and values</a></li>
+                                        <li><a href="http://my.aecomnet.com/Intranet/Company/Social+Responsibility+and+Sustainability">Social responsibility and sustainability</a></li>
+                                    </ul>
+                                </li>
+                                <li class="topNav">
+                                    <a href="#">Departments</a>
+                                    <ul>
+                                        <li><a href="http://my.aecomnet.com/Intranet/AECOM+Corporate/Corporate+Communications">Corporate Communications</a></li>
+                                        <li><a href="http://my.aecomnet.com/Intranet/About/Social+Responsibility">Corporate Social Responsibility</a></li>
+                                        <li><a href="http://my.aecomnet.com/Intranet/About/Delivery+Excellence">Delivery Excellence </a></li>
+                                        <li><a href="http://my.aecomnet.com/Intranet/AECOM+Corporate/Ethics+and+Compliance">Ethics + Compliance</a></li>
+                                        <li><a href="http://my.aecomnet.com/Intranet/AECOM+Corporate/Finance">Finance + Accounting</a></li>
+                                        <li><a href="http://my.aecomnet.com/Intranet/AECOM+Corporate/Global+Resilience+Group">Global Resilience Group</a></li>
+                                        <li><a href="http://my.aecomnet.com/Intranet/AECOM+Corporate/Human+Resources">Human Resources</a></li>
+                                        <li><a href="http://my.aecomnet.com/Intranet/Support/Technology">Information Technology</a></li>
+                                        <li><a href="http://my.aecomnet.com/Intranet/AECOM+Corporate/Insurance">Insurance</a></li>
+                                        <li><a href="http://my.aecomnet.com/Intranet/About/Office+of+Innovation">Office of Innovation</a></li>
+                                        <li><a href="http://my.aecomnet.com/Intranet/AECOM+Corporate/Office+of+Risk+Management">Office of Risk Management</a></li>
+                                        <li><a href="http://my.aecomnet.com/Intranet/AECOM+Corporate/Procurement+Travel+and+Real+Estate/Functions/Procurement">Procurement</a></li>
+                                        <li><a href="http://my.aecomnet.com/Intranet/AECOM+Corporate/Procurement+Travel+and+Real+Estate/Functions/Real+Estate">Real Estate Services</a></li>
+                                        <li><a href="http://my.aecomnet.com/Intranet/AECOM+Corporate/Safety,+Health+&amp;+Environment">Safety, Health &amp; Environment</a></li>
+                                        <li><a href="http://my.aecomnet.com/Intranet/About/Sustainability">Sustainability</a></li>
+                                        <li><a href="http://my.aecomnet.com/Intranet/AECOM+Corporate/Procurement+Travel+and+Real+Estate/Functions/Travel">Travel</a></li>
+                                    </ul>
+                                </li>
+                                <li class="topNav">
+                                    <a href="#">Tools</a>
+                                    <ul>
+                                        <li><a href="http://my.aecomnet.com/Intranet/AECOM+Corporate/Procurement+Travel+and+Real+Estate/Functions/Procurement/Advantage">Advantage</a></li>
+                                        <li><a href="http://my.aecomnet.com/Intranet/Support/Technology/IT+Support/Guides+and+training/ABC">AECOM Billing and Collections System (ABC)</a></li>
+                                        <li><a href="https://imaging.aecomnet.com/markview/MVT_MV_Home.Home">AECOM Global Imaging System (AGIS)</a></li>
+                                        <li><a href="http://my.aecomnet.com/Intranet/AECOM+Corporate/Finance/_Functions/AECOM+Insight">AECOM Insight</a></li>
+                                        <li><a href="http://my.aecomnet.com/Intranet/Support/Technology/IT+Support/Guides+and+training/AIMS">AECOM Integrated Management System (AIMS)</a></li>
+                                        <li><a href="http://my.aecomnet.com/Intranet/Support/Technology/Project+delivery/Major+project+systems">AECOM Major Project System (AMPS)</a></li>
+                                        <li><a href="http://my.aecomnet.com/Intranet/Support/Technology/IT+Support/Guides+and+training/APIC">AECOM Project Information Center (APIC)</a></li>
+                                        <li><a href="http://apiconline.aecomnet.com/">AECOM Project Information Center (APIC) Online</a></li>
+                                        <li><a href="http://frontoffice.na.aecomnet.com/" target="_blank">AECOM Resume Information System (ARIS)</a></li>
+                                        <li><a href="http://collaboration.aecomnet.com/salesandmarketing/bdnet">BDNet</a></li>
+                                        <li><a href="http://brandbank.aecomnet.com">Brand Bank</a></li>
+                                        <li><a href="http://brandstore.aecom.com/">Brand Store</a></li>
+                                        <li><a href="http://my.aecomnet.com/Intranet/Support/Technology/IT+Support/Guides+and+training/Chatter+Social+Media">Chatter</a></li>
+                                        <li><a href="http://portal.carlsonwagonlit.com/">Carlson Wagonlit Travel</a></li>
+                                        <li><a href="https://arc.myprintdesk.net/DSF/Companies/AECOM/storefront.aspx?SITEGUID=0af86288-83db-45dc-945f-3245fc8194f0">Digital marketing store</a></li>
+                                        <li><a href="http://ecosystem.aecom.com">Ecosystem</a></li>
+                                        <li><a href="https://sjobs.brassring.com/1033/ASP/TG/cim_home.asp?partnerid=20052&amp;siteid=5251">Employee referral gateway</a></li>
+                                        <li><a href="http://anzapps.au.aecomnet.com:8010/ehrprod">Empower (ANZ)</a></li>
+                                        <li><a href="http://myaecomeurope.eu.aecomnet.com/epmp/">ePMP (Europe)</a></li>
+                                        <li><a href="https://www.industrysafe.com/aecom">IndustrySafe</a></li>
+                                        <li><a href="http://my.aecomnet.com/Intranet/Knowledge+and+training/Reference/Standards+and+Specifications">Information Handling Service (IHS)</a></li>
+                                        <li><a href="http://my.aecomnet.com/Intranet/About/Technical+Excellence/IMS">Integrated Management System (IMS)</a></li>
+                                        <li><a href="https://lifeguard.aecom.com">LifeGuard</a></li>
+                                        <li><a href="http://mediabank.na.aecomnet.com/home.aspx?site=1">mediaBank</a></li>
+                                        <li><a href="http://anzmediabinlite.au.aecomnet.com/mediabin/home.aspx?site=1">mediaBIN (ANZ)</a></li>
+                                        <li><a href="http://my.aecomnet.com/Intranet/AECOM+Corporate/Ethics+and+Compliance/Functions/MK+Denial">MK Denial Screening Tool</a></li>
+                                        <li><a href="http://anzameintranet.au.aecomnet.com/myskills/">My Skills (ANZ)</a></li>
+                                        <li><a href="http://my.aecomnet.com/Intranet/About/Net+Promoter+Score">Net Promoter Score (NPS)</a></li>
+                                        <li><a href="http://my.aecomnet.com/Intranet/Tools/Oracle+Project+Inquiry/Oracle+Project+Inquiry+Tool">Oracle Project Inquiry (Americas)</a></li>
+                                        <li><a href="http://pin.au.aecomnet.com/pinsystem/">PIN System (ANZ)</a></li>
+                                        <li><a href="http://my.aecomnet.com/Intranet/About/Technical+Excellence/IMS/PDS">Project Delivery System (PDS)</a></li>
+                                        <li><a href="http://my.aecomnet.com/Intranet/Projects+and+clients/Business+development/ProjectSearch">Project search</a></li>
+                                        <li><a href="http://sharepoint.aecomnet.com/tpn/dmc/Pages/NewHome.aspx">ProjectWise</a></li>
+                                        <li><a href="http://my.aecomnet.com/Intranet/Geographies/Australia+New+Zealand/Functions/Project+Enabling+Software/Proliance">Proliance (ANZ)</a></li>
+                                        <li><a href="http://qms.aecomnet.com/">Q-Dash (Americas)</a></li>
+                                        <li><a href="https://aecom.redvector.com/Default.aspx">RedVector</a></li>
+                                        <li><a href="https://aecom.my.salesforce.com">Salesforce</a></li>
+                                        <li><a href="https://sendfiles.aecom.com/">SendFiles</a></li>
+                                        <li><a href="http://intranet.aecomnet.com/skillsoft/SingleSignOn.aspx">Skillsoft</a></li>
+                                        <li><a href="http://intranet.aecomnet.com/hosted/bmc/spectrumtool/spectrumtool.htm">Spectrum tool</a></li>
+                                        <li><a href="https://www.eprocurelink2.com/aecom/Default.aspx">Stationery ordering</a></li>
+                                        <li><a href="http://web.na.aecomnet.com/sref/">SUBPort</a></li>
+                                        <li><a href="https://aecom.sumtotalsystems.com">SumTotal</a></li>
+                                        <li><a href="http://sharepoint.aecomnet.com/tpn/home">Technical Practice Network</a></li>
+                                        <li><a href="http://my.aecomnet.com/Intranet/Quick+Links/TelePresence">Telepresence</a></li>
+                                        <li><a href="http://my.aecomnet.com/Intranet/Support/Technology/Project+delivery/Major+project+systems/_l_nav_functions/_getTIMESPEED">TimeSpeed</a></li>
+                                        <li><a href="http://vpo.au.aecomnet.com/Pages/default.aspx">Virtual Project Office (ANZ)</a></li>
+                                        <li><a href="http://www.intercall.com/aecom/">WebEx</a></li>
+                                    </ul>
+                                </li>
+                                <li class="topNav">
+                                    <a href="#">MyLinks</a>
+                                    <ul>
+                                        <li><a href="http://aecom.my.salesforce.com/" target="_blank">Chatter</a></li>
+                                        <li><a href="http://apiconline.aecomnet.com/" target="_blank">APIC Online (for APIC users)</a></li>
+                                        <li><a href="http://intranet.aecomnet.com/su.asp?app=aims" target="_blank">AIMS Oracle Production</a></li>
+                                        <li><a href="http://intranet.aecomnet.com/su.asp?app=reporting" target="_blank">AIMS Oracle Reporting 11i</a></li>
+                                        <li><a href="http://usden3iis001.na.aecomnet.com/Citrix/MetaFrame/auth/login.aspx" target="_blank">Business Applications</a></li>
+                                        <li><a href="http://my.aecomnet.com/Intranet/About/Technical%20Excellence/IMS">Integrated Management System</a></li>
+                                        <li><a href="https://asd.aecomnet.com/CAisd/pdmweb.exe" target="_blank">IT Service Desk</a></li>
+                                        <li><a href="https://lifeguard.aecom.com/" target="_blank">LifeGuard</a></li>
+                                        <li><a href="http://www.aecom.com/Offices%20and%20Contacts/Offices" target="_blank">Offices and Contacts</a></li>
+                                        <li><a href="http://my.aecomnet.com/Intranet/AECOM+Corporate/Human+Resources/Centers+of+Excellence/Organization+and+Employee+Development/Performance+Rewards">Performance Rewards</a></li>
+                                        <li><a href="http://my.aecomnet.com/Intranet/AECOM+Corporate/Human+Resources/Centers+of+Excellence/Talent+Acquisition">Talent Acquisition</a></li>
+                                        <li><a href="http://sharepoint.aecomnet.com/tpn/home" target="_blank">Technical Networks</a></li>
+                                        <li><a href="http://my.aecomnet.com/Intranet/Quick%20Links/TelePresence">AECOM Video Conference</a></li>
+                                        <li><a href="http://my.aecomnet.com/Intranet/Employee/Timesheets">Timesheets</a></li>
+                                        <li><a class="editMylinks" href="http://my.aecomnet.com/Intranet/webapps/myuser/mylogin.jsp?u=Guest" id="logon2">Login to Edit MyLinks</a></li>
+                                    </ul>
+                                </li>
+                            </ul>
+                            <!-- end horizontal nav area -->
+                               <div id="columnTops" class="threeColTop">&nbsp;</div>
+                    </div>
+                    <!-- END header divs  ================================================================================ -->
+
+                </div>
+                <!--===================================================-->
+                <!-- END OF CONTAINER -->
+
+</apex:component>

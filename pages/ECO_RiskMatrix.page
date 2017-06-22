@@ -1,0 +1,28 @@
+<apex:page standardcontroller="Risk__c" extensions="nttdcore.DLabelParentController" >
+    <table cellspacing="0" cellpadding="4" border="1" >
+        <tr>
+            <th width="100px" />
+            <th style="text-align:center;" width="100px" ><nttdcore:DLabel name="DL16" default="Minor" labelParent="{!this}" />{!dLabel['DL16']}</th>
+            <th style="text-align:center;" width="100px" ><nttdcore:DLabel name="DL17" default="Moderate" labelParent="{!this}" />{!dLabel['DL17']}</th>
+            <th style="text-align:center;" width="100px" ><nttdcore:DLabel name="DL18" default="Major" labelParent="{!this}" />{!dLabel['DL18']}</th>
+        </tr>
+        <tr>
+            <th><nttdcore:DLabel name="DL19" default="Likely" labelParent="{!this}" />{!dLabel['DL19']}</th>
+            <td align="center" bgcolor="#FFFB00" ><nttdcore:DLabel name="DL20" default="Medium" labelParent="{!this}" />{!dLabel['DL20']}</td>
+            <td align="center" bgcolor="#FF2500" ><nttdcore:DLabel name="DL21" default="High" labelParent="{!this}" />{!dLabel['DL21']}</td>
+            <td align="center" bgcolor="#FF2500" ><nttdcore:DLabel name="DL22" default="High" labelParent="{!this}" />{!dLabel['DL22']}</td>
+        </tr>
+        <tr>
+            <th><nttdcore:DLabel name="DL23" default="Possible" labelParent="{!this}" />{!dLabel['DL23']}</th>
+            <td align="center" bgcolor="#63C1DF" ><nttdcore:DLabel name="DL24" default="Low" labelParent="{!this}" />{!dLabel['DL24']}</td>
+            <td align="center" bgcolor="#FFFB00" ><nttdcore:DLabel name="DL25" default="Medium" labelParent="{!this}" />{!dLabel['DL25']}</td>
+            <td align="center" bgcolor="#FF2500" ><nttdcore:DLabel name="DL26" default="High" labelParent="{!this}" />{!dLabel['DL26']}</td>
+        </tr>
+        <tr>
+            <th><nttdcore:DLabel name="DL27" default="Unlikely" labelParent="{!this}" />{!dLabel['DL27']}</th>
+            <td align="center" bgcolor="#63C1DF" ><nttdcore:DLabel name="DL28" default="Low" labelParent="{!this}" />{!dLabel['DL28']}</td>
+            <td align="center" bgcolor="#63C1DF" ><nttdcore:DLabel name="DL29" default="Low" labelParent="{!this}" />{!dLabel['DL29']}</td>
+            <td align="center" bgcolor="#FFFB00" ><nttdcore:DLabel name="DL30" default="Medium" labelParent="{!this}" />{!dLabel['DL30']}</td>
+        </tr>
+    </table>
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

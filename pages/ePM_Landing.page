@@ -1,0 +1,1020 @@
+<apex:page controller="ePM_Landing" readonly="false" standardstylesheets="false" extensions="nttdcore.DLabelParentController" >
+    
+    <script src="{!URLFOR($Resource.ECO_ePM_Landing, '/jquery-2.2.3.min.js')}" />
+    <script src="{!URLFOR($Resource.ECO_ePM_Landing, '/angular.js')}" />
+    <script src="{!URLFOR($Resource.ECO_ePM_Landing, '/angular-touch.js')}" />
+    <script src="{!URLFOR($Resource.ECO_ePM_Landing, '/angular-animate.js')}" />
+    <script src="{!URLFOR($Resource.ECO_ePM_Landing, '/angular-sanitize.js')}" />
+    <script src="{!URLFOR($Resource.ECO_ePM_Landing, '/ui-grid.min.js')}" />
+    <script>var AWAN_online = false;</script>
+    <script src="{!awanJSPath}" />
+
+    <script>
+    Visualforce.remoting.timeout = 120000; 
+    var costDetailRawCostReportId = '{!costDetailRawCostReportId}';
+    if('{!IsEpmInMaintenance}' == 'true') {
+        window.open('/apex/ePM_InMaintenance', '_self');
+    }
+
+    function MenuButtonRounded(a,b,c) {  };
+    
+    (function(angular){    
+        var sitePrefix = '{!$Site.Prefix}';
+        if(sitePrefix === '') sitePrefix ='/apex';
+    
+        angular.module('ngForce.config', []).constant('ngForceConfig', {
+            sessionId: '{!$Api.Session_ID}',
+            sitePrefix: sitePrefix,
+            resourceUrl: ''
+        });    
+    })(angular);        
+    </script>
+
+    <link href="//cdn.rawgit.com/angular-ui/ui-grid.info/gh-pages/release/3.1.1/ui-grid.min.css" rel="stylesheet" />
+    <apex:stylesheet value="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/css/font-awesome.min.css')}" />
+    <script src="{!URLFOR($Resource.ECO_ePM_Landing, '/bootstrap.min.js')}" />
+    <link href="{!$RESOURCE.bootstrap_no_typography}" rel="stylesheet" />
+        
+    <style>
+    
+       .mbrMenu-tr.mbrMenu-rc, .mbrMenu-tl.mbrMenu-rc, .mbrMenu-br.mbrMenu-rc, .mbrMenu-bl.mbrMenu-rc, .mbrMenu-bc, .mbrButton-tr.mbrButton-rc, .mbrButton-tl.mbrButton-rc { display: none; }
+       .menuButtonRounded, .menuButtonRounded .menuButtonButton { display: inline-block !important; }
+       .menuButtonActivated {margin-top: 0px !important}
+       .menuButtonActivated #tsidMenu, .menuButtonActivated #helpNavMenu, .menuButtonActivated #userNavMenu { margin-top: 0px; }
+       #tsidButton, #helpNavButton, #userNavButton { padding: 0px 15px; margin: 0px; }
+       .navLinks .linkElements { display: inline-block; }
+       .navLinks > .linkElements > a { vertical-align: baseline; }
+   
+        body { font-size: 12px; }
+        .iconLink { display:inline-block; width: 80px; margin: auto; text-align: center; height: 30px; position: relative; }
+    .alertCount {
+        background-color: red;
+        color: white;
+        position: absolute;
+        right: 20px;
+        padding: 2px;
+        border-radius: 8px;
+        top: 0px;
+        min-width: 20px;
+        opacity: 0.7;
+        cursor: pointer;
+        }
+    .button {
+        background-image: none;
+        background-color: #ada59e;
+        color: black;
+    }
+    .currencyColumn { text-align: right; } 
+    .numericColumn { text-align: right; } 
+    .hidden { display: none; }
+    .chartcontainer { position: relative; }
+    .f_left { left: 5; position: absolute; }
+    .grid { margin: auto; }
+    .custom.bPageBlock {
+        padding: 10px;
+        margin: 0px 10px 0px 1px;
+        
+     }
+    
+    #hdr_icons a {
+        color:black;
+    }
+    
+.mychart {
+    position: absolute; width: 100%;
+}    
+.chart-0 { position: absolute; width: 0%; } .chart-1 { position: absolute; width: 1%; } .chart-2 { position: absolute; width: 2%; } .chart-3 { position: absolute; width: 3%; } .chart-4 { position: absolute; width: 4%; } 
+.chart-5 { position: absolute; width: 5%; } .chart-6 { position: absolute; width: 6%; } .chart-7 { position: absolute; width: 7%; } .chart-8 { position: absolute; width: 8%; } .chart-9 { position: absolute; width: 9%; } 
+.chart-10 { position: absolute; width: 10%; } .chart-11 { position: absolute; width: 11%; } .chart-12 { position: absolute; width: 12%; } .chart-13 { position: absolute; width: 13%; } .chart-14 { position: absolute; width: 14%; } 
+.chart-15 { position: absolute; width: 15%; } .chart-16 { position: absolute; width: 16%; } .chart-17 { position: absolute; width: 17%; } .chart-18 { position: absolute; width: 18%; } .chart-19 { position: absolute; width: 19%; } 
+.chart-20 { position: absolute; width: 20%; } .chart-21 { position: absolute; width: 21%; } .chart-22 { position: absolute; width: 22%; } .chart-23 { position: absolute; width: 23%; } .chart-24 { position: absolute; width: 24%; } 
+.chart-25 { position: absolute; width: 25%; } .chart-26 { position: absolute; width: 26%; } .chart-27 { position: absolute; width: 27%; } .chart-28 { position: absolute; width: 28%; } .chart-29 { position: absolute; width: 29%; } 
+.chart-30 { position: absolute; width: 30%; } .chart-31 { position: absolute; width: 31%; } .chart-32 { position: absolute; width: 32%; } .chart-33 { position: absolute; width: 33%; } .chart-34 { position: absolute; width: 34%; } 
+.chart-35 { position: absolute; width: 35%; } .chart-36 { position: absolute; width: 36%; } .chart-37 { position: absolute; width: 37%; } .chart-38 { position: absolute; width: 38%; } .chart-39 { position: absolute; width: 39%; } 
+.chart-40 { position: absolute; width: 40%; } .chart-41 { position: absolute; width: 41%; } .chart-42 { position: absolute; width: 42%; } .chart-43 { position: absolute; width: 43%; } .chart-44 { position: absolute; width: 44%; } 
+.chart-45 { position: absolute; width: 45%; } .chart-46 { position: absolute; width: 46%; } .chart-47 { position: absolute; width: 47%; } .chart-48 { position: absolute; width: 48%; } .chart-49 { position: absolute; width: 49%; } 
+.chart-50 { position: absolute; width: 50%; } .chart-51 { position: absolute; width: 51%; } .chart-52 { position: absolute; width: 52%; } .chart-53 { position: absolute; width: 53%; } .chart-54 { position: absolute; width: 54%; } 
+.chart-55 { position: absolute; width: 55%; } .chart-56 { position: absolute; width: 56%; } .chart-57 { position: absolute; width: 57%; } .chart-58 { position: absolute; width: 58%; } .chart-59 { position: absolute; width: 59%; }
+ .chart-60 { position: absolute; width: 60%; } .chart-61 { position: absolute; width: 61%; } .chart-62 { position: absolute; width: 62%; } .chart-63 { position: absolute; width: 63%; } .chart-64 { position: absolute; width: 64%; }
+ .chart-65 { position: absolute; width: 65%; } .chart-66 { position: absolute; width: 66%; } .chart-67 { position: absolute; width: 67%; } .chart-68 { position: absolute; width: 68%; } .chart-69 { position: absolute; width: 69%; }
+ .chart-70 { position: absolute; width: 70%; } .chart-71 { position: absolute; width: 71%; } .chart-72 { position: absolute; width: 72%; } .chart-73 { position: absolute; width: 73%; } .chart-74 { position: absolute; width: 74%; } 
+ .chart-75 { position: absolute; width: 75%; } .chart-76 { position: absolute; width: 76%; } .chart-77 { position: absolute; width: 77%; } .chart-78 { position: absolute; width: 78%; } .chart-79 { position: absolute; width: 79%; }
+ .chart-80 { position: absolute; width: 80%; } .chart-81 { position: absolute; width: 81%; } .chart-82 { position: absolute; width: 82%; } .chart-83 { position: absolute; width: 83%; } .chart-84 { position: absolute; width: 84%; }
+ .chart-85 { position: absolute; width: 85%; } .chart-86 { position: absolute; width: 86%; } .chart-87 { position: absolute; width: 87%; } .chart-88 { position: absolute; width: 88%; } .chart-89 { position: absolute; width: 89%; }
+ .chart-90 { position: absolute; width: 90%; } .chart-91 { position: absolute; width: 91%; } .chart-92 { position: absolute; width: 92%; } .chart-93 { position: absolute; width: 93%; } .chart-94 { position: absolute; width: 94%; }
+ .chart-95 { position: absolute; width: 95%; } .chart-96 { position: absolute; width: 96%; } .chart-97 { position: absolute; width: 97%; } .chart-98 { position: absolute; width: 98%; } .chart-99 { position: absolute; width: 99%; } 
+ .chart-100 { position: absolute; width: 100%; } 
+
+
+    .mychart { background-color:  #CFEEF8; display: inline-block; }
+    .RedFormat .mychart { background-color:  red; }
+    .OrangeFormat .mychart { background-color: orange;  }
+    .ui-grid-header-cell, .ui-grid-header-cell .ui-grid-cell-contents  {
+        background-color: #ada59e;
+        color: black;
+        font-family: 'AECOM Sans', Arial;
+    }
+    .ui-grid-header-cell-label  {
+        word-break: break-word;
+        white-space: normal;
+    }
+    .ui-grid-cell-contents, .OrangeFormat .ui-grid-cell-contents.chartcontainer, .RedFormat .ui-grid-cell-contents.chartcontainer  {
+        color: #4387C4;
+        font-size: 11px;
+        font-family: 'AECOM Sans', Arial;
+    }
+    .ui-grid-row:nth-child(even) .ui-grid-cell {
+        background-color: #eae9e7;
+    }
+    .WarningFormat .ui-grid-cell-contents {
+        color: #ff0001 ;
+    }
+    .OrangeFormat .ui-grid-cell-contents {
+        color: orange;
+    }
+    .GreenFormat .ui-grid-cell-contents {
+        color: green;
+    }
+    .error, .RedFormat .ui-grid-cell-contents {
+        color: #ff0001 ;
+    }
+    .hdr_roles {
+        display: inline-block;
+        float: right;
+    }
+    .hdr_displays {
+        display: inline-block;
+        float: right;
+    }
+    .b {
+        font-weight: bold;
+        }
+    .right {
+        float: right;
+        vertical-align: middle;
+    }
+        
+    #hdr_icons {
+        margin-top: 10px;
+    }
+
+.watermark {
+    position: absolute;
+    top: 50%;                    
+    transform: translateY(-50%); 
+    opacity: 0.25;
+    font-size: 3em;
+    width: 100%;
+    text-align: center;
+    z-index: 1000;
+}
+        /*a.projectLink
+{
+    text-decoration: underline;
+    cursor: pointer;
+        }*/
+        
+.ui-grid-cell-contents a, a.ui-grid-cell-contents
+{
+    text-decoration: underline;
+    cursor: pointer;
+
+}        
+        
+.ui-grid-top-panel {
+ overflow: inherit;
+}
+.ui-grid-column-resizer {
+ cursor: e-resize;                         
+}
+                    
+.projectLink {
+    white-space: pre-wrap;
+}                          
+
+.default-spacer{
+    margin-bottom:5px;
+}
+
+.ui-grid-cell-center-align {
+    text-align: center;
+}
+
+#projects_execution.ui-grid-cell div select option:first-child[value="undefined"] {display: none;}
+    </style>
+    
+    
+   <div ng-app="ePM_LandingAngular" class="ng-cloak" >
+    <div ng-controller="GridController" >        
+        <modal visible="pageModel.showAlerts" > 
+            <modal-header title="{!$Label.ECOPortalAlerts}" ><h4 class="modal-title" id="myModalLabel" /></modal-header>
+            <modal-body>                
+                <table class="table table-striped table-hover" >
+                    <thead> 
+                        <tr>
+                        <th>{!$Label.ECOPortalProjectNo}</th>
+                        <th>{!$Label.ECOPortalProjectName}</th>
+                        <th>{!$Label.ECOPortalAlert}</th>
+                        <!-- <th>{!$Label.ECOPortalResponse}</th> -->
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <apex:repeat value="{!alerts}" var="alert" >                                    
+                            <tr>
+                                <td><a target="_blank" href="{!alert.LinkToRecord__c}" ><apex:outputText value="{!alert.Project_Number__c}" /></a></td>
+                                <td><a target="_blank" href="{!alert.LinkToRecord__c}" ><apex:outputField value="{!alert.Subject__c}" /></a></td>
+                                <td><apex:outputField value="{!alert.LongDescriptionMaxLength__c}" /></td>
+                                <!-- <td><apex:outputText value="Comment" /></td> -->
+                            </tr>                                       
+                        </apex:repeat>
+                        <apex:outputPanel rendered="{!alerts.size = 0}" layout="none" >
+                            <tr>
+                                <td colspan="5" style="text-align:center;" ><h3>{!$Label.ECOPortalNoAlerts}</h3></td>
+                            </tr>
+                        </apex:outputPanel>
+                    </tbody>
+                </table>                
+            </modal-body>
+            <modal-footer>
+            </modal-footer>
+        </modal>
+        <modal visible="pageModel.showTasks" > 
+            <modal-header title="{!$Label.ECOPortalTasks}" ><h4 class="modal-title" id="myModalLabel" /></modal-header>
+            <modal-body>
+               <table class="table table-striped table-hover" >
+                    <thead>
+                        <tr>
+                        <th>{!$Label.ECOPortalRelatedto}</th>
+                        <th>{!$Label.ECOPortalSubject}</th>
+                        <th>{!$Label.ECOPortalDueDate}</th>
+                        <th>{!$Label.ECOPortalPriority}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <apex:repeat value="{!tasks}" var="task" >                                    
+                            <tr>
+                        <!--        <td><a target="_blank" href="/{!task.id}"><apex:outputField value="{!task.Subject}" /></a></td> -->                          
+                                <td><a target="_blank" href="/{!task.What.Id}" ><apex:outputField value="{!task.What.Name}" /></a></td>
+                                <td><a target="_blank" href="/{!task.id}" ><apex:outputField value="{!task.Subject}" /></a></td>
+                                <td><apex:outputField value="{!task.ActivityDate}" /></td>
+                                <td><apex:outputField value="{!task.Priority}" /></td>
+                            </tr>
+                        </apex:repeat>
+                        <apex:outputPanel rendered="{!tasks.size = 0}" layout="none" >
+                            <tr>
+                                <td colspan="5" style="text-align:center;" ><h3>{!$Label.ECOPortalNoTasks}</h3></td>
+                            </tr>
+                        </apex:outputPanel>
+                    </tbody>
+                </table>                
+            </modal-body>
+            <modal-footer>
+            </modal-footer>
+        </modal>        
+    <div>
+        <!--<div id="hdr_icons" >
+            <div class="iconLink" ><a ng-click="ShowAlertsToggle()" ><nttdcore:DLabel name="DL1" default="Alerts" labelParent="{!this}" />
+                <i class="fa fa-warning fa-lg" /><br/>
+                {!dLabel['DL1']}<span class="alertCount" ng-bind="pageModel.alertCount" ng-show="HasData(pageModel.alertCount)" /></a>
+            </div>                
+            <div class="iconLink" ><a ng-click="ShowTasksToggle()" ><nttdcore:DLabel name="DL2" default="Tasks" labelParent="{!this}" />
+                <i class="fa fa-tasks fa-lg" /><br/>
+                {!dLabel['DL2']}<span class="alertCount" ng-bind="pageModel.taskCount" ng-show="HasData(pageModel.taskCount)" /></a>
+            </div>                
+            <div ng-show="pageModel.onNetwork" class="iconLink" ><a ng-click="GotoApproval()" ><nttdcore:DLabel name="DL3" default="Approvals" labelParent="{!this}" />
+                <i class="fa fa-check-square fa-lg" /><br/>
+                {!dLabel['DL3']}<span class="alertCount" ng-bind="pageModel.approvalCount" ng-show="HasData(pageModel.approvalCount)" /></a>
+            </div>            
+            <div class="hdr_roles" >
+                <i ng-show="pageIsLoading()" class="fa fa-spinner fa-pulse fa-fw" />
+                <label for="selectRoles" ><nttdcore:DLabel name="DL4" default="Role:" labelParent="{!this}" />{!dLabel['DL4']} </label>
+                <select id="selectRoles" ng-change="RefreshGrids()" ng-model="pageModel.Roles.selectedRole" ng-options="item for item in pageModel.Roles.AvailableRoles" />
+            </div>
+        </div>
+    </div>-->
+
+        <div id="hdr_icons" >
+            <div class="iconLink" ><a ng-click="ShowAlertsToggle()" >
+                <i class="fa fa-warning fa-lg" /><br/>{!$Label.ECOPortalAlerts}
+                <span class="alertCount" ng-bind="pageModel.alertCount" ng-show="HasData(pageModel.alertCount)" /></a>
+            </div>                
+            <div class="iconLink" ><a ng-click="ShowTasksToggle()" >
+                <i class="fa fa-tasks fa-lg" /><br/>{!$Label.ECOPortalTasks}
+                <span class="alertCount" ng-bind="pageModel.taskCount" ng-show="HasData(pageModel.taskCount)" /></a>
+            </div>                
+            <div ng-show="pageModel.onNetwork" class="iconLink" ><a ng-click="GotoApproval()" >
+                <i class="fa fa-check-square fa-lg" /><br/>{!$Label.ECOPortalApprovals}
+                <span class="alertCount" ng-bind="pageModel.approvalCount" ng-show="HasData(pageModel.approvalCount)" /></a>
+            </div>            
+            <div class="hdr_roles" >
+                <i ng-show="pageIsLoading()" class="fa fa-spinner fa-pulse fa-fw" />
+                <label for="selectRoles" >Role: </label>
+                <select id="selectRoles" ng-change="RefreshGrids()" ng-model="pageModel.Roles.selectedRole" ng-options="item for item in pageModel.Roles.AvailableRoles" />
+            </div>
+        </div>
+    </div>
+
+
+    <div id="landing_main_content" class="custom bPageBlock" >
+        <div id="execution" >
+            <div class="default-spacer" >
+                <span class="b" >
+                    <nttdcore:DLabel name="DL5" default="My Projects Execution" labelParent="{!this}" />{!dLabel['DL5']}&nbsp;&nbsp;&nbsp;
+                    <a class="button" ng-click="ExecutionGridToggleFilter()" ><nttdcore:DLabel name="DL6" default="Toggle Filter" labelParent="{!this}" />{!dLabel['DL6']}</a>&nbsp;&nbsp;&nbsp;
+                    <a class="button" ng-click="ExecutionGridRecentCostsForPmReport()" >Recent Costs for PM</a>
+                </span>
+                <span class="right" ><nttdcore:DLabel name="DL8" default="Show Closed Projects" labelParent="{!this}" />
+                    <label for="selectDisplays" ><nttdcore:DLabel name="DL7" default="Display:" labelParent="{!this}" />{!dLabel['DL7']} </label>
+                    <select id="selectDisplays" ng-change="ChangeExecutionGridDisplay()" ng-model="pageModel.Displays.selectedDisplay" ng-options="item for item in pageModel.Displays.AvailableDisplays" />
+                    &nbsp;&nbsp;
+                    <input type="checkbox" ng-click="RefreshExecution()" ng-model="pageModel.showClosedExecution" />
+                    {!dLabel['DL8']}
+                </span>
+            </div>
+            <div id="projects_execution" class="grid" ui-grid="executionGridOptions" ui-grid-edit="true" ui-grid-cellnav="true" ui-grid-pagination="false" ui-grid-resize-columns="true" ui-grid-exporter="true" >
+                <div class="watermark" ng-show="!executionGridOptions.data.length && !pageModel.projectLists.execution.isLoading && !pageModel.projectLists.execution.hasError" ><nttdcore:DLabel name="DL9" default="No data available" labelParent="{!this}" />{!dLabel['DL9']}</div>
+                <div class="watermark" ng-show="pageModel.projectLists.execution.isLoading" ><nttdcore:DLabel name="DL10" default="Loading" labelParent="{!this}" />{!dLabel['DL10']}<i class="fa fa-spinner fa-pulse fa-fw" /></div>
+                <div class="watermark error" ng-show="pageModel.projectLists.execution.hasError && !pageModel.projectLists.execution.isLoading" ><nttdcore:DLabel name="DL11" default="Error loading data" labelParent="{!this}" />{!dLabel['DL11']}</div>
+            </div>
+        </div>
+        <br/>
+        <div id="planning" >
+            <div class="default-spacer" >
+                <span class="b" ><nttdcore:DLabel name="DL12" default="My Projects Planning -" labelParent="{!this}" />{!dLabel['DL12']} <a class="button" target="_blank" href="/a32/e" ><nttdcore:DLabel name="DL13" default="New" labelParent="{!this}" />{!dLabel['DL13']}</a>&nbsp;&nbsp;&nbsp;<a class="button" ng-click="PlanningGridToggleFilter()" ><nttdcore:DLabel name="DL14" default="Toggle Filter" labelParent="{!this}" />{!dLabel['DL14']}</a></span>
+                <span class="right" ><nttdcore:DLabel name="DL15" default="Hide Inactive Projects" labelParent="{!this}" />
+                    <input type="checkbox" ng-click="RefreshPlanning()" ng-model="pageModel.hideInactivePlanning" />
+                    {!dLabel['DL15']}
+                </span>
+            </div>
+            <div id="projects_planning" class="grid" ui-grid="planningGridOptions" ui-grid-pagination="false" ui-grid-resize-columns="true" ui-grid-exporter="true" >
+                <div class="watermark" ng-show="!planningGridOptions.data.length && !pageModel.projectLists.planning.isLoading && !pageModel.projectLists.planning.hasError" ><nttdcore:DLabel name="DL16" default="No data available" labelParent="{!this}" />{!dLabel['DL16']}</div>
+                <div class="watermark" ng-show="pageModel.projectLists.planning.isLoading" ><nttdcore:DLabel name="DL17" default="Loading" labelParent="{!this}" />{!dLabel['DL17']}<i class="fa fa-spinner fa-pulse fa-fw" /></div>
+                <div class="watermark error" ng-show="pageModel.projectLists.planning.hasError && !pageModel.projectLists.planning.isLoading" ><nttdcore:DLabel name="DL18" default="Error loading data" labelParent="{!this}" />{!dLabel['DL18']}</div>
+            </div>
+        </div>
+        <br/>
+        <!--<div class="" >
+            <div><nttdcore:DLabel name="DL19" default="Last update from Oracle for Costs: {{1}}" labelParent="{!this}" p1="{!EtlSyncCost}" /><nttdcore:DLabel name="DL20" default="Last transfer of Budgets to Oracle: {{1}}" labelParent="{!this}" p1="{!EtlSyncBudget}" /><nttdcore:DLabel name="DL21" default="Last project snapshots update: {{1}} (CPI/SPI accurate to last snapshot)" labelParent="{!this}" p1="{!EtlSyncSnapshot}" />
+                {!dLabel['DL19']} <br/>
+                {!dLabel['DL20']} <br/>
+                {!dLabel['DL21']} <br/>
+            </div>
+            <br/>
+            <apex:composition template="ECO_ePM_Landing_OracleLogin" />           
+        </div>        -->
+        <div class="">
+            <div>
+                Last update from Oracle for Costs: {!EtlSyncCost} <br />
+                Last transfer of Budgets to Oracle: {!EtlSyncBudget} <br />
+                Last project snapshots update: {!EtlSyncSnapshot} (CPI/SPI accurate to last snapshot) <br />
+            </div>
+            <br />
+            <apex:composition template="ECO_ePM_Landing_OracleLogin" />           
+        </div>                          
+                  
+    </div> <!-- landing_main_content--> 
+    <br/>        
+    <div class="custom bPageBlock" style="display: table;" >
+        <div style="display: table-row;" >
+            <div id="chatter" class="custom bPageBlock" style="width: 100%; display: table-cell;" >
+                <b><nttdcore:DLabel name="DL22" default="Project Chatter Feed" labelParent="{!this}" />{!dLabel['DL22']}</b> <br/>
+                <chatter:feed entityid="{!$User.Id}" />
+                <!--chatter:newsFeed /-->
+                <!--chatter:feedWithFollowers entityId="{!$User.Id}" /-->
+    </div>
+            <div id="landing_fiscal_calendar" class="custom bPageBlock" style="width: 100%; display: table-cell;" ><nttdcore:DLabel name="DL24" default="Month End:" labelParent="{!this}" /><nttdcore:DLabel name="DL25" default="| 
+                Quarter End:" labelParent="{!this}" /><nttdcore:DLabel name="DL26" default="| 
+                Year End:" labelParent="{!this}" />
+                <b><nttdcore:DLabel name="DL23" default="Fiscal calendar" labelParent="{!this}" />{!dLabel['DL23']}</b> <br/>
+                {!dLabel['DL24']} <span style="color: #00b5e2; font-weight: bold;" >{!PeriodMonthEnd}</span> {!dLabel['DL25']} <span style="color: #9e007e; font-weight: bold;" >{!PeriodQuarterEnd}</span> {!dLabel['DL26']} <span style="color: #000; font-weight: bold;" >{!PeriodYearEnd} </span>
+                <br/>
+                <apex:image url="{!$Resource.ePM_Landing_Fiscal_Calendar}" width="600px" />
+            </div>
+        </div>
+    </div>
+
+</div>
+</div>
+    
+<script>
+    var cellFormatters = {
+         CellFormatStage : function (grid, row, col, rowRenderIndex, colRenderIndex) {
+            return row.entity.StageCssClass;
+        },
+        CellFormatDoA : function (grid, row, col, rowRenderIndex, colRenderIndex) {
+            return row.entity.DoACssClass;
+        },
+        CellFormatProposal : function (grid, row, col, rowRenderIndex, colRenderIndex) {
+            return row.entity.ProposalCssClass;
+        },
+         CellFormatStageClosed : function (grid, row, col, rowRenderIndex, colRenderIndex) {
+            return row.entity.StatusCssClass;
+        },
+         CellFormatMonthlyReview : function (grid, row, col, rowRenderIndex, colRenderIndex) {
+            return row.entity.MonthlyReviewCssClass;
+        },
+         CellCPISPI : function (grid, row, col, rowRenderIndex, colRenderIndex) {
+            return row.entity.CPI_SPICssclass + ' currencyColumn';
+        },
+         CostSpent : function (grid, row, col, rowRenderIndex, colRenderIndex) {
+            return row.entity.CostSpentCssClass;
+        },    
+        CellFormatOracleSync : function (grid, row, col, rowRenderIndex, colRenderIndex) {
+            return row.entity.OracleSyncStatusCssClass;
+        },            
+        CellFormatEACTrend1 : function (grid, row, col, rowRenderIndex, colRenderIndex) {
+            return row.entity.EACTrend1CssClass + ' currencyColumn';
+        },            
+        CellFormatEACTrend2 : function (grid, row, col, rowRenderIndex, colRenderIndex) {
+            return row.entity.EACTrend2CssClass + ' currencyColumn';
+        },            
+        CellFormatEarnedValueActualSpend : function (grid, row, col, rowRenderIndex, colRenderIndex) {
+            return row.entity.EarnedValueActualSpendCssClass + ' currencyColumn';
+        },            
+        CellFormatAvgLaborHourITD : function (grid, row, col, rowRenderIndex, colRenderIndex) {
+            return row.entity.AvgLaborHourITDCssClass + ' currencyColumn';
+        },            
+        CellFormatHoursITD : function (grid, row, col, rowRenderIndex, colRenderIndex) {
+            return row.entity.HoursITDCssClass + ' numericColumn';
+        },            
+        CellFormatLaborITD : function (grid, row, col, rowRenderIndex, colRenderIndex) {
+            return row.entity.LaborITDCssClass + ' currencyColumn';
+        },            
+        CellFormatLastUpdatedBudget : function (grid, row, col, rowRenderIndex, colRenderIndex) {
+            return row.entity.LastUpdatedBudgetCssClass;
+        },            
+        CellFormatCurrencyColumnLessThanZero : function (grid, row, col, rowRenderIndex, colRenderIndex) {
+            if (grid.getCellValue(row, col) != undefined &&  grid.getCellValue(row, col) < 0) {
+                return 'RedFormat currencyColumn';
+            }
+            return 'currencyColumn';
+        },            
+        CellFormatCurrencyColumnGreaterThanZero : function (grid, row, col, rowRenderIndex, colRenderIndex) {
+            if (grid.getCellValue(row, col) != undefined &&  grid.getCellValue(row, col) > 0) {
+                return 'RedFormat currencyColumn';
+            }
+            return 'currencyColumn';
+        },            
+        CellFormatNumericColumnLessThanZero : function (grid, row, col, rowRenderIndex, colRenderIndex) {
+            if (grid.getCellValue(row, col) != undefined &&  grid.getCellValue(row, col) < 0) {
+                return 'RedFormat' + ' numericColumn';
+            }
+            return 'numericColumn';
+        },            
+        /*
+        CellFormatCurrencyColumnAGreaterThanB : function (grid, row, col, rowRenderIndex, colRenderIndex) {
+            var colA = grid.getCellValue(row, col);
+            var colB = grid.getCellValue(row, col+1);
+            if (colA != undefined && colB != undefined && colA > colB) {
+                return 'RedFormat currencyColumn';
+            }
+            return 'currencyColumn';
+        },            
+        CellFormatNumberColumnAGreaterThanB : function (grid, row, col, rowRenderIndex, colRenderIndex) {
+            var colA = grid.getCellValue(row, col);
+            var colB = grid.getCellValue(row, col+1);
+            alert(colA+'/'+colB);
+            if (colA != undefined && colB != undefined && colA > colB) {
+                return 'RedFormat';
+            }
+            return '';
+        },            */
+        CellFormatDateColumnLessThanToday : function (grid, row, col, rowRenderIndex, colRenderIndex) {
+            if (grid.getCellValue(row, col) != undefined &&  grid.getCellValue(row, col) < Date.now()) {
+                return 'RedFormat';
+            }
+            return '';
+        },            
+        CellFormatDateColumnLessThanTodayPlusThreeDays : function (grid, row, col, rowRenderIndex, colRenderIndex) {
+            if (grid.getCellValue(row, col) != undefined &&  grid.getCellValue(row, col) < Date.now() + 259200000) {  // add 3 days
+                return 'RedFormat';
+            }
+            return '';
+        },            
+    };
+    
+    // ng-click="grid.appScope.GotoProject(row.entity.Id)" 
+    // grid.appScope.GotoProjectDashboard(row.entity.Id)    
+    var nameTemplate = '<div  class="ui-grid-cell-contents"><a id="{{row.entity.Id}}" target="_blank" ng-href="/{{row.entity.Id}}" class="projectLink" ng-mouseenter="grid.appScope.ShowPopup(row.entity.Id)" ng-mouseleave="grid.appScope.HidePopup(row.entity.Id)" >{{row.entity[col.field]}}</a></div>';    
+    var chartTemplate = '<div class="ui-grid-cell-contents chartcontainer"><a class="mychart chart-{{COL_FIELD}}"> </a><span class="f_left">{{COL_FIELD}}%</span></div>';
+    var currencyTemplate = '<div class="ui-grid-cell-contents"><span ng-bind="row.entity[col.field] | currency:row.entity.CurrencyCode :0" /></div>';
+    var actionCellTemplate = '<div><form name=\"inputForm\"><select ui-grid-edit-dropdown ng-model=\"MODEL_COL_FIELD\" ng-change="grid.appScope.NavigateToView(row)" ng-options=\"field[editDropdownIdLabel] as field[editDropdownValueLabel] CUSTOM_FILTERS for field in editDropdownOptionsArray\"></select></form></div>';
+
+    var ePM_LandingAngular = angular.module('ePM_LandingAngular', ['ngAnimate', 'ngTouch', 'ui.grid', 'ui.grid.pagination', 'ui.grid.resizeColumns', 'ui.grid.edit', 'ui.grid.cellNav', 'ui.grid.exporter', 'ngSanitize'] );
+    ePM_LandingAngular.filter('percentFilter', function () {
+        return function (value) {
+            if (value != undefined) {
+                return value.toFixed(2) + '%';
+            }
+            return undefined;
+        };
+    })
+
+    ePM_LandingAngular.filter('fractionFilter', function () {
+        return function (value) {
+            if (value != undefined) {
+                return value.toFixed(2);
+            }
+            return undefined;
+        };
+    })
+
+    ePM_LandingAngular.controller('GridController', ['$scope', '$http',  '$timeout', '$q', '$sce', '$window', 'uiGridConstants',
+        function ($scope, $http,  $timeout, $q, $sce, $window, uiGridConstants) {
+            $scope.pageModel = 
+            {
+                sitePrefix: '{!$Site.Prefix}' ,
+                currentHoverPromise: null,
+                
+                alertCount : {!alertCount },
+                taskCount : {!taskCount},
+                //costDetailRawCostReportId : {!costDetailRawCostReportId},
+                approvalCount : {!approvalCount},
+                onNetwork : window.AWAN_online,
+                Roles : {   selectedRole : 'All',   AvailableRoles : ['All', 'Project Manager', 'Capture Manager', 'Deputy PM', 'Project Approver', 'Project Approver 2', 'Project Accountant', 'Project Accountant 2', 'Finance Lead', 'CFO or Delegate'] },
+                Displays : {   selectedDisplay : 'General',   AvailableDisplays : ['General', 'Cost Performance', 'Schedule Performance', 'Labor Spend', 'Cash Performance', 'Margin Performance']},
+                hideInactivePlanning : false,
+                showClosedExecution : false,
+                isUserTokenValid : {!$User.IsValidOracleToken__c}, 
+                FiscalTimes :
+                {
+                Week : '', Quarter : '', Year : ''
+                },
+                LastTimes : 
+                {
+                    Costs : '', Budgets : '', Snapshots : ''
+                },
+            
+                projectLists :
+                {
+                    planning:
+                    {
+                        isLoading: false,
+                        pageSize: 20,
+                        pageNum : 1,
+                        hasError: false
+                    },
+                    execution:
+                    {
+                        isLoading: false,
+                        pageSize: 20,
+                        pageNum : 1,
+                        hasError: false
+                    }
+                }
+            };
+            $scope.UserSyncStatusImage = function()
+            {
+                if($scope.isUserTokenValid)
+                {
+                    return '/resource/1435520899000/ECO_ValidToken';
+                } else {
+                     return '/resource/1435520899000/ECO_InValidToken';
+                }                
+            }
+            $scope.HasData = function(listCount)
+            {
+                return listCount > 0 ;
+            }
+            $scope.pageIsLoading = function() { return $scope.pageModel.projectLists.planning.isLoading || $scope.pageModel.projectLists.execution.isLoading };
+
+            var actionsArray = [
+                { name: 'ProjectCommandConsole', value: 'Project Command Console' },
+                { name: 'ECO_PMD_ProjectDashboard', value: 'Project Dashboard' },
+                { name: 'ECO_PMD_FinancialDashboard', value: 'Financial Dashboard' },
+                { name: 'eco_pmd_tasksummaryreport', value: 'Task Summary' },
+                { name: 'eco_pmd_earnedvaluedetail', value: 'Earned Value Detail' },
+                { name: 'eco_pmd_costdetail_allcosts', value: 'Cost Detail - All Costs' },
+                { name: 'eco_pmd_costdetail_labourhours', value: 'Cost Detail - Labour Hours' },
+                { name: 'eco_pmd_costdetail_labourcost', value: 'Cost Detail - Labour Costs' },
+                { name: 'eco_pmd_costdetail_odcexpenses', value: 'Cost Detail - ODC Expenses' },
+                { name: 'eco_pmd_costdetail_odcsubs', value: 'Cost Detail - ODC Subs' },
+                { name: 'CostDetailRawCost', value: 'Cost Detail - Raw Data' },
+                { name: 'eco_pmd_accountsreceivablereport', value: 'Billing & A/R' },
+                { name: 'eco_pmd_RevenueDetails', value: 'Revenue Details' },
+                { name: 'eco_pmd_CommitmentsReport', value: 'Commitments' },
+                { name: 'eco_pmd_TrendAnalysis', value: 'Snapshot Trend Analysis' }
+            ];
+            $scope.planningGridOptions = {
+                data: [],
+                enableSorting: true,
+                enableColumnResizing: true,
+                rowHeight: 20,
+                enablePaginationControls: false,
+                enableSorting: true,
+                paginationPageSizes: [50, 100, 150, 200],
+                paginationPageSize: 50,
+                enableGridMenu: true,
+                minRowsToShow: 8,
+                exporterMenuPdf: false,
+                //totalItems: $scope.data.length,                
+                /*useExternalPagination: true,
+                */
+                onRegisterApi: function(gridApi) {
+                    $scope.gridApiPlanning = gridApi;
+                    /*$scope.gridApiPlanning.pagination.on.paginationChanged($scope, function (newPage, pageSize) {
+                                $scope.RefreshPlanning(newPage, pageSize);
+                    });*/                    
+                },
+                columnDefs: [
+                    { name: 'Name', displayName: '{!JSENCODE($Label.ECOPortalProjectName)}',  cellTemplate: window.nameTemplate, minWidth: 125, enableCellEdit: false},
+                    { name: 'Stage', displayName: '{!JSENCODE($Label.ECOPortalStage)}', cellClass: cellFormatters.CellFormatStage, enableCellEdit: false},
+                    { name: 'ContractReview', displayName: '{!JSENCODE($Label.ECOPortalContractReview)}', enableCellEdit: false},
+                    { name: 'DoA', displayName: '{!JSENCODE($Label.ECOPortalDoAApproval)}', cellClass: cellFormatters.CellFormatDoA, enableCellEdit: false},
+                    { name: 'EstGrossFee', displayName: '{!JSENCODE($Label.ECOPortalEstAecomGrossFee)}', width: 120, cellClass: 'currencyColumn', type: 'number', cellTemplate: window.currencyTemplate, filters: [{condition: uiGridConstants.filter.GREATER_THAN, placeholder: '>'}, {condition: uiGridConstants.filter.LESS_THAN, placeholder: '<' }], enableCellEdit: false},
+                    { name: 'ProposalDate', displayName: '{!JSENCODE($Label.ECOPortalProposalDue)}', cellClass: cellFormatters.CellFormatProposal, cellFilter: 'date:\'yyyy-MM-dd\'', enableFiltering: false, enableCellEdit: false},
+                    { name: 'BusinessLine', displayName: '{!JSENCODE($Label.ECOPortalBusinessLine)}', enableCellEdit: false},
+                    { name: 'ProjectApprover', displayName: '{!JSENCODE($Label.ECOPortalProjectApprover)}', enableCellEdit: false},
+                    { name: 'EndClient', displayName: '{!JSENCODE($Label.ECOPortalEndClient)}', enableCellEdit: false},
+                    { name: 'EstAwardDate', displayName: '{!JSENCODE($Label.ECOPortalEstAwardDate)}', cellClass: cellFormatters.CellFormatDateColumnLessThanTodayPlusThreeDays, cellFilter: 'date:\'yyyy-MM-dd\'', enableFiltering: false, enableCellEdit: false},
+                ]
+            };
+
+            $scope.executionGridOptions = {
+                data: [],
+                enableSorting: true,
+                enableColumnResizing: true,
+                rowHeight: 20,
+                enablePaginationControls: false,
+                enableSorting: true,
+                paginationPageSizes: [50, 100, 150, 200],
+                paginationPageSize: 50,
+                enableCellEditOnFocus: true,
+                enableGridMenu: true,
+                minRowsToShow: 8,
+                exporterMenuPdf: false,
+                onRegisterApi: function(gridApi) {
+                    $scope.gridApiExecution = gridApi;
+                },
+                                          
+                columnDefs: [
+                    { name: 'Name', displayName: '{!JSENCODE($Label.ECOPortalProjectName)}',  cellTemplate:  window.nameTemplate , minWidth: 125, enableCellEdit: false },
+                    { name: 'ProjectNumber', displayName: '{!JSENCODE($Label.ECOPortalProjectNumber)}', minWidth: 75, enableCellEdit: false }, 
+                    { name: 'ProjectManager', displayName: '{!JSENCODE($Label.ECOPortalProjectManager)}', minWidth: 95, enableCellEdit: false },
+                    { name: 'Action', displayName: 'Action', minWidth: 75, cellTemplate: '<div  class="ui-grid-cell-contents">Navigate to...</div>', editableCellTemplate: actionCellTemplate, editDropdownIdLabel: 'name', editDropdownValueLabel: 'value', editDropdownOptionsArray: actionsArray, enableFiltering: false},
+                    { name: 'OracleSyncStatus', displayName: '{!JSENCODE($Label.ECOPortalOracleSyncStatus)}', cellClass: cellFormatters.CellFormatOracleSync, minWidth: 70, enableCellEdit: false },
+                    { name: 'ChangeRequestsApproved', displayName: '{!JSENCODE($Label.ECOPortalChangeRequestsApproved)}', minWidth: 45, cellTemplate: '<div class="ui-grid-cell-contents"><a ng-href="/apex/eco_projectchangemanager?id={{row.entity.Id}}" target="_blank"><img src="{{grid.appScope.getChangeRequestsApprovedImage(COL_FIELD)}}" height="15px" width="15px"/></a></div>', enableCellEdit: false, cellClass:'ui-grid-cell-center-align', enableFiltering: false},
+                    { name: 'KPIExceedances', displayName: '{!JSENCODE($Label.ECOPortalKPIs)}', width: 45, cellTemplate: '<div class="ui-grid-cell-contents"><a ng-href="/apex/eco_pmd_projectdashboard?id={{row.entity.Id}}" target="_blank"><img src="{{grid.appScope.getKPIExceedanceImage(COL_FIELD)}}" height="15px" width="15px" title="{{row.entity.SnapshotDate}}"/></a></div>', enableCellEdit: false, cellClass:'ui-grid-cell-center-align', enableFiltering: false },
+                    { name: 'Status', displayName: '{!JSENCODE($Label.ECOPortalPhase)}',  cellClass: cellFormatters.CellFormatStageClosed, minWidth: 75, enableCellEdit: false },                    
+                    { name: 'MonthlyReview', displayName: '{!JSENCODE($Label.ECOPortalMonthlyReview)}', cellClass: cellFormatters.CellFormatMonthlyReview, minWidth: 75, enableCellEdit: false },                    
+                    { name: 'CPI', displayName: '{!JSENCODE($Label.ECOPortalCPI)}',  cellClass: cellFormatters.CellCPISPI, width: 45, type: 'number', enableCellEdit: false, filters: [{condition: uiGridConstants.filter.GREATER_THAN, placeholder: '>'}, {condition: uiGridConstants.filter.LESS_THAN, placeholder: '<' }] },                         
+                    { name: 'SPI', displayName: '{!JSENCODE($Label.ECOPortalSPI)}', cellClass: cellFormatters.CellCPISPI, width: 45, type: 'number', enableCellEdit: false, filters: [{condition: uiGridConstants.filter.GREATER_THAN, placeholder: '>'}, {condition: uiGridConstants.filter.LESS_THAN, placeholder: '<' }] },                    
+                    { name: 'PrevWeekCost', displayName: '{!JSENCODE($Label.ECOPortalPrevWeekCost)}', minWidth: 75, cellClass: 'currencyColumn', type: 'number', cellTemplate: window.currencyTemplate, enableCellEdit: false, filters: [{condition: uiGridConstants.filter.GREATER_THAN, placeholder: '>'}, {condition: uiGridConstants.filter.LESS_THAN, placeholder: '<' }]},  
+                    { name: 'CostSpentForecast', displayName: '{!JSENCODE($Label.ECOPortalCostSpent)}', type: 'number', cellClass: cellFormatters.CostSpent, cellTemplate: window.chartTemplate, minWidth: 75, enableCellEdit: false, filters: [{condition: uiGridConstants.filter.GREATER_THAN, placeholder: '>'}, {condition: uiGridConstants.filter.LESS_THAN, placeholder: '<' }] },         
+                    { name: 'ProjectApprover', displayName: '{!JSENCODE($Label.ECOPortalProjectApprover)}', minWidth: 95, enableCellEdit: false }
+                ]
+            };                    
+                    
+            $scope.columnDefsGeneral = $scope.executionGridOptions.columnDefs;
+
+            $scope.columnDefsCostPerformance = [
+                { name: 'Name', displayName: '{!JSENCODE($Label.ECOPortalProjectName)}',  cellTemplate:  window.nameTemplate , minWidth: 125, enableCellEdit: false},
+                { name: 'ProjectNumber', displayName: '{!JSENCODE($Label.ECOPortalProjectNumber)}', minWidth: 75, enableCellEdit: false}, 
+                { name: 'ProjectManager', displayName: '{!JSENCODE($Label.ECOPortalProjectManager)}', minWidth: 95, enableCellEdit: false},
+                { name: 'CPI', displayName: '{!JSENCODE($Label.ECOPortalCPI)}',  cellClass: cellFormatters.CellCPISPI, width: 45, type: 'number', enableCellEdit: false},                         
+                { name: 'CostVariance', displayName: '{!JSENCODE($Label.ECOPortalCostVariance)}', minWidth: 75, cellClass: cellFormatters.CellFormatCurrencyColumnLessThanZero, type: 'number', cellTemplate: window.currencyTemplate, enableCellEdit: false, filters: [{condition: uiGridConstants.filter.GREATER_THAN, placeholder: '>'}, {condition: uiGridConstants.filter.LESS_THAN, placeholder: '<' }]},  
+                { name: 'EarnedValue', displayName: '{!JSENCODE($Label.ECOPortalEarnedValue)}', minWidth: 75, cellClass: 'currencyColumn', type: 'number', cellTemplate: window.currencyTemplate, enableCellEdit: false, filters: [{condition: uiGridConstants.filter.GREATER_THAN, placeholder: '>'}, {condition: uiGridConstants.filter.LESS_THAN, placeholder: '<' }]},  
+                { name: 'EarnedValueActualSpend', displayName: '{!JSENCODE($Label.ECOPortalActualITDCost)}', minWidth: 75, cellClass: cellFormatters.CellFormatEarnedValueActualSpend, type: 'number', cellTemplate: window.currencyTemplate, enableCellEdit: false, filters: [{condition: uiGridConstants.filter.GREATER_THAN, placeholder: '>'}, {condition: uiGridConstants.filter.LESS_THAN, placeholder: '<' }]},  
+                { name: 'CostForecast', displayName: '{!JSENCODE($Label.ECOPortalForecastCostEacBudget)}', minWidth: 75, cellClass: 'currencyColumn', type: 'number', cellTemplate: window.currencyTemplate, enableCellEdit: false, filters: [{condition: uiGridConstants.filter.GREATER_THAN, placeholder: '>'}, {condition: uiGridConstants.filter.LESS_THAN, placeholder: '<' }]},  
+                { name: 'EACTrend1', displayName: '{!JSENCODE($Label.ECOPortalEACTrend1)}', minWidth: 75, cellClass: cellFormatters.CellFormatEACTrend1, type: 'number', cellTemplate: window.currencyTemplate, enableCellEdit: false, filters: [{condition: uiGridConstants.filter.GREATER_THAN, placeholder: '>'}, {condition: uiGridConstants.filter.LESS_THAN, placeholder: '<' }]},  
+                { name: 'EACTrend2', displayName: '{!JSENCODE($Label.ECOPortalEACTrend2)}', minWidth: 75, cellClass: cellFormatters.CellFormatEACTrend2, type: 'number', cellTemplate: window.currencyTemplate, enableCellEdit: false, filters: [{condition: uiGridConstants.filter.GREATER_THAN, placeholder: '>'}, {condition: uiGridConstants.filter.LESS_THAN, placeholder: '<' }]},  
+                { name: 'LastUpdatedBudget', displayName: '{!JSENCODE($Label.ECOPortalLastEACDate)}', minWidth: 75, cellClass: cellFormatters.CellFormatLastUpdatedBudget, cellFilter: 'date:\'yyyy-MM-dd\'', enableFiltering: false, enableCellEdit: false}                    
+            ];
+
+            $scope.columnDefsSchedulePerformance = [
+                { name: 'Name', displayName: '{!JSENCODE($Label.ECOPortalProjectName)}',  cellTemplate:  window.nameTemplate , minWidth: 125, enableCellEdit: false},
+                { name: 'ProjectNumber', displayName: '{!JSENCODE($Label.ECOPortalProjectNumber)}', minWidth: 75, enableCellEdit: false}, 
+                { name: 'ProjectManager', displayName: '{!JSENCODE($Label.ECOPortalProjectManager)}', minWidth: 95, enableCellEdit: false},
+                { name: 'SPI', displayName: 'SPI', cellClass: cellFormatters.CellCPISPI, width: 45, type: 'number', enableCellEdit: false},                    
+                { name: 'ScheduleVariance', displayName: '{!JSENCODE($Label.ECOPortalScheduleVariance)}', minWidth: 75, cellClass: cellFormatters.CellFormatCurrencyColumnLessThanZero, type: 'number', cellTemplate: window.currencyTemplate, enableCellEdit: false, filters: [{condition: uiGridConstants.filter.GREATER_THAN, placeholder: '>'}, {condition: uiGridConstants.filter.LESS_THAN, placeholder: '<' }]},                  
+                { name: 'EarnedValue', displayName: '{!JSENCODE($Label.ECOPortalEarnedValue)}', minWidth: 75, cellClass: 'currencyColumn', type: 'number', cellTemplate: window.currencyTemplate, enableCellEdit: false, filters: [{condition: uiGridConstants.filter.GREATER_THAN, placeholder: '>'}, {condition: uiGridConstants.filter.LESS_THAN, placeholder: '<' }]},  
+                { name: 'EarnedValuePlannedValue', displayName: '{!JSENCODE($Label.ECOPortalPlannedValue)}', minWidth: 75, cellClass: 'currencyColumn', type: 'number', cellTemplate: window.currencyTemplate, enableCellEdit: false, filters: [{condition: uiGridConstants.filter.GREATER_THAN, placeholder: '>'}, {condition: uiGridConstants.filter.LESS_THAN, placeholder: '<' }]},
+                { name: 'ProjectEndDate', displayName: '{!JSENCODE($Label.ECOPortalApprovedEndDate)}', cellClass: cellFormatters.CellFormatDateColumnLessThanToday, minWidth: 75, cellFilter: 'date:\'yyyy-MM-dd\'', enableCellEdit: false, enableFiltering: false },
+                { name: 'RevisedEndDate', displayName: '{!JSENCODE($Label.ECOPortalForecastEndDate)}', cellClass: cellFormatters.CellFormatDateColumnLessThanToday, minWidth: 75, cellFilter: 'date:\'yyyy-MM-dd\'', enableCellEdit: false, enableFiltering: false }
+            ];
+
+            $scope.columnDefsLaborSpend = [
+                { name: 'Name', displayName: '{!JSENCODE($Label.ECOPortalProjectName)}',  cellTemplate:  window.nameTemplate , minWidth: 125, enableCellEdit: false},
+                { name: 'ProjectNumber', displayName: '{!JSENCODE($Label.ECOPortalProjectNumber)}', minWidth: 75, enableCellEdit: false}, 
+                { name: 'ProjectManager', displayName: '{!JSENCODE($Label.ECOPortalProjectManager)}', minWidth: 95, enableCellEdit: false},
+                { name: 'AvgLaborHourITD', displayName: '{!JSENCODE($Label.ECOPortalAvgLaborRateITD)}', minWidth: 50, cellClass: cellFormatters.CellFormatAvgLaborHourITD, type: 'number', cellTemplate: window.currencyTemplate, enableCellEdit: false, filters: [{condition: uiGridConstants.filter.GREATER_THAN, placeholder: '>'}, {condition: uiGridConstants.filter.LESS_THAN, placeholder: '<' }]},                  
+                { name: 'AvgLaborHourForecast', displayName: '{!JSENCODE($Label.ECOPortalAvgLaborRateForecastBudget)}', minWidth: 85, cellClass: 'currencyColumn', type: 'number', cellTemplate: window.currencyTemplate, enableCellEdit: false, filters: [{condition: uiGridConstants.filter.GREATER_THAN, placeholder: '>'}, {condition: uiGridConstants.filter.LESS_THAN, placeholder: '<' }]},
+                { name: 'HoursITD', displayName: '{!JSENCODE($Label.ECOPortalHoursITD)}', minWidth: 50, cellFilter: 'fractionFilter', cellClass: cellFormatters.CellFormatHoursITD, enableCellEdit: false, filters: [{condition: uiGridConstants.filter.GREATER_THAN, placeholder: '>'}, {condition: uiGridConstants.filter.LESS_THAN, placeholder: '<' }]},                  
+                { name: 'HoursForecast', displayName: '{!JSENCODE($Label.ECOPortalHoursForecastBudget)}', minWidth: 50, cellClass: 'numericColumn', cellFilter: 'fractionFilter', enableCellEdit: false, filters: [{condition: uiGridConstants.filter.GREATER_THAN, placeholder: '>'}, {condition: uiGridConstants.filter.LESS_THAN, placeholder: '<' }]},                  
+                { name: 'LaborITD', displayName: '{!JSENCODE($Label.ECOPortalLaborCostITD)}', minWidth: 50, cellClass: cellFormatters.CellFormatLaborITD, type: 'number', cellTemplate: window.currencyTemplate, enableCellEdit: false, filters: [{condition: uiGridConstants.filter.GREATER_THAN, placeholder: '>'}, {condition: uiGridConstants.filter.LESS_THAN, placeholder: '<' }]},                  
+                { name: 'LaborForecast', displayName: '{!JSENCODE($Label.ECOPortalLaborCostForecastBudget)}', minWidth: 50, cellClass: 'currencyColumn', type: 'number', cellTemplate: window.currencyTemplate, enableCellEdit: false, filters: [{condition: uiGridConstants.filter.GREATER_THAN, placeholder: '>'}, {condition: uiGridConstants.filter.LESS_THAN, placeholder: '<' }]}                  
+            ];
+
+            $scope.columnDefsCashPerformance = [
+                { name: 'Name', displayName: '{!JSENCODE($Label.ECOPortalProjectName)}',  cellTemplate:  window.nameTemplate , minWidth: 125, enableCellEdit: false},
+                { name: 'ProjectNumber', displayName: '{!JSENCODE($Label.ECOPortalProjectNumber)}', minWidth: 75, enableCellEdit: false}, 
+                { name: 'ProjectManager', displayName: '{!JSENCODE($Label.ECOPortalProjectManager)}', minWidth: 95, enableCellEdit: false},
+                { name: 'ProjectBiller', displayName: '{!JSENCODE($Label.ECOPortalProjectBiller)}', minWidth: 95, enableCellEdit: false},
+                { name: 'DSO', displayName: '{!JSENCODE($Label.ECOPortalDSODays)}', type: 'number', minWidth: 75, cellClass: 'numericColumn', enableCellEdit: false, filters: [{condition: uiGridConstants.filter.GREATER_THAN, placeholder: '>'}, {condition: uiGridConstants.filter.LESS_THAN, placeholder: '<' }]},            
+                { name: 'UnbilledTotal', displayName: '{!JSENCODE($Label.ECOPortalUnbilledTotal)}', minWidth: 75, cellClass: 'currencyColumn', type: 'number', cellTemplate: window.currencyTemplate, enableCellEdit: false, filters: [{condition: uiGridConstants.filter.GREATER_THAN, placeholder: '>'}, {condition: uiGridConstants.filter.LESS_THAN, placeholder: '<' }]},            
+                { name: 'Unbilled61Plus', displayName: '{!JSENCODE($Label.ECOPortalUnbilled60days)}', cellClass: cellFormatters.CellFormatCurrencyColumnGreaterThanZero, minWidth: 75, type: 'number', cellTemplate: window.currencyTemplate, enableCellEdit: false, filters: [{condition: uiGridConstants.filter.GREATER_THAN, placeholder: '>'}, {condition: uiGridConstants.filter.LESS_THAN, placeholder: '<' }]},            
+                { name: 'ARBIEE', displayName: '{!JSENCODE($Label.ECOPortalBIEE)}', type: 'number',minWidth: 75, cellClass: 'currencyColumn', type: 'number', cellTemplate: window.currencyTemplate, enableCellEdit: false, filters: [{condition: uiGridConstants.filter.GREATER_THAN, placeholder: '>'}, {condition: uiGridConstants.filter.LESS_THAN, placeholder: '<' }]},            
+                { name: 'ARTotal', displayName: '{!JSENCODE($Label.ECOPortalARTotal)}', type: 'number',minWidth: 75, cellClass: 'currencyColumn', type: 'number', cellTemplate: window.currencyTemplate, enableCellEdit: false, filters: [{condition: uiGridConstants.filter.GREATER_THAN, placeholder: '>'}, {condition: uiGridConstants.filter.LESS_THAN, placeholder: '<' }]},            
+                { name: 'AR91Plus', displayName: '{!JSENCODE($Label.ECOPortalAR90days)}', type: 'number', cellClass: cellFormatters.CellFormatCurrencyColumnGreaterThanZero, minWidth: 75, type: 'number', cellTemplate: window.currencyTemplate, enableCellEdit: false, filters: [{condition: uiGridConstants.filter.GREATER_THAN, placeholder: '>'}, {condition: uiGridConstants.filter.LESS_THAN, placeholder: '<' }]},            
+                { name: 'ARRetention', displayName: '{!JSENCODE($Label.ECOPortalRetention)}', type: 'number',minWidth: 75, cellClass: 'currencyColumn', type: 'number', cellTemplate: window.currencyTemplate, enableCellEdit: false, filters: [{condition: uiGridConstants.filter.GREATER_THAN, placeholder: '>'}, {condition: uiGridConstants.filter.LESS_THAN, placeholder: '<' }]}            
+            ];
+
+            $scope.columnDefsMarginPerformance = [
+                { name: 'Name', displayName: '{!JSENCODE($Label.ECOPortalProjectName)}',  cellTemplate:  window.nameTemplate , minWidth: 125, enableCellEdit: false},
+                { name: 'ProjectNumber', displayName: '{!JSENCODE($Label.ECOPortalProjectNumber)}', minWidth: 75, enableCellEdit: false}, 
+                { name: 'ProjectManager', displayName: '{!JSENCODE($Label.ECOPortalProjectManager)}', minWidth: 95, enableCellEdit: false},
+                { name: 'LostMarginITD', displayName: '{!JSENCODE($Label.ECOPortalGainedLostMargin)}', type: 'number', cellClass: cellFormatters.CellFormatCurrencyColumnLessThanZero, minWidth: 75, cellTemplate: window.currencyTemplate, enableCellEdit: false, filters: [{condition: uiGridConstants.filter.GREATER_THAN, placeholder: '>'}, {condition: uiGridConstants.filter.LESS_THAN, placeholder: '<' }]},            
+                { name: 'NMNSRMonthToDate', displayName: '{!JSENCODE($Label.ECOPortalNMNSR)} {!JSENCODE($Label.ECOPortalMTD)}', type: 'number', cellClass: cellFormatters.CellFormatNumericColumnLessThanZero, minWidth: 75, enableCellEdit: false, filters: [{condition: uiGridConstants.filter.GREATER_THAN, placeholder: '>'}, {condition: uiGridConstants.filter.LESS_THAN, placeholder: '<' }]},            
+                { name: 'NMNSRITD', displayName: '{!JSENCODE($Label.ECOPortalNMNSR)} {!JSENCODE($Label.ECOPortalITD)}', type: 'number', cellClass: cellFormatters.CellFormatNumericColumnLessThanZero, cellFilter: 'percentFilter', minWidth: 75, enableCellEdit: false, filters: [{condition: uiGridConstants.filter.GREATER_THAN, placeholder: '>'}, {condition: uiGridConstants.filter.LESS_THAN, placeholder: '<' }]},            
+                { name: 'NMNSRBudget', displayName: '{!JSENCODE($Label.ECOPortalNMNSR)} {!JSENCODE($Label.ECOPortalApproved)}', type: 'number', cellClass: cellFormatters.CellFormatNumericColumnLessThanZero, cellFilter: 'percentFilter', minWidth: 75, enableCellEdit: false, filters: [{condition: uiGridConstants.filter.GREATER_THAN, placeholder: '>'}, {condition: uiGridConstants.filter.LESS_THAN, placeholder: '<' }]},            
+                { name: 'NMNSRForecast', displayName: '{!JSENCODE($Label.ECOPortalNMNSR)} {!JSENCODE($Label.ECOPortalForecast)}', type: 'number', cellClass: cellFormatters.CellFormatNumericColumnLessThanZero, cellFilter: 'percentFilter', minWidth: 75, enableCellEdit: false, filters: [{condition: uiGridConstants.filter.GREATER_THAN, placeholder: '>'}, {condition: uiGridConstants.filter.LESS_THAN, placeholder: '<' }]},            
+                { name: 'GMNSRMonthToDate', displayName: '{!JSENCODE($Label.ECOPortalGMNSR)} {!JSENCODE($Label.ECOPortalMTD)}', type: 'number', cellClass: cellFormatters.CellFormatNumericColumnLessThanZero, cellFilter: 'percentFilter', minWidth: 75, enableCellEdit: false, filters: [{condition: uiGridConstants.filter.GREATER_THAN, placeholder: '>'}, {condition: uiGridConstants.filter.LESS_THAN, placeholder: '<' }]},            
+                { name: 'GMNSRITD', displayName: '{!JSENCODE($Label.ECOPortalGMNSR)} {!JSENCODE($Label.ECOPortalITD)}', type: 'number', cellClass: cellFormatters.CellFormatNumericColumnLessThanZero, cellFilter: 'percentFilter', minWidth: 75, enableCellEdit: false, filters: [{condition: uiGridConstants.filter.GREATER_THAN, placeholder: '>'}, {condition: uiGridConstants.filter.LESS_THAN, placeholder: '<' }]},            
+                { name: 'GMNSRBudget', displayName: '{!JSENCODE($Label.ECOPortalGMNSR)} {!JSENCODE($Label.ECOPortalApproved)}', type: 'number', cellClass: cellFormatters.CellFormatNumericColumnLessThanZero, cellFilter: 'percentFilter', minWidth: 75, enableCellEdit: false, filters: [{condition: uiGridConstants.filter.GREATER_THAN, placeholder: '>'}, {condition: uiGridConstants.filter.LESS_THAN, placeholder: '<' }]},            
+                { name: 'GMNSRForecast', displayName: '{!JSENCODE($Label.ECOPortalGMNSR)} {!JSENCODE($Label.ECOPortalForecast)}', type: 'number', cellClass: cellFormatters.CellFormatNumericColumnLessThanZero, cellFilter: 'percentFilter', minWidth: 75, enableCellEdit: false, filters: [{condition: uiGridConstants.filter.GREATER_THAN, placeholder: '>'}, {condition: uiGridConstants.filter.LESS_THAN, placeholder: '<' }]}            
+            ];
+
+            var hideLoading = function(d) {
+                $scope.pageModel.isLoading = false;
+            }
+
+            var errorPlanning = function(event) {
+                $scope.pageModel.projectLists.planning.isLoading = false;
+                $scope.pageModel.projectLists.planning.hasError = true;                                
+            }
+
+            var errorExecution = function(event) {
+                $scope.pageModel.projectLists.execution.isLoading = false;
+                $scope.pageModel.projectLists.execution.hasError = true;                                
+            }                                                      
+            var updatePlanning = function(d) {                    
+                //$scope.pageModel.projectLists.planning.pageData = d;
+                $scope.planningGridOptions.data = d;
+                //                    $scope.planningGridOptions.totalItems = d.length;
+                /*              var firstRow = (paginationOptions.pageNumber - 1) * paginationOptions.pageSize;
+                        $scope.gridOptions.data = data.slice(firstRow, firstRow + paginationOptions.pageSize);
+                */
+                /*                    if($scope.planningGridOptions.data.length == 0)
+                {
+                    
+                } else {
+                    $scope.planningGridOptions.data = [];
+                }
+                */
+                // 
+                if($scope.planningGridOptions.data.length > 50)
+                {
+                    $scope.planningGridOptions.enablePaginationControls = true;
+                }
+                $scope.gridApiPlanning.core.refreshRows();
+                $scope.pageModel.projectLists.planning.hasError = false;
+                $scope.pageModel.projectLists.planning.isLoading = false;                    
+            }
+            var updateExecution = function(d) {
+                //$scope.pageModel.projectLists.planning.pageData = d;   
+                $scope.executionGridOptions.data = d;
+                if($scope.executionGridOptions.data.length > 50)
+                {
+                    $scope.executionGridOptions.enablePaginationControls = true;
+                }
+                $scope.gridApiExecution.core.refreshRows();
+                $scope.pageModel.projectLists.execution.hasError = false;                    
+                $scope.pageModel.projectLists.execution.isLoading = false;
+            }                                                     
+                    
+            //function to get KPI Exceedance image src dynamically
+            $scope.getKPIExceedanceImage = function(KPIExceedances){
+                if(KPIExceedances)
+                    return '{!JSENCODE($Resource.RedCircle)}';
+                else
+                    return '{!JSENCODE($Resource.greenStar)}';
+            }; 
+
+            //function to get Change Management Approved image src dynamically
+            $scope.getChangeRequestsApprovedImage = function(ChangeRequestsApproved){
+                if(ChangeRequestsApproved)
+                    return '{!JSENCODE($Resource.GreenTick)}';
+                else
+                    return '{!JSENCODE($Resource.OrangeCircle)}';
+            }; 
+
+            $scope.NavigateToView = function(row) {
+                if (row.entity.Action == 'ProjectCommandConsole'){
+                    window.open('/' + row.entity.Id, '_blank');
+                } else if (row.entity.Action == 'CostDetailRawCost' && costDetailRawCostReportId != ''){
+                    window.open('/' + costDetailRawCostReportId + '?pv0=' + row.entity.Id.slice(0,-3), '_blank');
+                } else {
+                    window.open('/apex/' + row.entity.Action + '?id=' + row.entity.Id, '_blank');
+                }
+            };
+
+            $scope.ShowPopup = function(id)
+            {
+                //console.log("showing " + id);
+                var returnUrl = '/' + id  +'/m?retURL=%2F' + id + '&isAjaxRequest=1';
+                LookupHoverDetail.STANDARD_BUBBLE_HEIGHT = 900;
+                LookupHoverDetail.getHover(id, returnUrl).show();
+                /*              $scope.currentHoverPromise = 
+                $timeout( function () 
+                {
+                }, 500);                     */
+            }
+                    
+            $scope.HidePopup = function(id)
+            {
+               if(LookupHoverDetail.getHover(id, '') != null) {
+                    LookupHoverDetail.getHover(id).hide();
+               }                        
+            }
+            
+            $scope.GotoNewProject = function() 
+            {
+                $window.location.href = '/a32/e';
+                // $location.url('/a32/e');
+                //window.location = $scope.pageModel.sitePrefix + ;
+            }
+            $scope.GotoProject = function(id)
+            {
+                $window.location.href = '/' + id;
+                //$location.url('/' + id);
+                //window.location = $scope.pageModel.sitePrefix + '/' id;
+            }
+            $scope.GotoProjectDashboard = function(id)
+            {
+                // $location.url();
+                $window.location.href = '/apex/eco_pmd_projectdashboard?id=' + id
+                //window.location = $scope.pageModel.sitePrefix + '/apex/eco_pmd_projectdashboard?id=' + id;
+            }
+            $scope.GotoApproval = function()
+            {
+                window.open($scope.pageModel.sitePrefix + '/apex/ECO_ePM_ConsolidatedInbox', '_blank');
+                // window.location = '/apex/ECO_ePM_ConsolidatedInbox';
+            }                      
+            $scope.myTaskCount = function()
+            {
+                if($scope.pageModel.tasks.length > 0) {
+                    return $scope.pageModel.tasks.length;  
+                }
+                return '';                        
+            }
+            $scope.myAlertCount = function()
+            {
+                if($scope.pageModel.alerts.length > 0)
+                    return $scope.pageModel.alerts.length;
+                return '';
+            }
+            $scope.ShowAlertsToggle = function() {
+                $scope.pageModel.showAlerts = !$scope.pageModel.showAlerts;
+            }
+            $scope.ShowTasksToggle = function() {
+                $scope.pageModel.showTasks = !$scope.pageModel.showTasks;
+            }
+            $scope.ExecutionGridToggleFilter = function() {
+                $scope.executionGridOptions.enableFiltering = !$scope.executionGridOptions.enableFiltering;
+                $scope.gridApiExecution.core.notifyDataChange(uiGridConstants.dataChange.COLUMN);
+            }
+            $scope.ExecutionGridRecentCostsForPmReport = function() {                
+                    window.open('/apex/eco_pmd_costdetail_recentcosts', '_blank');
+            }
+            $scope.PlanningGridToggleFilter = function() {
+                $scope.planningGridOptions.enableFiltering = !$scope.planningGridOptions.enableFiltering;
+                $scope.gridApiPlanning.core.notifyDataChange(uiGridConstants.dataChange.COLUMN);
+            }
+            $scope.RefreshGrids = function() {
+                $scope.RefreshPlanning();
+                $scope.RefreshExecution();
+            }
+            $scope.ChangeExecutionGridDisplay = function() {
+                if ($scope.pageModel.Displays.selectedDisplay == 'Cost Performance') {
+                    $scope.executionGridOptions.columnDefs = $scope.columnDefsCostPerformance;                    
+                } else if ($scope.pageModel.Displays.selectedDisplay == 'Schedule Performance') {
+                    $scope.executionGridOptions.columnDefs = $scope.columnDefsSchedulePerformance;                    
+                } else if ($scope.pageModel.Displays.selectedDisplay == 'Cash Performance') {
+                    $scope.executionGridOptions.columnDefs = $scope.columnDefsCashPerformance;                    
+                } else if ($scope.pageModel.Displays.selectedDisplay == 'Labor Spend') {
+                    $scope.executionGridOptions.columnDefs = $scope.columnDefsLaborSpend;                    
+                } else if ($scope.pageModel.Displays.selectedDisplay == 'Margin Performance') {
+                    $scope.executionGridOptions.columnDefs = $scope.columnDefsMarginPerformance;                    
+                } else {
+                    $scope.executionGridOptions.columnDefs = $scope.columnDefsGeneral;
+                }
+                $scope.gridApiExecution.grid.refresh();
+            }            
+            $scope.RefreshPlanning = function() {
+                var deferred = $q.defer();
+                $scope.pageModel.projectLists.planning.isLoading = true;
+                Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.ePM_Landing.GetPlanningProjects}',
+                /*pageSize, pageNum,*/
+                $scope.pageModel.hideInactivePlanning, $scope.pageModel.Roles.selectedRole,
+                function(result, event){
+                    if(event.statusCode == 200)
+                    {
+                        deferred.resolve(result);
+                    } else {
+                        deferred.reject(event);
+                    }
+                }, {escape: false});
+                deferred.promise.then( updatePlanning ).catch(errorPlanning);
+            };
+            $scope.RefreshExecution = function() {
+                /*$scope.pageModel.projectLists.execution.isLoading = true;
+                var myPromise = vfr.send('{!$RemoteAction.ePM_Landing.GetExecutionProjects}', {}, false)($scope.pageModel.showClosedExecution, $scope.pageModel.Roles.selectedRole);
+                myPromise.then( updateExecution );
+                myPromise.then( hideLoading);*/
+                
+                var deferred = $q.defer();
+                $scope.pageModel.projectLists.execution.isLoading = true;                                
+                Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.ePM_Landing.GetExecutionProjects}', 
+                $scope.pageModel.showClosedExecution, $scope.pageModel.Roles.selectedRole,
+                function(result, event){
+                    if(event.statusCode == 200)
+                    {
+                        deferred.resolve(result);
+                    } else {
+                        deferred.reject(event);
+                    }
+                    
+                }, {escape: false});
+                deferred.promise.then( updateExecution ).catch(errorExecution);;                    
+            };
+            $timeout(function() {$scope.RefreshPlanning(); $scope.RefreshExecution(); } , 0);
+        }
+    ]);
+
+    ePM_LandingAngular.filter('trusted', function ($sce) {
+      return function (value) {
+        var returnee =  $sce.trustAsHtml(unescape(value));
+        return returnee;
+      }
+    });
+
+    ePM_LandingAngular.filter('trusted', function ($sce) {
+      return function (value) {
+        var returnee =  $sce.trustAsHtml(unescape(value));
+        return returnee;
+      }
+    });
+                                                     
+    ePM_LandingAngular.filter('unescape', function ($sce) {
+      return function (value) {
+            return unescape(value);
+      }
+    });                                                     
+                                                     
+
+    ePM_LandingAngular.directive('modal', function(){
+        return {
+            template: '<div class="modal fade bs-example-modal-lg" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true"><div class="modal-dialog modal-lg"><div class="modal-content" ng-transclude><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button><h4 class="modal-title" id="myModalLabel">Modal title</h4></div></div></div></div>', 
+            restrict: 'E',
+            transclude: true,
+            replace:true,
+            scope:{visible:'=', onSown:'&', onHide:'&'},   
+            link:function postLink(scope, element, attrs){
+                
+                $(element).modal({
+                    show: false, 
+                    keyboard: attrs.keyboard, 
+                    backdrop: attrs.backdrop
+                });
+                
+                scope.$watch(function(){return scope.visible;}, function(value){
+                    
+                    if(value == true){
+                        $(element).modal('show');
+                    }else{
+                        $(element).modal('hide');
+                    }
+                });
+                
+                $(element).on('shown.bs.modal', function(){
+                  scope.$apply(function(){
+                                                     //scope.$parent[attrs.visible] = true;
+                  });
+                });
+                
+                $(element).on('shown.bs.modal', function(){
+                  scope.$apply(function(){
+                      scope.onSown({});
+                  });
+                });
+
+                $(element).on('hidden.bs.modal', function(){
+                  scope.$apply(function(){
+                                                     scope.visible = false;
+                                                     //  scope.$parent[attrs.visible] = false;
+                  });
+                });
+                
+                $(element).on('hidden.bs.modal', function(){
+                  scope.$apply(function(){
+                      scope.onHide({});
+                  });
+                });
+            }
+        };
+    }
+);                        
+    
+
+</script>        
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

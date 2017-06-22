@@ -1,0 +1,425 @@
+<apex:page standardcontroller="pse__Proj__c" extensions="ECO_ResilienceController,nttdcore.DLabelParentController" showheader="true" sidebar="true" doctype="html-5.0" id="pgId" action="{!init}" >
+    <style>
+        .ui-widget{
+        font-family:inherit !important;
+        font-size:inherit !important;
+        }
+        .customHelpText{
+            padding: 7px;
+            border: 1px solid #85B3CE;
+            min-height: 30px;
+            display: block;
+            width: auto;
+            margin: 0 0 5px 0;
+            background-repeat: no-repeat;
+            border-radius: 4px;
+            background-color: #A2D3F1;
+            
+        }
+        .customHelpBody{
+            display:inline-block;
+            color:#;
+            max-width:95%;
+        }
+    </style>
+    <apex:stylesheet value="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css" />
+    <apex:includeScript value="{!$Resource.ECO_jQuery_1_11_2_min_js}" />
+    <apex:includeScript value="{!URLFOR($Resource.ECO_jQueryUI_1_11_2, 'jquery-ui.min.js')}" />
+
+     <script type="text/javascript" >
+
+        var j$ = jQuery.noConflict();
+         j$(function() {
+            function log( message ) {
+                j$(document.getElementById('{!$Component.pgId.frmId.pgBlockId.CityID}')).val(message);
+
+            }
+
+            j$(document.body).on('change','#city',function(){
+                j$(document.getElementById('{!$Component.pgId.frmId.pgBlockId.CityID}')).val(j$("#city").val());
+            });
+         
+            j$( "#city" ).autocomplete({
+                source: function( request, response ) {
+                    j$.ajax({
+                    //url: "http://gd.geobytes.com/AutoCompleteCity",
+                    url: "https://secure.geobytes.com/AutoCompleteCity/gd?key=d4180a306e267fa5529183aedabfaf51",
+                    dataType: "jsonp",
+                    data: {
+                        q: request.term
+                    },
+                success: function( data ) {
+                    response( data );
+                }
+            });
+
+            },
+            minLength: 3,
+                select: function( event, ui ) {
+                log( ui.item ? ui.item.label : "");
+                },
+            open: function() {
+                j$( this ).removeClass( "ui-corner-all" ).addClass( "ui-corner-top" );
+                },
+            close: function() {
+                j$( this ).removeClass( "ui-corner-top" ).addClass( "ui-corner-all" );
+                }
+            });
+        });
+     </script>
+    
+    <script>
+    function setFocusOnLoad() {}    
+    
+    function fileChosen(attachButton,documentField,overrideField)
+    {
+        if(documentField.value != '')
+        {
+            document.getElementById(attachButton).style.visibility = 'visible';         
+            document.getElementById(overrideField).value = '';
+            document.getElementById(overrideField).style.visibility = 'visible';
+                        
+        }
+        else
+        {
+            document.getElementById(attachButton).style.visibility= 'hidden';
+            document.getElementById(overrideField).style.visibility= 'hidden';          
+        }       
+    }   
+    
+    function createAttachment(id, name)
+    {
+        attachInduction(id,name);
+    }
+    
+    function createProjectTeamMember(id)
+    {
+        createTeamMember(id);
+    }
+        
+    //function losefocus() {
+        //document.getElementById("comment").blur();
+    //}
+    
+    </script>    
+
+    <nttdcore:DLabel name="DL1" default="Project Location(s) and Resilience" labelParent="{!this}" /><apex:sectionHeader title="{!dLabel['DL1']}" subtitle="{!pse__Proj__c.Name}" />
+
+    <style>
+        .searchText{
+            text-align:center;
+            font-weight:bold;
+            font-size:20px;
+        }
+        .tt-search-box.tt-input{
+            border-radius:0;
+            border:1px solid #a9a9a9;
+        }
+        #city { width: 25em; }
+
+        /* CUSTOM HELP / GUIDANCE TEXT BOX */
+        .customHelpText{
+            padding:7px;
+            border:1px solid #85B3CE;
+            min-height:30px;
+            display:block;
+            width:auto;
+            margin:0;
+            background-color:#A2D3F1;
+            border-radius:4px;
+            margin-bottom:15px;
+        }
+        .customHelpBody{
+            display:inline-block;
+            color:#;
+            max-width:95%;
+        }       
+    </style>
+
+    <apex:outputPanel id="messages" >
+        <apex:pageMessages />
+    </apex:outputPanel>
+
+    <c:ECO_CollapsibleSection sectiontitle="General Guidance Information" uniqueid="1" ><nttdcore:DLabel name="DL3" default=":  List all project cities and countries where AECOM staff will be required to travel to/from or work in to complete the required scope of services.  This includes any travel to locations as part of the planning, bid or execution phases of the project and includes both client sites as well as physical project sites. The risk rating of the project location(s) will inform the level and complexity of resilience planning (below)." labelParent="{!this}" /><nttdcore:DLabel name="DL5" default=":  Resilience planning establishes and maintains a framework for the protection of our people and assets as part of our global operations and provides a road map of what to do should an emergency or crisis occur, including staff actions and vital information to assist our security team with response actions. Projects located in high risk countries may require additional planning for security and well-being, including Journey Management Plan, Communications Plan, Medical Response Plan, Disruptive Event Management Plan, Risk Assessment Guide, Disruptive Event Response Checklist and Evacuation Plan." labelParent="{!this}" /><nttdcore:DLabel name="DL6" default="Contact the Global Resilience Group (GRG) with any questions (ProjectResilience@aecom.com)." labelParent="{!this}" />  
+             <B><nttdcore:DLabel name="DL2" default="Project Locations" labelParent="{!this}" />{!dLabel['DL2']}</B>{!dLabel['DL3']}<br/><br/>
+
+            <B><nttdcore:DLabel name="DL4" default="Resilience Planning" labelParent="{!this}" />{!dLabel['DL4']}</B>{!dLabel['DL5']}<br/><br/>
+
+            {!dLabel['DL6']}
+    </c:ECO_CollapsibleSection>           
+     <apex:form id="frmId" >     
+        <apex:outputField value="{!pse__Proj__c.PrimaryCityName__c}" rendered="false" />
+        <apex:outputField value="{!pse__Proj__c.PrimaryCountry__c}" rendered="false" />
+        <apex:outputField value="{!pse__Proj__c.ResilienceElectronicAssets__c}" rendered="false" />
+        <apex:outputField value="{!pse__Proj__c.OSPApprover__c}" rendered="false" />
+        <apex:outputField value="{!pse__Proj__c.OSPTitle__c}" rendered="false" />
+        <apex:outputField value="{!pse__Proj__c.OSPApproved__c}" rendered="false" />
+        <apex:outputField value="{!pse__Proj__c.OSPComments__c}" rendered="false" />
+        <apex:outputField value="{!pse__Proj__c.OSPApprovedBy__c}" rendered="false" />
+        <apex:outputField value="{!pse__Proj__c.OSPDateTimeApproved__c}" rendered="false" />
+
+        <nttdcore:DLabel name="DL7" default="Project Location(s)" labelParent="{!this}" /><apex:pageBlock title="{!dLabel['DL7']}" id="pgBlockId" >
+
+            <apex:pageBlockButtons location="top" >
+                <nttdcore:DLabel name="DL8" default="Save" labelParent="{!this}" /><apex:commandButton value="{!dLabel['DL8']}" action="{!SaveSelectedLocations}" oncomplete="location.reload()" />
+                <nttdcore:DLabel name="DL9" default="Return to Project" labelParent="{!this}" /><apex:commandButton value="{!dLabel['DL9']}" action="{!cancel}" rendered="{!NOT(bFromSHE)}" />
+                <nttdcore:DLabel name="DL10" default="Return to SH&amp;E" labelParent="{!this}" /><apex:commandButton value="{!dLabel['DL10']}" action="{!cancel}" rendered="{!bFromSHE}" />
+            </apex:pageBlockButtons>
+           
+            <apex:panelGrid columns="4" id="panelGridId" >
+                <div class="ui-widget" >
+                  <label for="city" ><nttdcore:DLabel name="DL11" default="Location (City):" labelParent="{!this}" />{!dLabel['DL11']} </label>
+                  <input id="city" />
+                </div>
+
+               
+                <nttdcore:DLabel name="DL12" default="Add City" labelParent="{!this}" /><apex:commandButton action="{!AddCity}" value="{!dLabel['DL12']}" id="CityRiskAdd" rerender="ProjectCityPanel, messages, ResiliencePanel" status="CityUpdateStatus" />
+            </apex:panelGrid>
+            <apex:inputHidden id="CityID" value="{!idCityID}" />
+            <BR/><BR/>
+            
+            <apex:outputPanel id="ProjectCityPanel" ><nttdcore:DLabel name="DL13" default="Selected Locations" labelParent="{!this}" /><nttdcore:DLabel name="DL14" default="Updating..." labelParent="{!this}" /><nttdcore:DLabel name="DL15" default="No Cities have been selected." labelParent="{!this}" /><nttdcore:DLabel name="DL16" default="Action" labelParent="{!this}" /><nttdcore:DLabel name="DL17" default="Remove" labelParent="{!this}" /><nttdcore:DLabel name="DL19" default="Project Location" labelParent="{!this}" /><nttdcore:DLabel name="DL20" default="State/Province" labelParent="{!this}" /><nttdcore:DLabel name="DL21" default="Country" labelParent="{!this}" /><nttdcore:DLabel name="DL22" default="Security Rating" labelParent="{!this}" /><nttdcore:DLabel name="DL23" default="Business Risk" labelParent="{!this}" /><nttdcore:DLabel name="DL24" default="Detention &amp; Discrimination" labelParent="{!this}" /><nttdcore:DLabel name="DL25" default="Kidnap &amp; Ransom" labelParent="{!this}" /><nttdcore:DLabel name="DL26" default="Property" labelParent="{!this}" /><nttdcore:DLabel name="DL27" default="Physical Project" labelParent="{!this}" /><nttdcore:DLabel name="DL28" default="AECOM Work" labelParent="{!this}" /><nttdcore:DLabel name="DL29" default="Other" labelParent="{!this}" /><nttdcore:DLabel name="DL30" default="Project Location Risk: " labelParent="{!this}" /><nttdcore:DLabel name="DL31" default="You have selected more than one project location. Please consult with the AECOM Tax Management Team for advice and input into tax matters which may impact on your project." labelParent="{!this}" /><nttdcore:DLabel name="DL32" default="What do these scores mean?" labelParent="{!this}" /><nttdcore:DLabel name="DL33" default="The scores are quantified risk forecast numbers that measure country-wide and asset-specific risks.  The scores are split into three risk level bands.  They capture both frequency and severity of risk over the forward one-year time-frame.  A high score may indicate a high frequency of low impact events, or a low frequency of very high impact events.  &#39;Impact&#39; may refer to asset damage, business disruption or interference with personnel.  AECOM uses these risk scores to help guide and inform the level and complexity of resilience planning." labelParent="{!this}" /><nttdcore:DLabel name="DL34" default="3.0 and above &emsp;&ensp;&nbsp;High" labelParent="{!this}" /><nttdcore:DLabel name="DL35" default="2.0 to 2.9 &emsp;&emsp;&emsp;&emsp;Elevated" labelParent="{!this}" /><nttdcore:DLabel name="DL36" default="0.0 to 1.9 &emsp;&emsp;&emsp;&emsp;Low" labelParent="{!this}" />
+                <apex:pageBlockSection title="{!dLabel['DL13']}" columns="1" collapsible="false" />
+                <apex:actionStatus id="CityUpdateStatus" >
+                    <apex:facet name="start" >
+                        <p style="padding-bottom:20px;" class="searchText" ><img style="position:relative;top:12px;" src="/img/loading32.gif" /> {!dLabel['DL14']}</p>
+
+                    </apex:facet>
+                    <apex:facet name="stop" >
+                        <apex:outputPanel >
+                            <apex:pageMessage severity="INFO" rendered="{!if(lstProjectCities.size > 0, false, true)}" summary="{!dLabel['DL15']}" /> 
+                            <apex:pageBlockTable value="{!lstProjectCities}" var="ProjectCity" rendered="{!if(lstProjectCities.size > 0, true, false)}" >
+                                <apex:column >
+                                    <apex:facet name="header" >{!dLabel['DL16']}</apex:facet>
+                                    <apex:commandLink action="{!RemoveEntryCity}" value="{!dLabel['DL17']}" rerender="messages, ProjectCityPanel, ResiliencePanel" status="CityUpdateStatus" >
+                                        <apex:param assignto="{!idCityID}" name="CityID" value="{!ProjectCity.CityName__c}, ,{!ProjectCity.ProjectCountryRisk__r.CountryName__c}" />
+                                    </apex:commandLink>
+                                </apex:column>
+                                <apex:column headervalue="{!dLabel['DL19']}" value="{!ProjectCity.CityName__c}" />
+                                <apex:column headervalue="{!dLabel['DL20']}" value="{!ProjectCity.State_Name__c}" />
+                                <apex:column headervalue="{!dLabel['DL21']}" value="{!ProjectCity.ProjectCountryRisk__r.CountryName__c}" />
+                                <apex:column headervalue="{!dLabel['DL22']}" value="{!ProjectCity.ProjectCountryRisk__r.Safety_Rating__c}" />
+                                <apex:column headervalue="{!dLabel['DL23']}" value="{!ProjectCity.ProjectCountryRisk__r.BusinessRisk__c}" />
+                                <apex:column headervalue="{!dLabel['DL24']}" value="{!ProjectCity.ProjectCountryRisk__r.DetentionDiscrimination__c}" />
+                                <apex:column headervalue="{!dLabel['DL25']}" value="{!ProjectCity.ProjectCountryRisk__r.KidnapRansom__c}" />
+                                <apex:column headervalue="{!dLabel['DL26']}" value="{!ProjectCity.ProjectCountryRisk__r.Property__c}" />
+                                <apex:column headervalue="{!dLabel['DL27']}" >
+                                    <apex:inputField value="{!ProjectCity.PhysicalProject__c}" />
+                                </apex:column> 
+                                <apex:column headervalue="{!dLabel['DL28']}" >
+                                    <apex:inputField value="{!ProjectCity.AECOMWork__c}" />
+                                </apex:column> 
+                                <apex:column headervalue="{!dLabel['DL29']}" >
+                                    <apex:inputField value="{!ProjectCity.Other__c}" />
+                                </apex:column>                                 
+                            </apex:pageBlockTable>
+
+                            <BR/><BR/><BR/>
+                            <div style="text-align:center;font-size: 20px;font-weight: bold;padding:0 0 5px 10px;" >
+                            <apex:outputLabel value="{!dLabel['DL30']}" />
+                            <apex:outputText value="{!projectRisk}" />
+                            </div>
+                            <BR/>
+                            <apex:outputPanel rendered="{!multipleCountry}" >
+                            <BR/>
+                                <apex:pageMessage severity="INFO" summary="{!dLabel['DL31']}" /> 
+                                
+                            </apex:outputPanel>
+                            <BR/>
+                            <div class="customHelpText" >
+                                <div class="customHelpBody" >
+                                    <i><b>{!dLabel['DL32']} </b></i>{!dLabel['DL33']}
+                                    <p> {!dLabel['DL34']}</p>
+                                    <p> {!dLabel['DL35']}</p>
+                                    <p> {!dLabel['DL36']}</p>
+                                    
+                                </div>
+                            </div>
+                            
+                        </apex:outputPanel>
+                    </apex:facet>
+                </apex:actionStatus>
+            </apex:outputPanel>
+            <BR/><BR/><BR/>
+
+            <BR/><BR/><BR/>
+        </apex:pageBlock>
+        <apex:outputPanel id="ResiliencePanel" >
+        <nttdcore:DLabel name="DL37" default="Resilience Planning" labelParent="{!this}" /><apex:pageBlock title="{!dLabel['DL37']}" ><nttdcore:DLabel name="DL39" default="Travel Security" labelParent="{!this}" />
+
+            <apex:pageBlockButtons location="top" >
+                <nttdcore:DLabel name="DL38" default="GRG Website" labelParent="{!this}" /><apex:commandButton value="{!dLabel['DL38']}" onclick="window.open('https://myecosystem.aecom.com/dept/globalresilience/Pages/default.aspx');" />
+            </apex:pageBlockButtons>
+            
+          <apex:pageBlockSection title="{!dLabel['DL39']}" columns="1" collapsible="false" />
+
+            <nttdcore:DLabel name="DL40" default="Project Location must be selected to support resilience planning." labelParent="{!this}" /><apex:pageMessage severity="INFO" rendered="{!if(lstProjectCities.size > 0, false, true)}" summary="{!dLabel['DL40']}" /> 
+            <apex:outputPanel rendered="{!if(lstProjectCities.size > 0, true, false)}" ><nttdcore:DLabel name="DL46" default="Electronic Assets Security" labelParent="{!this}" /><nttdcore:DLabel name="DL53" default="Project Location Security" labelParent="{!this}" />
+                <apex:outputPanel rendered="{!AND(( projectRisk >= 0 ), ( projectRisk <= 1.9) )}" ><nttdcore:DLabel name="DL41" default="Based on the country risk rating for this project, no further action is required when project team members book project travel." labelParent="{!this}" />
+                    <BR/>
+                        {!dLabel['DL41']}
+                </apex:outputPanel>
+
+                <apex:outputPanel rendered="{!AND(( projectRisk >= 2 ), ( projectRisk <= 2.9) )}" ><nttdcore:DLabel name="DL42" default="Based on the country risk rating, project team members are required to complete and submit Section 1.0 of the Travel Security Information Document (TSID) prior to booking project travel." labelParent="{!this}" /><nttdcore:DLabel name="DL43" default="Further information and guidance is available on the Global Resilience Group website." labelParent="{!this}" />
+                    <br/>
+                    {!dLabel['DL42']}  
+                    <br/><br/>
+                    {!dLabel['DL43']}
+                    <BR/><BR/>
+                </apex:outputPanel>
+
+                <apex:outputPanel rendered="{!projectRisk >= 3}" ><nttdcore:DLabel name="DL44" default="Based on the country risk rating, project team members are required to complete and submit Section 1.0, 2.0 and 3.0 (as applicable) of the Travel Security Information Document (TSID) and receive concurrence from the Global Resilience Group prior to booking travel." labelParent="{!this}" /><nttdcore:DLabel name="DL45" default="Further information and guidance is available on the Global Resilience Group website." labelParent="{!this}" />
+                    <BR/>
+                    {!dLabel['DL44']} 
+                    <BR/><BR/>
+                    {!dLabel['DL45']}
+                </apex:outputPanel>
+
+                <apex:pageBlockSection title="{!dLabel['DL46']}" columns="1" collapsible="false" />
+                    
+                <apex:outputPanel rendered="{!AND(( projectRisk >= 0 ), ( projectRisk <= 1.9) )}" ><nttdcore:DLabel name="DL47" default="Project team member use of any AECOM-owned computer, network, other devices and/or electronics must follow the requirements outlined in the Operational Security Plan (OSP) for their respective region.  This includes preparation of any client or project-specific electronic security processes or deliverables as part of the Project Plan." labelParent="{!this}" /><nttdcore:DLabel name="DL48" default="If a regional OSP is not available, prepare a project-specific OSP (Section 1.8) for review by the IT Information Security team and the Global Resiliene Group.  Further information and guidance is available on the Global Resilience Group website." labelParent="{!this}" />                    
+                    <BR/>
+                    {!dLabel['DL47']}
+                    <BR/><BR/>
+                    {!dLabel['DL48']}
+                    <BR/>
+                </apex:outputPanel>
+
+                <br/>
+                    <apex:outputPanel rendered="{! ( projectRisk >= 2 ) }" >
+                    <table><tr>
+                    <td class="questionCol" >
+                        <nttdcore:DLabel name="DL49" default="Will any AECOM employee be carrying or transporting AECOM-owned computer, network, other devices and/or electronics to the project site? " labelParent="{!this}" /><apex:outputText value="{!dLabel['DL49']}" />
+                        </td>
+                        <td>
+                            <apex:selectRadio value="{!oProject.ResilienceElectronicAssets__c}" layout="lineDirection" >
+                                <apex:selectOptions value="{!types}" >
+                                <apex:actionSupport event="onchange" action="{!selectOption}" rerender="ResiliencePanel, messages" />
+                            </apex:selectOptions></apex:selectRadio>
+                        </td>
+                    </tr></table>  
+                    
+                  <apex:outputPanel rendered="{!oProject.ResilienceElectronicAssets__c == 'No'}" ><nttdcore:DLabel name="DL50" default="Project team member use of any AECOM-owned computer, network, other devices and/or electronics must follow the requirements outlined in the Operational Security Plan (OSP) for their respective region.  This includes preparation of any client or project-specific electronic security processes or deliverables as part of the Project Plan." labelParent="{!this}" />
+                    <BR/>
+                    {!dLabel['DL50']}
+                </apex:outputPanel>         
+
+                <apex:outputPanel rendered="{!oProject.ResilienceElectronicAssets__c == 'Yes'}" ><nttdcore:DLabel name="DL51" default="Complete Section 1.8 of the Operational Security Plan (OSP) for review by the IT Information Security team and the Global Resilience Group.   Reference the requirements outlined in the regional OSP(s) for all AECOM offices conducting project-related work, if available.  This includes preparation of any client or project-specific electronic security processes or deliverables as part of the Project Plan." labelParent="{!this}" /><nttdcore:DLabel name="DL52" default="Further information and guidance is available on the Global Resilience Group website." labelParent="{!this}" />
+                    <BR/>
+                    {!dLabel['DL51']}
+                    <BR/><BR/>
+                    {!dLabel['DL52']}
+                    <BR/><BR/>
+                </apex:outputPanel>   
+
+                </apex:outputPanel>
+                    
+                <apex:pageBlockSection title="{!dLabel['DL53']}" columns="1" collapsible="false" />
+                <apex:outputPanel rendered="{!AND(( projectRisk >= 0 ), ( projectRisk <= 1.9) )}" ><nttdcore:DLabel name="DL54" default="Based on the country risk rating for this project, preparation of a project-specific Operational Security Plan (OSP) is only required if a regional OSP does not exist for all AECOM offices conducting project-related work.  If a regional OSP(s) is not available, complete Section 1.0 of the OSP and upload as part of the Project Plan." labelParent="{!this}" /><nttdcore:DLabel name="DL55" default="Reference the regional OSP(s) when preparing any client or project-specific security plans or deliverables as part of the scope of work (e.g., client or contract requirements) ." labelParent="{!this}" /><nttdcore:DLabel name="DL56" default="Further information and guidance is available on the Global Resilience Group website." labelParent="{!this}" />
+                    <BR/>
+                    {!dLabel['DL54']}  
+                    <BR/><BR/>
+                    {!dLabel['DL55']}  
+                    <BR/><BR/>
+                    {!dLabel['DL56']}
+                    <BR/><BR/>
+                </apex:outputPanel>
+
+                <apex:outputPanel rendered="{!AND(( projectRisk >= 2 ), ( projectRisk <= 2.9) )}" ><nttdcore:DLabel name="DL57" default="Based on the country risk rating for this project, complete the following documentation for review and approval by the Global Resilience Group:" labelParent="{!this}" /><nttdcore:DLabel name="DL60" default="Reference the existing AECOM regional Operational Security Plan(s) for guidance when developing the project-specific OSP.  Estimate and include costs to complete the OSP and implement identified security measures, security training, staff and/or materials in AECOM&rsquo;s proposal and Project Plan." labelParent="{!this}" /><nttdcore:DLabel name="DL61" default="Further information and guidance is available on the Global Resilience Group website.  Security requirements can be viewed in the Physical Resilience and Country Security Standards." labelParent="{!this}" />
+                    <BR/>
+                    {!dLabel['DL57']}
+                    <BR/>
+                    <ul>
+                        <li><nttdcore:DLabel name="DL58" default="Project Pre-Bid Security Risk Assessment (Opportunity phase)" labelParent="{!this}" />{!dLabel['DL58']}</li>
+                        <li><nttdcore:DLabel name="DL59" default="Operational Security Plan (Contracted phase; Sections 1.0 and 2.0 only)" labelParent="{!this}" />{!dLabel['DL59']}</li>
+                    </ul>
+                    <BR/>
+                    {!dLabel['DL60']}
+                    <BR/><BR/>
+                    {!dLabel['DL61']} 
+                    <BR/><BR/>
+                </apex:outputPanel>
+
+                <apex:outputPanel rendered="{!projectRisk >= 3}" ><nttdcore:DLabel name="DL62" default="Based on the country risk rating for this project, complete the following documentation for review and approval by the Global Resilience Group:" labelParent="{!this}" /><nttdcore:DLabel name="DL65" default="Reference the existing AECOM regional Operational Security Plan(s) for guidance when developing the project-specific OSP.  Estimate and include costs to complete the OSP and implement identified security measures, security training, staff and/or materials in AECOM&rsquo;s proposal and Project Plan." labelParent="{!this}" /><nttdcore:DLabel name="DL66" default="Further information and guidance is available on the Global Resilience Group website.  Security requirements can be viewed in the Physical Resilience and Country Security Standards." labelParent="{!this}" />
+                    <BR/>
+                    {!dLabel['DL62']}
+                    <BR/>
+                    <ul>
+                        <li><nttdcore:DLabel name="DL63" default="Project Pre-Bid Security Risk Assessment (Opportunity phase)" labelParent="{!this}" />{!dLabel['DL63']}</li>
+                        <li><nttdcore:DLabel name="DL64" default="Operational Security Plan (Contracted phase)" labelParent="{!this}" />{!dLabel['DL64']}</li>
+                    </ul>
+                    <BR/>
+                    {!dLabel['DL65']}
+                    <BR/><BR/>
+                    {!dLabel['DL66']} 
+                    <BR/><BR/>
+                    
+                </apex:outputPanel> 
+            </apex:outputPanel>
+            
+        </apex:pageBlock>
+        </apex:outputPanel>
+
+        <nttdcore:DLabel name="DL67" default="Operation Security Plan (OSP) Approval" labelParent="{!this}" /><apex:pageBlock title="{!dLabel['DL67']}" ><nttdcore:DLabel name="DL70" default="OSP Approvals" labelParent="{!this}" />     
+            <apex:outputPanel ><nttdcore:DLabel name="DL68" default="An Operational Security Plan (OSP) is required for all project or AECOM sites and facilities (home and field) as directed by AECOM&rsquo;s Physical Resilience Standard.  An OSP is a plan that details how we are protecting our people and provides a road map of what to do should an emergency or crisis occur, including staff actions and vital information to assist our security team with response actions." labelParent="{!this}" /><nttdcore:DLabel name="DL69" default="If the above resilience planning guidance indicates an OSP is required for your project, check with your local office to determine if an OSP already exists for your operations, and if required, prepare a project-specific OSP for your project.  Use this section to capture the offline review and approval by your regional or geography Resilience Director or delegate.  The buttons above offer quick links to the OSP template and resilience standards/policies. Go to the GRG website to learn more about what is required for an OSP and to identify your local resilience contact." labelParent="{!this}" />
+                    <BR/>
+                    {!dLabel['DL68']}
+                    <BR/><BR/>
+                    {!dLabel['DL69']}
+                    <BR/>
+                    <BR/><BR/>               
+            </apex:outputPanel>
+              
+
+            <apex:pageBlockSection title="{!dLabel['DL70']}" columns="2" collapsible="false" id="OSPApprovals" >
+                <apex:inputField id="approver" value="{!oProject.OSPApprover__c}" />
+                <apex:inputField id="title" value="{!oProject.OSPTitle__c}" />
+                <apex:inputField id="approved" value="{!oProject.OSPApproved__c}" />
+                <apex:inputField id="comment" value="{!oProject.OSPComments__c}" />
+                <apex:inputField id="approvedBy" value="{!oProject.OSPApprovedBy__c}" /> 
+                <script>document.getElementById('{!$Component.approvedBy}').disabled = true;</script>
+
+                <apex:inputField id="approvedDate" value="{!oProject.OSPDateTimeApproved__c}" />                   
+                <script>document.getElementById('{!$Component.approvedDate}').disabled = true;</script>  
+                                   
+            </apex:pageBlockSection>
+            
+            <apex:pageBlockButtons location="bottom" >
+                <nttdcore:DLabel name="DL71" default="Save" labelParent="{!this}" /><apex:commandButton value="{!dLabel['DL71']}" action="{!SaveSelectedLocations}" oncomplete="location.reload()" /> 
+                <nttdcore:DLabel name="DL72" default="Return to Project" labelParent="{!this}" /><apex:commandButton value="{!dLabel['DL72']}" action="{!cancel}" />
+            </apex:pageBlockButtons>
+            
+        </apex:pageBlock>
+    
+        <c:ECO_RiskFlyout projectid="{!pse__Proj__c.Id}" planelement="Resilience" />
+        <c:ECO_AssumptionFlyout projectid="{!pse__Proj__c.Id}" planelement="Resilience" />
+        <c:ECO_ProjectTeamFlyout projectid="{!pse__Proj__c.Id}" />
+     </apex:form>
+    
+       <apex:form id="frmId1" >  
+        <nttdcore:DLabel name="DL73" default="Attachments" labelParent="{!this}" /><apex:pageBlock title="{!dLabel['DL73']}" >         
+            <div class="ouputPanelSep" >
+                <div class="fileList" ><nttdcore:DLabel name="DL74" default="Action" labelParent="{!this}" /><nttdcore:DLabel name="DL75" default="Remove" labelParent="{!this}" /><nttdcore:DLabel name="DL76" default="Remove" labelParent="{!this}" /><nttdcore:DLabel name="DL77" default="File Name" labelParent="{!this}" />
+                    <apex:pageBlockTable value="{!OSP_AttachmentFiles}" var="attachedOSPFile" style="width: 825px;" rendered="{!pse__Proj__c.OSP_Attachment__c != null}" >
+                        <apex:column headervalue="{!dLabel['DL74']}" >
+                            <apex:commandLink style="text-decoration: none;" value="{!dLabel['DL75']}" action="{!removeattachment}" title="{!dLabel['DL76']}" >
+                              <apex:param name="attachID" value="{!attachedOSPFile.Id}" assignto="{!sTargetAttachment}" />
+                           </apex:commandLink>
+                       </apex:column>
+                        <apex:column headervalue="{!dLabel['DL77']}" >
+                            <apex:outputLink value="{!URLFOR($Action.Attachment.Download, attachedOSPFile.Id)}" target="_blank" >
+                                <apex:outputText value="{!attachedOSPFile.Name}" />
+                            </apex:outputLink>
+                        </apex:column>
+                        <apex:column value="{!attachedOSPFile.ContentType}" /> 
+                        <apex:column value="{!attachedOSPFile.LastModifiedDate}" />    
+                        <apex:column value="{!attachedOSPFile.LastModifiedById}" />
+                    </apex:pageBlockTable></div>
+                    <apex:inputFile id="safetyHealthInspectionAttachment" value="{!newOSP_Attachment.Body}" contenttype="{!newOSP_Attachment.ContentType}" filename="{!newOSP_Attachment.Name}" onchange="fileChosen('{!$Component.cmdSafetyHealthInspectionAttachment}', this, '{!$Component.overrideSafetyHealthInspectionName}'); return false;" />
+                    <apex:inputText id="overrideSafetyHealthInspectionName" value="{!overrideSafetyHealthInspectionName}" maxlength="80" html-placeholder="Override File Name" styleclass="attachNewFile" />
+                    <nttdcore:DLabel name="DL78" default="Attach" labelParent="{!this}" /><apex:commandButton id="cmdSafetyHealthInspectionAttachment" value="{!dLabel['DL78']}" action="{!saveOSP_AttachmentAndProject}" styleclass="attachNewFile" /><br/>
+                <br/>
+            </div>            
+        </apex:pageBlock>
+     </apex:form>
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

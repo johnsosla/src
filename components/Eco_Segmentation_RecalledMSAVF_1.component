@@ -1,0 +1,14 @@
+<apex:component language="{!theLanguage}" controller="nttdcore.DLabelChildController" access="global" ><apex:attribute name="theLanguage" type="String" required="true" description="language" access="global" /><apex:attribute name="theRecipient" type="Contact" required="true" description="recipient" access="global" /><apex:attribute name="theRelatedTo" type="Agreement__c" required="true" description="related to" access="global" />
+    <apex:outputpanel >
+        <p><nttdcore:DLabel name="DL1" default="The subject project's segmentation request has been recalled." labelParent="{!this}" componentContext="Eco_Segmentation_RecalledMSAVF_1" />
+        {!dlRoot.dLabel['DL1']}
+        </p><p><nttdcore:DLabel name="DL2" default="Project Name: {{1}}" labelParent="{!this}" componentContext="Eco_Segmentation_RecalledMSAVF_1" p1="{!theRelatedTo.SegmentationProjectName__c}" /><nttdcore:DLabel name="DL3" default="Project Number: {{1}}" labelParent="{!this}" componentContext="Eco_Segmentation_RecalledMSAVF_1" p1="{!theRelatedTo.SegmentationProjectNumber__c}" /><nttdcore:DLabel name="DL4" default="Client: {{1}}" labelParent="{!this}" componentContext="Eco_Segmentation_RecalledMSAVF_1" p1="{!theRelatedTo.Account__c}" /><nttdcore:DLabel name="DL5" default="Project Manager: {{1}}" labelParent="{!this}" componentContext="Eco_Segmentation_RecalledMSAVF_1" p1="{!theRelatedTo.PnLManager__c}" />
+        {!dlRoot.dLabel['DL2']}<br/>
+        {!dlRoot.dLabel['DL3']}<br/>
+        {!dlRoot.dLabel['DL4']}<br/>
+        {!dlRoot.dLabel['DL5']}
+        </p><p><nttdcore:DLabel name="DL6" default="Segmentation Link: {{1}}" labelParent="{!this}" componentContext="Eco_Segmentation_RecalledMSAVF_1" p1="{!theRelatedTo.Link_to_Segmentation_Page__c}" />
+        {!dlRoot.dLabel['DL6']}
+        </p>
+    </apex:outputpanel>
+<nttdcore:DLabelInit language="{!theLanguage}" labelParentInit="{!this}" /></apex:component>

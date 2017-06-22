@@ -1,0 +1,2 @@
+<apex:page standardController="pse__Proj__c" extensions="ECO_NewBurdenMultiplierReqController" showHeader="true" sidebar="true" action="{!go}">
+</apex:page>

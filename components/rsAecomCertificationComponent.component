@@ -1,0 +1,45 @@
+<apex:component controller="rsAecomCertificationController" >
+	<apex:attribute name="rsProfile" assignTo="{!profile}" description="" type="rsProfile" required="true"/>
+
+	<div class="panel panel-default">
+        <div class="panel-heading">
+            <h3 class="panel-title has-spinner pull-left" id="certHeader">{!$Label.PMC_AECOMCertifications}</h3>
+            <div class="clearfix"/>
+        </div>
+
+        <div class="panel-body">
+        	<apex:outputPanel id="certPanel">
+
+            <table id="regTable" class="table">
+                <thead>
+                    <tr>
+                        <th>{!$Label.PMC_CertifiedPM_CertNameColumn}</th>
+                        <th>{!$Label.PMC_CertifiedPM_CertDescriptionColumn}</th>
+                        <th>{!$Label.PMC_CertifiedPM_DateObtainedColumn}</th>
+                        <th>{!$Label.PMC_CertifiedPM_ExpirationColumn}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                	<apex:outputPanel rendered="{!isCertified}">
+	                    <tr>
+	                        <td><apex:outputText value="{!$Label.PMC_CertifiedPM_CertName}"/></td>
+	                        <td><apex:outputText value="{!$Label.PMC_CertifiedPM_CertDescription}"/></td>
+	                        <td><apex:outputText value="{!certificationDate}"/></td>
+	                        <td><apex:outputText value="{!expirationDate}"/></td>
+	                    </tr>
+                	</apex:outputPanel>
+                	<apex:outputPanel rendered="{!isProvisionallyCertified}">
+	                    <tr>
+	                        <td><apex:outputText value="{!$Label.PMC_CertifiedPM_PrvCertName}"/></td>
+	                        <td><apex:outputText value="{!$Label.PMC_CertifiedPM_PrvCertDescription}"/></td>
+	                        <td><apex:outputText value="{!certificationDate}"/></td>
+                            <td><apex:outputText value="{!expirationDate}"/></td>
+	                    </tr>
+                	</apex:outputPanel>
+                </tbody>
+            </table>
+
+            </apex:outputPanel>
+        </div>
+    </div>
+</apex:component>

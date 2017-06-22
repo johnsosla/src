@@ -1,0 +1,39 @@
+<apex:page controller="TransferTaskOrderController" title="Master Contract Search" tabstyle="Opportunity">
+    <apex:sectionHeader subtitle="Master Contract Search"/>
+      <apex:pageBlock title="Search">
+          <apex:form >
+              <apex:outputLabel >
+                  <h1>Account Name &nbsp;</h1>
+              </apex:outputLabel>
+              <apex:inputText value="{!opportunityName}" title="Opportunity Name"/>
+              <apex:commandButton title="Search" value="Search" action="{!searchOpportunities}"/>
+          </apex:form>
+      </apex:pageBlock>
+      <apex:pageBlock title="Search Results">
+         <apex:messages />
+         <apex:form >
+          <apex:inputHidden value="{!taskOrder.Master_Contract_lookup__c}"  id="taskorder" />
+          <apex:pageBlockTable rules="All" value="{!masterContracts}" border="2" var="oportunity" rendered="{!NOT(ISNULL(masterContracts))}">
+             <apex:column headerValue="Select">
+                     <input type="radio" name="masterContract" value="{!oportunity.id}" onclick="document.getElementById('j_id0:j_id8:j_id10:taskorder').value=this.value"/>
+             </apex:column>
+             <apex:column value="{!oportunity.Account.Name}"/>
+             <apex:column >
+                 <apex:facet name="header">Program Opportunity Name</apex:facet>
+                 <apex:outputField value="{!oportunity.Name}"/>
+             </apex:column>
+             <apex:column value="{!oportunity.CloseDate}"/>
+             <apex:column >
+                 <apex:facet name="header">Master Contract Number</apex:facet>
+                 <apex:outputField value="{!oportunity.Master_Contract_Number__c}"/>
+             </apex:column>
+          </apex:pageBlockTable> 
+          <center>
+              <br/>
+              <apex:commandButton value="Save" action="{!updateTaskOrder}" rendered="{!NOT(ISNULL(masterContracts))}"/>
+               &nbsp;&nbsp;
+              <apex:commandButton value="Cancel" action="{!cancel}" rendered="{!NOT(ISNULL(masterContracts))}"/>
+          </center>
+          </apex:form> 
+      </apex:pageBlock>
+</apex:page>

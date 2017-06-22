@@ -1,0 +1,5 @@
+<apex:page showHeader="true" sidebar="true" standardController="Delegate__c"  extensions="ECO_DelegateRedirectController" action="{!redirectIfDefaultEdit}">
+	<apex:form >
+		<apex:outputField value="{!Delegate__c.RecordType.DeveloperName}" rendered="false" />
+	</apex:form>
+</apex:page>

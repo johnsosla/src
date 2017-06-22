@@ -1,0 +1,71 @@
+<apex:page standardController="PMCertReq__c" extensions="pmCertPageCon">
+<apex:pageBlock >
+<br/>
+ <apex:form >
+ <h5>{!$Label.PMCLP_Please}
+  <apex:commandLink target="_blank" action="https://myecosystem.aecom.com/ops/fwi/delex/Pages/pmp.aspx?SectionId=26" value="{!$Label.PMCLP_Click_Here}" />
+  {!$Label.PMCLP_CompBehaviorsGuidelines} </h5>
+ </apex:form>
+ <br/>
+ <br/>
+  <apex:form id="form" rendered="{!$Permission.PM_Certification_Admin}">
+    <apex:pageBlock title="PM Candidate Search">
+      <h2 class="maintitle">Enter the Candidate's name you wish to find: &nbsp;&nbsp; </h2>
+      <apex:inputText id="searchBox" value="{!searchValue}" />
+      <apex:commandButton id="submit" value="Search" action="{!searchApplications}" />
+      <br/>
+      <br/>
+    <apex:pageBlock title="Search Results">
+      <apex:pageBlockTable value="{!searchResults}" var="p">
+        <apex:column >
+         <apex:commandLink value="Delete" action="{!deleteRow}" onclick="return window.confirm('Are you sure?');" >
+         <apex:param name="recordId" value="{!p.Id}" assignTo="{!recordId}" />
+         </apex:commandLink>
+        </apex:column>
+        <apex:column value="{!p.PM_certification_Application_Link__c}" />
+        <apex:column value="{!p.Candidate__r.Name}" />
+        <apex:column value="{!p.Application_Date__c}" />
+        <apex:column value="{!p.Candidate_Region__c}" />
+        <apex:column value="{!p.CandidateTrackingID__c}" />
+        <apex:column value="{!p.CertificationRequestStatus__c}" />
+        <apex:column value="{!p.Provisional_Status_Approved__c}" />
+        <apex:column value="{!p.Candidate__r.ECO_OrganizationName__c}"/>
+      </apex:pageBlockTable>
+     </apex:pageBlock>
+    </apex:pageBlock>
+  </apex:form>
+ <br/>
+ <br/>
+  <apex:pageBlock title="Create a new PM Certification Application">
+    <h1>{!$Label.PMCLP_Hello} {!$User.FirstName} {!$User.LastName}</h1>
+   <br/>
+    <h1>{!$Label.PMCLP_SelectLinkMessage}</h1>
+   <br/>
+   <br/>
+   <apex:form >
+    <apex:outputText rendered="{!InactiveOrBlankSupervisor}">
+        <span style="color: red; font-weight: bold">
+          {!$Label.PMCLP_InactiveSuper1} <a href="https://myecosystem.aecom.com/dept/it/itoperations/chatterandsocialmedia/Pages/People-Profiles.aspx">{!$Label.PMCLP_InactiveSuper2}</a> {!$Label.PMCLP_InactiveSuper3}
+        </span>
+    </apex:outputText>
+    <apex:commandButton rendered="{!!InactiveOrBlankSupervisor}" action="{!URLFOR($Action.PMCertReq__c.New_Pm_Certification_Request)}" value="{!$Label.PMCLP_NewButton}"/>
+  </apex:form>
+
+  </apex:pageBlock>
+   <apex:pageBlockTable value="{!pmcert}" var="app" rendered="{!NOT(ISNULL(pmcert))}">
+         <apex:column value="{!app.PM_certification_Application_Link__c}"/ >
+         <apex:column value="{!app.Candidate__c}"/ >
+         <apex:column value="{!app.Candidate_Supervisor__c}"/>
+         <apex:column value="{!app.CertificationRequestStatus__c}"/>
+         <apex:column value="{!app.Current_Approval_Process_Step__c}"/>
+  </apex:pageBlockTable>
+ <br/>
+ 
+ <apex:pageBlock title="AECOM PM Certification Applications">
+  <h2>{!$Label.PMCLP_ListViewMessage}</h2>
+  <br/>
+  <br/>
+  <apex:ListViews type="PMCertReq__c" />
+ </apex:pageBlock>
+ </apex:pageBlock>
+</apex:page>

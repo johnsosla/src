@@ -1,0 +1,20 @@
+<apex:component language="{!theLanguage}" controller="nttdcore.DLabelChildController" access="global" ><nttdcore:DLabel name="DL1" default="The below DoA Approval Request has been recalled.  No further action is required at this time." labelParent="{!this}" componentContext="DOA_Request_Recall_status_notific_034_3" /><nttdcore:DLabel name="DL2" default="Project: {{1}}" labelParent="{!this}" componentContext="DOA_Request_Recall_status_notific_034_3" p1="{!theRelatedTo.DOAApprovalRequest__r.ProjectName__c}" /><nttdcore:DLabel name="DL3" default="Project Number: {{1}}" labelParent="{!this}" componentContext="DOA_Request_Recall_status_notific_034_3" p1="{!theRelatedTo.DOAApprovalRequest__r.Project_No__c}" /><nttdcore:DLabel name="DL4" default="Project Stage: {{1}}" labelParent="{!this}" componentContext="DOA_Request_Recall_status_notific_034_3" p1="{!theRelatedTo.DOAApprovalRequest__r.ProjectStage__c}" /><nttdcore:DLabel name="DL5" default="End Client: {{1}}" labelParent="{!this}" componentContext="DOA_Request_Recall_status_notific_034_3" p1="{!theRelatedTo.DOAApprovalRequest__r.EndClientPrimary__c}" /><nttdcore:DLabel name="DL6" default="Billing Client: {{1}}" labelParent="{!this}" componentContext="DOA_Request_Recall_status_notific_034_3" p1="{!theRelatedTo.DOAApprovalRequest__r.BillingClientPrimary__c}" /><nttdcore:DLabel name="DL7" default="DoA Request No: {{1}}" labelParent="{!this}" componentContext="DOA_Request_Recall_status_notific_034_3" p1="{!theRelatedTo.DOAApprovalRequest__r.Name}" /><nttdcore:DLabel name="DL8" default="Date Required:" labelParent="{!this}" componentContext="DOA_Request_Recall_status_notific_034_3" /><apex:attribute name="theLanguage" type="String" required="true" description="language" access="global" /><apex:attribute name="theRecipient" type="User" required="true" description="recipient" access="global" /><apex:attribute name="theRelatedTo" type="DOAApprover__c" required="true" description="related to" access="global" />
+{!dlRoot.dLabel['DL1']} <br/><br/> 
+
+{!dlRoot.dLabel['DL2']} 
+<br/> 
+{!dlRoot.dLabel['DL3']} 
+<br/> 
+{!dlRoot.dLabel['DL4']} 
+<br/> 
+{!dlRoot.dLabel['DL5']} 
+<br/> 
+{!dlRoot.dLabel['DL6']} 
+<br/> 
+{!dlRoot.dLabel['DL7']} 
+<br/> 
+{!dlRoot.dLabel['DL8']} <apex:outputtext value="{0,date,EEE MMM dd yyyy}" >
+                                       <apex:param value="{!theRelatedTo.DOAApprovalRequest__r.DateRequired__c}" />
+                          </apex:outputtext>
+<br/><br/>
+<nttdcore:DLabelInit language="{!theLanguage}" labelParentInit="{!this}" /></apex:component>

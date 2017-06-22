@@ -1,0 +1,68 @@
+<apex:component controller="ECO_PMD_ProjectActivities_Controller">
+  <apex:attribute name="projectId" description="Project Number" type="String" required="true" /> 
+  	<style>ul.pmd-kpi {padding-left:0px;color:red;}</style>
+    <div ng-controller="ProjectActivitiesController" class="panel panel-default" >
+    
+	    <div class="panel-heading">
+	      <A href="/{!projectId}#{!left(projectId,15)}_RelatedActivityList_target">{!$Label.ECO_PMD_PROJECT_ACTIVITY_TITLE}</a><span ng-Show="SFDCDATA.nodata"><b>{!$Label.ECO_PMD_NO_DATA}</b></span>
+	    </div>
+      <div class="text-center" ng-hide="isLoaded">
+            <span class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span>
+      </div>
+	    <div class="panel-body" ng-show="isLoaded">    
+          <table class="pmd-kpi" width="100%">
+            <tr>
+              <td>
+                <div class="pmd-value"
+                     ng-bind="SFDCDATA.countOpen" />
+                <div class="pmd-label">{!$Label.ECO_PMD_PROJECT_ACTIVITY_OPEN}</div>
+              </td>
+              <td>
+                <div class="pmd-value"
+                     ng-bind="SFDCDATA.countOpenPastDue" />
+                <div class="pmd-label">{!$Label.ECO_PMD_PROJECT_ACTIVITY_OVERDUE}</div>
+              </td>
+              <td>
+                <div class="pmd-value"
+                     ng-bind="SFDCDATA.countDueNext7Days" />
+                <div class="pmd-label">{!$Label.ECO_PMD_PROJECT_ACTIVITY_DUENEXT7}</div>
+              </td>
+            </tr>
+          </table>
+        </div>
+        <c:ECO_PMD_PanelFooter panelId="PA">{!$Label.ECO_PMD_PROJECT_ACTIVITY_MOREINFO_DETAILS}</c:ECO_PMD_PanelFooter>
+    </div>
+
+    <script id="dashpanel.js">
+      (function(){
+            
+        angular
+        .module("ecopmd")
+        .controller("ProjectActivitiesController",ProjectActivitiesController);
+        
+        console.log("initProjectActivities");
+
+        function ProjectActivitiesController($scope,$locale){
+          $scope.isLoaded = false;
+          loadData($scope);
+
+          function loadData($scope){
+
+
+            ECO_PMD_ProjectActivities_Controller.GetActivitesSummary(
+                  '{!projectId}', 
+                  function(result, event){
+                if(event.status) {
+                          $scope.SFDCDATA = result;
+                          $scope.isLoaded = true;
+                      }
+                  }
+              );
+          }
+		    }
+
+      })();
+          
+    </script>
+
+</apex:component>

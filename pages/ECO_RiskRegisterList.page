@@ -1,0 +1,131 @@
+<apex:page standardcontroller="pse__Proj__c" extensions="ECO_RiskRegisterListController,nttdcore.DLabelParentController" tabstyle="Risk__c" >
+
+	<apex:messages />
+	<apex:includeScript value="{!$Resource.ECO_jQuery_1_11_2_min_js}"/>
+	<style>
+		/* CUSTOM HELP / GUIDANCE TEXT BOX */
+			.customHelpText{
+			padding: 7px;
+			border: 1px solid #85B3CE;
+			min-height: 30px;
+			display: block;
+			width: auto;
+			margin: 0 0 5px 0;
+			background-repeat: no-repeat;
+			border-radius: 4px;
+			background-color: #A2D3F1;
+
+		}
+		.customHelpBody{
+			display:inline-block;
+			color:#;
+			max-width:95%;
+		} 
+		.alignOutputfield span {
+			text-align:right;
+		}
+			.rightAlign {text-align:right;} 
+			.leftAlign {text-align:left;} 
+			.centerAlign {text-align:center;} 
+
+		.odd {
+			background-color: #F0F0F6;
+		}
+		.even {
+			background-color: #FFFFFF;
+		}
+	</style>
+
+	<script  type="text/javascript">
+		j$ = jQuery.noConflict();
+		//in order for the descriptions of record types to be translated, we have to override standard RT select pages
+		//this hack pokes the correct URL into the standard "Log a Call" button on the activity related list. DJO
+		j$(document).ready(function() {
+			var taskUrl = '/apex/ECO_TaskRecordTypeSelect?ent=Task' +
+				'&retURL=/apex/eco_riskRegisterList?id=' + '{!thisProject.Id}' +
+				'&save_new_url=/00T/e?title=' + '{!$Label.call}' +
+				'&what_id=' + '{!thisProject.Id}' +
+				'&followup=1' +
+				'&tsk5=' + '{!$Label.call}' +
+				'&retURL=/apex/eco_riskRegisterList?id=' + '{!thisProject.Id}';
+			j$( "input[name*='new']" ).attr('onclick', "navigateToUrl('" + taskUrl + "','RELATED_LIST','new')");
+		});	
+
+	</script>
+		
+	<apex:form >
+		<nttdcore:DLabel name="DL26" default="Risk Register" labelParent="{!this}" /><apex:sectionheader title="{!dLabel['DL26']}" subtitle="{!pse__Proj__c.Name}" /> 
+		<c:ECO_CollapsibleSection sectiontitle="General Guidance Information" ><nttdcore:DLabel name="DL27" default="Risk management is fundamental to successful project delivery.  Proactive management of risks increases the probability and impact of positive events, and decreases the probability and impact of negative events on the project.  A Risk Register acts as a central repository for all project risks that have a probability of occurrence throughout the entire project lifecycle.  The project Risk Register should be as comprehensive as possible and reviewed frequently to ensure that the risks are being appropriately managed." labelParent="{!this}" />  
+				{!dLabel['DL27']}
+		</c:ECO_CollapsibleSection>
+		 <apex:pageblock ><nttdcore:DLabel name="DL31" default="Project Risks" labelParent="{!this}" /><nttdcore:DLabel name="DL32" default="Action" labelParent="{!this}" /><nttdcore:DLabel name="DL33" default="View" labelParent="{!this}" /><nttdcore:DLabel name="DL34" default="Delete" labelParent="{!this}" /><nttdcore:DLabel name="DL35" default="Risk Title" labelParent="{!this}" /><nttdcore:DLabel name="DL36" default="Current Status" labelParent="{!this}" /><nttdcore:DLabel name="DL37" default="Event Phase" labelParent="{!this}" /><nttdcore:DLabel name="DL38" default="Risk Owner" labelParent="{!this}" /><nttdcore:DLabel name="DL39" default="Pre-mitigation" labelParent="{!this}" /><nttdcore:DLabel name="DL40" default="Rating" labelParent="{!this}" /><nttdcore:DLabel name="DL41" default="Pre-mitigation" labelParent="{!this}" /><nttdcore:DLabel name="DL42" default="Contingency" labelParent="{!this}" /><nttdcore:DLabel name="DL43" default="Mitigation Strategy" labelParent="{!this}" /><nttdcore:DLabel name="DL44" default="Mitigation" labelParent="{!this}" /><nttdcore:DLabel name="DL45" default="Cost Total" labelParent="{!this}" /><nttdcore:DLabel name="DL46" default="Post-mitigation" labelParent="{!this}" /><nttdcore:DLabel name="DL47" default="Rating" labelParent="{!this}" /><nttdcore:DLabel name="DL48" default="Post-mitigation" labelParent="{!this}" /><nttdcore:DLabel name="DL49" default="Contingency Total" labelParent="{!this}" /><nttdcore:DLabel name="DL50" default="No records to display" labelParent="{!this}" />
+			<apex:pageblockbuttons location="top" >
+				<!--<apex:commandButton action="{!newRisk}" value="New Risk" immediate="true"/>-->
+				<nttdcore:DLabel name="DL28" default="New Risk" labelParent="{!this}" /><apex:commandbutton action="/apex/ECO_CreateRisk?projectId={!thisProject.Id}" value="{!dLabel['DL28']}" immediate="true" />
+				<nttdcore:DLabel name="DL29" default="Return to Project" labelParent="{!this}" /><apex:commandbutton action="{!returnProj}" value="{!dLabel['DL29']}" immediate="true" />
+				<nttdcore:DLabel name="DL30" default="Export" labelParent="{!this}" /><apex:commandbutton action="{!exportCSV}" value="{!dLabel['DL30']}" />
+			</apex:pageblockbuttons>
+			<apex:pageblocksection columns="1" collapsible="false" >
+				<apex:outputfield value="{!pse__Proj__c.TotalContingencyApproved__c}" />
+				<apex:outputfield value="{!pse__Proj__c.TotalContingencyForecast__c}" />
+				<apex:outputfield value="{!pse__Proj__c.TotalPostMitigation__c}" />
+				<!--
+				<apex:outputText style="font-weight:600" value="Total Contingency included in Approved Cost Budget:  {0, number, currency}">
+					<apex:param value="{!totalApprovedCost}"/>
+				</apex:outputText>
+				<apex:outputText style="font-weight:600" value="Total Contingency included in Forecast Cost Budget:  {0, number, currency}">
+					<apex:param value="{!totalForecastCost}"/>
+				</apex:outputText>
+				<apex:outputText style="font-weight:600" value="Total Post Mitigation Per Risk Register:  {0, number, currency}">
+					<apex:param value="{!totalPostMitigation}"/>
+				</apex:outputText>
+				-->
+			</apex:pageblocksection>
+			<apex:pageblocksection title="{!dLabel['DL31']}" columns="1" collapsible="false" >
+				<apex:pageblocktable value="{!Risks}" rendered="{!Risks.size > 0}" var="risklist" rowclasses="even,odd" >
+					<apex:column headervalue="{!dLabel['DL32']}" >
+						<!--<apex:commandLink value="Edit" action="/{!risklist.Id}/e?retURL=/apex/ECO_RiskRegisterList?id={!pse__Proj__c.id}"/>&nbsp;&nbsp;-->
+						<apex:commandlink value="{!dLabel['DL33']}" action="/apex/ECO_CreateRisk?Id={!risklist.Id}" />&nbsp;&nbsp;
+						<apex:commandlink value="{!dLabel['DL34']}" action="{!deleteRisk}" id="deleteLink" rendered="{!IF(pse__Proj__c.pse__Stage__c == 'Planning',true,false)}" >
+							<apex:param name="recid" value="{!risklist.id}" />
+						</apex:commandlink>
+					</apex:column>
+					<apex:column headerclass="centerAlign" styleclass="leftAlign" ><apex:facet name="header" >{!dLabel['DL35']}</apex:facet><apex:outputfield value="{!risklist.Name}" /></apex:column>
+					<apex:column headerclass="centerAlign" headervalue="{!dLabel['DL36']}" styleclass="centerAlign" ><apex:outputfield value="{!risklist.CurrentStatus__c}" /></apex:column>
+					<apex:column headerclass="centerAlign" headervalue="{!dLabel['DL37']}" styleclass="centerAlign" ><apex:outputfield value="{!risklist.EventPhase__c}" /></apex:column>
+					<apex:column headerclass="centerAlign" styleclass="centerAlign" headervalue="{!dLabel['DL38']}" ><apex:outputfield value="{!risklist.RiskOwner__c}" /></apex:column>
+					<apex:column headerclass="centerAlign" styleclass="centerAlign" ><apex:facet name="header" >{!dLabel['DL39']}<br/>{!dLabel['DL40']}</apex:facet><apex:outputfield value="{!risklist.Premitigationrating__c}" /></apex:column>
+					<apex:column headerclass="centerAlign" styleclass="rightAlign" ><apex:facet name="header" >{!dLabel['DL41']}<br/>{!dLabel['DL42']}</apex:facet>
+					<apex:outputtext value="{0, number, currency}" >
+					   <apex:param value="{!risklist.ContingencyDollars__c}" />
+					</apex:outputtext>                
+					</apex:column>                      
+					
+					<apex:column headerclass="centerAlign" styleclass="leftAlign" headervalue="{!dLabel['DL43']}" ><apex:outputfield value="{!risklist.RiskMitigation__c}" /></apex:column>
+					<apex:column headerclass="centerAlign" styleclass="rightAlign" ><apex:facet name="header" >{!dLabel['DL44']}<br/>{!dLabel['DL45']}</apex:facet>
+					<apex:outputtext value="{0, number, currency}" >
+					   <apex:param value="{!risklist.MitigationCostTotal__c}" />
+					</apex:outputtext>                     
+					</apex:column>
+					<apex:column headerclass="centerAlign" styleclass="centerAlign" ><apex:facet name="header" >{!dLabel['DL46']}<br/>{!dLabel['DL47']}</apex:facet>
+						<apex:outputfield value="{!risklist.Postmitigationrating__c}" />                
+					</apex:column>  
+					<apex:column headerclass="centerAlign" styleclass="rightAlign" ><apex:facet name="header" >{!dLabel['DL48']}<br/>{!dLabel['DL49']}</apex:facet>
+					<apex:outputtext value="{0, number, currency}" >
+					   <apex:param value="{!risklist.PostmitigationContingencyTotal__c}" />
+					</apex:outputtext>                     
+					</apex:column>
+				</apex:pageblocktable>
+				
+				<apex:outputpanel rendered="{!Risks.size == 0}" >
+					<apex:outputtext value="{!dLabel['DL50']}" />
+				</apex:outputpanel> 
+			</apex:pageblocksection>
+		</apex:pageblock>
+		<c:ECO_AssumptionFlyout projectid="{!thisProject.Id}" planelement="Risks" />
+		<c:ECO_ProjectTeamFlyout projectid="{!thisProject.Id}" />
+	</apex:form>
+	
+	<apex:relatedlist list="ActivityHistories" />
+  
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

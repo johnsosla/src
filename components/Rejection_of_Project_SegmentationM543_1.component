@@ -1,0 +1,14 @@
+<apex:component language="{!theLanguage}" controller="nttdcore.DLabelChildController" access="global" ><apex:attribute name="theLanguage" type="String" required="true" description="language" access="global" /><apex:attribute name="theRecipient" type="User" required="true" description="recipient" access="global" /><apex:attribute name="theRelatedTo" type="Agreement__c" required="true" description="related to" access="global" />
+    <apex:outputpanel ><nttdcore:DLabel name="DL1" default="The subject project's segmentation request has been rejected." labelParent="{!this}" componentContext="Rejection_of_Project_SegmentationM543_1" />  
+    {!dlRoot.dLabel['DL1']} 
+    <br/>
+    <br/>
+    <b><nttdcore:DLabel name="DL2" default="Project Name:" labelParent="{!this}" componentContext="Rejection_of_Project_SegmentationM543_1" />{!dlRoot.dLabel['DL2']}</b> {!theRelatedTo.SegmentationProjectName__c} <br/>
+    <b><nttdcore:DLabel name="DL3" default="Project Number:" labelParent="{!this}" componentContext="Rejection_of_Project_SegmentationM543_1" />{!dlRoot.dLabel['DL3']}</b> {!theRelatedTo.SegmentationProjectNumber__c} <br/>
+    <b><nttdcore:DLabel name="DL4" default="Client:" labelParent="{!this}" componentContext="Rejection_of_Project_SegmentationM543_1" />{!dlRoot.dLabel['DL4']}</b> {!theRelatedTo.Account__r.Name} <br/>
+    <b><nttdcore:DLabel name="DL5" default="Project Manager:" labelParent="{!this}" componentContext="Rejection_of_Project_SegmentationM543_1" />{!dlRoot.dLabel['DL5']}</b> {!theRelatedTo.Project__r.PnLManager__r.Name} <br/>
+    <br/>    
+    <a href="{!theRelatedTo.Link_to_Segmentation_Page__c}" ><nttdcore:DLabel name="DL6" default="Segmentation Link" labelParent="{!this}" componentContext="Rejection_of_Project_SegmentationM543_1" />{!dlRoot.dLabel['DL6']}</a> 
+                  
+    </apex:outputpanel> 
+<nttdcore:DLabelInit language="{!theLanguage}" labelParentInit="{!this}" /></apex:component>

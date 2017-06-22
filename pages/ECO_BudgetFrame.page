@@ -1,0 +1,201 @@
+<apex:page controller="ECO_BudgetFrameController" id="idECO_BudgetFrame" >
+    <apex:includeScript value="{!$Resource.ECO_jQuery_1_11_2_min_js}" />
+    <!--apex:includeScript value="https://code.jquery.com/jquery-3.2.1.slim.min.js" /-->
+    <!--apex:includeScript value="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" /-->
+
+    <apex:includeScript value="{!URLFOR($Resource.ECO_jQueryUI_1_11_2, 'jquery-ui.min.js')}" />
+<!--    <apex:includeScript value="{!URLFOR($Resource.ECO_Bootstrap_3_3_2, 'js/bootstrap.min.js')}"/> -->
+    
+    <apex:stylesheet value="{!URLFOR($Resource.ECO_jQueryUI_1_11_2_Themes, 'themes/smoothness/jquery-ui.css')}" />
+<!--    <apex:stylesheet value="{!URLFOR($Resource.ECO_Bootstrap_3_3_2, 'css/bootstrap.min.css')}" /> -->
+
+    <style>
+        .budgetFrameWrapper{
+            margin:0 40px;
+            display: inline-block;
+        }
+
+        #HUD{
+            position: fixed;
+            padding:8px;
+            padding-left:5px;
+            background:#d0d0d0;
+            top:20px;
+            right:20px;
+        }
+
+        .hudButton {
+            margin-left: 4px !important;
+            padding: 4px 14px !important;
+        }
+
+        .dropdown ul li, .dropdown ol li{
+            margin-left:0px;
+        }
+        .Processing
+        {
+            position: fixed;
+            background-color: white;
+            background: url('/img/loading32.gif');
+            background-repeat: no-repeat !important;
+            background-position: center;
+            z-index: 1000;
+            width: 100%;
+            height: 100%;
+            z-index: 1004;
+            opacity: 0.7;
+            left: 0%;
+            top: 0%;
+        }
+
+    </style>
+    
+    <script>
+        function hudNavigate(){
+            var selectBox = document.getElementById("navigationDropdown");
+            var selectedValue = selectBox.options[selectBox.selectedIndex].value;
+            
+            switch(selectedValue) {
+                case 'showBudgetList':
+                    showBudgetList();
+                    break;
+                case 'showArchivedBudgetList':
+                    showArchivedBudgetList();
+                    break;    
+                case 'showBudgetSummary':
+                    showBudgetSummary();
+                    break;
+                case 'showTaskTab':
+                    showTaskTab();
+                    break;
+                case 'showLaborTab':
+                    showLaborTab();
+                    break;
+                case 'showSubTab':
+                    showSubTab();
+                    break;
+                case 'showODCTab':
+                    showODCTab();
+                    break;
+                case 'showContTab':
+                    showContTab();
+                    break;
+                case 'budgetSetup':
+                    gotoSetup();
+                    break;
+            }
+        }
+
+        function hudCreateNavigate(){
+            var selectBox = document.getElementById("navigationCreateDropdown");
+            var selectedValue = selectBox.options[selectBox.selectedIndex].value;
+            
+            switch(selectedValue) {
+                case 'createChangeOrder':
+                    createChangeOrder();
+                    break;
+                case 'createSpecificEAC':
+                    createSpecificEAC();
+                    break;
+                case 'createGenericEAC':
+                    createGenericEAC();
+                    break;
+                case 'createEstimate':
+                    createEstimate();
+                    break;
+            }
+        }
+
+    </script>
+    
+<!--    <apex:sectionHeader title="Budget Manager" /> -->
+    <div id="HUD" >
+        <apex:form >
+            <apex:actionFunction action="{!gotoSetup}" name="gotoSetup" />
+            <!--<nttdcore:DLabel name="MDL1" default="Manage Agreements" labelParent="{!this}" />--><apex:commandButton action="{!gotoAgreements}" value="{!$Label.Manage_Agreements}" styleclass="btn btn-default hudButton" />
+
+            <select onchange="hudNavigate();" id="navigationDropdown" >
+                <option><!--<nttdcore:DLabel name="MDL2" default="View..." labelParent="{!this}" />-->{!$Label.View_Budget}</option>
+                <option value="showBudgetList" ><!--<nttdcore:DLabel name="MDL3" default="Budget & EAC Manager" labelParent="{!this}" />-->{!$Label.Budget_EAC_Manager}</option>
+                <option value="showArchivedBudgetList" ><!--<nttdcore:DLabel name="MDL4" default="Archived Budget Summary" labelParent="{!this}" />-->{!$Label.Archived_Budget_Summary}</option>
+                <option value="showTaskTab" ><!--<nttdcore:DLabel name="MDL5" default="Task Manager" labelParent="{!this}" />-->{!$Label.Task_Manager}</option>
+                <option value="budgetSetup" ><!--<nttdcore:DLabel name="MDL6" default="Budget Setup" labelParent="{!this}" />-->{!$Label.Budget_Setup}</option>
+                <apex:outputPanel layout="none" rendered="{!bAllowHeaderNavigation}" >
+                    <option value="showBudgetSummary" ><!--<nttdcore:DLabel name="MDL7" default="Budget Summary" labelParent="{!this}" />-->{!$Label.Budget_Summary}</option>                    
+                    <option value="showLaborTab" ><!--<nttdcore:DLabel name="MDL8" default="Labor/Person" labelParent="{!this}" />-->{!$Label.Labor_Person}</option>
+                    <option value="showSubTab" ><!--<nttdcore:DLabel name="MDL9" default="Subs" labelParent="{!this}" />-->{!$Label.Subs_Budget}</option>
+                    <option value="showODCTab" ><!--<nttdcore:DLabel name="MDL10" default="Expenses/ODCs" labelParent="{!this}" />-->{!$Label.Expenses_ODCs}</option>
+                    <option value="showContTab" ><!--<nttdcore:DLabel name="MDL11" default="Contingency" labelParent="{!this}" />-->{!$Label.Contingency_Budget}</option>
+                </apex:outputPanel>
+            </select>
+
+
+           <!-- <apex:commandButton action="{!createChangeOrder}" value="New Change Order" styleClass="btn btn-default hudButton" />
+            <apex:commandButton action="{!createEAC}" value="New EAC" styleClass="btn btn-default hudButton" />  -->
+
+            <!-- US-06776 disable the dropdown if the current User does not have access via the Security Matrix -->
+            <apex:outputPanel rendered="{!NOT(isAccessible)}" >
+            <select onchange="hudCreateNavigate();" id="navigationCreateDropdown" disabled="true">           
+                <option>
+                {!$Label.Create_Budget}</option>
+                <option value="createChangeOrder" >
+                {!$Label.New_Change_Order}</option>                    
+                <option value="createSpecificEAC" >
+                {!$Label.New_Specific_EAC}</option>
+                <option value="createGenericEAC" >
+                {!$Label.New_Generic_EAC}</option>
+                <option value="createEstimate" >
+                {!$Label.New_Estimate}</option>              
+            </select>
+            </apex:outputPanel>
+            <apex:outputPanel rendered="{!isAccessible}" >
+            <select onchange="hudCreateNavigate();" id="navigationCreateDropdown" >           
+                <option>
+                {!$Label.Create_Budget}</option>
+                <option value="createChangeOrder" >
+                {!$Label.New_Change_Order}</option>                    
+                <option value="createSpecificEAC" >
+                {!$Label.New_Specific_EAC}</option>
+                <option value="createGenericEAC" >
+                {!$Label.New_Generic_EAC}</option>
+                <option value="createEstimate" >
+                {!$Label.New_Estimate}</option>              
+            </select>
+            </apex:outputPanel>        
+
+<!--            <apex:commandButton action="{!gotoSetup}" value="Setup" styleClass="btn btn-default hudButton" /> -->
+            <!--<nttdcore:DLabel name="MDL17" default="Return to Project" labelParent="{!this}" />--><apex:commandButton action="{!returnToProject}" value="{!$Label.ReturnToProject}" styleclass="btn btn-default hudButton" />
+        </apex:form>
+    </div>
+
+
+    <div class="budgetFrameWrapper" >
+        <apex:pageMessages />
+        <apex:insert name="budgetScreen" />
+    </div>
+    
+    <apex:form >
+        <apex:actionStatus id="idStatus" startstyleclass="Processing" />
+        <apex:actionFunction action="{!showArchivedBudgetList}" name="showArchivedBudgetList" />
+        <apex:actionFunction action="{!showBudgetList}" name="showBudgetList" />
+        <apex:actionFunction action="{!showBudgetSummary}" name="showBudgetSummary" />
+        <apex:actionFunction action="{!showTaskTab}" name="showTaskTab" />
+        <apex:actionFunction action="{!showLaborTab}" name="showLaborTab" />
+        <apex:actionFunction action="{!showSubTab}" name="showSubTab" />
+        <apex:actionFunction action="{!showODCTab}" name="showODCTab" />
+        <apex:actionFunction action="{!showContTab}" name="showContTab" />
+
+        <apex:actionFunction action="{!createChangeOrder}" name="createChangeOrder" status="idStatus" />
+        <apex:actionFunction action="{!createEAC}" name="createSpecificEAC" status="idStatus" />
+        <apex:actionFunction action="{!createGenericEAC}" name="createGenericEAC" status="idStatus" />
+        <apex:actionFunction action="{!createEstimate}" name="createEstimate" status="idStatus" />
+
+        <!--<c:ECO_RiskFlyout planelement="Budget" projectid="{!sProjectId}" />
+        <c:ECO_AssumptionFlyout planelement="Budget" projectid="{!sProjectId}" />-->
+<!--        <c:ECO_CashFlowFlyout ProjectID="{!sProjectId}" /> -->
+        <!--<c:ECO_EarnedValueEstimatedFlyout ProjectID="{!sProjectId}" />-->
+
+       <c:ECO_EarnedValueFlyout projectid="{!sProjectId}" tablocation="353" />
+    </apex:form>
+<!--<nttdcore:DLabelInit labelParentInit="{!this}" />-->
+</apex:page>

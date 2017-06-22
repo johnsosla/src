@@ -1,0 +1,1311 @@
+<apex:page showheader="false" sidebar="false" standardcontroller="BudgetHeader__c" extensions="ECO_BudgetHeaderController,nttdcore.DLabelParentController" >
+	<apex:outputText value="{!$Label.ECO_FinancialForce_Error}" style="font-size:12pt;font-weight:500!important;margin-left: 38px;" rendered="{!NOT(hasFinancialForceAccess)}" />    
+	<apex:composition template="ECO_BudgetFrame" >
+	<apex:define name="budgetScreen" >
+
+	<apex:includeScript value="{!$Resource.ECO_jQuery_1_11_2_min_js}" />
+	<apex:includeScript value="{!URLFOR($Resource.ECO_jQueryUI_1_11_2, 'jquery-ui.min.js')}" />
+ 
+	<script type="text/javascript" >
+		$b = jQuery.noConflict();
+
+		function showHide(elem, elemid) {
+			current = $b(elem).html();
+
+			if (current == '-') {  // currently open, close
+				$b(elem).html('+');
+
+				$b('.' + elemid).hide(250);
+			} else if (current == '+') {  // currently closed, open
+				$b(elem).html('-');
+
+				$b('.' + elemid).show(250);
+			} else {  // ALERT - oops
+
+			}
+		}
+	</script>
+
+	<style>
+		table {
+			border-collapse: inherit;
+			border-spacing: 1px;
+		}
+
+		.tableClass {
+			background-color: black;
+		}
+
+		.taskSection {
+			background-color: #b1b2b1;
+			text-align: center;
+			color: #000000;
+			width: 30px;
+			padding: 5px;
+		}
+
+		.taskNumberSection {
+			background-color: #b1b2b1;
+			text-align: center;
+			color: #000000;
+			width: 100px;
+			padding: 5px;
+		}
+
+		.taskNameSection {
+			background-color: #b1b2b1;
+			text-align: center;
+			color: #000000;
+			width: 200px;
+			padding: 5px;
+		}
+
+		.personTitleSection {
+			background-color: #149feb;
+			text-align: center;
+			color: #ffffff;
+			/* height: 30px; */
+			padding: 5px;
+		}
+
+		.personSection {
+			background-color: #149feb;
+			text-align: center;
+			color: #ffffff;
+			width: 150px;
+			/* height: 20px; */
+			padding: 5px;
+		}
+
+		.subsSection {
+			background-color: #82c93f;
+			text-align: center;
+			color: #ffffff;
+			width: 150px;
+			padding: 5px;
+		}
+
+		.odcSection {
+			background-color: #fdb507;
+			text-align: center;
+			color: #ffffff;
+			width: 150px;
+			padding: 5px;
+		}
+
+		.contingencySection {
+			background-color: #5b1a8e;
+			text-align: center;
+			color: #ffffff;
+			width: 150px;
+			padding: 5px;
+		}
+
+		.totalSection {
+			background-color: #b00203;
+			text-align: center;
+			color: #ffffff;
+			width: 150px;
+			padding: 5px;
+		}
+
+		td.numberCell {
+			text-align: right;
+			background-color: white;
+			padding: 5px;
+		}
+		
+		td.totalCell {
+			font-weight:bold;
+			padding: 5px;
+		}
+
+		td.textCell {
+			background-color: white;
+			padding: 5px;
+		}
+
+		.openClose {
+			text-align: center;
+			font-size: 12pt;
+			background-color: white;
+			min-width: 13px;
+		}
+
+		.totalTitle {
+			background-color: #b00203;
+			text-align: center;
+			color: #ffffff;
+		}
+
+		td.uneditableCell {
+			text-align: right;
+			background-color: #edd3d3;
+			padding: 5px;
+		}
+
+		.touch {
+			cursor: pointer;
+		}
+
+		.touch:hover {
+			text-decoration: underline;
+		}
+
+		.summaryLabelCell2 {
+			background-color: #0a5ab2;
+			color: #ffffff;
+			text-align: right;
+			padding: 5px;
+		}
+
+		td.numberCellWidth {
+			text-align: right;
+			background-color: white;
+			width: 125px;
+			padding: 5px;
+		}
+
+		td.numberCellWidth2 {
+			text-align: left;
+			background-color: white;
+			width: 200px;
+			padding: 5px;
+		}
+
+		.mainBox {
+			vertical-align: top;
+			padding-left: 30px;
+			padding-right: 30px;
+		}
+
+		h1 {
+			font-size: 16pt;
+			display: block;
+		}
+	</style>
+	
+	<apex:form rendered="{!hasFinancialForceAccess}" >
+
+		<apex:actionFunction name="refreshData" action="{!refreshData}" />
+
+		<h1><nttdcore:DLabel name="DL1" default="{{1}} ({{2}})" labelParent="{!this}" p1="{!BudgetHeader__c.Project__r.Name}" p2="{!BudgetHeader__c.Project__r.OracleProjectnumber__c}" />{!dLabel['DL1']}</h1>
+		<apex:outputPanel layout="none" rendered="{!!isEAC}" >
+			<h1><nttdcore:DLabel name="DL2" default="Budget - Summary" labelParent="{!this}" />{!dLabel['DL2']}</h1>
+		</apex:outputPanel>			
+		<apex:outputPanel layout="none" rendered="{!isEAC}" >
+			<h1><nttdcore:DLabel name="DL3" default="EAC - Change Summary" labelParent="{!this}" />{!dLabel['DL3']}</h1>
+		</apex:outputPanel>			
+		
+		<table>
+			<tr>
+				<td width="15%" valign="bottom" >
+					<p><nttdcore:DLabel name="DL4" default="All values shown in: {{1}}" labelParent="{!this}" p1="{!BudgetHeader__c.Project__r.ProjectFunctionalCurrencyCode__c}" /><nttdcore:DLabel name="DL6" default="Budget Name: {{1}}" labelParent="{!this}" p1="{!BudgetHeader__c.BudgetName__c}" /><nttdcore:DLabel name="DL7" default="Status: {{1}}" labelParent="{!this}" p1="{!IF(BudgetHeader__c.WorkAtRisk__c,'Work At Risk', BudgetHeader__c.Status__c)}" />{!dLabel['DL4']}<br/>
+						<apex:outputPanel layout="none" rendered="{!isEAC}" ><nttdcore:DLabel name="DL5" default="All actuals as of" labelParent="{!this}" />
+							{!dLabel['DL5']} <apex:outputText value="{0, date, MMM d','  yyyy}" ><apex:param value="{!BudgetHeader__c.CreatedDate}" /></apex:outputText><br/>
+						</apex:outputPanel>
+						{!dLabel['DL6']}<br/>
+						{!dLabel['DL7']}<br/>
+						<apex:outputPanel layout="none" rendered="{!!isEAC}" >
+							<apex:outputLink value="/apex/ECO_PDFViewer?bmpx=7.1&path={!URLFOR($Resource.ECO_BudgetHelp)}" target="budgethelp" ><nttdcore:DLabel name="DL8" default="Help for this page" labelParent="{!this}" />{!dLabel['DL8']}</apex:outputLink>
+						</apex:outputPanel>
+						<apex:outputPanel layout="none" rendered="{!isEAC}" >
+							<apex:outputLink value="/apex/ECO_PDFViewer?bmpx=8.1&path={!URLFOR($Resource.ECO_BudgetHelp)}" target="budgethelp" ><nttdcore:DLabel name="DL9" default="Help for this page" labelParent="{!this}" />{!dLabel['DL9']}</apex:outputLink>
+						</apex:outputPanel>
+					</p>
+				</td>
+
+				<td valign="bottom" >
+					<nttdcore:DLabel name="DL10" default="The fringe and OH rates for resources on the Labour/Person budget have been changed from the business standard multipliers. Changing cost rates on this budget will not change the costs allocated to
+						the project - a custom burden multiplier is required to be completed, approved and processed in Oracle to effect any change in actual costs." labelParent="{!this}" /><apex:pageMessage rendered="{!isBurdenRateRevised}" title="{!dLabel['DL10']}" detail="" summary="" severity="warning" strength="2" />
+				</td>
+			</tr>
+		</table>
+
+		<apex:pageMessage rendered="{!tooManyTasks}" title="{!$Label.Too_many_tasks_to_show_on_the_page}" detail="{!$Label.Please_select_a_Parent_Task_from_the_filter_to_reduce_the_number_of_tasks_in_the}" summary="{!SUBSTITUTE($Label.This_page_is_only_able_to_display_n_tasks_maximum_at_one_time, '{0}', TEXT(taskLimit))}" severity="error" strength="3" />
+
+
+		<nttdcore:DLabel name="DL14" default="Too many tasks to show on the page" labelParent="{!this}" /><nttdcore:DLabel name="DL15" default="This project and the parent task filter you have selected exceeds the 1000 task limit" labelParent="{!this}" /><nttdcore:DLabel name="DL16" default="Only the first 1000 tasks are being shown" labelParent="{!this}" /><apex:pageMessage rendered="{!tasks.size == 1000}" title="{!dLabel['DL14']}" detail="{!dLabel['DL15']}" summary="{!dLabel['DL16']}" severity="warning" strength="2" />
+		
+		<apex:pageMessage rendered="{!NOT(ISBLANK(oracleTaskError_str))}"
+			summary="The following tasks will fail sync to oracle due to non-zero costs on zero hour tasks" 
+			detail="{!oracleTaskError_str}"
+			severity="warning" strength="2" 
+		/>
+
+		<table cellpadding="0" cellspacing="0" border="0" >
+			<tr>
+	
+				<td class="mainBox" >
+					<table class="tableClass" cellspacing="1" cellpadding="5" border="0" >
+						<tr>
+							<td colspan="2" class="summaryLabelCell2" style="text-align: center;" ><nttdcore:DLabel name="DL17" default="Budget Info" labelParent="{!this}" />
+								{!dLabel['DL17']}
+							</td>
+						</tr>
+
+						<tr>
+							<td class="summaryLabelCell2" ><nttdcore:DLabel name="DL18" default="Budget Name" labelParent="{!this}" />{!dLabel['DL18']}
+								<c:ECO_HelpIcon helptext="{!$ObjectType.BudgetHeader__c.Fields.BudgetName__c.inlineHelpText}" />
+							</td>
+							<td class="numberCellWidth2" >
+								<apex:inputField value="{!BudgetHeader__c.BudgetName__c}" />
+							</td>
+						</tr>
+
+						<tr>
+							<td class="summaryLabelCell2" ><nttdcore:DLabel name="DL19" default="Created Date" labelParent="{!this}" />{!dLabel['DL19']}
+								<c:ECO_HelpText helpid="Budget Header Created Date" />
+							</td>
+							<td class="numberCellWidth2" >{!BudgetHeader__c.CreatedDate}</td>
+						</tr>
+
+						<tr>
+							<td class="summaryLabelCell2" ><nttdcore:DLabel name="DL20" default="Created By" labelParent="{!this}" />{!dLabel['DL20']}
+								<c:ECO_HelpText helpid="Budget Header Created By" />
+							</td>
+							<td class="numberCellWidth2" >{!BudgetHeader__c.CreatedBy.name}</td>
+						</tr>
+
+						<tr>
+							<td class="summaryLabelCell2" ><nttdcore:DLabel name="DL21" default="Last Modified Date" labelParent="{!this}" />{!dLabel['DL21']}
+								<c:ECO_HelpText helpid="Budget Header Last Modified Date" />
+							</td>
+							<td class="numberCellWidth2" >{!BudgetHeader__c.LastModifiedDate}</td>
+						</tr>
+
+						<tr>
+							<td class="summaryLabelCell2" ><nttdcore:DLabel name="DL22" default="Last Modified By" labelParent="{!this}" />{!dLabel['DL22']}
+								<c:ECO_HelpText helpid="Budget Header Last Modified By" />
+							</td>
+							<td class="numberCellWidth2" >{!BudgetHeader__c.LastModifiedBy.name}</td>
+						</tr>
+						
+						<tr>
+							<td class="summaryLabelCell2" ><nttdcore:DLabel name="DL23" default="Description/Notes" labelParent="{!this}" />{!dLabel['DL23']}
+								<c:ECO_HelpIcon helptext="{!$ObjectType.BudgetHeader__c.Fields.Description__c.inlineHelpText}" />
+							</td>
+							<td class="numberCellWidth2" >
+								<apex:inputField value="{!BudgetHeader__c.Description__c}" />
+							</td>
+						</tr>
+
+						<tr>
+							<td class="summaryLabelCell2" ><nttdcore:DLabel name="DL24" default="Filter by Parent Task" labelParent="{!this}" />{!dLabel['DL24']}</td>
+							<td class="numberCellWidth2" >
+								<apex:selectList value="{!parentTaskFilter}" multiselect="false" size="1" onchange="refreshData();" id="parentTaskFilter" >
+									<apex:selectOptions value="{!taskFilterOptions}" />
+								</apex:selectList>
+							</td>
+						</tr>
+
+					</table>
+				</td>
+
+				<apex:outputPanel rendered="{!!tooManyTasks}" >
+					<td class="mainBox" >
+						<table class="tableClass" cellspacing="1" cellpadding="5" border="0" >
+							<tr>
+								<td class="summaryLabelCell2" style="text-align: center;" ><nttdcore:DLabel name="DL25" default="Budget Summary" labelParent="{!this}" />{!dLabel['DL25']}
+									<c:ECO_HelpText helpid="Budget Header Budget Summary Table" />
+								</td>
+								<apex:outputPanel rendered="{! (isEAC )  }" >
+									<td class="summaryLabelCell2" style="text-align: center;" ><nttdcore:DLabel name="DL26" default="Current Forecast" labelParent="{!this}" /><nttdcore:DLabel name="DL27" default="Budget" labelParent="{!this}" />
+										{!dLabel['DL26']}<br/>{!dLabel['DL27']}
+									</td>
+									<td class="summaryLabelCell2" style="text-align: center;" ><nttdcore:DLabel name="DL28" default="This Change" labelParent="{!this}" />
+										{!dLabel['DL28']}
+									</td>
+									<td class="summaryLabelCell2" style="text-align: center;" ><nttdcore:DLabel name="DL29" default="Revised Forecast Budget" labelParent="{!this}" /><nttdcore:DLabel name="DL30" default="(incl This Change)" labelParent="{!this}" />
+										{!dLabel['DL29']} <br/> {!dLabel['DL30']}
+									</td>
+								</apex:outputPanel>
+								<apex:outputPanel rendered="{! NOT(isEAC) }" >
+									<td class="summaryLabelCell2" style="text-align: center;" ><nttdcore:DLabel name="DL31" default="Current Approved" labelParent="{!this}" /><nttdcore:DLabel name="DL32" default="Budget" labelParent="{!this}" />
+										{!dLabel['DL31']}<br/>{!dLabel['DL32']}
+									</td>
+									<td class="summaryLabelCell2" style="text-align: center;" ><nttdcore:DLabel name="DL33" default="This Change" labelParent="{!this}" />
+										{!dLabel['DL33']}
+									</td>
+									<td class="summaryLabelCell2" style="text-align: center;" ><nttdcore:DLabel name="DL34" default="Revised Approved Budget" labelParent="{!this}" /><nttdcore:DLabel name="DL35" default="(incl This Change)" labelParent="{!this}" />
+										{!dLabel['DL34']} <br/> {!dLabel['DL35']}
+									</td>
+								</apex:outputPanel>
+							</tr>
+							
+							<!-- MultineLine EAC project -->
+
+							<apex:outputPanel rendered="{!BudgetHeader__c.MultiLineBurdened__c && isEAC }" >
+								<tr>
+									<td class="summaryLabelCell2" ><nttdcore:DLabel name="DL36" default="Raw Labour" labelParent="{!this}" />{!dLabel['DL36']}
+										<c:ECO_HelpIcon helptext="{!$ObjectType.BudgetHeader__c.Fields.TotalRawCost__c.inlineHelpText}" />
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+											<apex:param value="{!budgetWrapper.getForecastTotalRawLabour}" />
+										</apex:outputText>	
+									</td>
+									<td class="numberCellWidth"  rendered="{! BudgetHeader__c.Status__c='Draft' }">
+										<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+											<apex:param value="{!BudgetHeader__c.TotalRawCost__c}" />
+										</apex:outputText>	
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+											<apex:param value="{!budgetWrapper.getForecastTotalRawLabour + IF(BudgetHeader__c.Status__c='Draft', BudgetHeader__c.TotalRawCost__c,0)}" />
+										</apex:outputText>	
+									</td>
+								</tr>          
+							
+								<tr>
+									<td class="summaryLabelCell2" ><nttdcore:DLabel name="DL37" default="Fringe" labelParent="{!this}" />{!dLabel['DL37']}
+										<c:ECO_HelpIcon helptext="{!$ObjectType.BudgetHeader__c.Fields.TotalFringe__c.inlineHelpText}" />
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+											<apex:param value="{!budgetWrapper.getForecastTotalFringe}" />
+										</apex:outputText>	
+									</td>
+									<td class="numberCellWidth"  rendered="{! BudgetHeader__c.Status__c='Draft' }">
+										<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+											<apex:param value="{!BudgetHeader__c.TotalFringe__c}" />
+										</apex:outputText>	
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+											<apex:param value="{!budgetWrapper.getForecastTotalFringe + IF(BudgetHeader__c.Status__c='Draft', BudgetHeader__c.TotalFringe__c,0)}" />
+										</apex:outputText>	
+									</td>
+								</tr>
+					
+								<tr>
+									<td class="summaryLabelCell2" ><nttdcore:DLabel name="DL38" default="Overhead" labelParent="{!this}" />{!dLabel['DL38']}
+										<c:ECO_HelpIcon helptext="{!$ObjectType.BudgetHeader__c.Fields.TotalOverhead__c.inlineHelpText}" />
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+											<apex:param value="{!budgetWrapper.getForecastTotalOverhead}" />
+										</apex:outputText>	
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}"  rendered="{! BudgetHeader__c.Status__c='Draft' }">
+											<apex:param value="{!BudgetHeader__c.TotalOverhead__c}" />
+										</apex:outputText>	
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+											<apex:param value="{!budgetWrapper.getForecastTotalOverhead + IF(BudgetHeader__c.Status__c='Draft', BudgetHeader__c.TotalOverhead__c,0)}" />
+										</apex:outputText>	
+									</td>
+								</tr>
+							</apex:outputPanel>
+
+							<!-- MultiLine Project && Non EAC -->
+
+							<apex:outputPanel rendered="{!BudgetHeader__c.MultiLineBurdened__c && NOT(isEAC)}" >
+								<tr>
+									<td class="summaryLabelCell2" ><nttdcore:DLabel name="DL39" default="Raw Labour" labelParent="{!this}" />{!dLabel['DL39']}
+										<c:ECO_HelpIcon helptext="{!$ObjectType.BudgetHeader__c.Fields.TotalRawCost__c.inlineHelpText}" />
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+											<apex:param value="{!budgetWrapper.getBudgetTotalRawLabour}" />
+										</apex:outputText>	
+									</td>
+									<td class="numberCellWidth"  >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}" rendered="{! BudgetHeader__c.Status__c='Draft' }">
+											<apex:param value="{! IF(BudgetHeader__c.Status__c != 'Approved', BudgetHeader__c.TotalRawCost__c,0)}" />
+										</apex:outputText>	
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+											<apex:param value="{!budgetWrapper.getBudgetTotalRawLabour + IF(BudgetHeader__c.Status__c = 'Draft', BudgetHeader__c.TotalRawCost__c,0)}" />
+										</apex:outputText>	
+									</td>
+								</tr>          
+							
+								<tr>
+									<td class="summaryLabelCell2" ><nttdcore:DLabel name="DL40" default="Fringe" labelParent="{!this}" />{!dLabel['DL40']}
+										<c:ECO_HelpIcon helptext="{!$ObjectType.BudgetHeader__c.Fields.TotalFringe__c.inlineHelpText}" />
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+											<apex:param value="{!budgetWrapper.getBudgetTotalFringe}" />
+										</apex:outputText>	
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}"  rendered="{! BudgetHeader__c.Status__c='Draft' }" >
+											<apex:param value="{!IF(BudgetHeader__c.Status__c != 'Approved', BudgetHeader__c.TotalFringe__c,0)}" />
+										</apex:outputText>	
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+											<apex:param value="{!budgetWrapper.getBudgetTotalFringe + IF(BudgetHeader__c.Status__c = 'Draft', BudgetHeader__c.TotalFringe__c,0)}" />
+										</apex:outputText>	
+									</td>
+								</tr>
+					
+								<tr>
+									<td class="summaryLabelCell2" ><nttdcore:DLabel name="DL41" default="Overhead" labelParent="{!this}" />{!dLabel['DL41']}
+										<c:ECO_HelpIcon helptext="{!$ObjectType.BudgetHeader__c.Fields.TotalOverhead__c.inlineHelpText}" />
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+											<apex:param value="{!budgetWrapper.getBudgetTotalOverhead}" />
+										</apex:outputText>	
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}"  rendered="{! BudgetHeader__c.Status__c='Draft' }">
+											<apex:param value="{! IF(BudgetHeader__c.Status__c != 'Approved', BudgetHeader__c.TotalOverhead__c,0)}" />
+										</apex:outputText>	
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+											<apex:param value="{!budgetWrapper.getBudgetTotalOverhead + IF(BudgetHeader__c.Status__c = 'Draft', BudgetHeader__c.TotalOverhead__c,0)}" />
+										</apex:outputText>	
+									</td>
+								</tr>
+							</apex:outputPanel>
+
+
+							<!-- For Single line EAC Projects -->
+
+							<apex:outputPanel rendered="{!NOT(BudgetHeader__c.MultiLineBurdened__c) && isEAC}" >
+								<tr>
+									<td class="summaryLabelCell2" ><nttdcore:DLabel name="DL42" default="FBLR" labelParent="{!this}" />{!dLabel['DL42']}</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+											<apex:param value="{!budgetWrapper.getForecastTotalFBLR}" />
+										</apex:outputText>	
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}"  rendered="{! BudgetHeader__c.Status__c='Draft' }">
+											<apex:param value="{!
+											BLANKVALUE(BudgetHeader__c.TotalRawCost__c,0) + 
+											BLANKVALUE(BudgetHeader__c.TotalFringe__c,0) + 
+											BLANKVALUE(BudgetHeader__c.TotalOverhead__c,0) 
+											}" />
+										</apex:outputText>	
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+											<apex:param value="{!budgetWrapper.getForecastTotalFBLR + IF(BudgetHeader__c.Status__c='Draft', BLANKVALUE(BudgetHeader__c.TotalRawCost__c,0) + 
+											BLANKVALUE(BudgetHeader__c.TotalFringe__c,0) + 
+											BLANKVALUE(BudgetHeader__c.TotalOverhead__c,0) ,0)}" />
+										</apex:outputText>	
+									</td>
+								</tr> 
+							</apex:outputPanel>
+
+							<!-- Single Line non EAC Projects -->
+
+							<apex:outputPanel rendered="{!NOT(BudgetHeader__c.MultiLineBurdened__c) && NOT(isEAC)}" >
+								<tr>
+									<td class="summaryLabelCell2" ><nttdcore:DLabel name="DL43" default="FBLR" labelParent="{!this}" />{!dLabel['DL43']}</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+											<apex:param value="{!budgetWrapper.getBudgetTotalFBLR}" />
+										</apex:outputText>	
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}"  rendered="{! BudgetHeader__c.Status__c='Draft' }">
+											<apex:param value="{!
+											IF(BudgetHeader__c.Status__c != 'Approved', BLANKVALUE(BudgetHeader__c.TotalRawCost__c,0) + 
+											BLANKVALUE(BudgetHeader__c.TotalFringe__c,0) + 
+											BLANKVALUE(BudgetHeader__c.TotalOverhead__c,0) ,0) 
+											}" />
+										</apex:outputText>	
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+											<apex:param value="{!budgetWrapper.getBudgetTotalFBLR + IF(BudgetHeader__c.Status__c = 'Draft', BLANKVALUE(BudgetHeader__c.TotalRawCost__c,0) + 
+											BLANKVALUE(BudgetHeader__c.TotalFringe__c,0) + 
+											BLANKVALUE(BudgetHeader__c.TotalOverhead__c,0) ,0)}" />
+										</apex:outputText>	
+									</td>
+								</tr> 
+							</apex:outputPanel>
+
+							<!-- For all EAC projects -->
+							<apex:outputPanel rendered="{!isEAC}" >
+								<tr>
+									<td class="summaryLabelCell2" ><nttdcore:DLabel name="DL44" default="Subs" labelParent="{!this}" />{!dLabel['DL44']}
+										<c:ECO_HelpIcon helptext="{!$ObjectType.BudgetHeader__c.Fields.TotalSubAmount__c.inlineHelpText}" />
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+											<apex:param value="{!budgetWrapper.getForecastTotalSubAmount}" />
+										</apex:outputText>	
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}"  rendered="{! BudgetHeader__c.Status__c='Draft' }" >
+											<apex:param value="{!BudgetHeader__c.TotalSubAmount__c}" />
+										</apex:outputText>	
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+											<apex:param value="{!budgetWrapper.getForecastTotalSubAmount + IF(BudgetHeader__c.Status__c='Draft', BudgetHeader__c.TotalSubAmount__c,0)}" />
+										</apex:outputText>	
+									</td>
+								</tr>
+
+								<tr>
+									<td class="summaryLabelCell2" ><nttdcore:DLabel name="DL45" default="ODCs" labelParent="{!this}" />{!dLabel['DL45']}
+										<c:ECO_HelpIcon helptext="{!$ObjectType.BudgetHeader__c.Fields.TotalFeeAmount__c.inlineHelpText}" />
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+											<apex:param value="{!budgetWrapper.getForecastTotalFeeAmount}" />
+										</apex:outputText>	
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}"  rendered="{! BudgetHeader__c.Status__c='Draft' }">
+											<apex:param value="{!BudgetHeader__c.TotalFeeAmount__c}" />
+										</apex:outputText>	
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+											<apex:param value="{!budgetWrapper.getForecastTotalFeeAmount + IF(BudgetHeader__c.Status__c='Draft', BudgetHeader__c.TotalFeeAmount__c,0)}" />
+										</apex:outputText>	
+									</td>
+								</tr>
+
+								<tr>
+									<td class="summaryLabelCell2" ><nttdcore:DLabel name="DL46" default="Contingency" labelParent="{!this}" />{!dLabel['DL46']}
+										<c:ECO_HelpIcon helptext="{!$ObjectType.BudgetHeader__c.Fields.TotalContingencyAmount__c.inlineHelpText}" />
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+											<apex:param value="{!budgetWrapper.getForecastTotalContingencyAmount}" />
+										</apex:outputText>	
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}"  rendered="{! BudgetHeader__c.Status__c='Draft' }">
+											<apex:param value="{!BudgetHeader__c.TotalContingencyAmount__c}" />
+										</apex:outputText>	
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+											<apex:param value="{!budgetWrapper.getForecastTotalContingencyAmount + IF(BudgetHeader__c.Status__c='Draft', BudgetHeader__c.TotalContingencyAmount__c,0)}" />
+										</apex:outputText>	
+									</td>
+								</tr>
+
+								<tr>
+									<td class="summaryLabelCell2" ><nttdcore:DLabel name="DL47" default="Total Cost" labelParent="{!this}" />{!dLabel['DL47']}
+										<c:ECO_HelpIcon helptext="{!$ObjectType.BudgetHeader__c.Fields.TotalCost__c.inlineHelpText}" />
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+											<apex:param value="{!budgetWrapper.getForecastTotalCost}" />
+										</apex:outputText>	
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}"  rendered="{! BudgetHeader__c.Status__c='Draft' }"  >
+											<apex:param value="{!BudgetHeader__c.TotalCost__c}" />
+										</apex:outputText>	
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+											<apex:param value="{!budgetWrapper.getForecastTotalCost + IF(BudgetHeader__c.Status__c='Draft', BudgetHeader__c.TotalCost__c,0)}" />
+										</apex:outputText>	
+									</td>
+								</tr>
+
+								<tr>
+									<td class="summaryLabelCell2" ><nttdcore:DLabel name="DL48" default="Total Revenue" labelParent="{!this}" />{!dLabel['DL48']}
+										<c:ECO_HelpIcon helptext="{!$ObjectType.BudgetHeader__c.Fields.AppliedTotalRevenue__c.inlineHelpText}" />
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+											<apex:param value="{!budgetWrapper.getForecastTotalRevenue}" />
+										</apex:outputText>	
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}"  rendered="{! BudgetHeader__c.Status__c='Draft' }" >
+											<apex:param value="{!selectedDtoBudget.displayRevenue}" />
+										</apex:outputText>	
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+											<apex:param value="{!budgetWrapper.getForecastTotalRevenue + IF(BudgetHeader__c.Status__c='Draft', selectedDtoBudget.displayRevenue,0)}" />
+										</apex:outputText>	
+									</td>
+								</tr>
+							</apex:outputPanel>
+
+							<!-- For all Non-EAC projects -->
+							<apex:outputPanel rendered="{! NOT(isEAC)}" >
+								<tr>
+									<td class="summaryLabelCell2" ><nttdcore:DLabel name="DL49" default="Subs" labelParent="{!this}" />{!dLabel['DL49']}
+										<c:ECO_HelpIcon helptext="{!$ObjectType.BudgetHeader__c.Fields.TotalSubAmount__c.inlineHelpText}" />
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+											<apex:param value="{!budgetWrapper.getBudgetTotalSubAmount}" />
+										</apex:outputText>	
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}"  rendered="{! BudgetHeader__c.Status__c='Draft' }" >
+											<apex:param value="{!IF(BudgetHeader__c.Status__c != 'Approved', BudgetHeader__c.TotalSubAmount__c,0)}" />
+										</apex:outputText>	
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+											<apex:param value="{!budgetWrapper.getBudgetTotalSubAmount + IF(BudgetHeader__c.Status__c = 'Draft', BudgetHeader__c.TotalSubAmount__c,0)}" />
+										</apex:outputText>	
+									</td>
+								</tr>
+
+								<tr>
+									<td class="summaryLabelCell2" ><nttdcore:DLabel name="DL50" default="ODCs" labelParent="{!this}" />{!dLabel['DL50']}
+										<c:ECO_HelpIcon helptext="{!$ObjectType.BudgetHeader__c.Fields.TotalFeeAmount__c.inlineHelpText}" />
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+											<apex:param value="{!budgetWrapper.getBudgetTotalFeeAmount}" />
+										</apex:outputText>	
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}"  rendered="{! BudgetHeader__c.Status__c='Draft' }">
+											<apex:param value="{!IF(BudgetHeader__c.Status__c != 'Approved', BudgetHeader__c.TotalFeeAmount__c,0)}" />
+										</apex:outputText>	
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+											<apex:param value="{!budgetWrapper.getBudgetTotalFeeAmount + IF(BudgetHeader__c.Status__c = 'Draft', BudgetHeader__c.TotalFeeAmount__c,0)}" />
+										</apex:outputText>	
+									</td>
+								</tr>
+
+								<tr>
+									<td class="summaryLabelCell2" ><nttdcore:DLabel name="DL51" default="Contingency" labelParent="{!this}" />{!dLabel['DL51']}
+										<c:ECO_HelpIcon helptext="{!$ObjectType.BudgetHeader__c.Fields.TotalContingencyAmount__c.inlineHelpText}" />
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+											<apex:param value="{!budgetWrapper.getBudgetTotalContingencyAmount}" />
+										</apex:outputText>	
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}"  rendered="{! BudgetHeader__c.Status__c='Draft' }" >
+											<apex:param value="{! IF(BudgetHeader__c.Status__c != 'Approved', BudgetHeader__c.TotalContingencyAmount__c,0)}" />
+										</apex:outputText>	
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+											<apex:param value="{!budgetWrapper.getBudgetTotalContingencyAmount + IF(BudgetHeader__c.Status__c = 'Draft', BudgetHeader__c.TotalContingencyAmount__c,0)}" />
+										</apex:outputText>	
+									</td>
+								</tr>
+
+								<tr>
+									<td class="summaryLabelCell2" ><nttdcore:DLabel name="DL52" default="Total Cost" labelParent="{!this}" />{!dLabel['DL52']}
+										<c:ECO_HelpIcon helptext="{!$ObjectType.BudgetHeader__c.Fields.TotalCost__c.inlineHelpText}" />
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+											<apex:param value="{!budgetWrapper.getBudgetTotalCost}" />
+										</apex:outputText>	
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}"  rendered="{! BudgetHeader__c.Status__c='Draft' }">
+											<apex:param value="{! IF(BudgetHeader__c.Status__c != 'Approved', BudgetHeader__c.TotalCost__c,0)}" />
+										</apex:outputText>	
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+											<apex:param value="{!budgetWrapper.getBudgetTotalCost + IF(BudgetHeader__c.Status__c = 'Draft', BudgetHeader__c.TotalCost__c,0)}" />
+										</apex:outputText>	
+									</td>
+								</tr>
+
+								<tr>
+									<td class="summaryLabelCell2" ><nttdcore:DLabel name="DL53" default="Total Revenue" labelParent="{!this}" />{!dLabel['DL53']}
+										<c:ECO_HelpIcon helptext="{!$ObjectType.BudgetHeader__c.Fields.AppliedTotalRevenue__c.inlineHelpText}" />
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+											<apex:param value="{!budgetWrapper.getBudgetTotalRevenue}" />
+										</apex:outputText>	
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}"  rendered="{! BudgetHeader__c.Status__c='Draft' }">
+											<apex:param value="{! IF(BudgetHeader__c.Status__c != 'Approved', BudgetHeader__c.AppliedTotalRevenue__c,0)}" />
+										</apex:outputText>	
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+											<apex:param value="{!budgetWrapper.getBudgetTotalRevenue + IF(BudgetHeader__c.Status__c = 'Draft', BudgetHeader__c.AppliedTotalRevenue__c,0)}" />
+										</apex:outputText>	
+									</td>
+								</tr>
+							</apex:outputPanel>
+													   
+						</table>
+						<nttdcore:DLabel name="DL54" default="Save" labelParent="{!this}" /><apex:commandButton value="{!dLabel['DL54']}" action="{!saveBudget}" style="margin-top:10px;" rendered="{!canModify}"/>
+					</td>
+
+					<td class="mainBox" >
+						<table class="tableClass" cellspacing="1" cellpadding="5" border="0" >
+							<tr>
+								<td colspan="1" class="summaryLabelCell2" style="text-align: center;" ><nttdcore:DLabel name="DL55" default="Budget Metrics" labelParent="{!this}" />{!dLabel['DL55']}
+									<c:ECO_HelpText helpid="Budget Header Budget Metrics Table" />
+								</td>
+
+								<apex:outputPanel rendered="{! (isEAC ) }" >
+									<td class="summaryLabelCell2" style="text-align: center;" ><nttdcore:DLabel name="DL56" default="Current Forecast" labelParent="{!this}" /><nttdcore:DLabel name="DL57" default="Budget" labelParent="{!this}" />
+										{!dLabel['DL56']}<br/>{!dLabel['DL57']}
+									</td>
+									<td class="summaryLabelCell2" style="text-align: center;" ><nttdcore:DLabel name="DL58" default="This Change" labelParent="{!this}" />
+										{!dLabel['DL58']}
+									</td>
+									<td class="summaryLabelCell2" style="text-align: center;" ><nttdcore:DLabel name="DL59" default="Revised Forecast Budget" labelParent="{!this}" /><nttdcore:DLabel name="DL60" default="(incl This Change)" labelParent="{!this}" />
+										{!dLabel['DL59']} <br/> {!dLabel['DL60']}
+									</td>
+								</apex:outputPanel>
+
+								<apex:outputPanel rendered="{! NOT(isEAC) }" >
+									<td class="summaryLabelCell2" style="text-align: center;" ><nttdcore:DLabel name="DL61" default="Current Approved" labelParent="{!this}" /><nttdcore:DLabel name="DL62" default="Budget" labelParent="{!this}" />
+										{!dLabel['DL61']}<br/>{!dLabel['DL62']}
+									</td>
+									<td class="summaryLabelCell2" style="text-align: center;" ><nttdcore:DLabel name="DL63" default="This Change" labelParent="{!this}" />
+										{!dLabel['DL63']}
+									</td>
+									<td class="summaryLabelCell2" style="text-align: center;" ><nttdcore:DLabel name="DL64" default="Revised Approved Budget" labelParent="{!this}" /><nttdcore:DLabel name="DL65" default="(incl This Change)" labelParent="{!this}" />
+										{!dLabel['DL64']} <br/> {!dLabel['DL65']}
+									</td>
+								</apex:outputPanel>
+							</tr>
+
+							<!-- For all EAC projects -->
+							<apex:outputPanel rendered="{!isEAC}" >
+								<tr>
+									<td class="summaryLabelCell2" ><nttdcore:DLabel name="DL66" default="Net Service Revenue" labelParent="{!this}" />{!dLabel['DL66']}
+										<c:ECO_HelpIcon helptext="{!$ObjectType.BudgetHeader__c.Fields.NetServicesRevenue__c.inlineHelpText}" />
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+											<apex:param value="{!budgetWrapper.getForecastTotalNetServiceRevenue}" />
+										</apex:outputText>	
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+											<apex:param value="{!BudgetHeader__c.NetServicesRevenue__c}" />
+										</apex:outputText>	
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+											<apex:param value="{!budgetWrapper.getForecastTotalNetServiceRevenue + IF(BudgetHeader__c.Status__c='Draft', BudgetHeader__c.NetServicesRevenue__c,0)}" />
+										</apex:outputText>	
+									</td>
+								</tr>
+
+								<tr>
+									<td class="summaryLabelCell2" ><nttdcore:DLabel name="DL67" default="Gross Margin" labelParent="{!this}" />{!dLabel['DL67']}
+										<c:ECO_HelpIcon helptext="{!$ObjectType.BudgetHeader__c.Fields.GrossMargin__c.inlineHelpText}" />
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+											<apex:param value="{!budgetWrapper.getForecastTotalGrossMargin}" />
+										</apex:outputText>	
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+											<apex:param value="{!BudgetHeader__c.GrossMargin__c}" />
+										</apex:outputText>	
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+											<apex:param value="{!budgetWrapper.getForecastTotalGrossMargin + IF(BudgetHeader__c.Status__c='Draft', BudgetHeader__c.GrossMargin__c,0)}" />
+										</apex:outputText>	
+									</td>
+								</tr>
+
+								<tr>
+									<td class="summaryLabelCell2" ><nttdcore:DLabel name="DL68" default="Net Margin" labelParent="{!this}" />{!dLabel['DL68']}
+										<c:ECO_HelpIcon helptext="{!$ObjectType.BudgetHeader__c.Fields.NetMargin__c.inlineHelpText}" />
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+											<apex:param value="{!budgetWrapper.getForecastTotalNetMargin}" />
+										</apex:outputText>	
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+											<apex:param value="{!BudgetHeader__c.NetMargin__c}" />
+										</apex:outputText>	
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+											<apex:param value="{!budgetWrapper.getForecastTotalNetMargin + IF(BudgetHeader__c.Status__c='Draft', BudgetHeader__c.NetMargin__c,0)}" />
+										</apex:outputText>	
+									</td>
+								</tr>
+
+								<tr>
+									<td class="summaryLabelCell2" ><nttdcore:DLabel name="DL69" default="GM/NSR" labelParent="{!this}" />{!dLabel['DL69']}
+										<c:ECO_HelpIcon helptext="{!$ObjectType.BudgetHeader__c.Fields.GMNSR__c.inlineHelpText}" />
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.0}%" >
+											<apex:param value="{!budgetWrapper.getForecastTotalGMNSR}" />
+										</apex:outputText>	
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.0}%" >
+											<apex:param value="{!BudgetHeader__c.GMNSR__c}" />
+										</apex:outputText>	
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.0}%" >
+											<apex:param value="{!getRevisedGMNSR}" />
+										</apex:outputText>	
+									</td>
+								</tr>
+
+								<tr>
+									<td class="summaryLabelCell2" ><nttdcore:DLabel name="DL73" default="NM/NSR" labelParent="{!this}" />{!dLabel['DL73']}
+										<c:ECO_HelpIcon helptext="{!$ObjectType.BudgetHeader__c.Fields.NMNSR__c.inlineHelpText}" />
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.0}%" >
+											<apex:param value="{!budgetWrapper.getForecastTotalNMNSR}" />
+										</apex:outputText>	
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.0}%" >
+											<apex:param value="{!BudgetHeader__c.NMNSR__c}" />
+										</apex:outputText>	
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.0}%" >
+											<apex:param value="{!getRevisedNMNSR}" />
+										</apex:outputText>	
+									</td>
+								</tr>
+
+								 <tr>
+									<td class="summaryLabelCell2" ><nttdcore:DLabel name="DL77" default="Salary Cost Multiplier" labelParent="{!this}" />{!dLabel['DL77']}
+										<c:ECO_HelpText helpid="Budget Header Salary Cost Multiplier" />
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+											<apex:param value="{!budgetWrapper.getForecastTotalSalaryCostMultiplier}" />
+										</apex:outputText>	
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}" rendered="{!AND(NOT(ISNULL(BudgetHeader__c.TotalRawCost__c + BudgetHeader__c.TotalFringe__c)), (BudgetHeader__c.TotalRawCost__c+ BudgetHeader__c.TotalFringe__c)!=0)}" >
+											<apex:param value="{!BudgetHeader__c.NetServicesRevenue__c/(BudgetHeader__c.TotalRawCost__c + BudgetHeader__c.TotalFringe__c)}" />
+										</apex:outputText>	
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+											<apex:param value="{!RevisedSalaryCostMultiplier}" />
+										</apex:outputText>	
+									</td>
+								</tr>
+								
+								<tr>
+									<td class="summaryLabelCell2" ><nttdcore:DLabel name="DL78" default="Average Labor Rate Per hour" labelParent="{!this}" />{!dLabel['DL78']}
+										<c:ECO_HelpText helpid="Budget Header Average Labor Rate Per Hour" />
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+											<apex:param value="{!budgetWrapper.getForecastTotalAverageLabourRatePerHour}" />
+										</apex:outputText>	
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}" rendered="{!AND(NOT(ISNULL(totalRow.totalLaborHours)),totalRow.totalLaborHours!=0)}" >
+											<apex:param value="{!BudgetHeader__c.NetServicesRevenue__c/totalRow.totalLaborHours}" />
+										</apex:outputText>	
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+											<apex:param value="{!RevisedAverageLabourRatePerHour}" />
+										</apex:outputText>	
+									</td>
+								</tr>
+							</apex:outputPanel>
+
+
+							<!-- For all NON- EAC projects -->
+							<apex:outputPanel rendered="{! NOT(isEAC)}" >
+								<tr>
+									<td class="summaryLabelCell2" ><nttdcore:DLabel name="DL79" default="Net Service Revenue" labelParent="{!this}" />{!dLabel['DL79']}
+										<c:ECO_HelpIcon helptext="{!$ObjectType.BudgetHeader__c.Fields.NetServicesRevenue__c.inlineHelpText}" />
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+											<apex:param value="{! budgetWrapper.getBudgetTotalNetServiceRevenue }" />
+										</apex:outputText>	
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+											<apex:param value="{! IF(BudgetHeader__c.Status__c = 'Draft', selectedDtoBudget.values['NetServicesRevenue__c'],0)}" />
+										</apex:outputText>	
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+											<apex:param value="{! budgetWrapper.getBudgetTotalNetServiceRevenue + IF(BudgetHeader__c.Status__c = 'Draft', BudgetHeader__c.NetServicesRevenue__c,0)}" />
+										</apex:outputText>	
+									</td>
+								</tr>
+
+								<tr>
+									<td class="summaryLabelCell2" ><nttdcore:DLabel name="DL80" default="Gross Margin" labelParent="{!this}" />{!dLabel['DL80']}
+										<c:ECO_HelpIcon helptext="{!$ObjectType.BudgetHeader__c.Fields.GrossMargin__c.inlineHelpText}" />
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+											<apex:param value="{! budgetWrapper.getBudgetTotalGrossMargin}" />
+										</apex:outputText>	
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+											<apex:param value="{! IF(BudgetHeader__c.Status__c = 'Draft', selectedDtoBudget.values['GrossMargin__c'],0)}" />
+										</apex:outputText>	
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+											<apex:param value="{! budgetWrapper.getBudgetTotalGrossMargin + IF(BudgetHeader__c.Status__c = 'Draft', BudgetHeader__c.GrossMargin__c,0)}" />
+										</apex:outputText>	
+									</td>
+								</tr>
+
+								<tr>
+									<td class="summaryLabelCell2" ><nttdcore:DLabel name="DL81" default="Net Margin" labelParent="{!this}" />{!dLabel['DL81']}
+										<c:ECO_HelpIcon helptext="{!$ObjectType.BudgetHeader__c.Fields.NetMargin__c.inlineHelpText}" />
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+											<apex:param value="{! budgetWrapper.getBudgetTotalNetMargin }" />
+										</apex:outputText>	
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+											<apex:param value="{! IF(BudgetHeader__c.Status__c = 'Draft', selectedDtoBudget.values['NetMargin__c'],0)}" />
+										</apex:outputText>	
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+											<apex:param value="{! budgetWrapper.getBudgetTotalNetMargin + IF(BudgetHeader__c.Status__c = 'Draft', BudgetHeader__c.NetMargin__c,0)}" />
+										</apex:outputText>	
+									</td>
+								</tr>
+
+								<tr>
+									<td class="summaryLabelCell2" ><nttdcore:DLabel name="DL82" default="GM/NSR" labelParent="{!this}" />{!dLabel['DL82']}
+										<c:ECO_HelpIcon helptext="{!$ObjectType.BudgetHeader__c.Fields.GMNSR__c.inlineHelpText}" />
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.0}%" >
+											<apex:param value="{! budgetWrapper.getBudgetTotalGMNSR }" />
+										</apex:outputText>	
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.0}%" >
+											<apex:param value="{! IF(BudgetHeader__c.Status__c = 'Draft', BudgetHeader__c.GMNSR__c, 0) }" />
+										</apex:outputText>	
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.0}%" >
+											<apex:param value="{!getRevisedGMNSR}" />
+										</apex:outputText>	
+									</td>
+								</tr>
+
+								<tr>
+									<td class="summaryLabelCell2" ><nttdcore:DLabel name="DL86" default="NM/NSR" labelParent="{!this}" />{!dLabel['DL86']}
+										<c:ECO_HelpIcon helptext="{!$ObjectType.BudgetHeader__c.Fields.NMNSR__c.inlineHelpText}" />
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.0}%" >
+											<apex:param value="{! budgetWrapper.getBudgetTotalNMNSR }" />
+										</apex:outputText>	
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.0}%" >
+											<apex:param value="{! IF(BudgetHeader__c.Status__c = 'Draft', BudgetHeader__c.NMNSR__c, 0) }" />
+										</apex:outputText>	
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.0}%" >
+											<apex:param value="{!getRevisedNMNSR}" />
+										</apex:outputText>	
+									</td>
+								</tr>
+
+								 <tr>
+									<td class="summaryLabelCell2" ><nttdcore:DLabel name="DL90" default="Salary Cost Multiplier" labelParent="{!this}" />{!dLabel['DL90']}
+										<c:ECO_HelpText helpid="Budget Header Salary Cost Multiplier" />
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+											<apex:param value="{! IF(BudgetHeader__c.Status__c != 'Approved', budgetWrapper.getForecastTotalSalaryCostMultiplier,
+											budgetWrapper.getBudgetTotalSalaryCostMultiplier) }" />
+										</apex:outputText>	
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}" rendered="{!AND(NOT(ISNULL(BudgetHeader__c.TotalRawCost__c + BudgetHeader__c.TotalFringe__c)), (BudgetHeader__c.TotalRawCost__c+ BudgetHeader__c.TotalFringe__c)!=0)}" >
+											<apex:param value="{! IF(BudgetHeader__c.Status__c != 'Approved', BudgetHeader__c.NetServicesRevenue__c/(BudgetHeader__c.TotalRawCost__c + BudgetHeader__c.TotalFringe__c),0) }" />
+										</apex:outputText>	
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+											<apex:param value="{!RevisedSalaryCostMultiplier}" />
+										</apex:outputText>	
+									</td>
+								</tr>
+								
+								<tr>
+									<td class="summaryLabelCell2" ><nttdcore:DLabel name="DL91" default="Average Labor Rate Per hour" labelParent="{!this}" />{!dLabel['DL91']}
+										<c:ECO_HelpText helpid="Budget Header Average Labor Rate Per Hour" />
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+											<apex:param value="{! IF(BudgetHeader__c.Status__c != 'Approved', 
+											budgetWrapper.getForecastTotalAverageLabourRatePerHour, budgetWrapper.getBudgetTotalAverageLabourRatePerHour) }" />
+										</apex:outputText>	
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}" rendered="{!AND(NOT(ISNULL(totalRow.totalLaborHours)),totalRow.totalLaborHours!=0)}" >
+											<apex:param value="{! IF(BudgetHeader__c.Status__c != 'Approved', BudgetHeader__c.NetServicesRevenue__c/totalRow.totalLaborHours, 0) }" />
+										</apex:outputText>	
+									</td>
+									<td class="numberCellWidth" >
+										<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+											<apex:param value="{!RevisedAverageLabourRatePerHour}" />
+										</apex:outputText>	
+									</td>
+								</tr>
+							</apex:outputPanel>
+							
+						</table>
+					</td>
+				</apex:outputPanel>
+
+			</tr>
+		</table>
+
+		<br/><br/>
+
+		<apex:outputPanel layout="none" rendered="{!!isEAC && !tooManyTasks}" >
+			<table>
+				<tr style="background-color:#c6d7e9;" >
+					<td style="padding:6px;" ><nttdcore:DLabel name="DL92" default="The below table shows the value of this Budget/Change order (i.e. the amount your current Approved/As Sold will increase/decrease by when submitted)." labelParent="{!this}" />
+						{!dLabel['DL92']}
+					</td>
+				</tr>
+			</table>
+		</apex:outputPanel>
+
+		<apex:outputPanel layout="none" rendered="{!isEAC && !tooManyTasks}" >
+			<table>
+				<tr style="background-color:#fef935;" >
+					<td style="padding:6px;color:#fc0d23;" ><nttdcore:DLabel name="DL93" default="The below table shows the CHANGE value of the EAC (i.e. the amount your current EAC will increase/decrease by when submitted)." labelParent="{!this}" /><nttdcore:DLabel name="DL94" default="To see the ETC or Revised EAC values in total, refer to the detailed sheets for labor, subs, ODCs &amp; Contingency." labelParent="{!this}" />
+						{!dLabel['DL93']}<br/>
+						{!dLabel['DL94']}
+					</td>
+				</tr>
+			</table>
+		</apex:outputPanel>
+
+		<apex:outputPanel rendered="{!!tooManyTasks}" >
+			<div class="taskRangeFilter" >
+				<apex:outputPanel rendered="{!parentTaskFilter!='-1'}" ><nttdcore:DLabel name="DL95" default="Select Current Task Range:" labelParent="{!this}" />
+				 {!dLabel['DL95']}&nbsp;
+			      <apex:selectList value="{!taskRange}" multiselect="false" size="1" onchange="refreshData();" id="taskRange" >
+			        <apex:selectOptions value="{!taskPageOptions}" />
+			      </apex:selectList>
+				</apex:outputPanel>
+				</div>
+			<table class="tableClass" cellspacing="1" cellpadding="5" border="0" >
+				<tr>
+					<th rowspan="2" class="taskSection touch" >&nbsp;</th>
+					<th rowspan="2" class="taskNumberSection touch" onclick="showTaskTab();" ><nttdcore:DLabel name="DL96" default="Task Number" labelParent="{!this}" />{!dLabel['DL96']}</th>
+					<th rowspan="2" class="taskNameSection touch" onclick="showTaskTab();" ><nttdcore:DLabel name="DL97" default="Task Name" labelParent="{!this}" />{!dLabel['DL97']}</th>
+					<th colspan="{!IF(BudgetHeader__c.MultiLineBurdened__c, 5, 2)}" class="personTitleSection touch" onclick="showLaborTab();" ><nttdcore:DLabel name="DL98" default="Labour/Person" labelParent="{!this}" />{!dLabel['DL98']} <apex:outputPanel layout="none" rendered="{!isEAC}" ><nttdcore:DLabel name="DL99" default="(change)" labelParent="{!this}" /> {!dLabel['DL99']}</apex:outputPanel></th>
+					<th rowspan="2" class="subsSection touch" onclick="showSubTab();" ><nttdcore:DLabel name="DL100" default="Subs" labelParent="{!this}" />{!dLabel['DL100']} <apex:outputPanel layout="none" rendered="{!isEAC}" ><nttdcore:DLabel name="DL101" default="(change)" labelParent="{!this}" /><br/>{!dLabel['DL101']}</apex:outputPanel></th>
+					<th rowspan="2" class="odcSection touch" onclick="showODCTab();" ><nttdcore:DLabel name="DL102" default="Expenses/ODC" labelParent="{!this}" />{!dLabel['DL102']} <apex:outputPanel layout="none" rendered="{!isEAC}" ><nttdcore:DLabel name="DL103" default="(change)" labelParent="{!this}" /><br/>{!dLabel['DL103']}</apex:outputPanel></th>
+					<th rowspan="2" class="contingencySection touch" onclick="showContTab(); " ><nttdcore:DLabel name="DL104" default="Contingency" labelParent="{!this}" />{!dLabel['DL104']} <apex:outputPanel layout="none" rendered="{!isEAC}" ><nttdcore:DLabel name="DL105" default="(change)" labelParent="{!this}" /><br/>{!dLabel['DL105']}</apex:outputPanel></th>
+					<th rowspan="2" class="totalSection" ><nttdcore:DLabel name="DL106" default="Total Cost" labelParent="{!this}" />{!dLabel['DL106']} <apex:outputPanel layout="none" rendered="{!isEAC}" ><nttdcore:DLabel name="DL107" default="(change)" labelParent="{!this}" /><br/>{!dLabel['DL107']}</apex:outputPanel></th>
+					<th rowspan="2" class="totalSection" ><nttdcore:DLabel name="DL108" default="Revenue" labelParent="{!this}" />{!dLabel['DL108']} <apex:outputPanel layout="none" rendered="{!isEAC}" ><nttdcore:DLabel name="DL109" default="(change)" labelParent="{!this}" /><br/>{!dLabel['DL109']}</apex:outputPanel></th>
+					<th rowspan="2" class="totalSection" ><nttdcore:DLabel name="DL110" default="Revenue Override" labelParent="{!this}" />{!dLabel['DL110']} <apex:outputPanel layout="none" rendered="{!isEAC}" ><nttdcore:DLabel name="DL111" default="(change)" labelParent="{!this}" /><br/>{!dLabel['DL111']}</apex:outputPanel></th>
+				</tr>
+
+				<tr>
+					<th class="personSection" ><nttdcore:DLabel name="DL112" default="Hours" labelParent="{!this}" />{!dLabel['DL112']}</th>
+					<apex:outputPanel rendered="{!BudgetHeader__c.MultiLineBurdened__c}" >
+						<th class="personSection" ><nttdcore:DLabel name="DL113" default="Raw" labelParent="{!this}" />{!dLabel['DL113']}</th>
+						<th class="personSection" ><nttdcore:DLabel name="DL114" default="Fringe" labelParent="{!this}" />{!dLabel['DL114']}</th>
+						<th class="personSection" ><nttdcore:DLabel name="DL115" default="OH" labelParent="{!this}" />{!dLabel['DL115']}</th>                    
+					</apex:outputPanel>
+					<th class="personSection" ><nttdcore:DLabel name="DL116" default="FBLR" labelParent="{!this}" />{!dLabel['DL116']}</th>
+				</tr>
+
+				<apex:repeat value="{!tasks}" var="task" >
+					<tr class="{!task.parentClasses}" >
+						<td class="openClose" >
+							<apex:outputPanel rendered="{!BLANKVALUE(task.children.size, 0) > 0}" onclick="showHide(this, '{!task.id}');" ><nttdcore:DLabel name="DL117" default="-" labelParent="{!this}" />{!dLabel['DL117']}</apex:outputPanel>
+						</td>
+						
+						<td class="textCell" >
+							<div style="margin-left: {!task.indentLevel * 13}px;" >
+								{!task.taskNumber}
+							</div>
+						</td>
+						
+						<td class="textCell" >
+							<div style="margin-left: {!task.indentLevel * 13}px;" >
+								{!task.taskName}
+							</div>
+						</td>
+						
+						<td class="numberCell" >
+							<apex:outputText value="{0, number, ###,###,###,##0}" >
+								<apex:param value="{!task.totalLaborHours}" />
+							</apex:outputText>	
+						</td>
+						<apex:outputPanel rendered="{!BudgetHeader__c.MultiLineBurdened__c}" >
+						<td class="numberCell" >
+							<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+								<apex:param value="{!task.totalRawCost}" />
+							</apex:outputText>	
+						</td>
+						
+						<td class="numberCell" >
+							<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+								<apex:param value="{!task.totalFringe}" />
+							</apex:outputText>	
+						</td>
+						
+						<td class="numberCell" >
+							<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+								<apex:param value="{!task.totalOverhead}" />
+							</apex:outputText>	
+						</td>
+						</apex:outputPanel>
+						
+						<td class="numberCell" >
+							<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+								<apex:param value="{!task.totalFullyBurdenedLaborRate}" />
+							</apex:outputText>	
+						</td>
+						
+						<td class="numberCell" >
+							<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+								<apex:param value="{!task.totalSubCost}" />
+							</apex:outputText>	
+						</td>
+						
+						<td class="numberCell" >
+							<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+								<apex:param value="{!task.totalODCCost}" />
+							</apex:outputText>	
+						</td>
+						
+						<td class="numberCell" >
+							<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+								<apex:param value="{!task.totalContingency}" />
+							</apex:outputText>	
+						</td>
+						
+						<td class="uneditableCell numberCell totalCell" >
+							<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+								<apex:param value="{!task.totalCost}" />
+							</apex:outputText>	
+						</td>
+						
+						<td class="uneditableCell numberCell totalCell" >
+							<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+								<apex:param value="{!task.totalRevenue}" />
+							</apex:outputText>	
+						</td>
+						
+						<td class="textCell" >
+							<apex:inputText value="{!task.pageOverrideTotalRevenue}" rendered="{!theProject.BudgetStrategyRevenue__c == 'Top Task' && task.parent == null}" />
+						</td>
+					</tr>
+				</apex:repeat>
+
+				<tr>
+					<td class="totalTitle" colspan="3" ><nttdcore:DLabel name="DL118" default="Total" labelParent="{!this}" />
+						{!dLabel['DL118']}
+					</td>
+					
+					<td class="uneditableCell numberCell totalCell" >
+						<apex:outputText value="{0, number, ###,###,###,##0}" >
+							<apex:param value="{!totalRow.totalLaborHours}" />
+						</apex:outputText>	
+					</td>
+
+					<apex:outputPanel rendered="{!BudgetHeader__c.MultiLineBurdened__c}" >
+						<td class="uneditableCell numberCell totalCell" >
+							<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+								<apex:param value="{!totalRow.totalRawCost}" />
+							</apex:outputText>	
+						</td>
+						
+						<td class="uneditableCell numberCell totalCell" >
+							<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+								<apex:param value="{!totalRow.totalFringe}" />
+							</apex:outputText>	
+						</td>
+						
+						<td class="uneditableCell numberCell totalCell" >
+							<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+								<apex:param value="{!totalRow.totalOverhead}" />
+							</apex:outputText>	
+						</td>
+					</apex:outputPanel>
+
+					<td class="uneditableCell numberCell totalCell" >
+						<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+							<apex:param value="{!totalRow.totalFullyBurdenedLaborRate}" />
+						</apex:outputText>	
+					</td>
+					
+					<td class="uneditableCell numberCell totalCell" >
+						<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+							<apex:param value="{!totalRow.totalSubCost}" />
+						</apex:outputText>	
+					</td>
+					
+					<td class="uneditableCell numberCell totalCell" >
+						<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+							<apex:param value="{!totalRow.totalODCCost}" />
+						</apex:outputText>	
+					</td>
+					
+					<td class="uneditableCell numberCell totalCell" >
+						<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+							<apex:param value="{!totalRow.totalContingency}" />
+						</apex:outputText>	
+					</td>
+					
+					<td class="uneditableCell numberCell totalCell" >
+						<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+							<apex:param value="{!totalRow.totalCost}" />
+						</apex:outputText>	
+					</td>
+					
+					<td class="uneditableCell numberCell totalCell" >
+						<apex:outputText value="{0, number, ###,###,###,##0.00}" >
+							<apex:param value="{!totalRow.totalRevenue}" />
+						</apex:outputText>	
+					</td>
+					
+					<td class="uneditableCell" >
+						<apex:inputField value="{!BudgetHeader__c.OverrideTotalRevenue__c}" rendered="{!theProject.BudgetStrategyRevenue__c == 'Project Level'}" />
+					</td>
+				</tr>
+			</table>
+		</apex:outputPanel>
+	</apex:form>
+
+	<c:ECO_HelpTextRender ready="1" />
+
+	</apex:define>
+	</apex:composition>
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

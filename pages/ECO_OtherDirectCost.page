@@ -1,0 +1,65 @@
+<apex:page standardcontroller="OtherDirectCost__c" extensions="ECO_OtherDirectCostController,nttdcore.DLabelParentController" action="{!init}" >
+
+<style>
+        .customHelpIcon
+        {
+            display:inline-block;
+            margin:0 5px 0 0;
+            width:24px;
+            height:24px;
+            vertical-align:top !important;
+        }
+        /* CUSTOM HELP / GUIDANCE TEXT BOX */
+        .customHelpText{
+            padding: 7px;
+            border: 1px solid #85B3CE;
+            min-height: 10px;
+            display: block;
+            width: auto;
+            margin: 0 0 5px 0;
+            background-repeat: no-repeat;
+            border-radius: 4px;
+            background-color: #A2D3F1;
+            
+        }
+        .customHelpBody{
+            display:inline-block;
+            color:#;
+            max-width:95%;
+        }   
+
+</style>
+
+<apex:form >
+	<nttdcore:DLabel name="DL1" default="Other Direct Cost Edit" labelParent="{!this}" /><nttdcore:DLabel name="DL2" default="{{1}}({{2}})" labelParent="{!this}" p1="{!agreement.ContractTitle__c}" p2="{!agreement.AgreementNumber__c}" /><apex:sectionHeader title="{!dLabel['DL1']}" subtitle="{!dLabel['DL2']}" />
+        <div class="customHelpText" >
+            <div class="customHelpBody" ><nttdcore:DLabel name="DL3" default="Complete this section to add contract-specific billing limitations or requirements for other direct costs (non-labor) that Project Managers should be aware of when estimating task order proposals and invoicing projects.   One record can be created per direct cost, such as travel, materials and equipment." labelParent="{!this}" />
+{!dLabel['DL3']}   
+            </div>
+        </div> 
+
+	<nttdcore:DLabel name="DL4" default="Other Direct Cost Edit" labelParent="{!this}" /><apex:pageBlock title="{!dLabel['DL4']}" ><nttdcore:DLabel name="DL7" default="Enter the type of non-labor direct cost (e.g., travel, equipment, materials, printing, courier, PPE)." labelParent="{!this}" /><nttdcore:DLabel name="DL8" default="Other Direct Cost" labelParent="{!this}" />
+
+	<apex:pageBlockButtons >
+		<nttdcore:DLabel name="DL5" default="Save" labelParent="{!this}" /><apex:commandButton value="{!dLabel['DL5']}" action="{!save}" />
+		<nttdcore:DLabel name="DL6" default="Return to MSA" labelParent="{!this}" /><apex:commandButton value="{!dLabel['DL6']}" action="{!cancel}" />
+	</apex:pageBlockButtons>
+
+	<apex:pageBlockSection collapsible="false" >
+		<apex:pageBlockSectionItem helptext="{!dLabel['DL7']}" >
+			<apex:outputText value="{!dLabel['DL8']}" />
+			<apex:inputField value="{!OtherDirectCost__c.Type__c}" />
+		</apex:pageBlockSectionItem>
+		<apex:inputField value="{!OtherDirectCost__c.Description__c}" />
+		<apex:inputField value="{!OtherDirectCost__c.Markup__c}" />
+		<apex:inputField value="{!OtherDirectCost__c.Allowable__c}" />
+		<apex:inputField value="{!OtherDirectCost__c.Comments__c}" />
+	</apex:pageBlockSection>
+	<apex:inputHidden value="{!OtherDirectCost__c.Agreement__c}" />
+<!--	<apex:pageBlockSection title="System Information" collapsible="false">
+		<apex:outputField value="{!OtherDirectCost__c.Agreement__c}"/>
+	</apex:pageBlockSection> -->
+
+</apex:pageBlock>
+</apex:form>
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

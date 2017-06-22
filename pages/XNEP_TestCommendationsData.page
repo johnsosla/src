@@ -1,0 +1,539 @@
+<apex:page standardController="TestCommendationsData__c" extensions="XNEC_TestCommendationsData" sidebar="false" id="page">
+<apex:form id="form">
+<table width="100%" cellspacing="0" cellpadding="0" class="xn_block" style="margin-top: 10px; margin-bottom: 20px;">
+    <tr>
+        <td align="left" class="xn_bar" colspan="3">
+            <apex:commandButton action="{!save}" value="Save" style="width: 75px; margin-left: 10px;" />
+            <apex:commandButton action="{!cancel}" value="Cancel" style="width: 75px; margin-left: 10px;" />
+        </td>
+    </tr>
+    <tr>
+        <td align="center" colspan="3">
+            <apex:pageMessages />
+        </td>
+    </tr>
+</table>
+	
+ <div>
+ ``
+</div>  <br/>  <br/>  <div>
+ <span style="font-size:9pt;"><apex:inputField value="{!record.UniqueDocNumber__c}"/>
+ </span><span style="font-size:9pt;"><apex:inputField value="{!record.TimesModified__c}"/>
+ </span><span style="font-weight:bold;color:navy;font-size:9pt;"> 
+ </span><span style="font-weight:bold;font-size:9pt;"><apex:inputField value="{!record.PastAuthors__c}"/>
+ </span><span style="font-weight:bold;color:maroon;font-size:9pt;">
+ </span>
+</div>  <div>
+ <span style="font-weight:bold;color:maroon;font-size:9pt;"><apex:inputField value="{!record.PastEditDates__c}"/>
+ </span> <span style="font-weight:bold;color:maroon;font-size:9pt;"><apex:inputField value="{!record.EditDates__c}"/>
+ </span><span style="color:gray;font-size:9pt;"><apex:inputField value="{!record.Form__c}"/>
+ </span><span style="font-weight:bold;color:maroon;font-size:9pt;">
+ </span><span style="font-weight:bold;color:maroon;font-size:9pt;"><apex:inputField value="{!record.ValCheck__c}"/>
+ </span><span style="font-weight:bold;color:maroon;font-size:9pt;"><apex:inputField value="{!record.SaveOptions__c}"/>
+ </span><span style="font-weight:bold;font-effect:emboss;font-size:9pt;font-family:Comic Sans MS;"> 
+ </span><span style="font-weight:bold;font-effect:emboss;font-size:9pt;font-family:Comic Sans MS;"><apex:inputField value="{!record.StateProvCode__c}"/>
+ </span><span style="font-weight:bold;font-effect:emboss;font-size:9pt;font-family:Comic Sans MS;">
+ </span>
+</div>  <br/>  <br/> <br/>  <div>
+ <span style="font-weight:bold;font-size:8pt;"> 
+ </span>
+</div> <br/> <br/> <br/> 
+<table cellpadding="0" cellspacing="0" style="float:left;width:6.3500in;"><tr><td style="border-top:solid 0px black;width:1.6000in;">  <div>
+    <span style="font-weight:bold;color:navy;font-size:8pt;">Note to User
+    </span>
+   </div>
+  </td><td colspan="2" style="border-top:solid 0px black;width:1in;">  <div>
+    <span style="font-size:8pt;"><apex:inputField value="{!record.Note__c}"/>
+    </span>
+   </div>
+  </td></tr><tr><td style="border-top:solid 0px black;width:1.6000in;">  <div>
+    <span style="font-weight:bold;color:red;font-size:8pt;">*
+    </span><span style="border:solid 1px teal;">
+     <code event="click"/><span style="font-weight:bold;color:navy;font-size:9pt;font-family:Arial;"> Client
+     </span>
+    </span>
+   </div>
+  </td><td colspan="2" style="border-top:solid 0px black;width:1in;">  <div>
+    <span style="font-weight:bold;color:white;font-size:9pt;font-family:Arial;">
+    </span><span style="font-size:9pt;font-family:Arial;"><apex:inputField value="{!record.Client__c}"/>
+    </span> <span>
+     <code event="click"/>
+    </span><span style="font-weight:bold;color:white;font-size:9pt;font-family:Arial;"> 
+    </span>
+   </div>
+  </td></tr><tr><td style="border-top:solid 0px black;width:1.6000in;">  <div>
+    <span style="font-weight:bold;color:red;font-size:8pt;">*
+    </span><span style="font-weight:bold;color:navy;font-size:8pt;">Client
+    </span>
+   </div>
+  </td><td colspan="2" style="border-top:solid 0px black;width:1in;">  <div>
+    <span style="font-size:8pt;">
+    </span><span style="font-size:8pt;">
+    </span><span style="font-size:8pt;"> 
+    </span><span>
+     <code event="click"/><span style="font-size:8pt;">
+     </span>
+    </span><span style="font-size:8pt;"> 
+    </span>
+   </div>
+  </td></tr></table> <div>
+ <span style="font-weight:bold;font-effect:emboss;font-size:9pt;font-family:Comic Sans MS;"> 
+ </span>
+</div> 
+<table cellpadding="0" cellspacing="0" style="float:left;width:6.3500in;"><tr><td style="border-top:ridge 0px silver;background-color:white;width:1.6000in;"> <div>
+    <span style="font-weight:bold;color:navy;font-size:8pt;">Client Contract #
+    </span>
+   </div>
+  </td><td style="border-top:ridge 0px silver;background-color:white;width:4.7500in;">  <div>
+    <span style="font-size:8pt;"><apex:inputField value="{!record.ClientContractNo__c}"/>
+    </span><span style="font-weight:bold;color:navy;font-size:8pt;">
+    </span>
+   </div>
+  </td></tr><tr><td style="border-top:ridge 0px silver;background-color:white;width:1.6000in;">  <div>
+    <span style="font-weight:bold;color:navy;font-size:8pt;">Project #
+    </span>
+   </div>
+  </td><td style="border-top:ridge 0px silver;background-color:white;width:4.7500in;">  <div>
+    <span style="font-weight:bold;color:gray;font-size:8pt;">
+    </span><span style="font-size:8pt;"><apex:inputField value="{!record.ProjectNumber__c}"/>
+    </span><span style="color:navy;">
+    </span>
+   </div>
+  </td></tr><tr><td style="border-top:ridge 0px silver;background-color:white;width:1.6000in;">  <div>
+    <span style="font-weight:bold;color:navy;font-size:8pt;">DO/TO #
+    </span>
+   </div>
+  </td><td style="border-top:ridge 0px silver;background-color:white;width:4.7500in;">  <div>
+    <span style="font-weight:bold;font-size:8pt;">
+    </span><span style="font-size:8pt;"><apex:inputField value="{!record.DoNumber__c}"/>
+    </span><span style="color:red;font-size:8pt;font-family:MS Sans Serif;">
+    </span>
+   </div>
+  </td></tr><tr><td style="border-top:ridge 0px silver;background-color:white;width:1.6000in;">  <div>
+    <span style="font-weight:bold;color:navy;font-size:8pt;">DO/TO Contract #
+    </span>
+   </div>
+  </td><td style="border-top:ridge 0px silver;background-color:white;width:4.7500in;">  <div>
+    <span style="font-size:8pt;">
+    </span><span style="font-size:8pt;"><apex:inputField value="{!record.DOTOContractNum__c}"/>
+    </span><span style="font-weight:bold;color:navy;font-size:8pt;">
+    </span>
+   </div>
+  </td></tr><tr><td style="border-top:ridge 0px silver;background-color:white;width:1.6000in;">  <div>
+    <span style="font-weight:bold;color:red;font-size:8pt;">*
+    </span><span style="font-weight:bold;color:navy;font-size:8pt;">Label
+    </span>
+   </div>
+  </td><td style="border-top:ridge 0px silver;background-color:white;width:4.7500in;">  <div>
+    <span style="font-size:8pt;">
+    </span><span style="font-size:8pt;"><apex:inputField value="{!record.Label__c}"/>
+    </span><span style="font-weight:bold;color:red;font-size:8pt;">
+    </span>
+   </div>
+  </td></tr><tr><td style="border-top:ridge 0px silver;background-color:white;width:1.6000in;">  <div>
+    <span style="font-size:8pt;">
+    </span>
+   </div>
+  </td><td style="border-top:ridge 0px silver;background-color:white;width:4.7500in;"> <div>
+    <span style="font-size:8pt;">
+    </span>
+   </div>
+  </td></tr><tr><td style="border-top:ridge 0px silver;background-color:white;width:1.6000in;">  <div>
+    <span style="font-weight:bold;color:navy;font-size:8pt;">Date of Commendation
+    </span>
+   </div>
+  </td><td style="border-top:ridge 0px silver;background-color:white;width:4.7500in;"> <div>
+    <span style="font-size:8pt;">
+    </span><span style="font-size:8pt;"><apex:inputField value="{!record.CommDate__c}"/>
+    </span><span style="font-size:8pt;">
+    </span>
+   </div>
+  </td></tr><tr><td style="border-top:ridge 0px silver;background-color:white;width:1.6000in;"> <div>
+    <span style="font-size:8pt;">
+    </span>
+   </div>
+  </td><td style="border-top:ridge 0px silver;background-color:white;width:4.7500in;"> <div>
+    <span style="font-size:8pt;">
+    </span>
+   </div>
+  </td></tr><tr><td style="border-top:ridge 0px silver;background-color:white;width:1.6000in;">  <div>
+    <span style="font-weight:bold;color:navy;font-size:8pt;">Date of Commendation
+    </span>
+   </div>
+  </td><td style="border-top:ridge 0px silver;background-color:white;width:4.7500in;"> <div>
+    <span style="font-size:8pt;">
+    </span><span style="font-size:8pt;">
+    </span><span style="font-size:8pt;">
+    </span>
+   </div>
+  </td></tr><tr><td style="border-top:ridge 0px silver;background-color:white;width:1.6000in;"> <div>
+    <span style="font-size:8pt;">
+    </span>
+   </div>
+  </td><td style="border-top:ridge 0px silver;background-color:white;width:4.7500in;"> <div>
+    <span style="font-size:8pt;">
+    </span>
+   </div>
+  </td></tr><tr><td style="border-top:ridge 0px silver;background-color:white;width:1.6000in;"> <div>
+    <span style="font-weight:bold;color:red;font-size:8pt;">*
+    </span><span style="font-weight:bold;color:navy;font-size:8pt;">Attachment
+    </span>
+   </div>  <div>
+    <span style="font-size:8pt;">
+    </span>
+   </div>
+  </td><td style="border-top:ridge 0px silver;background-color:white;width:4.7500in;">  <div>
+    <span style="font-size:8pt;"> 
+    </span><span style="font-weight:bold;color:red;font-size:8pt;">To Print Attachment: 
+    </span><span style="color:red;font-size:8pt;"> Double-click on icon below, then click View in the Attachment box, then pull down File-Print in Acrobat.
+    </span>
+   </div>  <div>
+    <span style="font-weight:bold;color:red;font-size:8pt;">To Print Attachment: 
+    </span><span style="color:red;font-size:8pt;">Double-click and print from acrobat.
+    </span>
+   </div> <div>
+    <span style="color:red;font-size:8pt;">To view letter in browser, click on PDF file. When you are finished, click on the browser's back arrow.
+    </span>
+   </div> <div>
+    <span style="font-size:8pt;">
+    </span><span style="font-size:8pt;"><apex:inputField value="{!record.AttachmentXNRTF__c}"/>
+    </span><span style="font-size:8pt;"> 
+    </span><span>
+     <code event="click"/><span style="font-size:8pt;">
+     </span>
+    </span><span style="font-size:8pt;">
+    </span>
+   </div>
+  </td></tr><tr><td style="border-top:ridge 0px silver;background-color:white;width:1.6000in;"> <div>
+    <span style="font-size:8pt;">
+    </span>
+   </div>
+  </td><td style="border-top:ridge 0px silver;background-color:white;width:4.7500in;"> <div>
+    <span style="font-size:8pt;">
+    </span>
+   </div>
+  </td></tr><tr><td style="border-top:ridge 0px silver;background-color:white;width:1.6000in;"> <div>
+    <span style="font-weight:bold;color:navy;font-size:8pt;">
+    </span><span style="border:solid 1px teal;">
+     <code event="click"/><span style="font-weight:bold;color:navy;font-size:8pt;">State/Province/Territory
+     </span>
+    </span><span style="font-weight:bold;color:navy;font-size:8pt;">
+    </span>
+   </div> <div>
+    <span style="color:red;font-size:8pt;">
+    </span>
+   </div>
+  </td><td style="border-top:ridge 0px silver;background-color:white;width:4.7500in;">  <div>
+    <span style="color:red;font-size:8pt;">Project location.
+    </span>
+   </div> <div>
+    <span style="font-size:8pt;">
+    </span><span style="font-size:8pt;"><apex:inputField value="{!record.StateProv__c}"/>
+    </span><span style="font-size:8pt;">
+    </span>
+   </div>
+  </td></tr><tr><td style="border-top:ridge 0px silver;background-color:white;width:1.6000in;">  <div>
+    <span style="font-weight:bold;color:navy;font-size:8pt;">State/Province/Territory
+    </span>
+   </div>
+  </td><td style="border-top:ridge 0px silver;background-color:white;width:4.7500in;">  <div>
+    <span style="font-size:8pt;">
+    </span><span style="font-size:8pt;">
+    </span><span style="color:navy;font-size:8pt;">
+    </span>
+   </div>
+  </td></tr><tr><td style="border-top:ridge 0px silver;background-color:white;width:1.6000in;">  <div>
+    <span style="color:navy;font-size:8pt;">
+    </span>
+   </div>
+  </td><td style="border-top:ridge 0px silver;background-color:white;width:4.7500in;">  <div>
+    <span style="color:navy;font-size:8pt;">
+    </span>
+   </div>
+  </td></tr><tr><td style="border-top:ridge 0px silver;background-color:white;width:1.6000in;">  <div>
+    <span style="color:navy;font-size:8pt;">
+    </span>
+   </div>
+  </td><td style="border-top:ridge 0px silver;background-color:white;width:4.7500in;">  <div>
+    <span style="font-size:8pt;"><apex:inputField value="{!record.ETName__c}"/>
+    </span><span style="font-weight:bold;color:navy;font-size:8pt;">
+    </span>
+   </div>
+  </td></tr><tr><td style="border-top:ridge 0px silver;background-color:#efefef;width:1.6000in;">  <div>
+    <span style="font-weight:bold;color:navy;font-size:8pt;">Staff Mentioned
+    </span>
+   </div>  <div>
+    <span style="color:red;font-size:9pt;font-family:Small Fonts;">
+    </span><input style="width:2in;" type="button" value="Add"/><span style="font-weight:bold;font-size:9pt;font-family:Small Fonts;">
+    </span><input style="width:2in;" type="button" value="Del"/><span style="font-weight:bold;color:navy;font-size:8pt;">
+    </span>
+   </div>
+  </td><td style="border-top:ridge 0px silver;background-color:#efefef;width:4.7500in;">  <div>
+    <span style="font-size:8pt;"><apex:inputField value="{!record.SName__c}"/>
+    </span><span style="font-weight:bold;color:navy;font-size:8pt;">
+    </span>
+   </div>
+  </td></tr><tr><td style="border-top:ridge 0px silver;background-color:white;width:1.6000in;"> <div>
+    <span style="font-weight:bold;color:navy;font-size:8pt;">
+    </span>
+   </div>
+  </td><td style="border-top:ridge 0px silver;background-color:white;width:4.7500in;">  <div>
+    <span style="color:red;font-size:8pt;">
+    </span>
+   </div>
+  </td></tr><tr><td style="border-top:ridge 0px silver;background-color:white;width:1.6000in;"> <div>
+    <span style="font-weight:bold;color:navy;font-size:8pt;">Letter Author
+    </span>
+   </div>
+  </td><td style="border-top:ridge 0px silver;background-color:white;width:4.7500in;">  <div>
+    <span style="color:navy;font-size:8pt;">
+    </span>
+   </div>
+  </td></tr><tr><td style="border-top:ridge 0px silver;background-color:white;width:1.6000in;">  <div>
+    <span style="font-weight:bold;color:navy;font-size:8pt;"> FirstName
+    </span>
+   </div>
+  </td><td style="border-top:ridge 0px silver;background-color:white;width:4.7500in;">  <div>
+    <span style="font-weight:bold;color:navy;font-size:8pt;">
+    </span><span style="font-size:8pt;"><apex:inputField value="{!record.AuthorFirstName__c}"/>
+    </span><span style="font-weight:bold;color:navy;font-size:8pt;">
+    </span>
+   </div>
+  </td></tr><tr><td style="border-top:ridge 0px silver;background-color:white;width:1.6000in;"> <div>
+    <span style="font-weight:bold;color:navy;font-size:8pt;"> LastName
+    </span>
+   </div>
+  </td><td style="border-top:ridge 0px silver;background-color:white;width:4.7500in;"> <div>
+    <span style="font-size:8pt;">
+    </span><span style="font-size:8pt;"><apex:inputField value="{!record.AuthorLastName__c}"/>
+    </span><span style="font-weight:bold;color:navy;font-size:8pt;">
+    </span>
+   </div>
+  </td></tr><tr><td style="border-top:ridge 0px silver;background-color:white;width:1.6000in;"> <div>
+    <span style="font-weight:bold;color:navy;font-size:8pt;"> Title
+    </span>
+   </div>
+  </td><td style="border-top:ridge 0px silver;background-color:white;width:4.7500in;"> <div>
+    <span style="font-size:8pt;">
+    </span><span style="font-size:8pt;"><apex:inputField value="{!record.AuthorTitle__c}"/>
+    </span><span style="font-weight:bold;color:navy;font-size:8pt;">
+    </span>
+   </div>
+  </td></tr><tr><td style="border-top:ridge 0px silver;background-color:white;width:1.6000in;"> <div>
+    <span style="font-weight:bold;color:navy;font-size:8pt;">
+    </span>
+   </div>
+  </td><td style="border-top:ridge 0px silver;background-color:white;width:4.7500in;"> <div>
+    <span style="font-weight:bold;color:navy;font-size:8pt;">
+    </span>
+   </div>
+  </td></tr><tr><td style="border-top:ridge 0px silver;background-color:white;width:1.6000in;">  <div>
+    <span style="font-weight:bold;color:red;font-size:8pt;">
+    </span><span style="border:solid 1px teal;">
+     <code event="click"/><span style="font-weight:bold;color:navy;font-size:8pt;">330 Code 
+     </span>
+    </span><span style="font-weight:bold;color:navy;font-size:8pt;">
+    </span>
+   </div>
+  </td><td style="border-top:ridge 0px silver;background-color:white;width:4.7500in;">  <div>
+    <span style="font-size:8pt;"><apex:inputField value="{!record.Code330__c}"/>
+    </span><span style="color:red;font-size:3pt;font-family:Small Fonts;">
+    </span>
+   </div>
+  </td></tr><tr><td style="border-top:ridge 0px silver;background-color:white;width:1.6000in;">  <div>
+    <span style="font-weight:bold;color:navy;font-size:8pt;">330 Code
+    </span>
+   </div>
+  </td><td style="border-top:ridge 0px silver;background-color:white;width:4.7500in;">  <div>
+    <span style="font-weight:bold;color:navy;font-size:8pt;">
+    </span><span style="font-size:8pt;">
+    </span><span style="font-weight:bold;color:navy;font-size:8pt;">
+    </span>
+   </div>
+  </td></tr><tr><td style="border-top:ridge 0px silver;background-color:white;width:1.6000in;"> <div>
+    <span style="font-weight:bold;color:navy;font-size:8pt;">
+    </span>
+   </div>
+  </td><td style="border-top:ridge 0px silver;background-color:white;width:4.7500in;"> <div>
+    <span style="font-weight:bold;color:navy;font-size:8pt;">
+    </span>
+   </div>
+  </td></tr><tr><td style="border-top:ridge 0px silver;background-color:white;width:1.6000in;"> <div>
+    <span style="font-weight:bold;color:navy;font-size:8pt;">Comments
+    </span>
+   </div> <div>
+    <span style="font-size:8pt;"> 
+    </span>
+   </div>
+  </td><td style="border-top:ridge 0px silver;background-color:white;width:4.7500in;"> <div>
+    <span style="font-size:8pt;">
+    </span><span style="font-size:8pt;"><apex:inputField value="{!record.Comments__c}"/>
+    </span><span style="font-size:8pt;">
+    </span>
+   </div>
+  </td></tr><tr><td style="border-top:ridge 0px silver;background-color:white;width:1.6000in;">  <div>
+    <span style="font-weight:bold;color:navy;font-size:8pt;">Letter Text
+    </span>
+   </div> <div>
+    <span style="font-size:8pt;">
+    </span>
+   </div>
+  </td><td style="border-top:ridge 0px silver;background-color:white;width:4.7500in;">  <div>
+    <span style="font-size:8pt;"><apex:inputField value="{!record.LetterText__c}"/>
+    </span><span style="font-size:8pt;">
+    </span>
+   </div>
+  </td></tr></table> <div>
+ <span style="font-size:4pt;font-family:Small Fonts;">
+ </span>
+</div> 
+<table cellpadding="0" cellspacing="0" style="float:left;width:6.6403in;"><tr><td style="border-top:solid 0px black;width:1.3403in;">  <div style="margin:0px;margin-left:0.0in;">
+    <span style="font-weight:bold;color:navy;font-size:8pt;"> Modified by
+    </span>
+   </div>
+  </td><td style="border-top:solid 0px black;width:2in;">  <div style="margin:0px;margin-left:0.0in;">
+    <span style="font-size:8pt;">
+    </span><span style="color:navy;font-size:8pt;">
+    </span>
+   </div>
+  </td><td style="border-top:solid 0px black;width:1.3000in;">  <div style="margin:0px;margin-left:0.0in;">
+    <span style="font-weight:bold;color:navy;font-size:8pt;">Last Modified on
+    </span>
+   </div>
+  </td><td style="border-top:solid 0px black;width:2in;">  <div style="margin:0px;margin-left:0.0in;">
+    <span style="font-size:8pt;">
+    </span><span style="font-size:8pt;">
+    </span>
+   </div>
+  </td></tr><tr><td style="border-top:solid 0px black;width:1.3403in;"> <div style="margin:0px;margin-left:0.0in;">
+    <span style="font-weight:bold;font-size:8pt;"> 
+    </span><span style="font-weight:bold;color:navy;font-size:8pt;">Created by
+    </span>
+   </div>
+  </td><td style="border-top:solid 0px black;width:2in;">  <div style="margin:0px;margin-left:0.0in;">
+    <span style="font-size:8pt;"><apex:inputField value="{!record.DocAuthor__c}"/>
+    </span><span style="color:navy;font-size:8pt;">
+    </span>
+   </div>
+  </td><td style="border-top:solid 0px black;width:1.3000in;">  <div style="margin:0px;margin-left:0.0in;">
+    <span style="font-weight:bold;color:navy;font-size:8pt;">Created on
+    </span>
+   </div>
+  </td><td style="border-top:solid 0px black;width:2in;">  <div style="margin:0px;margin-left:0.0in;">
+    <span style="color:navy;font-size:8pt;">
+    </span><span style="font-size:8pt;"><apex:inputField value="{!record.ComposeDate__c}"/>
+    </span><span style="font-weight:bold;color:navy;font-size:8pt;">
+    </span>
+   </div>
+  </td></tr></table>  <div style="margin:0px;margin-left:0.0in;">
+ <span style="font-weight:bold;font-size:9pt;"><apex:inputField value="{!record.ETEmpNo__c}"/>
+ </span><span style="font-size:8pt;">
+ </span>
+</div>
+
+<style>
+.xn_block {
+    background-color: #F8F8F8;
+    border-bottom: 1px solid #EAEAEA;
+    border-left: 1px solid #EAEAEA;
+    border-right: 1px solid #EAEAEA;
+    -moz-border-radius: 4px;
+    -webkit-border-radius: 4px;
+    border-top: 3px solid #007FCC;
+    margin-top: 20px;
+}
+.xn_bar {
+    border-bottom: solid 1px #EAEAEA;
+    padding: 5px;
+}
+.xn_tb { margin-top: 5px; margin-bottom: 10px; border-left: solid 1px #BFCFD4; border-right: solid 1px #BFCFD4; border-bottom: solid 1px #BFCFD4; }
+.xn_td { padding: 5px; border-bottom: solid 1px gainsboro; background-color: white; }
+.xn_tc1 { width: 90px; }
+.xn_tc2 { }
+.xn_tc3 { width: 110px; }
+.xn_tc4 { }
+.xn_th { 
+    background: white url('/img/alohaSkin/grid_headerbg.gif') 0 bottom repeat-x;
+    border: 1px solid #BFCFD4;
+    color: black;
+    font-size: .9em;
+    font-weight: bold;
+    padding: 5px;
+}
+</style>
+<script>
+var selRow = null;    
+
+function selectRow(cell) {
+    var children = null;
+    if (selRow != null) {
+        children = selRow.getElementsByTagName('td');
+        if (children != null) {
+            for (i = 0; i < children.length; i++) {
+                children[i].style.backgroundColor = 'white';
+            }
+        }
+    }
+    selRow = cell.parentNode;
+    if (selRow != null) {
+        children = selRow.getElementsByTagName('td');
+        if (children != null) {
+            for (i = 0; i < children.length; i++) {
+                children[i].style.backgroundColor = '#E1F6FF';
+            }
+        }
+    }
+}
+
+function deleteAttachment(id) {
+    var tag = document.getElementById('page:form:selId');
+    if (tag == null) return false;
+    tag.value = id;
+    var ans = confirm('Are you sure to delete attachment?');
+    if (!ans) return false;
+    goDeleteAttachment();
+    return false;
+}
+</script>
+<apex:actionFunction action="{!deleteAttachment}" name="goDeleteAttachment" />
+<apex:inputHidden value="{!selId}" id="selId"/>
+<table width="100%" cellspacing="0" cellpadding="0" class="xn_block">
+    <tr>
+        <td align="left" class="xn_bar" colspan="3">
+            <apex:commandButton action="{!save}" value="Save" style="width: 75px; margin-left: 10px;" />
+            <apex:commandButton action="{!cancel}" value="Cancel" style="width: 75px; margin-left: 10px;" />
+            <apex:commandButton value="Attach File" onclick="navigateToUrl('/p/attach/NoteAttach?pid={!record.Id}&parentname=Attachments&retURL={!backUrl}',null,'attachFile'); return false;" style="width: 75px; margin-left: 20px;" />
+        </td>
+    </tr>
+    <tr>
+        <td align="center" colspan="3">
+            <apex:pageMessages />
+        </td>
+    </tr>
+    <tr>
+        <td style="width: 10px"></td>
+        <td>
+        
+<table width="100%" cellspacing="0" cellpadding="0" class="xn_tb">
+    <tr>
+        <td class="xn_th xn_tc1">Action</td>
+        <td class="xn_th xn_tc2">Title</td>
+        <td class="xn_th xn_tc3">Last Modified</td>
+        <td class="xn_th xn_tc4">Created By</td>
+    </tr>
+    <apex:repeat value="{!attachments}" var="entry">
+    <tr>
+        <td class="xn_td xn_tc1" onmouseover="selectRow(this)"><a href="{!entry.urlEdit}" target="_blank">Edit</a><span style="color: silver">&nbsp;|&nbsp;</span><a href="{!URLFOR($Action.Attachment.Download, entry.id)}" target="_blank">View</a><span style="color: silver">&nbsp;|&nbsp;</span><a href="#" onclick="return deleteAttachment('{!entry.id}')">Del</a></td>
+        <td class="xn_td xn_tc2" onmouseover="selectRow(this)"><a href="{!entry.urlView}" target="_blank">{!entry.title}</a></td>
+        <td class="xn_td xn_tc3" onmouseover="selectRow(this)">{!entry.lastModified}</td>
+        <td class="xn_td xn_tc4" onmouseover="selectRow(this)"><a href="{!entry.createdByUrl}" target="_blank">{!entry.createdByName}</a></td>
+    </tr>
+    </apex:repeat>
+</table>        
+        
+        </td>
+        <td style="width: 10px"></td>
+    </tr>
+</table>
+</apex:form>
+</apex:page>

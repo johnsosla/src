@@ -1,0 +1,114 @@
+<apex:page showHeader="true" sidebar="true" standardController="GFA_Template__c" extensions="GFA_TemplateFrameworkController" action="{!refreshTemplateSubtasks}">
+<!-- <apex:stylesheet value="{!URLFOR($Resource.GFA, 'bootstrap/css/bootstrap.min.css')}"/> -->
+<apex:stylesheet value="{!URLFOR($Resource.GFA, 'bootstrap/css/bootstrap.css')}"/>
+<apex:stylesheet value="{!URLFOR($Resource.GFA, 'custom/css/GFA_app.css')}"/>
+<apex:stylesheet value="{!URLFOR($Resource.GFA, 'font-awesome/css/font-awesome.min.css')}"/>
+<apex:stylesheet value="{!URLFOR($Resource.GFA, 'custom/css/GFA_app2.css')}"/>
+
+<script src="{!URLFOR($Resource.GFA, 'jQuery/jquery-1.12.1.min.js')}" type="text/javascript" charset="utf-8"></script>
+<script src="{!URLFOR($Resource.GFA, 'bootstrap/js/bootstrap.min.js')}" type="text/javascript" charset="utf-8"></script>
+<script src="{!URLFOR($Resource.GFA, 'custom/js/GFA_app.js')}" type="text/javascript" charset="utf-8"></script>
+<div class="GFA">
+
+<div class="bPageTitle">
+    <div class="ptBody">
+        <div class="content">
+            <img src="{!URLFOR($Resource.GFA, 'icons/swim-lane.png')}" alt="Swim Lane" title="Swim Lane" class="GFA_pageTitleIcon"/>
+            <h1 class="pageType">Template Framework<span class="titleSeparatingColon">:</span></h1>
+            <h2 class="pageDescription">{!template.TemplateName}</h2>
+            <div class="blank">&nbsp;</div>
+        </div>
+    </div>
+</div>
+
+<apex:form id="form">
+    <div class="pageContainer">
+        <div class="btn-group pull-right">
+            <a href="/apex/GFA_TemplateTreeView?id={!template.Id}" class="btn menuButton-left">
+                <img src="{!URLFOR($Resource.GFA, 'icons/tree-view.png')}" alt="Tree View" title="Tree View" class="GFA_menuIcon"/>
+                Tree View
+            </a>
+            <button type="button" class="btn disabled menuButton AE_Blue">
+                <img src="{!URLFOR($Resource.GFA, 'icons/dark/swim-lane-dark.png')}" alt="Swim Lane" title="Swim Lane" class="GFA_menuIcon"/>
+                Swim Lane View
+            </button>
+            <a href="/{!template.Id}" class="btn menuButton-right">
+                <img src="{!URLFOR($Resource.GFA, 'icons/detail-view.png')}" alt="Detail View" title="Detail View" class="GFA_menuIcon"/>
+                Template Detail
+            </a>
+        </div>
+        <div class="blank" style="clear: both;">&nbsp;</div>
+        <apex:outputPanel id="filterTable">
+            <table class="table">
+                <tr>
+                    <td>
+                        <label>Discipline:</label> <br/>
+                        <apex:selectList value="{!Filter.Discipline}" size="1">
+                            <apex:selectOptions value="{!Filter.Disciplines}"/>
+                        </apex:selectList>
+                    </td>
+                    <td>
+                        <label>Risk Level:</label> <br/>
+                        <apex:selectList value="{!Filter.RiskLevel}" size="1">
+                            <apex:selectOptions value="{!Filter.RiskLevels}"/>
+                        </apex:selectList>
+                    </td>
+                    <td >
+                        <label>Impact Level:</label> <br/>
+                        <apex:selectList value="{!Filter.ImpactLevel}" size="1">
+                            <apex:selectOptions value="{!Filter.ImpactLevels}"/>
+                        </apex:selectList>
+                    </td>
+                    <td>
+                        <label>Scope of Service:</label> <br/>
+                        <apex:inputField value="{!Filter.subtask.Scope_of_Service__c}"/>
+                    </td>
+                    <td colspan="4" style="vertical-align: bottom;">
+                        <apex:actionStatus id="refreshSubtaskStatus">
+                            <apex:facet name="start">
+                                <apex:image styleClass="actionButtonSpinner" value="/img/loading.gif"/>
+                            </apex:facet>
+                            <apex:facet name="stop">
+                                <apex:outputPanel >
+                                    <apex:commandButton value="Go" action="{!refreshTemplateSubtasks}" reRender="templateFramework" status="refreshSubtaskStatus" styleClass="mainButton AE_Blue"/>
+                                    <apex:commandButton value="Clear" styleClass="mainButton AE_Green" action="{!ClearFilter}" status="refreshSubtaskStatus" reRender="templateFramework,filterTable"/>
+                                </apex:outputPanel>
+                            </apex:facet>
+                        </apex:actionStatus>
+                    </td>
+                </tr>
+            </table>
+        </apex:outputPanel>
+    </div>
+    <apex:outputPanel id="templateFramework">
+        <div class="row swimLaneRowStacking">
+            <apex:repeat value="{!template.TemplatePhases}" var="phase">
+                    <div class="col-sm-4 col-md-3 col-lg-2 clearfix">
+                        <div class="panel panel-default">
+                           <div class="panel-heading">
+                                <div class="panel-title">{!phase.LibraryPhaseName}</div>
+                                <div class="{!IF(isBlank(phase.LibraryPhaseDescription), '', 'panel-description')}">{!phase.LibraryPhaseDescription}</div>
+                           </div>
+                            <div class="panel-body">
+                                <apex:repeat value="{!phase.TemplateTasks}" var="task">
+                                    <div class="taskNode">
+                                        <a href="/apex/GFA_TemplateTaskDetail?id={!task.Id}"></a>
+                                        <div>{!task.LibraryTaskName}</div>
+                                    </div>
+                                </apex:repeat>
+                           </div>
+                       </div>
+                    </div>
+            </apex:repeat>
+        </div>
+    </apex:outputPanel>
+
+</apex:form>
+
+</div>
+
+<script>
+    adjustLaneHeight();
+    adjustLaneHeightOnResizeEvent();
+</script>
+</apex:page>

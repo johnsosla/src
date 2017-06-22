@@ -1,0 +1,250 @@
+<apex:page standardController="Opportunity" extensions="opportunityCustomDepartmentReport" cache="true"
+           recordSetVar="recs"  showHeader="{!NOT(isExport)}" sidebar="{!NOT(isExport)}" contentType="{!ContentType}"> 
+  <apex:form Rendered="{!NOT(isExport)}">
+      <div style="width:1000px">
+      <apex:pageBlock mode="Edit" title="Opportunity Report Search Parameters">
+          <apex:pageblockButtons location="bottom">
+              <apex:commandButton value="Run Report" action="{!ClickedOnRunreport}"/>
+              <apex:commandButton value="Cancel" action="{!Cancel}" immediate="true"/>
+              <input type="button" class="btn" value="Export to Excel" onclick="window.open('{!forExportURL}');" style="{!IF(ShowReport,'','display:none')}"/>
+          </apex:pageblockButtons>
+          <apex:pageMessages />
+          Note : Please enter the required fields. The optional fields are recommended.
+          <apex:pageblockSection columns="1">
+              <apex:pageblockSectionItem helpText="Please enter date range limited to less than or equal to a fiscal year.">
+                  <apex:outputLabel value="Estimated Award Date"/>
+                  <apex:outputPanel >
+                      <table><tr><td>From : </td><td>
+                      <apex:inputField value="{!forFrom.CloseDate}"/>
+                      </td><td></td><td>
+                      To : </td><td><apex:inputField value="{!forTo.CloseDate}"/>
+                      </td></tr></table>
+                  </apex:outputPanel>
+              </apex:pageblockSectionItem>
+              <apex:pageblockSectionItem >
+                  <apex:outputLabel value="Primary Business Line"/>
+                  <apex:inputField value="{!forFrom.Primary_Business_Line__c}" required="true"/>
+              </apex:pageblockSectionItem>
+              <apex:pageblockSectionItem >
+                  <apex:outputLabel value="Market Segment"/>
+                  <apex:inputField value="{!forFrom.Market_Segment__c}"/>
+              </apex:pageblockSectionItem>
+              <apex:pageblockSectionItem >
+                  <apex:outputLabel value="Stage"/>
+                  <apex:selectList value="{!selectedStage}" size="3" multiselect="true">
+                      <apex:selectOptions value="{!StagePicklistValues}"/>
+                  </apex:selectList> 
+              </apex:pageblockSectionItem>
+              <apex:pageblockSectionItem helpText="Please enter a whole number for the $$ range.">
+                  <apex:outputLabel value="Amount"/>
+                  <apex:outputPanel ><table><tr><td>Min :</td><td>
+                      <apex:inputField value="{!forFrom.Amount}"/>
+                      </td><td>Max :</td><td>
+                      <apex:inputField value="{!forTo.Amount}"/>
+                      </td></tr></table>
+                  </apex:outputPanel>
+              </apex:pageblockSectionItem>
+          </apex:pageblockSection>
+      </apex:pageBlock>
+      </div>
+      </apex:form>
+      <apex:pageblock rendered="{!ShowReport}">
+              <apex:outputPanel rendered="{!IsNoRow}">
+                  No rows to display
+              </apex:outputPanel>
+              <apex:pageblockTable value="{!lstMyOpportunities}" var="opp" rendered="{!NOT(IsNoRow)}">
+                  <apex:column value="{!opp.Opp.AccountId}"/>
+                  <apex:column >
+                      <apex:facet name="header">Opportunity Name</apex:facet>
+                      <apex:outputLink value="/{!opp.Opp.Id}">{!opp.Opp.Name}</apex:outputLink>
+                  </apex:column>
+                  <apex:column >
+                      <apex:facet name="header">Record Type Name</apex:facet>
+                      <apex:outputField value="{!opp.Opp.RecordType.Name}"/>
+                  </apex:column>
+                  <apex:column value="{!opp.Opp.StageName}"/>
+                    <apex:column value="{!opp.Opp.CloseDate}"/>
+                    <apex:column value="{!opp.Opp.Estimated_work_start_date__c }"/>
+
+                    <apex:column value="{!opp.Opp.AECOM_Role__c }"/>
+                    <apex:column value="{!opp.Opp.Ceiling_Amount_Total__c}"/>
+                    <apex:column value="{!opp.Opp.Amount}"/>
+                    <apex:column value="{!opp.Opp.Go_Probability__c }"/>
+                    <apex:column value="{!opp.Opp.Probability }"/>
+                    <apex:column value="{!opp.Opp.Subs_Other_Revenue__c }"/>
+
+                    <apex:column value="{!opp.Opp.Contract_duration_in_Months__c}"/>
+                    <apex:column rendered="{!IF(RoleHeaders.Head1='',false,true)}">
+                      <apex:facet name="header">{!RoleHeaders.Head1}</apex:facet>
+                      <apex:outputLabel value="{!opp.roles.role1}"/>
+                  </apex:column>
+                  <apex:column rendered="{!IF(RoleHeaders.Head2='',false,true)}">
+                      <apex:facet name="header">{!RoleHeaders.Head2}</apex:facet>
+                      <apex:outputLabel value="{!opp.roles.role2}"/>
+                  </apex:column>
+                  <apex:column rendered="{!IF(RoleHeaders.Head3='',false,true)}">
+                      <apex:facet name="header">{!RoleHeaders.Head3}</apex:facet>
+                      <apex:outputLabel value="{!opp.roles.role3}"/>
+                  </apex:column>
+                  <apex:column rendered="{!IF(RoleHeaders.Head4='',false,true)}">
+                      <apex:facet name="header">{!RoleHeaders.Head4}</apex:facet>
+                      <apex:outputLabel value="{!opp.roles.role4}"/>
+                  </apex:column>
+                  <apex:column rendered="{!IF(RoleHeaders.Head5='',false,true)}">
+                      <apex:facet name="header">{!RoleHeaders.Head5}</apex:facet>
+                      <apex:outputLabel value="{!opp.roles.role5}"/>
+                  </apex:column>
+                  <apex:column rendered="{!IF(RoleHeaders.Head6='',false,true)}">
+                      <apex:facet name="header">{!RoleHeaders.Head6}</apex:facet>
+                      <apex:outputLabel value="{!opp.roles.role6}"/>
+                  </apex:column>
+                  <apex:column rendered="{!IF(RoleHeaders.Head7='',false,true)}">
+                      <apex:facet name="header">{!RoleHeaders.Head7}</apex:facet>
+                      <apex:outputLabel value="{!opp.roles.role7}"/>
+                  </apex:column>
+                  <apex:column rendered="{!IF(RoleHeaders.Head8='',false,true)}">
+                      <apex:facet name="header">{!RoleHeaders.Head8}</apex:facet>
+                      <apex:outputLabel value="{!opp.roles.role8}"/>
+                  </apex:column>
+                  <apex:column rendered="{!IF(RoleHeaders.Head9='',false,true)}">
+                      <apex:facet name="header">{!RoleHeaders.Head9}</apex:facet>
+                      <apex:outputLabel value="{!opp.roles.role9}"/>
+                  </apex:column>
+                  <apex:column rendered="{!IF(RoleHeaders.Head10='',false,true)}">
+                      <apex:facet name="header">{!RoleHeaders.Head10}</apex:facet>
+                      <apex:outputLabel value="{!opp.roles.role10}"/>
+                  </apex:column>
+                  <apex:column rendered="{!IF(RoleHeaders.Head11='',false,true)}">
+                      <apex:facet name="header">{!RoleHeaders.Head11}</apex:facet>
+                      <apex:outputLabel value="{!opp.roles.role11}"/>
+                  </apex:column>
+                  <apex:column rendered="{!IF(RoleHeaders.Head12='',false,true)}">
+                      <apex:facet name="header">{!RoleHeaders.Head12}</apex:facet>
+                      <apex:outputLabel value="{!opp.roles.role12}"/>
+                  </apex:column>
+                  <apex:column rendered="{!IF(RoleHeaders.Head13='',false,true)}">
+                      <apex:facet name="header">{!RoleHeaders.Head13}</apex:facet>
+                      <apex:outputLabel value="{!opp.roles.role13}"/>
+                  </apex:column>
+                  <apex:column rendered="{!IF(RoleHeaders.Head14='',false,true)}">
+                      <apex:facet name="header">{!RoleHeaders.Head14}</apex:facet>
+                      <apex:outputLabel value="{!opp.roles.role14}"/>
+                  </apex:column>
+                  <apex:column rendered="{!IF(RoleHeaders.Head15='',false,true)}">
+                      <apex:facet name="header">{!RoleHeaders.Head15}</apex:facet>
+                      <apex:outputLabel value="{!opp.roles.role15}"/>
+                  </apex:column>
+                  <apex:column rendered="{!IF(RoleHeaders.Head16='',false,true)}">
+                      <apex:facet name="header">{!RoleHeaders.Head16}</apex:facet>
+                      <apex:outputLabel value="{!opp.roles.role16}"/>
+                  </apex:column>
+                  
+                  
+                    <apex:column value="{!opp.Opp.Task_Order_Number__c }"/>
+                    <apex:column value="{!opp.Opp.Primary_Business_Line__c }"/>
+                    <apex:column value="{!opp.Opp.Market_Segment__c }"/>
+                    <apex:column value="{!opp.Opp.Practice_Area__c }"/>
+
+                  
+                  
+                  <apex:column rendered="{!IF(DeptHeaders.Head1='',false,true)}">
+                      <apex:facet name="header">{!DeptHeaders.Head1}</apex:facet>
+                      <apex:outputLabel value="{!opp.depts.Dept1Name}"/>
+                  </apex:column>
+                  <apex:column rendered="{!IF(DeptHeaders.Head1='',false,true)}">
+                      <apex:facet name="header">{!DeptHeaders.Head1} %</apex:facet>
+                      <apex:outputLabel value="{!opp.depts.Dept1Per}"/>
+                  </apex:column>
+                  <apex:column rendered="{!IF(DeptHeaders.Head2='',false,true)}">
+                      <apex:facet name="header">{!DeptHeaders.Head2}</apex:facet>
+                      <apex:outputLabel value="{!opp.depts.Dept2Name}"/>
+                  </apex:column>
+                  <apex:column rendered="{!IF(DeptHeaders.Head2='',false,true)}">
+                      <apex:facet name="header">{!DeptHeaders.Head2} %</apex:facet>
+                      <apex:outputLabel value="{!opp.depts.Dept2Per}"/>
+                  </apex:column>
+                  
+                  <apex:column rendered="{!IF(DeptHeaders.Head3='',false,true)}">
+                      <apex:facet name="header">{!DeptHeaders.Head3}</apex:facet>
+                      <apex:outputLabel value="{!opp.depts.Dept3Name}"/>
+                  </apex:column>
+                  <apex:column rendered="{!IF(DeptHeaders.Head3='',false,true)}">
+                      <apex:facet name="header">{!DeptHeaders.Head3} %</apex:facet>
+                      <apex:outputLabel value="{!opp.depts.Dept3Per}"/>
+                  </apex:column>
+                  
+                  <apex:column rendered="{!IF(DeptHeaders.Head4='',false,true)}">
+                      <apex:facet name="header">{!DeptHeaders.Head4}</apex:facet>
+                      <apex:outputLabel value="{!opp.depts.Dept4Name}"/>
+                  </apex:column>
+                  <apex:column rendered="{!IF(DeptHeaders.Head4='',false,true)}">
+                      <apex:facet name="header">{!DeptHeaders.Head4} %</apex:facet>
+                      <apex:outputLabel value="{!opp.depts.Dept4Per}"/>
+                  </apex:column>
+                  
+                  <apex:column rendered="{!IF(DeptHeaders.Head5='',false,true)}">
+                      <apex:facet name="header">{!DeptHeaders.Head5}</apex:facet>
+                      <apex:outputLabel value="{!opp.depts.Dept5Name}"/>
+                  </apex:column>
+                  <apex:column rendered="{!IF(DeptHeaders.Head5='',false,true)}">
+                      <apex:facet name="header">{!DeptHeaders.Head5} %</apex:facet>
+                      <apex:outputLabel value="{!opp.depts.Dept5Per}"/>
+                  </apex:column>
+                  
+                  <apex:column rendered="{!IF(DeptHeaders.Head6='',false,true)}">
+                      <apex:facet name="header">{!DeptHeaders.Head6}</apex:facet>
+                      <apex:outputLabel value="{!opp.depts.Dept6Name}"/>
+                  </apex:column>
+                  <apex:column rendered="{!IF(DeptHeaders.Head6='',false,true)}">
+                      <apex:facet name="header">{!DeptHeaders.Head6} %</apex:facet>
+                      <apex:outputLabel value="{!opp.depts.Dept6Per}"/>
+                  </apex:column>
+                  <apex:column >
+                      <apex:facet name="header">Multiple Geographies?</apex:facet>
+                      <apex:outputlabel value="{!if(opp.Opp.Multiple_Geographies__c = true,'Yes','No')}"/>
+                  </apex:column>
+                <apex:column value="{!opp.Opp.Bid_Proposal_Charge__c }"/>
+                <apex:column value="{!opp.Opp.B_P_Budget__c }"/>
+                <apex:column value="{!opp.Opp.B_P_Actual_to_date__c }"/>
+                <apex:column value="{!opp.Opp.BL_Distribution__c }"/>
+                <apex:column value="{!opp.Opp.Book_date__c }"/>
+                <apex:column value="{!opp.Opp.Client_Solicitation_ID_number__c }"/>
+                <apex:column value="{!opp.Opp.Competitive_Bid_or_Sole_source__c }"/>
+                <apex:column value="{!opp.Opp.Construction_cost__c }"/>
+                <apex:column value="{!opp.Opp.Contract_Type__c }"/>
+                <apex:column value="{!opp.Opp.Date_lost_cancelled_no_go__c }"/>
+                <apex:column value="{!opp.Opp.Date_RFP_expected__c }"/>
+                <apex:column value="{!opp.Opp.Date_RFP_received__c }"/>
+                <apex:column value="{!opp.Opp.Date_RFQ_expected__c }"/>
+                <apex:column value="{!opp.Opp.Date_RFQ_received__c }"/>
+                <!--
+                <apex:column value="{!opp.Opp.Primary_Business_Line__c }"/>
+                <apex:column value="{!opp.Opp.Probability }"/>
+                -->
+                <apex:column value="{!opp.Opp.Project_City__c }"/>
+                <apex:column value="{!opp.Opp.Project_State_Province__c }"/>
+                <apex:column value="{!opp.Opp.ProjectCountry__c }"/>
+                <apex:column value="{!opp.Opp.Submittal_Date_Proposal__c }"/>
+                <apex:column value="{!opp.Opp.Go_No_Go_Request_submitted_date__c }"/>
+                <apex:column value="{!opp.Opp.Hub_Approval_required__c }"/>
+                <apex:column value="{!opp.Opp.Internal_proposal_ID_number__c }"/>
+                <apex:column value="{!opp.Opp.Market_Segment_Priority__c }"/>
+                <apex:column value="{!opp.Opp.MPRC_Approval_required__c }"/>
+                <apex:column value="{!opp.Opp.Project_Delivery_Method__c }"/>
+                <apex:column value="{!opp.Opp.Proposal_Location__c }"/>
+                <apex:column value="{!opp.Opp.Reason_Won_or_Lost_OLD__c }"/>
+                <apex:column value="{!opp.Opp.Report_comments__c }"/>
+                <apex:column value="{!opp.Opp.Strategic_Pursuit__c }"/>
+                <apex:column value="{!opp.Opp.Transportation_Initiatives__c }"/>
+                <apex:column value="{!opp.Opp.PDD_D_P_E_Primary_Global_Practice_Line__c }"/>
+                <apex:column value="{!opp.Opp.PDD_D_P_E_Secondary_Global_Practice_Line__c}"/>
+                <apex:column value="{!opp.Opp.PDD_General_Market_Sector__c}"/>
+                <apex:column value="{!opp.Opp.PDD_Practice_Line__c }"/>
+                <apex:column value="{!opp.Opp.PDD_Services__c }"/>
+                <apex:column value="{!opp.Opp.Services__c }"/>
+                <apex:column value="{!opp.Opp.Stimulus_Funding__c }"/>
+                
+                <apex:column value="{!opp.Opp.Opportunity_ID__c}"/>
+              </apex:pageblockTable>
+      </apex:pageblock>
+</apex:page>

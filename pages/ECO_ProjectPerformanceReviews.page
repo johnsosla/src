@@ -1,0 +1,428 @@
+<apex:page showheader="true" sidebar="false" standardcontroller="ProjectReview__c" extensions="ECO_ProjectReviewsController,nttdcore.DLabelParentController" action="{!initPerformanceReviews}" doctype="html-5.0" >
+    
+        <apex:includeScript value="{!$Resource.ECO_jQuery_1_11_2_min_js}" />
+        <apex:includeScript value="{!URLFOR($Resource.ECO_jQueryUI_1_11_2, 'jquery-ui.min.js')}" />
+    
+    
+        <style>
+            .dmeOutput{  
+                font-size: 1.1em;
+                font-weight: bold; 
+                color: #4a4a56;  /*Standrd Salesforce Color*/
+            }
+    
+           .rich-tabpanel{
+                margin:10px 10px 0 10px;
+                width:98.5%;
+            }
+            .pbBody .rich-tabpanel .rich-tab-header{
+                border: 1px solid #d3d3d3 !important;
+                background: ;
+                color: #555 !important;
+                border-top-right-radius: 4px !important;
+                border-top-left-radius: 4px !important;
+                padding: 7px 12px;
+                width: 250px;
+                text-decoration:none;
+                font-size:13px;
+                background: #999999; /* Old browsers */
+                /* IE9 SVG, needs conditional override of 'filter' to 'none' */
+                background: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/Pgo8c3ZnIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgdmlld0JveD0iMCAwIDEgMSIgcHJlc2VydmVBc3BlY3RSYXRpbz0ibm9uZSI+CiAgPGxpbmVhckdyYWRpZW50IGlkPSJncmFkLXVjZ2ctZ2VuZXJhdGVkIiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgeDE9IjAlIiB5MT0iMCUiIHgyPSIwJSIgeTI9IjEwMCUiPgogICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzk5OTk5OSIgc3RvcC1vcGFjaXR5PSIxIi8+CiAgICA8c3RvcCBvZmZzZXQ9IjUxJSIgc3RvcC1jb2xvcj0iI2Q2ZDZkNiIgc3RvcC1vcGFjaXR5PSIxIi8+CiAgICA8c3RvcCBvZmZzZXQ9IjUxJSIgc3RvcC1jb2xvcj0iIzIwN2NjYSIgc3RvcC1vcGFjaXR5PSIxIi8+CiAgICA8c3RvcCBvZmZzZXQ9IjUxJSIgc3RvcC1jb2xvcj0iI2Q2ZDZkNiIgc3RvcC1vcGFjaXR5PSIxIi8+CiAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNlNWU1ZTUiIHN0b3Atb3BhY2l0eT0iMSIvPgogIDwvbGluZWFyR3JhZGllbnQ+CiAgPHJlY3QgeD0iMCIgeT0iMCIgd2lkdGg9IjEiIGhlaWdodD0iMSIgZmlsbD0idXJsKCNncmFkLXVjZ2ctZ2VuZXJhdGVkKSIgLz4KPC9zdmc+);
+                background: -moz-linear-gradient(top,  #999999 0%, #d6d6d6 51%, #207cca 51%, #d6d6d6 51%, #e5e5e5 100%); /* FF3.6+ */
+                background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#999999), color-stop(51%,#d6d6d6), color-stop(51%,#207cca), color-stop(51%,#d6d6d6), color-stop(100%,#e5e5e5)); /* Chrome,Safari4+ */
+                background: -webkit-linear-gradient(top,  #999999 0%,#d6d6d6 51%,#207cca 51%,#d6d6d6 51%,#e5e5e5 100%); /* Chrome10+,Safari5.1+ */
+                background: -o-linear-gradient(top,  #999999 0%,#d6d6d6 51%,#207cca 51%,#d6d6d6 51%,#e5e5e5 100%); /* Opera 11.10+ */
+                background: -ms-linear-gradient(top,  #999999 0%,#d6d6d6 51%,#207cca 51%,#d6d6d6 51%,#e5e5e5 100%); /* IE10+ */
+                background: linear-gradient(to bottom,  #999999 0%,#d6d6d6 51%,#207cca 51%,#d6d6d6 51%,#e5e5e5 100%); /* W3C */
+                filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#999999', endColorstr='#e5e5e5',GradientType=0 ); /* IE6-8 */
+            }
+            .rich-tab-active{
+                background: #f1f1f1 !important;
+                font-weight:bold !important;
+            }
+            .pbBody .rich-tabpanel .rich-tab-header.activeTab{
+                border-bottom:none !important;
+            }
+            .pbBody .rich-tabpanel .disabledTab{
+                opacity:0.45 !important;
+            }
+            .rich-tabhdr-side-border, .rich-tabhdr-side-border{
+                background:none !important;
+                display:none;
+            }
+            .rich-tabhdr-side-cell{
+                border-top:none;
+            }
+    
+            body .bEditBlock .pbBody .pbSubheader, body .bWizardBlock .pbBody .pbSubheader{
+                background-image:none !important;
+                color:#27282e;
+            }
+    
+            .customHelpText{
+                padding: 7px;
+                border: 1px solid #85B3CE;
+                min-height: 30px;
+                display: block;
+                width: auto;
+                margin: 0 0 5px 0;
+                background-repeat: no-repeat;
+                border-radius: 4px;
+                background-color: #A2D3F1;
+                
+            }
+            .customHelpBody{
+                display:inline-block;
+                color:#;
+                max-width:95%;
+            }
+        </style>
+    
+       <script type="text/javascript" >
+            var j$ = jQuery.noConflict();
+    
+            j$(function(){
+                /*j$(document.getElementById('{!$Component.thepage.WholeForm}')).bind('keypress', function(e){
+                        if (e.keyCode == 13) {
+                            SearchSites();
+                        }
+                });
+    
+                j$("#ProjectInput input").bind('keypress', function(e){
+                        if (e.keyCode == 13) {
+                            CreateProject();
+                        }
+                });
+    
+                j$("#ProjectInput2 input").bind('keypress', function(e){
+                        if (e.keyCode == 13) {
+                            CreateProject();
+                        }
+                });*/
+            
+                j$(document.getElementById('{!$Component.thepage.WholeForm}')).keypress(function (e) {
+                    if (e.keyCode == 13) { 
+                        e.preventDefault();
+                    }
+                });
+    
+    
+    
+                j$('#AddressInput').bind('keydown', function(event) {
+                    if (event.keyCode == 13) {
+                        event.preventDefault();
+                        SearchSites();
+                    }
+                });
+            });
+    
+    
+    
+        </script>
+    
+        <apex:pageMessages />
+        
+        <apex:form >    
+        
+            <nttdcore:DLabel name="DL1" default="{{1}}({{2}})" labelParent="{!this}" p1="{!theProject.Name}" p2="{!theProject.ProjectNumber__c}" /><apex:sectionHeader title="{!oProjectReview.RecordType.Name}" subtitle="{!dLabel['DL1']}" />
+            <apex:pageBlock mode="edit" >
+        
+                <apex:pageBlockButtons >
+                    <nttdcore:DLabel name="DL2" default="Take Project Snapshot" labelParent="{!this}" /><apex:commandButton action="{!SaveHealthCheck}" value="{!dLabel['DL2']}" rendered="{!NOT(perfActiveStatus) && isPerfReview && oProjectReview.Snapshot_Date__c == null}" />
+                    <nttdcore:DLabel name="DL3" default="Save" labelParent="{!this}" /><apex:commandButton action="{!saveAll}" value="{!dLabel['DL3']}" rendered="{!oProjectReview.Status__c != 'Approved' && oProjectReview.Status__c != 'Submitted'}" /> 
+                    <nttdcore:DLabel name="DL4" default="Return to Project" labelParent="{!this}" /><apex:commandButton action="{!returnToProjectFromReview}" value="{!dLabel['DL4']}" immediate="true" />
+                    <nttdcore:DLabel name="DL5" default="Return to All Project Reviews" labelParent="{!this}" /><apex:commandButton action="{!returnToAllReviews}" value="{!dLabel['DL5']}" immediate="true" />
+                    
+                </apex:pageBlockButtons>
+        
+                <apex:outputPanel id="tabPanel" > 
+        			<nttdcore:DLabel name="DL6" default="Step 1 – KPI Review" labelParent="{!this}" />
+					<nttdcore:DLabel name="DL21" default="Step 2 – Financial Summary" labelParent="{!this}" />
+					<nttdcore:DLabel name="DL23" default="Step 3 – Comments and Approval" labelParent="{!this}" />
+					
+                    <apex:tabPanel id="thetabpanel" switchtype="client" value="{!TabState}" tabclass="activeTab" inactivetabclass="inactiveTab" disabledtabclass="disabledTab" >
+                        <apex:inputHidden value="{!ProjectReview__c.Name}" />
+                        <apex:inputHidden value="{!ProjectReview__c.Status__c}" />
+                        <apex:inputHidden value="{!ProjectReview__c.MeetingMinutes__c}" />
+                        <apex:inputHidden value="{!ProjectReview__c.IsPerformanceReview__c}" />
+                        <apex:inputHidden value="{!ProjectReview__c.IsProjectPerformanceReview__c}" />
+        
+                        <apex:tab label="{!dLabel['DL6']}" name="name1" id="tabOne" ><nttdcore:DLabel name="DL8" default="Project Information" labelParent="{!this}" /><nttdcore:DLabel name="DL9" default="Review Details" labelParent="{!this}" /><nttdcore:DLabel name="DL10" default="Review Status" labelParent="{!this}" /><nttdcore:DLabel name="DL11" default="Record Type" labelParent="{!this}" />
+        
+                            <div class="customHelpText" >
+                                <div class="customHelpBody" ><nttdcore:DLabel name="DL7" default="Review the KPI assessment results against current project metrics and revisit the Project Plan to confirm and/or correct, as needed.  When ready, click “Take Project Snapshot” above to document the KPI assessment for the month and progress to Step 2.  Note that an explanation for triggered KPIs must be provided prior to submitting the project review for approval." labelParent="{!this}" />
+                                    {!dLabel['DL7']}            
+                                </div>
+                            </div>
+        
+                            <apex:pageBlockSection title="{!dLabel['DL8']}" collapsible="true" columns="2" >
+                                <apex:repeat value="{!CustomProjFields}" var="f" >
+                                    <apex:outputField value="{!theProject[f.fieldPath]}" />
+                                </apex:repeat>  
+        
+                                <!--<apex:outputField value="{!theProject.Name}" />-->
+                                <!--<apex:outputField value="{!theProject.OwnerId}" />-->
+                                <!--<apex:outputField value="{!theProject.pse__Opportunity__c}" />-->
+                                <!--<apex:outputField value="{!theProject.ProjectNumber__c}" />-->
+                                <!--<apex:outputField value="{!theProject.EstimatedContractValue__c}" />-->
+                                <!--<apex:outputField value="{!theProject.pse__Project_Manager__c}" />-->
+                                <!--<apex:outputField value="{!theProject.NetServicesRevenue__c}" />-->
+                                <!--<apex:outputField value="{!theProject.ProjectOwningOrg__c}" />-->
+                                <!--<apex:outputField value="{!theProject.TotalMargin__c}" />-->
+                                <!--<apex:outputField value="{!theProject.PrimaryEndClient__c}" />-->
+                                <!--<apex:outputField value="{!theProject.PrimaryEndClientName__c}" />-->
+                                <!--<apex:outputField value="{!theProject.TotalBidBudget__c}" />-->
+                                <!--<apex:outputField value="{!theProject.PrimaryBillingClient__c}" />-->
+                                <!--<apex:outputField value="{!theProject.PrimaryBillingClientName__c}" />-->
+                                <!--<apex:outputField value="{!theProject.EstimatedStartDate__c}" />-->
+                            </apex:pageBlockSection>
+         
+                            <apex:inputHidden value="{!ProjectReview__c.Name}" />
+        
+                            <apex:inputHidden value="{!ProjectReview__c.Status__c}" />
+                            <apex:inputHidden value="{!ProjectReview__c.MeetingMinutes__c}" />
+                                        
+                        <apex:pageBlockSection id="ReviewDetails" title="{!dLabel['DL9']}" columns="2" collapsible="false" >           
+                            <apex:inputField value="{!oProjectReview.Name}" required="true" style="width: 250px" rendered="{!oProjectReview.Status__c != 'Approved' && oProjectReview.Status__c != 'Submitted'}" />
+                            <apex:outputField value="{!oProjectReview.Name}" style="width: 250px" rendered="{!oProjectReview.Status__c == 'Approved' || oProjectReview.Status__c == 'Submitted'}" />
+                            
+                            <apex:pageBlockSectionItem >
+                                <apex:outputText value="{!dLabel['DL10']}" />
+                                <apex:outputField value="{!oProjectReview.Status__c}" />
+                            </apex:pageBlockSectionItem>
+                            <apex:outputField label="{!dLabel['DL11']}" value="{!oProjectReview.RecordType.Name}" />
+                            <apex:inputField value="{!oProjectReview.Responsible_Person__c}" rendered="{!oProjectReview.Status__c != 'Approved' && oProjectReview.Status__c != 'Submitted'}" />
+                            <apex:inputField value="{!oProjectReview.OtherPart1__c}" rendered="{!oProjectReview.Status__c != 'Approved' && oProjectReview.Status__c != 'Submitted'}" />
+                            <apex:inputField value="{!oProjectReview.OperationsParticipant__c}" rendered="{!oProjectReview.Status__c != 'Approved' && oProjectReview.Status__c != 'Submitted'}" />                   
+                            <apex:inputField value="{!oProjectReview.OtherPart2__c}" rendered="{!oProjectReview.Status__c != 'Approved' && oProjectReview.Status__c != 'Submitted'}" />
+                            <apex:inputField value="{!oProjectReview.FAParticipant__c}" rendered="{!oProjectReview.Status__c != 'Approved' && oProjectReview.Status__c != 'Submitted'}" />
+                            <apex:inputField value="{!oProjectReview.OtherPart3__c}" rendered="{!oProjectReview.Status__c != 'Approved' && oProjectReview.Status__c != 'Submitted'}" />
+        
+                            <apex:outputField value="{!oProjectReview.Responsible_Person__c}" rendered="{!oProjectReview.Status__c == 'Approved' || oProjectReview.Status__c == 'Submitted'}" />
+                            <apex:outputField value="{!oProjectReview.OtherPart1__c}" rendered="{!oProjectReview.Status__c == 'Approved' || oProjectReview.Status__c == 'Submitted'}" />
+                            <apex:outputField value="{!oProjectReview.OperationsParticipant__c}" rendered="{!oProjectReview.Status__c == 'Approved' || oProjectReview.Status__c == 'Submitted'}" />                  
+                            <apex:outputField value="{!oProjectReview.OtherPart2__c}" rendered="{!oProjectReview.Status__c == 'Approved' || oProjectReview.Status__c == 'Submitted'}" />
+                            <apex:outputField value="{!oProjectReview.FAParticipant__c}" rendered="{!oProjectReview.Status__c == 'Approved' || oProjectReview.Status__c == 'Submitted'}" />
+                            <apex:outputField value="{!oProjectReview.OtherPart3__c}" rendered="{!oProjectReview.Status__c == 'Approved' || oProjectReview.Status__c == 'Submitted'}" />                 
+                            <!--<apex:outputField value="{!oProjectReview.Snapshot_Date__c}" rendered="{!IsPerfReview}"/>-->
+                            <!--<apex:inputField value="{!oProjectReview.ScheduledDate__c}" />
+                            <apex:inputField value="{!oProjectReview.CompletedDate__c}" />-->
+        
+                        </apex:pageBlockSection>
+        
+        
+                            <apex:outputPanel id="KPIResults" rendered="{!isPerfReview}" ><nttdcore:DLabel name="DL12" default="KPI Results" labelParent="{!this}" /><nttdcore:DLabel name="DL13" default="KPI Status" labelParent="{!this}" /><nttdcore:DLabel name="DL14" default="Exceedence" labelParent="{!this}" /><nttdcore:DLabel name="DL15" default="No Exceedence" labelParent="{!this}" /><nttdcore:DLabel name="DL16" default="KPI" labelParent="{!this}" /><nttdcore:DLabel name="DL17" default="Threshold" labelParent="{!this}" /><nttdcore:DLabel name="DL18" default="Status" labelParent="{!this}" /><nttdcore:DLabel name="DL19" default="Alert" labelParent="{!this}" /><nttdcore:DLabel name="DL20" default="Explanation" labelParent="{!this}" />
+                                <apex:pageBlockSection title="{!dLabel['DL12']}" columns="1" collapsible="false" >
+                                <apex:outputPanel >
+                                <b>{!dLabel['DL13']}</b><br/><br/>
+                                <apex:image height="20px" width="20px" value="{!$Resource.RedCircle}" />{!dLabel['DL14']}<br/><br/>
+                                <apex:image height="20px" width="20px" value="{!$Resource.greenStar}" />{!dLabel['DL15']}<br/><br/>
+                                </apex:outputPanel>
+                                    <apex:pageBlockTable value="{!lKPI_Results}" var="item" width="100%" id="KPITable" columnswidth="20%,30%,10%,20%,20%" >
+                                        <apex:column >
+                                            <apex:facet name="header" >{!dLabel['DL16']}</apex:facet>
+                                            <apex:outputField value="{!item.Trigger_Name__c}" />
+                                        </apex:column>
+                                        <apex:column >
+                                            <apex:facet name="header" >{!dLabel['DL17']}</apex:facet>
+                                            <apex:outputField value="{!item.ThresholdDescription__c}" />
+                                        </apex:column>
+                                        <apex:column ><!-- styleClass="{!item.Evaluation_Result__c}"-->
+                                            <apex:facet name="header" >{!dLabel['DL18']}</apex:facet>
+                                            <!--<apex:outputText value="{!item.Evaluation_Result__c}" />-->
+                                            <apex:image height="20px" width="20px" value="{!IF(item.Evaluation_Result__c, $Resource.RedCircle, $Resource.greenStar)}" />
+                                        </apex:column> 
+                                        <apex:column >
+                                            <apex:facet name="header" >{!dLabel['DL19']}</apex:facet>
+                                            <apex:outputField value="{!item.Alert_Message__c}" />
+                                        </apex:column>
+                                        <apex:column >
+                                            <apex:facet name="header" >{!dLabel['DL20']}</apex:facet>
+                                             <div class="requiredInput" >
+                                                <div class="requiredBlock" />
+                                                <apex:inputField value="{!item.Explanation__c}" style="width:80%" rendered="{!oProjectReview.Snapshot_Date__c != null && item.Evaluation_Result__c && oProjectReview.Status__c !='Approved' && oProjectReview.Status__c != 'Submitted'}" />
+                                            </div>
+                                            <apex:outputField value="{!item.Explanation__c}" style="width:80%" rendered="{!oProjectReview.Snapshot_Date__c == null || NOT(item.Evaluation_Result__c) || oProjectReview.Status__c == 'Approved' || oProjectReview.Status__c == 'Submitted'}" />
+                                        </apex:column>
+                                    </apex:pageBlockTable>
+                                </apex:pageBlockSection>
+                            </apex:outputPanel>                 
+                        </apex:tab>
+    
+                        <apex:tab label="{!dLabel['DL21']}" name="name2" id="tabTwo" disabled="{!oProjectReview.Snapshot_Date__c == null}" >
+                            <div class="customHelpText" >
+                                <div class="customHelpBody" ><nttdcore:DLabel name="DL22" default="Review the summary of current project financial data for the review period.  Add any comments to the Cash Performance section, as needed, and click “Save Summary” to capture the comments." labelParent="{!this}" />
+                                    {!dLabel['DL22']}            
+                                </div>
+                            </div>
+                            <!--<apex:pageBlockSection title="Project Snapshot" columns="1" rendered="{!isPerfReview && oProjectReview.Status__c != 'Not Started'}" >-->
+                            <!-- <apex:outputText escape="false" value="{!projectSnapshotRecord}"/> -->
+                                <iframe src="/apex/ECO_ProjectSnapshot?id={!ProjectSnapshotRecord}" scrolling="true" id="iframe_id" width="100%" height="400" />
+                            <!--</apex:pageBlockSection>    -->
+    
+                        </apex:tab>                 
+    
+                        <apex:tab label="{!dLabel['DL23']}" name="name3" id="tabThree" disabled="{!oProjectReview.Snapshot_Date__c == null}" ><nttdcore:DLabel name="DL28" default="General Comments" labelParent="{!this}" /><nttdcore:DLabel name="DL29" default="Copy Comments from Previous Review" labelParent="{!this}" /><nttdcore:DLabel name="DL30" default="No Comments" labelParent="{!this}" /><nttdcore:DLabel name="DL31" default="Exception Report" labelParent="{!this}" /><nttdcore:DLabel name="DL32" default="Safety" labelParent="{!this}" /><nttdcore:DLabel name="DL33" default="No Comments" labelParent="{!this}" /><nttdcore:DLabel name="DL34" default="Client Relations" labelParent="{!this}" /><nttdcore:DLabel name="DL35" default="No Comments" labelParent="{!this}" /><nttdcore:DLabel name="DL36" default="Change Management" labelParent="{!this}" /><nttdcore:DLabel name="DL37" default="No Comments" labelParent="{!this}" /><nttdcore:DLabel name="DL38" default="Financial Performance" labelParent="{!this}" /><nttdcore:DLabel name="DL39" default="No Comments" labelParent="{!this}" /><nttdcore:DLabel name="DL40" default="Schedule" labelParent="{!this}" /><nttdcore:DLabel name="DL41" default="No Comments" labelParent="{!this}" /><nttdcore:DLabel name="DL42" default="Quality" labelParent="{!this}" /><nttdcore:DLabel name="DL43" default="No Comments" labelParent="{!this}" /><nttdcore:DLabel name="DL44" default="Risk Management" labelParent="{!this}" /><nttdcore:DLabel name="DL45" default="No Comments" labelParent="{!this}" /><nttdcore:DLabel name="DL46" default="Staff Resources" labelParent="{!this}" /><nttdcore:DLabel name="DL47" default="No Comments" labelParent="{!this}" /><nttdcore:DLabel name="DL48" default="Subs" labelParent="{!this}" /><nttdcore:DLabel name="DL49" default="No Comments" labelParent="{!this}" /><nttdcore:DLabel name="DL50" default="Follow-up Tasks" labelParent="{!this}" /><nttdcore:DLabel name="DL51" default="New Task" labelParent="{!this}" /><nttdcore:DLabel name="DL52" default="Action" labelParent="{!this}" /><nttdcore:DLabel name="DL53" default="Edit" labelParent="{!this}" /><nttdcore:DLabel name="DL54" default=" | " labelParent="{!this}" /><nttdcore:DLabel name="DL55" default="Del" labelParent="{!this}" /><nttdcore:DLabel name="DL56" default="Due Date" labelParent="{!this}" /><nttdcore:DLabel name="DL57" default="Subject" labelParent="{!this}" /><nttdcore:DLabel name="DL58" default="Assigned To" labelParent="{!this}" /><nttdcore:DLabel name="DL59" default="No tasks have been specified." labelParent="{!this}" />
+                            <div class="customHelpText" >
+                                <apex:outputPanel rendered="{!NOT(isProjectPerfReview)}" >
+                                    <div class="customHelpBody" ><nttdcore:DLabel name="DL24" default="Provide any general comments for the review period, as needed, and click “Submit for Approval”." labelParent="{!this}" />
+                                    {!dLabel['DL24']}             
+                                    </div>
+                                </apex:outputPanel>
+                                <apex:outputPanel rendered="{!isProjectPerfReview}" >
+                                    <div class="customHelpBody" ><nttdcore:DLabel name="DL25" default="Provide any general comments for the review period, as needed, complete the Exception Report, and click “Submit for Approval”." labelParent="{!this}" />
+                                    {!dLabel['DL25']}              
+                                    </div>
+                                </apex:outputPanel>
+                            </div>
+                    <div align="center" >
+                    <nttdcore:DLabel name="DL26" default="Submit for Approval" labelParent="{!this}" /><apex:commandButton value="{!dLabel['DL26']}" action="{!SubmitForApproval}" id="Submit_for_Approval" rendered="{!oProjectReview.Status__c != 'Submitted' && oProjectReview.Status__c != 'Approved'}" immediate="false" />
+                    <nttdcore:DLabel name="DL27" default="Escalate Approval" labelParent="{!this}" /><apex:commandButton value="{!dLabel['DL27']}" action="{!submitforescalaton}" id="Submit_for_Escalation" rendered="{!oProjectReview.Status__c == 'Submitted' && oProjectReview.FlagForEscalate__c != true}" immediate="false" disabled="{!oProjectReview.EscalationLock__c}" />
+                    </div>
+    
+                    <apex:pageBlockSection columns="1" title="{!dLabel['DL28']}" collapsible="false" >
+                        <apex:commandButton value="{!dLabel['DL29']}" action="{!copyComments}" rendered="{!lastProjectReview != null && NOT(oProjectReview.CommentsCopiedFromPreviousReview__c) && oProjectReview.Status__c != 'Approved' && oProjectReview.Status__c != 'Submitted'}" />
+                        <apex:inputField label="" value="{!oProjectReview.MeetingMinutes__c}" rendered="{!oProjectReview.Status__c != 'Approved' && oProjectReview.Status__c != 'Submitted'}" />
+                        <apex:outputPanel rendered="{!oProjectReview.Status__c == 'Approved' || oProjectReview.Status__c == 'Submitted'}" >
+                            <apex:outputText label="" value="{!oProjectReview.MeetingMinutes__c}" rendered="{!oProjectReview.Status__c == 'Approved' || oProjectReview.Status__c == 'Submitted'}" />
+                            <apex:outputText value="{!dLabel['DL30']}" rendered="{!oProjectReview.MeetingMinutes__c == null || oProjectReview.MeetingMinutes__c = ''}" />
+                        </apex:outputPanel>
+                    </apex:pageBlockSection>
+    
+    
+                    <apex:pageBlockSection title="{!dLabel['DL31']}" collapsible="false" rendered="{!isProjectPerfReview && oProjectReview.Status__c != 'Not Started'}" columns="1" >
+                        <apex:outputPanel >
+                            <apex:outputlabel value="{!dLabel['DL32']}" styleclass="dmeOutput" /><br/>
+                            <apex:inputField style="width:100%;" value="{!oProjectReview.SafetyExceptionReport__c}" html-placeholder="Note any issues, incidents or near misses in the period and whether these have been reported" rendered="{!oProjectReview.Status__c != 'Approved' && oProjectReview.Status__c != 'Submitted'}" />
+                            <apex:outputPanel rendered="{!oProjectReview.Status__c == 'Approved' || oProjectReview.Status__c == 'Submitted'}" >
+                                <apex:outputField style="width:100%;" value="{!oProjectReview.SafetyExceptionReport__c}" html-placeholder="Note any issues, incidents or near misses in the period and whether these have been reported" rendered="{!oProjectReview.Status__c == 'Approved' || oProjectReview.Status__c == 'Submitted'}" />
+                                <apex:outputText value="{!dLabel['DL33']}" rendered="{!oProjectReview.SafetyExceptionReport__c == null || oProjectReview.SafetyExceptionReport__c = ''}" />
+                                <br/><br/>
+                            </apex:outputPanel>
+                        </apex:outputPanel>
+                        <apex:outputPanel >
+                            <apex:outputlabel value="{!dLabel['DL34']}" styleclass="dmeOutput" /><br/>
+                            <apex:inputField style="width:100%;" value="{!oProjectReview.ClientRelations__c}" html-placeholder="Note any client feedback in the period" rendered="{!oProjectReview.Status__c != 'Approved' && oProjectReview.Status__c != 'Submitted'}" />
+                            <apex:outputPanel rendered="{!oProjectReview.Status__c == 'Approved' || oProjectReview.Status__c == 'Submitted'}" >
+                                <apex:outputField style="width:100%;" value="{!oProjectReview.ClientRelations__c}" html-placeholder="Note any client feedback in the period" rendered="{!oProjectReview.Status__c == 'Approved' || oProjectReview.Status__c == 'Submitted'}" />
+                                <apex:outputText value="{!dLabel['DL35']}" rendered="{!oProjectReview.ClientRelations__c == null || oProjectReview.ClientRelations__c = ''}" />
+                                <br/><br/>
+                            </apex:outputPanel>
+                        </apex:outputPanel>
+                        <apex:outputPanel >
+                            <apex:outputlabel value="{!dLabel['DL36']}" styleclass="dmeOutput" /><br/>
+                            <apex:inputField style="width:100%;" value="{!oProjectReview.ChangeManagementExceptionReport__c}" html-placeholder="Note any outstanding change issues (Scope, budget/funding, schedule, quality, other)" rendered="{!oProjectReview.Status__c != 'Approved' && oProjectReview.Status__c != 'Submitted'}" />
+                            <apex:outputPanel rendered="{!oProjectReview.Status__c == 'Approved' || oProjectReview.Status__c == 'Submitted'}" >
+                                <apex:outputField style="width:100%;" value="{!oProjectReview.ChangeManagementExceptionReport__c}" html-placeholder="Note any outstanding change issues (Scope, budget/funding, schedule, quality, other)" rendered="{!oProjectReview.Status__c == 'Approved' || oProjectReview.Status__c == 'Submitted'}" />
+                                <apex:outputText value="{!dLabel['DL37']}" rendered="{!oProjectReview.ChangeManagementExceptionReport__c == null || oProjectReview.ChangeManagementExceptionReport__c = ''}" />
+                                <br/><br/>
+                            </apex:outputPanel>
+                        </apex:outputPanel>
+                        <apex:outputPanel >
+                            <apex:outputlabel value="{!dLabel['DL38']}" styleclass="dmeOutput" /><br/>
+                            <apex:inputField style="width:100%;" value="{!oProjectReview.FinancialPerformanceExceptionReport__c}" html-placeholder="Note any financial issues (EAC changes (cost & Rev), EAC - budget differences, margin changes, aged unbilled / AR, LDs)" rendered="{!oProjectReview.Status__c != 'Approved' && oProjectReview.Status__c != 'Submitted'}" />
+                            <apex:outputPanel rendered="{!oProjectReview.Status__c == 'Approved' || oProjectReview.Status__c == 'Submitted'}" >
+                                <apex:outputField style="width:100%;" value="{!oProjectReview.FinancialPerformanceExceptionReport__c}" html-placeholder="Note any financial issues (EAC changes (cost & Rev), EAC - budget differences, margin changes, aged unbilled / AR, LDs)" rendered="{!oProjectReview.Status__c == 'Approved' || oProjectReview.Status__c == 'Submitted'}" />
+                                <apex:outputText value="{!dLabel['DL39']}" rendered="{!oProjectReview.FinancialPerformanceExceptionReport__c == null || oProjectReview.FinancialPerformanceExceptionReport__c = ''}" />
+                                <br/><br/>
+                            </apex:outputPanel>
+                        </apex:outputPanel>
+                        <apex:outputPanel >
+                            <apex:outputlabel value="{!dLabel['DL40']}" styleclass="dmeOutput" /><br/>
+                            <apex:inputField style="width:100%;" value="{!oProjectReview.SheduleExceptionReport__c}" html-placeholder="Note any threats to approved schedule (is client aware, is action being taken?)" rendered="{!oProjectReview.Status__c != 'Approved' && oProjectReview.Status__c != 'Submitted'}" />
+                            <apex:outputPanel rendered="{!oProjectReview.Status__c == 'Approved' || oProjectReview.Status__c == 'Submitted'}" >
+                                <apex:outputField style="width:100%;" value="{!oProjectReview.SheduleExceptionReport__c}" html-placeholder="Note any threats to approved schedule (is client aware, is action being taken?)" rendered="{!oProjectReview.Status__c == 'Approved' || oProjectReview.Status__c == 'Submitted'}" />
+                                <apex:outputText value="{!dLabel['DL41']}" rendered="{!oProjectReview.SheduleExceptionReport__c == null || oProjectReview.SheduleExceptionReport__c = ''}" />
+                                <br/><br/>
+                            </apex:outputPanel>
+                        </apex:outputPanel>
+                        <apex:outputPanel >
+                            <apex:outputlabel value="{!dLabel['DL42']}" styleclass="dmeOutput" /><br/>
+                            <apex:inputField style="width:100%;" value="{!oProjectReview.QualityException__c}" html-placeholder="Note any quality issues including any unresolved audit findings" rendered="{!oProjectReview.Status__c != 'Approved' && oProjectReview.Status__c != 'Submitted'}" />
+                            <apex:outputPanel rendered="{!oProjectReview.Status__c == 'Approved' || oProjectReview.Status__c == 'Submitted'}" >
+                                <apex:outputField style="width:100%;" value="{!oProjectReview.QualityException__c}" html-placeholder="Note any quality issues including any unresolved audit findings" rendered="{!oProjectReview.Status__c == 'Approved' || oProjectReview.Status__c == 'Submitted'}" />
+                                <apex:outputText value="{!dLabel['DL43']}" rendered="{!oProjectReview.QualityException__c == null || oProjectReview.QualityException__c = ''}" />
+                                <br/><br/>
+                            </apex:outputPanel>
+                        </apex:outputPanel>
+                        <apex:outputPanel >
+                            <apex:outputlabel value="{!dLabel['DL44']}" styleclass="dmeOutput" html-placeholder="" /><br/>
+                            <apex:inputField style="width:100%;" value="{!oProjectReview.RiskManagement__c}" html-placeholder="Note any emerging risks and opportunites.  Excluding any threatened claims by clients or others, which should be notified to legal" rendered="{!oProjectReview.Status__c != 'Approved' && oProjectReview.Status__c != 'Submitted'}" />
+                            <apex:outputPanel rendered="{!oProjectReview.Status__c == 'Approved' || oProjectReview.Status__c == 'Submitted'}" >
+                                <apex:outputField style="width:100%;" value="{!oProjectReview.RiskManagement__c}" html-placeholder="Note any emerging risks and opportunites.  Excluding any threatened claims by clients or others, which should be notified to legal" rendered="{!oProjectReview.Status__c == 'Approved' || oProjectReview.Status__c == 'Submitted'}" />
+                                <apex:outputText value="{!dLabel['DL45']}" rendered="{!oProjectReview.RiskManagement__c == null || oProjectReview.RiskManagement__c = ''}" />
+                                <br/><br/>
+                            </apex:outputPanel>
+                        </apex:outputPanel>
+                        <apex:outputPanel >
+                            <apex:outputlabel value="{!dLabel['DL46']}" styleclass="dmeOutput" /><br/>
+                            <apex:inputField style="width:100%;" value="{!oProjectReview.StaffResourcesExceptionReport__c}" html-placeholder="Note any staff resourcing issues" rendered="{!oProjectReview.Status__c != 'Approved' && oProjectReview.Status__c != 'Submitted'}" />
+                            <apex:outputPanel rendered="{!oProjectReview.Status__c == 'Approved' || oProjectReview.Status__c == 'Submitted'}" >
+                                <apex:outputField style="width:100%;" value="{!oProjectReview.StaffResourcesExceptionReport__c}" html-placeholder="Note any staff resourcing issues" rendered="{!oProjectReview.Status__c == 'Approved' || oProjectReview.Status__c == 'Submitted'}" />
+                                <apex:outputText value="{!dLabel['DL47']}" rendered="{!oProjectReview.StaffResourcesExceptionReport__c == null || oProjectReview.StaffResourcesExceptionReport__c = ''}" />
+                                <br/><br/>              
+                            </apex:outputPanel>
+                        </apex:outputPanel>
+                        <apex:outputPanel >
+                            <apex:outputlabel value="{!dLabel['DL48']}" styleclass="dmeOutput" /><br/>
+                            <apex:inputField style="width:100%;" value="{!oProjectReview.SubsExceptionReport__c}" html-placeholder="Note any issues (contractual, performance)" rendered="{!oProjectReview.Status__c != 'Approved' && oProjectReview.Status__c != 'Submitted'}" />
+                            <apex:outputPanel rendered="{!oProjectReview.Status__c == 'Approved' || oProjectReview.Status__c == 'Submitted'}" >
+                                <apex:outputField style="width:100%;" value="{!oProjectReview.SubsExceptionReport__c}" html-placeholder="Note any issues (contractual, performance)" rendered="{!oProjectReview.Status__c == 'Approved' || oProjectReview.Status__c == 'Submitted'}" />
+                                <apex:outputText value="{!dLabel['DL49']}" rendered="{!oProjectReview.SubsExceptionReport__c == null || oProjectReview.SubsExceptionReport__c = ''}" />
+                                <br/>
+                            </apex:outputPanel>
+                        </apex:outputPanel>
+                    </apex:pageBlockSection>    
+    
+                    <apex:pageBlockSection title="{!dLabel['DL50']}" columns="1" collapsible="false" rendered="{!showOtherSections && oProjectReview.Status__c != 'Not Started'}" >
+                        <apex:commandButton value="{!dLabel['DL51']}" action="{!newTask}" />
+                        <apex:pageBlockTable value="{!ReviewTasks}" var="item" width="100%" id="TasksTable" rendered="{!IF(ReviewTasks != null &&ReviewTasks.size > 0, true, false)}" >
+                            <apex:column style="width:60px" headervalue="{!dLabel['DL52']}" >
+                                <apex:commandLink style="color:#015ba7;" action="{!URLFOR($Action.Task.edit, item.Id, ['retURL'='/apex/ECO_ProjectPerformanceReviews?id='&oProjectReview.Id])}" >{!dLabel['DL53']}</apex:commandLink><apex:outputText value="{!dLabel['DL54']}" />
+                                <apex:commandLink style="color:#015ba7;" action="{!URLFOR($Action.Task.delete, item.Id, ['retURL'='/apex/ECO_ProjectPerformanceReviews?id='&oProjectReview.Id])}" >{!dLabel['DL55']}</apex:commandLink>
+                            </apex:column>                      
+                            <apex:column headervalue="{!dLabel['DL56']}" >
+                                <apex:outputField value="{!item.ActivityDate}" />
+                            </apex:column>
+                            <apex:column headervalue="{!dLabel['DL57']}" >
+                                <apex:outputField value="{!item.Subject}" />
+                            </apex:column>
+                            <apex:column headervalue="{!dLabel['DL58']}" >
+                                <apex:outputField value="{!item.OwnerId}" />
+                            </apex:column>
+                        </apex:pageBlockTable>
+                        <apex:pageMessage severity="info" rendered="{!IF(ReviewTasks == null || ReviewTasks.size = 0, true, false)}" summary="{!dLabel['DL59']}" />
+                    </apex:pageBlockSection>
+                        </apex:tab> 
+    
+                </apex:tabPanel>
+    
+            </apex:outputPanel> 
+        
+        </apex:pageBlock>
+    
+            <c:ECO_RiskFlyout projectid="{!theProject.Id}" rendered="{!theProject != null}" planelement="" />
+            <c:ECO_AssumptionFlyout projectid="{!theProject.Id}" rendered="{!theProject != null}" planelement="" />
+            <c:ECO_ProjectTeamFlyout projectid="{!theProject.Id}" rendered="{!theProject != null}" />
+        </apex:form>
+        <apex:relatedList list="ProcessSteps" rendered="{!ShowApprovalProcessList}" />
+        <apex:relatedList list="CombinedAttachments" />
+    <script type="text/javascript" >
+        j$(document).ready(function() {
+            //Hide Reassign link for Approval Process
+            var reassign;
+            j$( "a" ).each(function( index ) {
+               var href= j$( this ).attr("href");
+    
+               if (typeof href != 'undefined') {
+                   if (href.includes("REASSIGN")) {
+                       reassign = j$(this).parent();
+                       return false; //break
+                   }
+               }
+            });
+            reassign.html(reassign.children().eq(1));
+        });
+
+    </script>    
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

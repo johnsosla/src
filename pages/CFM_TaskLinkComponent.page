@@ -1,0 +1,5 @@
+<apex:page showHeader="false" sidebar="false" standardController="Task">
+	<div style="width: 100%; text-align: center; font-size: 1.3em; font-weight: bold; margin-top: 20px">
+	{!$Label.CFM_ReviewTask_Click} <a style="color: red;" href="#" onclick="window.top.location = '/{!Task.WhatId}'; return false;">{!$Label.CFM_ReviewTask_Here}</a> {!$Label.CFM_ReviewTask_ToReview}
+	</div>
+</apex:page>

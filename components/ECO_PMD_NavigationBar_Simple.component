@@ -1,0 +1,22 @@
+<apex:component layout="block">
+  <apex:attribute name="PageTitle" description="Page Title" type="String" required="true" />
+  <apex:attribute name="ProjectName" description="Project Name" type="String" required="true" />
+  <apex:attribute name="ProjectNumber" description="Project Number" type="String" required="true" />
+  <apex:attribute name="ProjectId" description="Project ID" type="String" required="true" />
+	
+	<nav class="navbar navbar-default customNavbar">
+		<div class="container-fluid navbarBackground">
+			<div class="navbar-header" style="width:100%">
+			        <a class="navbar-brand navbarText" href="#">{!pageTitle}{!ProjectNumber} - {!ProjectName}</a> 
+			        <div style="float:right;display:inline;">
+
+				        <div>
+
+						</div> 
+
+			        </div>
+			</div>
+		</div>
+	</nav>
+
+</apex:component>

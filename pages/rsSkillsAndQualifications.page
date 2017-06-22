@@ -1,0 +1,340 @@
+<apex:page controller="rsSkillsAndQualsController" showHeader="false" sidebar="false" docType="html-5.0">
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1,minimum-scale=1, maximum-scale=1, user-scalable=no"/>
+ 
+    <apex:stylesheet value="{!URLFOR($Resource.rs_libs, 'bootstrap/css/bootstrap.min.css')}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.rs_libs, 'bsdatepicker/css/bootstrap-datepicker3.css')}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.rs_libs, 'qtip/jquery.qtip.min.css')}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.rs_bundle, 'css/profilescommon.css')}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.rs_bundle, 'css/buttonSection.css')}"/>
+
+    <script src="{!URLFOR($Resource.rs_libs, 'jquery/jquery.js')}" type="text/javascript" charset="utf-8"></script>
+    <script src="{!URLFOR($Resource.rs_libs, 'jqueryui/jquery-ui.js')}" type="text/javascript" charset="utf-8"></script>
+    <script src="{!URLFOR($Resource.rs_libs, 'bsdatepicker/js/bootstrap-datepicker.js')}" type="text/javascript" charset="utf-8"></script>
+    <script>
+        var $j = jQuery.noConflict();
+    </script>
+
+<apex:form >
+<apex:outputPanel rendered="{!!IsReadOnly}" styleClass="pageContainer">
+<div id="tabs">
+    <ul id="nav">
+        <li><a href="#work" onclick="setSubTabCookies(0)">{!$Label.Work_History}</a></li>
+        <!-- <li style="outline: none; padding-left: 18px;"><a href="#skills" onclick="setSubTabCookies(1)">{!$Label.Skills}</a></li> -->
+        <li style="outline: none;  padding-left: 18px;"><a href="#languages" onclick="setSubTabCookies(1)">{!$Label.Languages}</a></li>
+        <li style="outline: none; padding-left: 18px;"><a href="#credentials" onclick="setSubTabCookies(2)">{!$Label.Credentials}</a></li>
+        <li style="outline: none; padding-left: 18px;"><a href="#awardsPublications" onclick="setSubTabCookies(3)">{!$Label.Awards_Publications}</a></li>
+        <li style="outline: none; padding-left: 18px;"><a href="#references" onclick="setSubTabCookies(4)">{!$Label.References}</a></li>
+        <li style="outline: none; padding-left: 18px;"><a href="#generateResume" onclick="setSubTabCookies(5)">{!$Label.Generate_CV_Resume}</a></li>
+    </ul>
+    <br/>
+    <apex:outputPanel id="messages">
+    <apex:outputPanel layout="none"  rendered="{!showMessages}">
+        <br/>
+        <div class="pull-left">
+            <apex:pageMessages escape="false" />
+        </div>
+    </apex:outputPanel>
+    <div class="clearfix"/>
+    </apex:outputPanel>
+    <apex:outputPanel rendered="{!isSF1}">
+        <div style="float:left; margin-right: 10px; margin-left: 10px;">
+            <apex:image value="{!PhotoURL}" />
+        </div>
+        <div style="float:left;">
+            <strong><apex:outputField id="profileOwner" value="{!Profile.Obj['Name']}"/></strong> <br />
+        </div>
+        <div class="clearfix"/>
+    </apex:outputPanel>
+
+    <div style="padding-bottom:8px;"></div>
+
+    <div id="work">
+        <!--aka employment -->
+        <c:rsWorkComponent rsProfile="{!Profile}" id="workhist" reRender="workhist,messages"/>
+    </div>
+    <!--  <div id="skills">
+        <c:rsSkillIndexComponent rsProfile="{!Profile}" id="skill" reRender="skill,messages"/>
+    </div> -->
+    <div id="languages">
+        <c:rsLanguagesComponent rsProfile="{!Profile}" id="language" reRender="language,messages"/>
+        <c:rsTranslationsComponent rsProfile="{!Profile}" id="translations" reRender="translations,messages"/>
+    </div>
+    <div id="credentials">
+        <c:rsAecomCertificationComponent rsProfile="{!Profile}" id="aecomCert" />
+        <br/>
+        <c:rsEducationComponent rsProfile="{!Profile}" id="edu" reRender="edu,messages"/>
+        <br/>
+        <c:rsCertificationComponent rsProfile="{!Profile}" id="cert" reRender="cert,messages"/>
+        <br/>
+        <c:rsRegistrationComponent rsProfile="{!Profile}" id="reg" reRender="reg,messages"/>
+        <br/>
+        <c:rsAssociationComponent rsProfile="{!Profile}" id="ass" reRender="ass,messages"/>
+        <br/>
+        <c:rsTrainingComponent rsProfile="{!Profile}" id="trn" reRender="trn,messages"/>
+        <apex:outputPanel layout="none" rendered="{!ShouldShowSFDiscipline}">
+            <br/>
+            <c:rsSF254DisciplineComponent rsProfile="{!Profile}" id="sf254" reRender="sf254,messages"/>
+            <br/>
+            <c:rsSF330DisciplineComponent rsProfile="{!Profile}" id="sf330" reRender="sf330,messages"/>
+        </apex:outputPanel>
+    </div>
+    <div id="awardsPublications">
+        <c:rsAwardComponent rsProfile="{!Profile}" id="award" reRender="award,messages"/>
+        <br/>
+        <c:rsPublicationComponent rsProfile="{!Profile}" id="pubs" reRender="pubs,messages"/>
+    </div>
+    <div id="references">
+        <c:rsReferenceComponent rsProfile="{!Profile}" id="ref" reRender="ref,messages"/>
+    </div>
+    <div id="generateResume">
+       <c:rsGenerateResumeComponent userIdList="{!UserIdList}"/>
+    </div>
+    <c:rsPeopleProfileChatterGroup /> <br/>
+    <c:rsPolicyGuidance />
+</div>
+</apex:outputPanel>
+    <apex:outputPanel rendered="{!IsReadOnly}">
+        <apex:pageMessage summary="{!$Label.Read_Only_Profile_Message}" severity="info"/>
+    </apex:outputPanel>
+</apex:form>
+
+
+    <script src="{!URLFOR($Resource.rs_libs, 'bootstrap/js/bootstrap.min.js')}" type="text/javascript" charset="utf-8"></script>
+    <script src="{!URLFOR($Resource.rs_libs, 'qtip/jquery.qtip.min.js')}" type="text/javascript" charset="utf-8"></script>
+    <script src="{!URLFOR($Resource.rs_bundle, 'js/profiles.js')}" type="text/javascript" charset="utf-8"></script>
+    <script src="/canvas/sdk/js/publisher.js" type="text/javascript" charset="utf-8"/>
+    <script>
+        function resize() {
+            console.log('SEND RESIZE FROM VF PAGE');
+            Sfdc.canvas.publisher.resize( {width : '100%', height : '3000px'});
+        }
+        function updateDisplay(msg) {
+           console.log('GOT EVENT IN VF PAGE: ', msg);
+        }
+
+        Sfdc.canvas.onReady(function() {
+            Sfdc.canvas.publisher.subscribe({name : "sfdc.resize", onData : function(e) {
+                console.log(e);
+                updateDisplay('sfdc.resize');
+                }
+            });
+        });
+        console.log('VFpage rendered');
+
+        var $j = jQuery.noConflict();
+        var requiredFields = [];
+        var inputFields = [];
+        var inProgress = false;
+        var sortDir = ["",""];
+        function resetProgress() {
+            inProgress = false;
+        }
+        $j(function() {
+            $j( "#tabs" ).tabs({ active: getTab()});
+            resize();
+        });
+        $j(document).ready(function() {
+            if( ( typeof sforce != 'undefined' ) && sforce && sforce.one ) {
+            //AECR-184, known issue with Salesforce, workaround is to open a child window
+            // and add a parameter so we still know it's in SF1
+            sforce.one.back();
+            window.open('/apex/rsSkillsAndQualifications?sfone=true');
+            }
+        });
+        function setSubTabCookies(tab) {
+            //Set Expiration to five minutes
+            var exp = new Date();
+            exp.setTime(exp.getTime() + 300000);
+            var expires = "expires="+exp.toGMTString()+";";
+            document.cookie="SQsubtab="+tab+";"+expires+"path=/;";
+        }
+        function getCookie(cname) {
+            var name = cname + "=";
+            var ca = document.cookie.split(';');
+            for(var i=0; i<ca.length; i++) {
+                var c = ca[i];
+                while (c.charAt(0)==' ') c = c.substring(1);
+                if (c.indexOf(name) != -1) return c.substring(name.length, c.length);
+            }
+            return "";
+        }
+        function getTab() {
+            var value = getParameterByName('tab.Skills_and_Qualifications.subtab');
+            if(value === null) {
+                value = getCookie('SQsubtab');
+            }
+            console.log(value);
+            return value;
+        }
+        function getParameterByName(name) {
+            var url = (window.location != window.parent.location) ? document.referrer: document.location;
+            var match = RegExp('[?&]' + name + '=([^&]*)').exec(url);
+            var value = match && decodeURIComponent(match[1].replace(/\+/g, ' '));
+            console.log('getParameterByName for ' + name + ' returns : ' + value);
+            return value;
+        }
+        function confirmDeletePart(){
+            return confirm("{!$Label.Confirm_Delete_Part}");
+        }
+        function confirmDeleteAttachment(){
+            return confirm("{!$Label.Confirm_Delete_Attachment}");
+        }
+        function showSectionSpinner(headerId){
+            $j("#"+headerId).toggleClass('active');
+        }
+        function sortOrderArrow(elemId) {
+            if(sortDir[0] == "") {
+                sortDir[0] = $j('[id="'+elemId+'"]').text();
+            }
+            if(sortDir[0] == $j('[id="'+elemId+'"]').text()) {
+                if(sortDir[1] == "up") {
+                    $j('[id="'+elemId+'"]').children().each(function(){
+                        if($j(this).hasClass('glyphicon-chevron-up')) {
+                            $j(this).hide();
+                        } else {
+                            $j(this).show();
+                        }
+                    });
+                    sortDir[1] = "down";
+                } else {
+                    $j('[id="'+elemId+'"]').children().each(function(){
+                        if($j(this).hasClass('glyphicon-chevron-down')) {
+                        $j(this).hide();
+                        } else {
+                        $j(this).show();
+                        }
+                    });
+                    sortDir[1] = "up";
+                }
+            } else {
+                $j('[id="'+elemId+'"]').children('.glyphicon-chevron-up').first().show();
+                sortDir[0] = $j('[id="'+elemId+'"]').text();
+                sortDir[1] = "up";
+            }
+        }
+        //Function to setup required fields for interaction
+        function setupFields() {
+            $j.each(requiredFields, function(index, item) {
+
+                //Date Fields and Select lists do not fire off input event with DatePicker
+                if($j(item).is('select')) {
+                $j(item).on('change',function() {
+                    var input = $j(this);
+                    var notEmpty = input.val().trim();
+                    if(notEmpty) {
+                    input.removeClass('invalid').addClass('valid');
+                    } else {
+                    input.removeClass('valid').addClass('invalid');
+                    }
+                });
+                } else {
+                $j(item).on('input',function() {
+                    var input = $j(this);
+                    var notEmpty = input.val().trim();
+                    if(notEmpty) {
+                    input.removeClass('invalid').addClass('valid');
+                    } else {
+                    input.removeClass('valid').addClass('invalid');
+                    }
+                });
+                $j(item).on('focus',function() {
+                    var input = $j(this);
+                    var notEmpty = input.val().trim();
+                    if(notEmpty) {
+                      input.removeClass('invalid').addClass('valid');
+                    } else {
+                      input.removeClass('valid').addClass('invalid');
+                    }
+                 });
+                }
+            });
+        }
+         function checkRequiredFields() {
+            var notValid = true;
+            $j.each(requiredFields, function(index, item) {
+                console.log(!$j(item).val());
+                var errorMsg = $j('span.rsError',$j(item).parent());
+                if(!$j(item).val().trim()) {
+                    $j(item).removeClass('valid').addClass('invalid');
+                    if($j(item).parent().hasClass('dateInput')) {
+                        errorMsg = $j('span.rsError',$j(item).parent().parent());
+                    }
+                    errorMsg.show();
+                    notValid = false;
+                } else {
+                    $j(item).removeClass('invalid').addClass('valid');
+                    if($j(item).parent().hasClass('dateInput')) {
+                        errorMsg = $j('span.rsError',$j(item).parent().parent());
+                    }
+                    errorMsg.hide();
+                }
+            });
+            return notValid;
+        }
+
+        function helpTextSetup() {
+            $j('.helpOrb').each(function() {
+                var elem = $j(this);
+                elem.qtip({
+                    content: true,
+                    events: {
+                        show: function(event, api) { elem.parent().removeClass('helpButton').addClass('helpButtonOn');},
+                        hide: function(event, api) { elem.parent().removeClass('helpButtonOn').addClass('helpButton');}
+                    }
+                });
+            });
+        }
+
+        function focusField(fieldId) {
+            var el = $j('[id$='+fieldId+']').get(0);
+            var elemLen = el.value.length;
+
+            el.selectionStart = elemLen;
+            el.selectionEnd = elemLen;
+            el.focus();
+        }
+
+        // We have to clear out the apex:inputFields whenever we do anything other than save to clear out any SF validation errors
+        function clearInputFields() {
+            $j.each(inputFields, function(index, item) {
+                $j(item).val("");
+            });
+        }
+
+        function stateChange(key,listId,inputId) {
+            console.log('key: ' + key);
+            if(key) {
+                $j('select[id$="' + listId + '"]').find('option').remove().end().append('<option value="">--None--</option>');
+                var stateList = states[key];
+                var startingVal;
+                if($j('[id$=' + inputId + ']').val()) {
+                    startingVal = $j('[id$=' + inputId + ']').val();
+                }
+                $j.each(stateList, function(key, value) {
+                    if(value == startingVal) {
+                        $j('select[id$="' + listId + '"]').append('<option value="'+ value +'" selected>'+value+'</option>');
+                    } else {
+                        $j('select[id$="' + listId + '"]').append('<option value="'+ value +'">'+value+'</option>');
+                    }
+                });
+            }
+        }
+
+        function hiddenFieldUpdate(val,id) {
+            $j('input[id$=' + id + ']').val(val);
+        }
+
+        function loadCountry(countryId) {
+            var country = "{!profile.Obj['Country']}";
+            console.log('#####: ' + country);
+            if(country && $j('[id$=' + countryId +'] option[value="' + country + '"]').length) {
+                $j('[id$=' + countryId + ']').val(country);
+            }
+            else {
+                $j('[id$=' + countryId + ']').val("");
+            }
+        }
+    </script>
+
+</apex:page>

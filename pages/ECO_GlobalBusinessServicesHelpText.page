@@ -1,0 +1,63 @@
+<apex:page standardController="SharedServicesRequest__c">
+   <style>
+    /* CUSTOM HELP / GUIDANCE TEXT BOX */
+		.customHelpText{
+			padding:10px 15px;
+			border:1px solid #85B3CE;
+			min-height:30px;
+			display:block;
+			width:auto;
+			margin:0;
+			background-color:#A2D3F1;
+       // background-image: url('../img/icon/forecasts24.png');
+			background-position:.05% 10%;
+			background-repeat:no-repeat;
+			border-radius:4px;
+			margin-bottom:15px;
+        }
+    </style>
+    <div class="customHelpText" >
+			<div class="customHelpBody" >
+                <apex:outputPanel rendered="{!SharedServicesRequest__c.RecordType.DeveloperName == 'GeneralRequest'}">
+                <!--Use this request for any other form of update or creation for which there is no specific request available-->
+
+                    <apex:outputText value="{!$Label.ECOGBSGeneralRequest}" escape="false" />
+                <br/><br/>
+                </apex:outputPanel> 
+			
+                <apex:outputPanel rendered="{!SharedServicesRequest__c.RecordType.DeveloperName == 'AddSite'}">
+                <!--Use this request to add a new site (address) to any existing customer or vendor accounts. Identify the account to which the site should be added, and then provide the relevant details in the Customer or Billing Address fields below.(If you cannot find the account, you may need to initiate a New Customer  Account request). Once complete, click on Submit to route your request to Shared Services for processing.-->
+
+                    <apex:outputText value="{!$Label.ECOGBSAddSite}" escape="false" />
+                <br/><br/>
+                </apex:outputPanel> 
+                
+                 <apex:outputPanel rendered="{!SharedServicesRequest__c.RecordType.DeveloperName == 'UpdateSite'}">
+                <!--Use this request to add a update site (address) to any existing customer or vendor accounts. Identify the account to which the site should be added, and then provide the relevant details in the Customer or Billing Address fields below.
+                Once complete, click on Submit to route your request to Shared Services for processing.-->
+
+                    <apex:outputText value="{!$Label.ECOGBSUpdateSite}" escape="false" />
+                <br/><br/>
+                </apex:outputPanel> 
+                
+                <apex:outputPanel rendered="{!SharedServicesRequest__c.RecordType.DeveloperName == 'CreateCustomer'}">
+                    <!--Use this request to add a new customer account. Once complete, click on Submit to route your request to Shared Services for processing.<br/><br/>
+                    Please ensure the following:
+                    <br/><br/>
+				&nbsp;&nbsp;&nbsp;1.  This client doesn't already exist in the system<br/>
+				&nbsp;&nbsp;&nbsp;2.  That you are tagging the correct parent account.  You can easily identify if you have done this correctly if you see the account name with "HQ" at the end.<br/>-->
+                
+                    <apex:outputText value="{!$Label.ECOGBSCreateCustomer}" escape="false" />
+
+                </apex:outputPanel> 
+        
+                <apex:outputPanel rendered="{!SharedServicesRequest__c.RecordType.DeveloperName == 'CreateVendor'}">
+                     <!--Use this request to add a new Vendor account (please ensure you have already checked the Vendor does not already exist to avoid creating duplicates). Once complete, click on Submit to route your request to Shared Services for processing.-->
+
+                     <apex:outputText value="{!$Label.ECOGBSCreateVendor}" escape="false" />
+                     <br/><br/>
+                </apex:outputPanel> 
+
+             </div>
+		</div>	
+</apex:page>

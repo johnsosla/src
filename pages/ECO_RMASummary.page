@@ -1,0 +1,523 @@
+<apex:page tabstyle="QuestionnaireSet__c" standardcontroller="QuestionnaireSet__c" extensions="ECO_RMASummaryController,nttdcore.DLabelParentController" showheader="true" sidebar="false" action="{!init}" >
+
+    <style>
+        .meetingNotes td, .meetingNotes th{
+            padding:10px;
+        }
+
+        .meetingNotes td{
+            padding-top:2px;
+        }
+
+        .meetingNotes th{
+            padding-bottom:2px;
+        }
+
+        .tableLabel{
+            font-weight:bold;
+            color: #4a4a56 !important;
+            text-align: right;
+            font-size: 91%;
+            padding-right:10px;
+        }
+
+        .setPicker{
+            position:absolute;
+        //top:0;
+            right:0;
+        }
+        body .bPageBlock .pbBody .labelCol{
+            padding-top: 3px !important;
+            padding-bottom: 5px;
+            vertical-align: middle;
+        }
+
+        .riskNotifications{
+            border:1px solid #EAEAEA;
+            border-top:3px solid #3399CC;
+            background-color:#F8F8F8;
+            padding:10px 0;
+        }
+
+        .riskNotifications .pbSubsection .detailList tr td{
+            color:red !important;
+        }
+
+        .riskNotifications h2{
+            padding:20px;
+        }
+
+        .halfWidthWrapper {
+            width:70%;
+            display:inline-block;
+            float:left;
+        }
+
+        #notifications{
+            margin-left:70%;
+            padding-left:20px;
+        }
+        .goNoGoBox{
+            text-align:center;
+            width:300px;
+            margin:0 auto;
+            font-weight:bold;
+            font-size:14px;
+            padding:15px 20px 15px 20px;
+            border:2px solid #85B3CE;
+            background-color:#E3F0F8;
+            border-radius:5px;
+        }
+        .goNoGoBox fieldset{
+            padding-left:17px;
+        }
+        .goNoGoBox h2{
+            font-size:19px;
+        }
+
+
+
+        /* RADIO STYLE BUTTONS */
+        label {
+          width: 125px;
+          border-radius: 4px;
+          border: 1px solid #85B3CE;
+        }
+
+        input[type="radio"]{
+            display:none;
+        }
+
+        /* hide input */
+        input[type="radio"]:empty {
+            margin-left: -999px;
+        }
+
+        /* style label */
+        input[type="radio"]:empty ~ label {
+            position: relative;
+            float: left;
+            line-height: 2.5em;
+            text-indent: 3.25em;
+            margin-top: 2em;
+            cursor: pointer;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        input[type="radio"]:empty ~ label:before {
+            position: absolute;
+            display: block;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            content: '';
+            width: 2.5em;
+            background: #C3D4DE;
+            border-radius: 3px 0 0 3px;
+            padding-right:5px;
+        }
+
+        /* toggle hover */
+        input[type="radio"]:hover:not(:checked) ~ label:before {
+            content:'\2714';
+            text-indent: .9em;
+            color: #C2C2C2;
+        }
+
+        input[type="radio"]:hover:not(:checked) ~ label {
+            color: #888;
+        }
+
+        /* toggle on */
+        input[type="radio"]:checked ~ label:before {
+            content:'\2714';
+            text-indent: .9em;
+            color: #9CE2AE;
+            background-color: #38BB59;
+        }
+
+        input[type="radio"]:checked ~ label {
+            color: #333;
+        }
+        input[type="radio"]:not(:checked) ~ label {
+            color: #777;
+        }
+
+        /* radio focus */
+        input[type="radio"]:focus ~ label:before {
+            box-shadow: 0 0 0 3px #999;
+        }
+
+        /* CUSTOM HELP / GUIDANCE TEXT BOX 
+        .customHelpText{
+            padding:20px 25px;
+            border:1px solid #85B3CE;
+            min-height:30px;
+            display:block;
+            width:auto;
+            margin:20px 0;
+            background-color:#E3F0F8;
+            background-image: url('../img/icon/forecasts24.png');
+            background-position:3% 50%;
+            background-repeat:no-repeat;
+            border-radius:4px;
+        }*/
+        .customHelpText{
+            padding:7px;
+            border:1px solid #85B3CE;
+            min-height:30px;
+            display:block;
+            width:auto;
+            margin:0;
+            background-repeat:no-repeat;
+            border-radius:4px;
+            background-color:#A2D3F1;
+        }
+        .customHelpBody{
+            display:inline-block;
+            color:#;
+            max-width:95%;
+            //margin-left:28px;
+        }
+        .bPageBlock .message{
+            padding: 7px;
+            border: 1px solid #85B3CE;
+            min-height: 30px;
+            display: block;
+            width: auto;
+            margin: 0 0 5px 0;
+            background-repeat: no-repeat;
+            border-radius: 4px;
+            background-color: #A2D3F1;
+
+        }
+    </style>
+    <apex:includeScript value="{!$Resource.ECO_jQuery_1_11_2_min_js}" />
+    <script type="text/javascript" >
+    function collapseSection()
+    {
+        console.log('collapseSection');
+        $("div[id$='ProjectSummary']").find("div.pbBody").find("img.hideListButton").click();
+    }
+    /*function enableSubmit()
+    {
+        enableSubmit();
+    }*/
+    sfdcPage.appendToOnloadQueue(collapseSection);
+    </script>
+    <apex:form id="mainForm" >
+
+        <apex:outputField value="{!QuestionnaireSet__c.ApprovalStatus__c}" rendered="false" />
+        <apex:outputField value="{!QuestionnaireSet__c.FlagForEscalate__c}" rendered="false" />
+        <apex:outputField value="{!QuestionnaireSet__c.delegateProject__c}" rendered="false" />
+        <apex:outputPanel style="display:none;visibility:hidden" >
+            <apex:outputField value="{!QuestionnaireSet__c.GoNoGo_Review__c}" />
+        </apex:outputPanel>
+        <apex:actionFunction id="enableSubmit" name="enableSubmit" action="{!enableSubmitApex}" rerender="SubmitApproval" />
+        <div style="position:relative" >
+            <nttdcore:DLabel name="DL1" default="Risk and Market Assessment" labelParent="{!this}" /><apex:sectionHeader title="{!dLabel['DL1']}" subtitle="{!QuestionnaireSet__c.Project__r.ProjectNumber__c} {!QuestionnaireSet__c.Project__r.Name}" rendered="{!NOT(ISNULL(sSelectedQuestionnaireSet))}" />
+            <nttdcore:DLabel name="DL2" default="Risk and Market Assessment" labelParent="{!this}" /><nttdcore:DLabel name="DL3" default="New Risk and Market Assessment" labelParent="{!this}" /><apex:sectionHeader title="{!dLabel['DL2']}" subtitle="{!dLabel['DL3']}" rendered="{!ISNULL(sSelectedQuestionnaireSet)}" />
+
+            <!--<div class="setPicker">
+                <span style="white-space:nowrap">
+                    Change or New Assessment: 
+                </span>
+
+                <apex:selectList size="1" value="{!sSelectedQuestionnaireSet}">
+                    <apex:selectOptions value="{!loQuestionnaireSets}" />
+                    <apex:selectOption itemLabel="Start New Assessment" itemValue="" />
+                    <apex:actionSupport event="onchange" action="{!SelectNewQuestionnaire}" />
+                </apex:selectList>
+            </div>-->
+        </div>
+        <c:ECO_CollapsibleSection sectiontitle="{!$Label.RM_Summary_General_Guidance_Info_Section}" ><nttdcore:DLabel name="DL4" default="The Risk &amp; Market Assessment informs the Go/No Go decision and must be completed in its entirety prior to submitting the go/no go recommendation for approval.  If you do not know the answer to a question, select &lsquo;unknown&rsquo;." labelParent="{!this}" />  
+            {!dLabel['DL4']}
+            <div style="width:100%; height:5px;" />
+            <strong><nttdcore:DLabel name="DL5" default="Directions:" labelParent="{!this}" />{!dLabel['DL5']}</strong>
+            <ul>
+                <li><nttdcore:DLabel name="DL6" default="Step 1:  Create a version name for the Risk &amp; Market Assessment (default will be saved as &ldquo;Initial Assessment&rdquo;)" labelParent="{!this}" />{!dLabel['DL6']}</li>
+                <li><nttdcore:DLabel name="DL7" default="Step 2:  Complete the Risk Assessment" labelParent="{!this}" />{!dLabel['DL7']}</li>
+                <li><nttdcore:DLabel name="DL8" default="Step 3:  Complete the Market Assessment" labelParent="{!this}" />{!dLabel['DL8']}</li>
+                <li><nttdcore:DLabel name="DL9" default="Step 4: Schedule and conduct a Go/No Go meeting (optional)" labelParent="{!this}" />{!dLabel['DL9']}</li>
+                <li><nttdcore:DLabel name="DL10" default="Step 5:  Select &ldquo;go&rdquo; or &ldquo;no go&rdquo; for approval" labelParent="{!this}" />{!dLabel['DL10']}</li>
+                <li><nttdcore:DLabel name="DL11" default="Step 6:  Submit the completed R&amp;M Assessment and go/no go recommendation for approval" labelParent="{!this}" />{!dLabel['DL11']} </li>
+            </ul>
+            <em><nttdcore:DLabel name="DL12" default="The system will automatically submit the request to the owning organization P&amp;L Manager or delegate.  The approver will review the results of the Risk &amp; Market Assessment and approve/reject the go/no go recommendation." labelParent="{!this}" />{!dLabel['DL12']}</em>
+        </c:ECO_CollapsibleSection>
+        
+        <apex:inputhidden value="{!QuestionnaireSet__c.UnansweredQuestionCount__c}" />
+        <apex:pageMessages id="pageMessages" />
+        <apex:outputPanel id="topPanel" rendered="{!NOT(ISNULL(QuestionnaireSet__c.Project__c))}" >
+            <div class="projectSummary" >
+                <nttdcore:DLabel name="DL13" default="Risk and Market Assessment" labelParent="{!this}" /><apex:pageBlock title="{!dLabel['DL13']}" id="ProjectSummary" ><nttdcore:DLabel name="DL19" default="Assessment Name" labelParent="{!this}" /><nttdcore:DLabel name="DL20" default="Change or New Assessment:" labelParent="{!this}" /><nttdcore:DLabel name="DL21" default="Change or New Assessment:" labelParent="{!this}" /><nttdcore:DLabel name="DL22" default="Start New Assessment" labelParent="{!this}" />
+                    <apex:pageBlockButtons location="top" >
+                        <nttdcore:DLabel name="DL14" default="Begin/Edit Risk Assessment" labelParent="{!this}" /><apex:commandButton action="{!BeginRiskAssessment}" value="{!dLabel['DL14']}" />
+                        <nttdcore:DLabel name="DL15" default="Print R&amp;M Assessment" labelParent="{!this}" /><apex:commandLink action="{!generatePdf}" value="{!dLabel['DL15']}" styleclass="btn" immediate="true" target="_blank" style="padding:4px 3px; text-decoration:none;" />  
+                        <!--<apex:commandButton action="{!Save}" value="Save" disabled="{!oQuestionnaireSet.ApprovalStatus__c == 'Approved'}" />-->
+                        <nttdcore:DLabel name="DL16" default="Save" labelParent="{!this}" /><apex:commandButton action="{!Save}" value="{!dLabel['DL16']}" disabled="true" />
+                        <nttdcore:DLabel name="DL17" default="Cancel" labelParent="{!this}" /><apex:commandButton action="{!CancelRM}" value="{!dLabel['DL17']}" rendered="{!oQuestionnaireSet.ApprovalStatus__c == 'Pending Approval'}" />
+                        <nttdcore:DLabel name="DL18" default="Return to Project" labelParent="{!this}" /><apex:commandButton action="{!ReturnToProject}" value="{!dLabel['DL18']}" />            
+                    </apex:pageBlockButtons>
+                    <apex:pageBlockSection columns="2" collapsible="false" >
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel for="QuestionnaireSetName" value="{!dLabel['DL19']}" />
+                            <apex:inputField id="QuestionnaireSetName" value="{!oQuestionnaireSet.Name}" required="true" style="width:225px" />
+                        </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem >
+                            <!--<span style="white-space:nowrap">
+                                    Change or New Assessment: 
+                                </span>-->
+                            <apex:outputPanel >
+                                <span style="white-space:nowrap" >
+                                    {!dLabel['DL20']} 
+                                </span>
+                                <apex:selectList size="1" value="{!sSelectedQuestionnaireSet}" title="{!dLabel['DL21']}" >
+                                    <apex:selectOptions value="{!loQuestionnaireSets}" />
+                                    <apex:selectOption itemlabel="{!dLabel['DL22']}" itemvalue="" />
+                                    <apex:actionSupport event="onchange" action="{!SelectNewQuestionnaire}" />
+                                </apex:selectList>
+                            </apex:outputPanel>
+                        </apex:pageBlockSectionItem>
+                    </apex:pageBlockSection>
+                    <div style="clear:both;" />
+                    <div class="halfWidthWrapper" ><nttdcore:DLabel name="DL23" default="Project Information" labelParent="{!this}" /><nttdcore:DLabel name="DL24" default="Risk Assessment" labelParent="{!this}" /><nttdcore:DLabel name="DL25" default="Name" labelParent="{!this}" /><nttdcore:DLabel name="DL26" default="Market Assessment" labelParent="{!this}" /><nttdcore:DLabel name="DL27" default="Market Assessment Name" labelParent="{!this}" /><nttdcore:DLabel name="DL28" default="Questions Completed" labelParent="{!this}" /><nttdcore:DLabel name="DL29" default="Percent Complete" labelParent="{!this}" /><nttdcore:DLabel name="DL30" default="Export Control(s)" labelParent="{!this}" /><nttdcore:DLabel name="DL31" default="Action" labelParent="{!this}" /><nttdcore:DLabel name="DL32" default="View" labelParent="{!this}" />
+                        <apex:pageBlockSection title="{!dLabel['DL23']}" collapsible="true" columns="2" >
+                            
+                            <apex:repeat value="{!CustomProjSetupFields}" var="f" >
+                                <apex:outputField value="{!theProject[f.fieldPath]}" />
+                            </apex:repeat>
+                        
+                            <!--<apex:outputField value="{!theProject.Name}" />
+                            <apex:outputField value="{!theProject.OwnerId}" />
+                            <apex:outputField value="{!theProject.pse__Opportunity__c}" />
+                            <apex:outputField value="{!theProject.EstimatedContractValue__c}" />
+                            <apex:outputField value="{!theProject.pse__Project_Manager__c}" />
+                            <apex:outputField value="{!theProject.NetServicesRevenue__c}" />
+                            <apex:outputField value="{!theProject.ProjectOwningOrg__c}" />
+                            <apex:outputField value="{!theProject.TotalMargin__c}" />
+                            <apex:outputField value="{!theProject.PrimaryEndClient__c}" />
+                            <apex:outputField value="{!theProject.TotalBidBudget__c}" />
+                            <apex:outputField value="{!theProject.PrimaryBillingClient__c}" />
+                            <apex:outputField value="{!theProject.EstimatedStartDate__c}" />-->
+                            <!-- Commented By Eric on 05-Aug-2015 -->
+                            <!--<apex:outputField value="{!QuestionnaireSet__c.UnansweredQuestionCount__c}"/> -->
+                        </apex:pageBlockSection>
+                        <!--
+                        <apex:pageBlockSection title="Project Sites" columns="1" collapsible="false">
+                            <apex:pageBlockTable value="{!lProjectSites}" var="item" width="100%" rendered="{!if(lProjectSites.size > 0, true, false)}">
+                                <apex:column value="{!item.Account_Name__c}"/>
+                                <apex:column value="{!item.OracleCustomerNumber__c}"/>
+                                <apex:column value="{!item.CreditRiskRating__c}"/>
+                                <apex:column value="{!item.Address1__c}"/> 
+                                <apex:column value="{!item.City__c}"/>
+                                <apex:column value="{!item.State__c}"/>
+                                <apex:column value="{!item.Country__c}"/>
+                                <apex:column value="{!item.Postal_Code__c}"/>
+                                <apex:column value="{!item.Is_Billing__c}"/>
+                                <apex:column value="{!item.Is_Default_Top_Task__c}"/>
+                                <apex:column value="{!item.Is_End__c}"/>
+                                <apex:column value="{!item.Is_Primary_End__c}"/>
+                            </apex:pageBlockTable>
+                            <apex:outputText value="No Project Sites have been defined." rendered="{!if(lProjectSites.size = 0, true, false)}"/>
+                        </apex:pageBlockSection>
+                        -->
+
+                        <apex:pageBlockSection columns="2" title="{!dLabel['DL24']}" collapsible="false" />
+
+                        <apex:pageBlockTable value="{!lQuestionnaires}" var="item" rendered="{!NOT(ISNULL(sSelectedQuestionnaireSet))}" >
+                            <apex:column headervalue="{!dLabel['DL25']}" >
+                                <apex:commandLink action="{!goToSpecificQuestionnaire}" value="{!item.Name}" rendered="{!IF(item.Id == null, false, true)}" >
+                                    <apex:param name="questionnaireId" assignto="{!navTargetQuestionnaireId}" value="{!item.Id}" />
+                                </apex:commandLink>
+                                <apex:outputText value="{!item.Name}" rendered="{!IF(item.Id == null, true, false)}" />
+                            </apex:column>
+                            <apex:column value="{!item.ProjectRisk__c}" /> 
+                            <apex:column value="{!item.DoATriggers__c}" /> 
+                            <apex:column value="{!item.PercentComplete__c}" /> 
+                        </apex:pageBlockTable>
+                        
+                        <apex:pageBlockSection collapsible="false" columns="2" title="{!dLabel['DL26']}" rendered="{!if(lMarketAssessments.size > 0, true, false)}" />
+                        <apex:pageBlockTable value="{!lMarketAssessments}" var="ma" rendered="{!if(lMarketAssessments.size > 0, true, false)}" >
+                            <!--<apex:column >
+                                <apex:facet name="header">Action</apex:facet>
+                                <apex:outputLink value="/{!ma.Id}">View</apex:outputLink>
+                            </apex:column>-->
+                            <apex:column headervalue="{!dLabel['DL27']}" style="width:40%;" >
+                                <apex:commandLink action="/{!ma.Id}" value="{!ma.Name}" />
+                            </apex:column>
+                            <apex:column value="{!countMA}/11" headervalue="{!dLabel['DL28']}" style="width:32.5%;" />
+                            <apex:column value="{!percentMA}%" headervalue="{!dLabel['DL29']}" style="width:27.5%;" />
+                        </apex:pageBlockTable>
+                        
+                        <apex:pageBlockSection collapsible="false" columns="2" title="{!dLabel['DL30']}" rendered="{!if(lExportControls.size > 0, true, false)}" />
+                        <apex:pageBlockTable value="{!lExportControls}" var="ec" rendered="{!if(lExportControls.size > 0, true, false)}" >
+                            <apex:column >
+                                <apex:facet name="header" >{!dLabel['DL31']}</apex:facet>
+                                <a href="/{!ec.Id}" >{!dLabel['DL32']}</a>
+                            </apex:column>
+                            <apex:column value="{!ec.Name}" />
+                            <apex:column value="{!ec.SubmittedDate__c}" />
+                        </apex:pageBlockTable>
+                    </div>
+                    <div id="notifications" ><nttdcore:DLabel name="DL33" default="Notifications and Alerts" labelParent="{!this}" />
+                        <apex:pageBlockSection collapsible="false" title="{!dLabel['DL33']}" />
+                        <apex:repeat value="{!lNotifications}" var="n" rendered="{!if(lNotifications.size > 0, true, false)}" >
+                            <apex:pageMessage severity="INFO" summary="{!n.sMessage}" />
+                        </apex:repeat>
+                        <nttdcore:DLabel name="DL34" default="There are no Notifications or Alerts associated to this project" labelParent="{!this}" /><apex:pageMessage severity="INFO" summary="{!dLabel['DL34']}" rendered="{!if(lNotifications.size = 0, true, false)}" />
+                        
+                    </div>
+                    <div style="clear:both;" /><br/>
+                </apex:pageBlock>
+            </div>
+            <nttdcore:DLabel name="DL35" default="Go / No Go" labelParent="{!this}" /><apex:pageBlock id="meeting" title="{!dLabel['DL35']}" rendered="{!NOT(ISNULL(sSelectedQuestionnaireSet))}" ><!--  rendered="{!NOT(showGoNoGoButton)}" -->
+                <apex:pageBlockButtons location="top" >
+                    <nttdcore:DLabel name="DL36" default="Create Go/No Go Project Meeting" labelParent="{!this}" /><apex:commandButton action="{!CreateGoNoGoReview}" value="{!dLabel['DL36']}" rendered="{!showGoNoGoButton}" rerender="GoNoGoPanel" disabled="{!oQuestionnaireSet.ApprovalStatus__c == 'Approved'}" />
+                    <!-- <apex:commandButton action="{!AddParticipant}" value="Add Participant" rerender="participants" /> -->
+                </apex:pageBlockButtons>
+
+                <apex:outputPanel id="GoNoGoPanel" rendered="{!NOT(showGoNoGoButton)}" >
+                <!-- <apex:pageBlockSection collapsible="false" title="Go / No Go Project Meeting" columns="1"></apex:pageBlockSection> -->
+                <div style="text-align:center; margin:10px;" >
+                    <!-- <apex:commandButton action="{!CreateGoNoGoReview}" value="Create Go/No Go Project Meeting" rendered="{!showGoNoGoButton}" rerender="GoNoGoPanel" /> -->
+                    <apex:pageBlockSection collapsible="false" columns="2" ><!--  rendered="{!NOT(showGoNoGoButton)}" -->
+                        <apex:outputField value="{!QuestionnaireSet__c.GoNoGo_Review__c}" />
+                        <apex:outputField value="{!QuestionnaireSet__c.GoNoGo_Review__r.ScheduledDate__c}" />
+                        <apex:outputField value="{!QuestionnaireSet__c.GoNoGo_Review__r.Status__c}" />
+                    </apex:pageBlockSection>
+                    
+                </div>
+                </apex:outputPanel>
+                <!--
+                <apex:outputPanel id="participants">
+                    <apex:variable value="{!1}" var="iCount" />
+                    <apex:pageBlockSection collapsible="false" title="Meeting Participants" columns="2">
+                        <apex:repeat value="{!lParticipants}" var="participant">
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Participant #{!iCount}" />
+                                <apex:inputField value="{!participant.User__c}" />
+                            </apex:pageBlockSectionItem>
+                            <apex:variable value="{!iCount + 1}" var="iCount" />
+                        </apex:repeat>
+                    </apex:pageBlockSection>
+                </apex:outputPanel>
+                <br/><br/><br/>-->
+
+                <!--<apex:pageBlockSection collapsible="false" title="Notes" columns="2"></apex:pageBlockSection>-->
+                <apex:pageBlockSection collapsible="false" columns="1" />
+                <table class="meetingNotes" width="100%" >
+                    <tr>
+                        <th width="50%" ><nttdcore:DLabel name="DL37" default="Go / No Go Meeting Notes" labelParent="{!this}" />{!dLabel['DL37']}</th>
+                        <!--<th style="padding-left:20px" width="50%">Project Review Category</th>-->
+                    </tr>
+                    <tr>
+                        <td rowspan="3" >
+                            <apex:inputField value="{!QuestionnaireSet__c.MeetingNotes__c}" />
+                        </td>
+                        <!--<td style="padding-left:20px">
+                            <table width="100%">
+                                <tr>
+                                    <td class="tableLabel">
+                                        Assigned
+                                    </td>
+                                    <td>
+                                        <apex:outputText html-disabled="disabled" style="width:100%" value="{!QuestionnaireSet__c.Project__r.ProjectReviewCategory__c}" />
+                                    </td>
+                                    <td class="tableLabel">
+                                        Requested
+                                    </td>
+                                    <td>
+                                        <apex:inputField style="width:100%" value="{!QuestionnaireSet__c.RequestedProjectCategory__c}" />
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>-->
+                    </tr>
+                    <!--<tr>
+                        <th style="padding-left:20px">
+                            Reason for Variance
+                        </th>
+                    </tr>
+                    <tr>
+                        <td valign="top" style="padding-left:20px">
+                            <apex:inputField style="width:100%;height:217px" value="{!QuestionnaireSet__c.ReasonForVariance__c}" />
+                        </td>
+                    </tr>-->
+                </table>
+                
+                <!-- <apex:pageBlockSection collapsible="false" title="Go / No Go Recommendation" columns="1"></apex:pageBlockSection> -->
+                <div class="goNoGoBox" >
+                    <h2><nttdcore:DLabel name="DL38" default="Go / No Go Recommendation" labelParent="{!this}" />{!dLabel['DL38']}</h2>
+                    <nttdcore:DLabel name="DL39" default="Go" labelParent="{!this}" />
+                    <nttdcore:DLabel name="DL40" default="No Go" labelParent="{!this}" />                    
+
+                    <apex:selectRadio value="{!QuestionnaireSet__c.GoNoGoRecommendation__c}" disabled="{!IF(OR(percentMA != 100, AND(oQuestionnaireSet.ApprovalStatus__c != 'Pending Approval', oQuestionnaireSet.ApprovalStatus__c != 'Cancelled'), oQuestionnaireSet.UnansweredQuestionCount__c != 0 ), true, false)}" onchange="enableSubmit();" >
+                        <apex:selectOption itemvalue="Go" itemlabel="{!dLabel['DL39']}" />
+                        <apex:selectOption id="selectNoGo" itemvalue="No Go" itemlabel="{!dLabel['DL40']}" />
+                    </apex:selectRadio>
+
+                    <nttdcore:DLabel name="DL41" default="Submit for Approval" labelParent="{!this}" /><apex:commandButton id="SubmitApproval" value="{!dLabel['DL41']}" action="{!submitForApproval}" disabled="{!IF(OR(oQuestionnaireSet.GoNoGoRecommendation__c == '',  AND(oQuestionnaireSet.ApprovalStatus__c != 'Pending Approval', oQuestionnaireSet.ApprovalStatus__c != 'Cancelled')), true, false)}" />
+
+                    <nttdcore:DLabel name="DL42" default="Escalate Approval" labelParent="{!this}" /><apex:commandButton id="EscalateApproval" value="{!dLabel['DL42']}" action="{!escalateApproval}" rendered="{!and(oQuestionnaireSet.ApprovalStatus__c = 'Submitted', oQuestionnaireSet.FlagForEscalate__c != true)}" />
+                </div>
+            
+            </apex:pageBlock>
+        </apex:outputPanel>
+    </apex:form>
+    <apex:relatedList list="CombinedAttachments" />
+    <apex:relatedList id="ApprovalHistory" list="ProcessSteps" />
+    <script>
+
+        $(document).ready(function() {
+        
+            //Hide Reassign link for Approval Process
+            var reassign;
+            $( "a" ).each(function( index ) {
+               var href= $( this ).attr("href");
+
+               if (typeof href != 'undefined') {
+                   if (href.includes("REASSIGN")) {
+                       reassign = $(this).parent();
+                       return false; //break
+                   }
+               }
+            });
+            reassign.html(reassign.children().eq(1));
+            
+        
+            function mouseDownGo() {
+                document.style.color = "green";
+            }
+            function mouseDownNoGo() {
+                document.style.color = "red";
+            }
+            $("input[name='piSubmit']").hide();
+
+            $(".pShowMore").on("click", "a", function(){                
+                //SINCE BUTTON LOADS ASYNCHRONOUSLY WE NEED TO POLL FOR 5 SECONDS 
+                //TO HIDE SUBMIT FOR APPROVAL BUTTON WHEN 'SHOW MORE' IS CLICKED
+                pollFunc(hideBtn, 5000, 1);                
+            });
+            function hideBtn(){
+                $("[name='piSubmit']").hide();                 
+            }
+            function pollFunc(fn, timeout, interval) { 
+                var startTime = (new Date()).getTime();
+                interval = interval || 1000;
+                (function p() {
+                    fn();
+                    //console.log(((new Date).getTime() - startTime ));
+                    if (((new Date).getTime() - startTime ) <= timeout)  {
+                        setTimeout(p, interval);
+                    }
+                })();                
+            }            
+        });   
+
+    </script>
+    
+    
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

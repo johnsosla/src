@@ -1,0 +1,110 @@
+<apex:page standardcontroller="ProjectAgreement__c" extensions="ECO_ProjectAgreementController,nttdcore.DLabelParentController" action="{!init}" >
+<apex:messages />
+	<style>
+
+		.table{
+			border-collapse:collapse;
+		}
+
+		.table th, .table td {
+		  padding: 8px 2px 8px 5px;
+		  border: 1px solid #dbdbdb;;
+		  border-collapse: collapse;
+		}
+		
+		.table tr {
+		  border: 1px solid #dbdbdb;;
+		  border-collapse: collapse;
+		}
+		
+		.table td {
+			background-color: white;
+		}
+		
+		td:nth-child(1){
+     		font-weight: bold;
+		}
+
+		.customHelpIcon
+		{
+			display:inline-block;
+			margin:0 5px 0 0;
+			width:24px;
+			height:24px;
+			vertical-align:top !important;
+		}
+        /* CUSTOM HELP / GUIDANCE TEXT BOX */
+        .customHelpText{
+            padding: 7px;
+            border: 1px solid #85B3CE;
+            min-height: 30px;
+            display: block;
+            width: auto;
+            margin: 0 0 5px 0;
+            background-repeat: no-repeat;
+            border-radius: 4px;
+            background-color: #A2D3F1;
+            
+        }
+        .customHelpBody{
+            display:inline-block;
+            color:#;
+            max-width:95%;
+        } 		
+		
+	</style>
+	<script type="text/javascript" >
+	function recordTypeSelected(recordTypeId)
+	{
+		recordTypeSelected2(recordTypeId);
+	}
+	
+	</script>
+
+<apex:form >
+
+<nttdcore:DLabel name="DL8" default="New Agreement" labelParent="{!this}" /><apex:sectionHeader title="{!dLabel['DL8']}" subtitle="{!theProject.Name}" />
+
+<apex:pageBlock >
+	<apex:pageBlockButtons location="top" >
+		<nttdcore:DLabel name="DL9" default="Return to Project" labelParent="{!this}" /><apex:commandButton action="{!returnToProject}" value="{!dLabel['DL9']}" />
+	</apex:pageBlockButtons>
+
+<apex:actionFunction name="recordTypeSelected2" action="{!recordTypeSelected}" rerender="rtypeid" >
+	<apex:param id="test" assignto="{!selectedRecordType}" name="selectedRecordType" value="" />
+</apex:actionFunction>
+
+		<div class="customHelpText" >
+			<div class="customHelpBody" ><nttdcore:DLabel name="DL10" default="Select a record type to add a new agreement to the project.  Agreements can be directly with a client, teaming partner, subcontractor/ sub-consultant or another AECOM legal entity.  They can also include non-monetary agreements such as confidentiality or non-disclosure statements.  It is best practice to document and manage contractual constraints or obligations associated with all agreement types used on a project, not just the funding agreement." labelParent="{!this}" /><nttdcore:DLabel name="DL11" default="The record type &ldquo;Prime&rdquo;, &ldquo;Prime Interim Agreement&rdquo; or &ldquo;Prime Task Order&rdquo; will be sent to Oracle as the primary funding agreement so these record types should be used when selecting an agreement type between AECOM and the billing client." labelParent="{!this}" />
+				{!dLabel['DL10']}<br/><br/>
+
+				{!dLabel['DL11']}
+			</div>
+		</div>
+	<apex:outputPanel >
+	<apex:inputHidden value="{!projectId}" />
+	<apex:inputHidden value="{!selectedRecordType}" id="rtypeid" />
+	<table class="table" style="width:100%;" >
+		<tr>
+			<th><nttdcore:DLabel name="DL12" default="Record Type Name" labelParent="{!this}" />{!dLabel['DL12']}</th>
+			<th><nttdcore:DLabel name="DL13" default="Record Type Description" labelParent="{!this}" />{!dLabel['DL13']}</th>
+			<th/>
+		</tr>
+		<apex:repeat value="{!AgreementRecordTypes}" var="agreementRecordType" >
+			<tr>	
+				<td><apex:outputField value="{!agreementRecordType.Name}" /></td>
+				<td><apex:outputField value="{!agreementRecordType.Description}" /></td>
+				<td><nttdcore:DLabel name="DL14" default="Select" labelParent="{!this}" /><apex:commandButton value="{!dLabel['DL14']}" onclick="recordTypeSelected('{!agreementRecordType.Id}'); return false;" /></td>
+			</tr>		
+		</apex:repeat>
+	</table>
+	
+	</apex:outputPanel>
+
+</apex:pageBlock>
+
+<apex:inputHidden value="{!ProjectAgreement__c.Project__r.PrimaryBillingClient__r.Account__c}" />
+<apex:inputHidden value="{!ProjectAgreement__c.Project__c}" />
+<apex:inputHidden value="{!ProjectAgreement__c.Id}" />
+</apex:form>
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

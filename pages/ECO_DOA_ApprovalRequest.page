@@ -1,0 +1,235 @@
+<apex:page controller="ECO_DOA_ApprovalRequestController" showheader="true" sidebar="true" tabstyle="DOAApprovalRequest__c" extensions="nttdcore.DLabelParentController" >
+
+	<style>
+		.searchText{
+            text-align:center;
+            font-weight:bold;
+            font-size:20px;
+        }
+        .bPageBlock .detailList .list table td{
+        	border-bottom: 0px !important;
+        }
+        .sfdc_richtext{
+        	border-bottom: 0px !important;
+        }
+        .customHelpText{
+            padding: 7px;
+            border: 1px solid #85B3CE;
+            min-height: 30px;
+            display: block;
+            width: auto;
+            margin: 0 0 5px 0;
+            background-repeat: no-repeat;
+            border-radius: 4px;
+            background-color: #A2D3F1;
+            
+        }
+        .customHelpBody{
+            display:inline-block;
+            color:#;
+            max-width:95%;
+        }
+        .deleteButton {
+            background: none !important;
+            text-decoration: underline !important;
+            border: none !important;
+            color: #333 !important;
+            cursor: pointer !important;
+        	font-size: .9em;
+        	font-family: Arial,Helvetica,sans-serif;
+        }
+	</style>
+    <script>
+    	function selectAll(box)
+        {
+            var tags = document.querySelectorAll("[name$=\":checkboxes\"]");
+            for(var i = 0; i < tags.length; ++i)
+            {
+                if(tags[i].type == 'checkbox')
+                	tags[i].checked = true;
+            }
+        }  
+    </script>
+
+	<nttdcore:DLabel name="DL41" default="DOA Approval Request" labelParent="{!this}" /><apex:sectionheader title="{!dLabel['DL41']}" subtitle="{!theProject.Name}  {!theProject.ProjectNumber__c}" />
+
+	<apex:pagemessages id="messages" />
+	<c:ECO_CollapsibleSection sectiontitle="General Guidance Information" ><nttdcore:DLabel name="DL42" default="Select trigger(s) from the DOA Register to commence the request for approval process.  The DOA Register presents triggers identified during the project Risk &amp; Market Assessment.  Triggers not previously identified may be added to the DOA Register using the &ldquo;Add DOA Trigger&rdquo; function.  Note that triggers previously submitted for approval cannot be selected again.  The status of all DOA approval requests for the project and resultant conditions of approval will be captured in the sections below and in the ePM Project Plan." labelParent="{!this}" />  
+            {!dLabel['DL42']} 
+    </c:ECO_CollapsibleSection>
+	<apex:form id="theform" >
+		<nttdcore:DLabel name="DL43" default="DOA Register" labelParent="{!this}" /><apex:pageblock title="{!dLabel['DL43']}" id="thepageblock" ><nttdcore:DLabel name="DL68" default="DOA Request For Approval " labelParent="{!this}" /><nttdcore:DLabel name="DL70" default="View" labelParent="{!this}" /><nttdcore:DLabel name="DL71" default="View" labelParent="{!this}" /><nttdcore:DLabel name="DL72" default="DOA Conditions of Approval" labelParent="{!this}" /><nttdcore:DLabel name="DL74" default="View" labelParent="{!this}" /><nttdcore:DLabel name="DL75" default="View" labelParent="{!this}" /><nttdcore:DLabel name="DL76" default="Condition" labelParent="{!this}" /><nttdcore:DLabel name="DL77" default="Approver" labelParent="{!this}" /><nttdcore:DLabel name="DL78" default="Created Date" labelParent="{!this}" /><nttdcore:DLabel name="DL79" default="Status" labelParent="{!this}" /><nttdcore:DLabel name="DL80" default="Status Date" labelParent="{!this}" />
+			<apex:pageblockbuttons location="top" >
+				<nttdcore:DLabel name="DL44" default="Request Approval" labelParent="{!this}" /><apex:commandbutton value="{!dLabel['DL44']}" action="{!questions}" />
+				<nttdcore:DLabel name="DL45" default="Return to Project" labelParent="{!this}" /><apex:commandbutton value="{!dLabel['DL45']}" action="/{!projectID}" rendered="{!IF(projectID == null, false, true)}" />
+                <nttdcore:DLabel name="DL46" default="Select All" labelParent="{!this}" /><apex:commandbutton value="{!dLabel['DL46']}" onclick="selectAll(this)" />
+			</apex:pageblockbuttons>
+
+			<apex:outputpanel id="ProjectTriggerPanel" ><nttdcore:DLabel name="DL47" default="DOA Triggers" labelParent="{!this}" /><nttdcore:DLabel name="DL48" default="Updating..." labelParent="{!this}" /><nttdcore:DLabel name="DL49" default="No DOA Triggers Found" labelParent="{!this}" /><nttdcore:DLabel name="DL50" default="Select" labelParent="{!this}" /><nttdcore:DLabel name="DL51" default="Action" labelParent="{!this}" /><nttdcore:DLabel name="DL52" default="Delete" labelParent="{!this}" /><nttdcore:DLabel name="DL53" default="Processing..." labelParent="{!this}" />
+				<apex:pageblocksection title="{!dLabel['DL47']}" columns="1" collapsible="false" />
+				<apex:actionstatus id="ProjectTriggerPanelStatus" >
+					<apex:facet name="start" >
+						<p style="padding-bottom:20px;" class="searchText" ><img style="position:relative;top:12px;" src="/img/loading32.gif" /> {!dLabel['DL48']}</p>
+
+					</apex:facet>
+					<apex:facet name="stop" >
+						<apex:outputpanel >
+		                    <apex:pagemessage severity="INFO" rendered="{!if(lstDOATriggers.size > 0, false, true)}" summary="{!dLabel['DL49']}" /> 
+							<apex:pageblocktable value="{!lstDOATriggers}" var="Trigger" rendered="{!if(lstDOATriggers.size > 0, true, false)}" id="TriggerTable" >
+								<apex:column headervalue="{!dLabel['DL50']}" width="40" id="selectBox" >
+									<apex:inputcheckbox value="{!Trigger.bChecked}" disabled="{!Trigger.oTrigger.DOAApprovalRequest__c != null}" id="checkboxes" />
+								</apex:column>
+								<apex:column headervalue="{!dLabel['DL51']}" width="80" >
+                                    <apex:actionregion >
+                                    <!--<apex:outputLink value="/{!Trigger.oTrigger.id}/e?retURL=%2F{!Trigger.oTrigger.id}">Edit</apex:outputLink>
+                                    &nbsp;&nbsp;-->
+                                    <apex:actionstatus id="mySaveStatus1" >
+                                    <apex:facet name="stop" >
+                                        <apex:commandbutton action="{!deleteDOA}" status="mySaveStatus1" value="{!dLabel['DL52']}" disabled="false" rerender="thepageblocksection, ProjectTriggerPanel, messages" styleclass="deleteButton" rendered="{!IF(Trigger.oTrigger.DOA_Request_Status__c == 'Not Started',true,false)}" >
+                                        	<apex:param assignto="{!deleteId}" name="DeleteId" value="{!Trigger.oTrigger.id}" />
+                                        </apex:commandbutton>
+                                    </apex:facet>
+                                    <apex:facet name="start" >
+                                        <apex:commandbutton action="{!deleteDOA}" status="mySaveStatus1" value="{!dLabel['DL53']}" disabled="true" styleclass="deleteButton" >
+                                        	<apex:param assignto="{!deleteId}" name="DeleteId" value="{!Trigger.oTrigger.id}" />
+                                        </apex:commandbutton> 
+                                    </apex:facet>
+                                    </apex:actionstatus>
+                                    <!--<apex:commandLink action="{!deleteDOA}" value="Delete" rerender="thepageblocksection, ProjectTriggerPanel, messages" rendered="{!IF(Trigger.oTrigger.DOA_Request_Status__c == 'Not Started',true,false)}">
+                                    	<apex:param assignTo="{!deleteId}" name="DeleteId" value="{!Trigger.oTrigger.id}" />
+                                    </apex:commandLink>-->
+                                    </apex:actionregion>
+								</apex:column>	
+								<apex:column >
+                                    <apex:facet name="header">DOA Title</apex:facet>
+                                    <apex:outputField value="{!Trigger.oTrigger.RiskTitle__c}" 
+                                        rendered="{!if(OR(userLanguage != 'fr',AND(userLanguage == 'fr', Trigger.oTrigger.FrRiskTitle__c == null)), true, false)}" />
+                                    <apex:outputField value="{!Trigger.oTrigger.FrRiskTitle__c}" 
+                                        rendered="{!NOT(if(OR(userLanguage != 'fr',AND(userLanguage == 'fr', Trigger.oTrigger.FrRiskTitle__c == null)), true, false))}" />
+                                </apex:column>
+                                <apex:column >
+                                    <apex:facet name="header">DCS sub-DOA</apex:facet>
+                                    <apex:outputField value="{!Trigger.oTrigger.DCSsubDOA__c}" />
+                                </apex:column>
+                                <apex:column >
+                                    <apex:facet name="header">DOA Trigger</apex:facet>
+                                    <apex:outputField value="{!Trigger.oTrigger.DOATrigger__c}" 
+                                        rendered="{!if(OR(userLanguage != 'fr',AND(userLanguage == 'fr', Trigger.oTrigger.FrDOATrigger__c == null)), true, false)}" />
+                                    <apex:outputField value="{!Trigger.oTrigger.FrDOATrigger__c}" 
+                                        rendered="{!NOT(if(OR(userLanguage != 'fr',AND(userLanguage == 'fr', Trigger.oTrigger.FrDOATrigger__c == null)), true, false))}" />
+                                </apex:column>
+                                <apex:column >
+                                    <apex:facet name="header">Approval Status</apex:facet>
+                                    <apex:outputField value="{!Trigger.oTrigger.DOA_Request_Status__c}" />
+                                </apex:column>
+                                
+                                <!--<apex:repeat value="{!lTranslatedFields}" var="TField" >
+                                    <apex:column value="{!Trigger[TField]}" />
+                                </apex:repeat>-->
+							</apex:pageblocktable>
+
+						</apex:outputpanel>
+					</apex:facet>
+				</apex:actionstatus>
+			</apex:outputpanel>
+            <br/>
+            <apex:outputpanel id="outerpanel" ><nttdcore:DLabel name="DL54" default="Add DOA Trigger" labelParent="{!this}" /><nttdcore:DLabel name="DL55" default="DOA triggers are listed below in numerical order.  Use the arrows at the bottom of the section to scroll through the entire list.  You can also search for a specific DOA trigger by typing in keywords or numbers (e.g., indemnity, 2.2(a), warranty) in the Search field.  Sub-DOA triggers specific to your operating group (if available) can be viewed by filtering on the Strategic Business Unit (e.g., ANZ)." labelParent="{!this}" /><nttdcore:DLabel name="DL56" default="Strategic Business Unit:" labelParent="{!this}" /><nttdcore:DLabel name="DL57" default="Keyword:  " labelParent="{!this}" /><nttdcore:DLabel name="DL58" default="Keyword" labelParent="{!this}" /><nttdcore:DLabel name="DL59" default="Search" labelParent="{!this}" /><nttdcore:DLabel name="DL60" default="No Results Were Found." labelParent="{!this}" /><nttdcore:DLabel name="DL61" default="Select" labelParent="{!this}" /><nttdcore:DLabel name="DL62" default="Select" labelParent="{!this}" /><nttdcore:DLabel name="DL63" default="DCS Sub-DOA" labelParent="{!this}" /><nttdcore:DLabel name="DL64" default="&lt;&lt;" labelParent="{!this}" /><nttdcore:DLabel name="DL65" default="&lt;" labelParent="{!this}" /><nttdcore:DLabel name="DL66" default="&gt;" labelParent="{!this}" /><nttdcore:DLabel name="DL67" default="&gt;&gt;" labelParent="{!this}" />
+			<apex:pageblocksection title="{!dLabel['DL54']}" columns="1" id="thepageblocksection" collapsible="true" >
+                <c:ECO_CollapsibleSection sectiontitle="General Guidance Information" >  
+            	{!dLabel['DL55']}
+    			</c:ECO_CollapsibleSection>
+				<apex:outputpanel >
+                    <apex:selectlist id="geography" value="{!selectGeography}" size="1" >
+                        <apex:selectoptions value="{!Geographies}" >{!dLabel['DL56']} &nbsp;</apex:selectoptions>
+                    </apex:selectlist>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    <apex:outputlabel value="{!dLabel['DL57']}" />
+                    <apex:inputtext id="searchTextBox" value="{!searchText}" label="{!dLabel['DL58']}" />
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    <!--<div align="center">-->
+                        <apex:commandbutton action="{!searchQuestionnaire}" value="{!dLabel['DL59']}" rerender="thepageblocksection" />
+                    <!--</div>-->
+                    
+                </apex:outputpanel>
+                
+                <apex:pagemessage severity="INFO" rendered="{!IF(lstTemplateQuestions.size > 0, false, true)}" summary="{!dLabel['DL60']}" /> 
+                <apex:pageblocktable value="{!lstTemplateQuestions}" rendered="{!IF(lstTemplateQuestions.size > 0, true, false)}" var="Questions" id="templateTable" >
+                    <apex:column width="100px" >
+                        <apex:facet name="header" >{!dLabel['DL61']}</apex:facet>
+                        <apex:commandlink action="{!addQuestion}" value="{!dLabel['DL62']}" rerender="ProjectTriggerPanel, messages, thepageblocksection" >
+                            <apex:param assignto="{!idQuestionID}" name="QuestionId" value="{!Questions.id}" />
+                        </apex:commandlink>&nbsp;&nbsp;
+                    </apex:column>
+                    <apex:column >
+                        <apex:facet name="header" >{!dLabel['DL63']}</apex:facet>
+                        <apex:outputfield value="{!Questions.DCSSubDOA__c}" />
+                    </apex:column>
+                    <apex:column >
+                        <apex:facet name="header">Risk Title</apex:facet>
+                        <apex:outputField value="{!Questions.RiskTitle__c}" 
+                            rendered="{!if(OR(userLanguage != 'fr',AND(userLanguage == 'fr', Questions.FrRiskTitle__c == null)), true, false)}" />
+                        <apex:outputField value="{!Questions.FrRiskTitle__c}" 
+                            rendered="{!NOT(if(OR(userLanguage != 'fr',AND(userLanguage == 'fr', Questions.FrRiskTitle__c == null)), true, false))}" />
+                    </apex:column>
+                    <apex:column >
+                        <apex:facet name="header">Question</apex:facet>
+                        <apex:outputField value="{!Questions.Question_1__c}" 
+                            rendered="{!if(OR(userLanguage != 'fr',AND(userLanguage == 'fr', Questions.FrQuestion_1__c == null)), true, false)}" />
+                        <apex:outputField value="{!Questions.FrQuestion_1__c}" 
+                            rendered="{!NOT(if(OR(userLanguage != 'fr',AND(userLanguage == 'fr', Questions.FrQuestion_1__c == null)), true, false))}" />
+                    </apex:column>
+                    
+                </apex:pageblocktable>
+                <apex:outputpanel >
+                    <div style="padding-left: 400px;" >
+                    <apex:commandbutton value="{!dLabel['DL64']}" rerender="thepageblocksection" action="{!FirstPage}" disabled="{!prev}" />
+                    <apex:commandbutton value="{!dLabel['DL65']}" rerender="thepageblocksection" action="{!previous}" disabled="{!prev}" />
+                    <apex:commandbutton value="{!dLabel['DL66']}" rerender="thepageblocksection" action="{!next}" disabled="{!nxt}" />
+                    <apex:commandbutton value="{!dLabel['DL67']}" rerender="thepageblocksection" action="{!LastPage}" disabled="{!nxt}" />
+                	</div>
+                </apex:outputpanel>
+            </apex:pageblocksection>  
+            
+            <script> twistSection(document.getElementById('{!$Component.theform.thepageblock.thepageblocksection}').getElementsByTagName('img')[0]) </script>
+			</apex:outputpanel>			
+			<apex:pageblocksection title="{!dLabel['DL68']}" columns="1" collapsible="false" />
+			<nttdcore:DLabel name="DL69" default="No DOA Requests Found" labelParent="{!this}" /><apex:pagemessage severity="INFO" rendered="{!if(lstDOARequests.size > 0, false, true)}" summary="{!dLabel['DL69']}" /> 
+			<apex:pageblocktable value="{!lstDOARequests}" var="Request" rendered="{!if(lstDOARequests.size > 0, true, false)}" >
+				<apex:column headervalue="{!dLabel['DL70']}" width="40" >
+					<apex:outputlink value="/{!Request.id}" >{!dLabel['DL71']}</apex:outputlink>
+				</apex:column>	
+				<apex:repeat value="{!$ObjectType.DOAApprovalRequest__c.FieldSets.DOA_RequestView}" var="SearchField" >
+					<apex:column value="{!Request[SearchField]}" />
+				</apex:repeat>
+			</apex:pageblocktable>
+
+			<apex:pageblocksection title="{!dLabel['DL72']}" columns="1" collapsible="false" />
+			<nttdcore:DLabel name="DL73" default="No DOA Conditions Found" labelParent="{!this}" /><apex:pagemessage severity="INFO" rendered="{!if(lstDOAConditions.size > 0, false, true)}" summary="{!dLabel['DL73']}" /> 
+			<apex:pageblocktable value="{!lstDOAConditions}" var="Condition" rendered="{!if(lstDOAConditions.size > 0, true, false)}" >
+				<apex:column headervalue="{!dLabel['DL74']}" width="40" >
+					<apex:outputlink value="/{!Condition.id}?retURL=/apex/ECO_DOA_ApprovalRequest?projectID={!projectID}" >{!dLabel['DL75']}</apex:outputlink>
+				</apex:column>				
+				<apex:column headervalue="{!dLabel['DL76']}" width="36%" >
+                    <apex:outputfield value="{!Condition.ConditionLongText__c}" />
+                </apex:column>
+                <apex:column headervalue="{!dLabel['DL77']}" >
+                    <apex:outputfield value="{!Condition.CreatedBy__c}" />
+                </apex:column>
+                <apex:column headervalue="{!dLabel['DL78']}" >
+                    <apex:outputfield value="{!Condition.CreatedDate}" />
+                </apex:column>
+                <apex:column headervalue="{!dLabel['DL79']}" >
+                    <apex:outputfield value="{!Condition.Mitigation_Plan__c}" />
+                </apex:column>
+                <apex:column headervalue="{!dLabel['DL80']}" >
+                    <apex:outputfield value="{!Condition.Status_Date__c}" />
+                </apex:column>
+                    
+                
+			</apex:pageblocktable>
+
+
+			<br/><br/><br/>
+		</apex:pageblock>
+	</apex:form>
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

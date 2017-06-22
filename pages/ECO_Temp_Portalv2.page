@@ -1,0 +1,22 @@
+<apex:page showheader="false" sidebar="false" standardStylesheets="false" controller="ECO_Temp_PortalController" id="portalTemplate" >
+	<apex:includeScript value="{!$Resource.ECO_jQuery_1_11_2_min_js}"/>
+	<apex:includeScript value="{!URLFOR($Resource.ECO_jQueryUI_1_11_2, 'jquery-ui.min.js')}" />
+	<apex:stylesheet value="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/css/bootstrap.min.css')}" />
+	<apex:stylesheet value="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/css/nifty.css')}" />
+	<apex:stylesheet value="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/css/font-awesome.min.css')}" />
+	<apex:stylesheet value="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/css/pace.min.css')}" />
+	<apex:stylesheet value="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/css/morris.min.css')}" />
+	<apex:stylesheet value="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/css/switchery.min.css')}" />
+	<apex:stylesheet value="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/css/bootstrap-select.min.css')}" />
+	<script src="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/js/jquery.sparkline.min.js')}"></script>
+	<apex:stylesheet value="{!URLFOR($Resource.ECO_jQueryUI_1_11_2_Themes, 'themes/smoothness/jquery-ui.css')}"/>
+	<apex:stylesheet value="{!URLFOR($Resource.ECO_Slick_1_4_1, 'slick.css')}" />
+	<apex:stylesheet value="{!URLFOR($Resource.ECO_Slick_1_4_1, 'slick-theme.css')}" />
+
+	<apex:insert name="head" />
+
+	<!-- <apex:outputText value="{!theHeaderUser.Name}" /> -->
+	
+	<apex:insert name="content" />
+
+</apex:page>

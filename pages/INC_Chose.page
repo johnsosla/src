@@ -1,0 +1,7 @@
+<apex:page standardcontroller="EnrollmentPlan__c" extensions="INC_ChoseIncentivePlanController" tabstyle="EnrollmentPlan__c">
+	<apex:form >
+	
+	<c:INC_ChoseIncentivePlanComponent />		
+
+	</apex:form>
+</apex:page>

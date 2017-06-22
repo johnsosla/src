@@ -1,0 +1,3 @@
+<apex:page standardController="Deliverable__c" extensions="ECO_ApprovalKillSwitchController" showHeader="true" sidebar="true" action="{!killapproval}">
+	<apex:pageMessages />
+</apex:page>

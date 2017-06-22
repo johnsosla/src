@@ -1,0 +1,3 @@
+<apex:page showHeader="true" sidebar="true" standardController="SGT_Sales_Goal__c" extensions="SGT_AllSalesGoalRecalculationController" action="{!recalculateAllSalesGoals}" recordSetVar="saleGoals">
+	
+</apex:page>

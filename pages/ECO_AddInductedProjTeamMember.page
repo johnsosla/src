@@ -1,0 +1,23 @@
+<apex:page standardcontroller="InductedProjectTeamMembers__c" extensions="ECO_AddInductedProjTeamMemberCtrl,nttdcore.DLabelParentController" action="{!init}" >
+    <apex:pageMessages id="messages" />
+    <apex:form >
+	<nttdcore:DLabel name="DL1" default="Inducted Project Team Member Edit" labelParent="{!this}" /><nttdcore:DLabel name="DL2" default="New Inducted Project Team Member" labelParent="{!this}" /><apex:sectionHeader title="{!dLabel['DL1']}" subtitle="{!dLabel['DL2']}" />
+	<nttdcore:DLabel name="DL3" default="Inducted Project Team Member Edit" labelParent="{!this}" /><apex:pageBlock title="{!dLabel['DL3']}" ><nttdcore:DLabel name="DL7" default="Information" labelParent="{!this}" /><nttdcore:DLabel name="DL8" default="System Information" labelParent="{!this}" />
+        <apex:pageBlockButtons >
+        	<nttdcore:DLabel name="DL4" default="Save" labelParent="{!this}" /><apex:commandButton action="{!saveInductionTeamMember}" value="{!dLabel['DL4']}" oncomplete="location.reload()" />
+            <nttdcore:DLabel name="DL5" default="Save &amp; New" labelParent="{!this}" /><apex:commandButton action="{!saveAndNew}" value="{!dLabel['DL5']}" />
+            <nttdcore:DLabel name="DL6" default="Return to Induction" labelParent="{!this}" /><apex:commandButton action="{!returnToInduction}" value="{!dLabel['DL6']}" />
+        </apex:pageBlockButtons>
+        <apex:pageBlockSection title="{!dLabel['DL7']}" >
+        	<apex:inputField value="{!teamMember.ProjectTeamMember__c}" />
+        </apex:pageBlockSection>
+        <apex:pageBlockSection title="{!dLabel['DL8']}" >
+            <apex:outputField value="{!teamMember.Name}" />
+        	<apex:outputField value="{!teamMember.Induction__c}" />
+            <apex:outputField value="{!teamMember.Project__c}" />
+        </apex:pageBlockSection>
+    </apex:pageBlock>
+
+    <c:ECO_ProjectTeamFlyout projectid="{!teamMember.Project__c}" rendered="{!teamMember.Project__c != null}" />
+    </apex:form>
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

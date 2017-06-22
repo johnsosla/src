@@ -1,0 +1,2 @@
+<apex:page showHeader="false" sidebar="false" controller="ECO_CreateHelpTextController" action="{!go}">
+</apex:page>

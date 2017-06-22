@@ -1,0 +1,513 @@
+<apex:page controller="CollectionManagerController" id="mainpage">
+<style>
+.suggestions
+{
+    position:relative;
+    top: 1px;
+    _top: 0px;
+    z-index:2800 !important;
+}
+.cField{
+        width:200px;
+}        
+
+.autocomplete
+{
+    
+    background: #FFFFFF !important;
+    border: solid 2px #8B9CD3 !important;
+    width: 300px !important;
+    font-family: 'Arial','Helvetica',sans-serif !important;
+    font-size: 91% !important;
+    z-index:2900 !important;
+    display:block;
+}
+
+.autocomplete DIV
+{
+    padding: 2px 4px 2px 10px !important;
+    z-index:3000 !important;
+    display:block;
+    cursor:default; 
+}
+</style>
+
+    <apex:form id="frm">
+    
+              <script>
+              function onKeyUpDown(element,e,isTable2)
+              {
+                  if(e.keyCode != 38 && e.keyCode != 40)
+                      return;
+                  var e = e || window.event;
+                  var id1 = element.id;
+                  id1 = id1.replace("mainpage:frm:FilterRes:theTable2:","");
+                  id1 = id1.replace("mainpage:frm:FilterRes:theTable1:","");
+                  id1 = id1.replace(":id_bl","");
+                  id1 = id1.replace(":id_g","");
+                  id1 = id1.replace(":id_pa","");
+                  id1 = id1.replace(":id_spa","");
+                  if(e.keyCode==38)
+                      id2 = parseInt(id1) -1;
+                  else
+                      id2 = parseInt(id1) +1;
+                      
+                  var Newid = element.id.replace(":"+id1+":",":"+id2+":");
+                  if(document.getElementById(Newid) == null)
+                  {
+                      if(isTable2 && id1 == "0" && e.keyCode ==38)
+                      {
+                          var idst = -1;
+                          for(i=0;i<1000;i++)
+                              if(document.getElementById("mainpage:frm:FilterRes:theTable1:"+i+":chk1") != null)
+                                  idst = i;
+                              else
+                                  break;
+                           if(idst>-1)
+                               Newid = element.id.replace("theTable2:0:","theTable1:"+idst+":");
+                      }
+                      if(!isTable2 && e.keyCode ==40)
+                      {
+                         Newid = element.id.replace("theTable1:"+id1+":","theTable2:0:"); 
+                      }
+                          
+                  }
+                  if(document.getElementById(Newid)!= null)
+                  {
+                      document.getElementById(Newid).focus();
+                  }
+                
+                
+              }
+              function clickOnCheck()
+              {
+                  var res = document.getElementById('mainchk').checked;
+                  for(i = 0 ; i < 1000 ; i++ )
+                  {
+                      var id = "mainpage:frm:FilterRes:theTable1:"+i+":chk1";
+                      if(document.getElementById(id)!=null)
+                          document.getElementById(id).checked=res;
+                      id = "mainpage:frm:FilterRes:theTable2:"+i+":chk1";
+                      if(document.getElementById(id)!=null)
+                          document.getElementById(id).checked=res;
+                  }
+              }
+              function iGotFocus(element,ismain)
+              {
+                  
+                  var id1 = element.id;
+                  var aboveId;
+                  id1 = id1.replace("mainpage:frm:FilterRes:theTable2:","");
+                  id1 = id1.replace(":id_bl","");
+                  id1 = id1.replace(":id_g","");
+                  id1 = id1.replace(":id_pa","");
+                  id1 = id1.replace(":id_spa","");
+                  id2 = parseInt(id1) -1;
+                  id1 = "mainpage:frm:FilterRes:theTable2:"+id1+":id_";  
+                  if(id2>=0)
+                     aboveId = "mainpage:frm:FilterRes:theTable2:"+id2+":id_";
+                  else
+                  {
+                      var idst = -1;
+                      for(i = 0 ; i < 1000 ; i++ )
+                          if(document.getElementById("mainpage:frm:FilterRes:theTable1:"+i+":chk1")!=null)
+                              idst = i;
+                          else
+                              break;
+                       if(idst>-1)
+                           aboveId = "mainpage:frm:FilterRes:theTable1:"+idst+":id_";
+                  } 
+                  
+                  if( aboveId !='')
+                  {
+                      //alert(document.getElementById(id1+"bl_lkid").value);
+                      if(document.getElementById(id1+"bl_lkid").value == "000000000000000"&& document.getElementById(id1+"g_lkid").value == "000000000000000" && document.getElementById(id1+"pa_lkid").value == "000000000000000")
+                      {                      
+                          document.getElementById(id1+"bl").value = document.getElementById(aboveId +"bl").value;
+                          document.getElementById(id1+"g").value = document.getElementById(aboveId +"g").value;
+                          document.getElementById(id1+"pa").value = document.getElementById(aboveId +"pa").value;
+                          document.getElementById(id1+"spa").value = document.getElementById(aboveId +"spa").value;
+                          document.getElementById(id1+"bl_lkid").value = document.getElementById(aboveId +"bl_lkid").value;
+                          document.getElementById(id1+"g_lkid").value = document.getElementById(aboveId +"g_lkid").value;
+                          document.getElementById(id1+"pa_lkid").value = document.getElementById(aboveId +"pa_lkid").value;
+                          document.getElementById(id1+"spa_lkid").value = document.getElementById(aboveId +"spa_lkid").value;
+                          document.getElementById(id1+"bl_lkold").value = document.getElementById(aboveId +"bl_lkold").value;
+                          document.getElementById(id1+"g_lkold").value = document.getElementById(aboveId +"g_lkold").value;
+                          document.getElementById(id1+"pa_lkold").value = document.getElementById(aboveId +"pa_lkold").value;
+                          document.getElementById(id1+"spa_lkold").value = document.getElementById(aboveId +"spa_lkold").value;
+                      }
+                  }           
+              }
+         
+AutoComplete = function(input,suggestions,lookupto,clearfunction,objectn)
+{
+
+//Global Variables
+
+var IS_IE = true;
+var timer;
+var bgColor = "#b0c4de";
+var searchColor = "#FFFFCC";
+var bgColorRGB = "rgb(176,196,222)";
+var searchString = "Searching...";
+var searchID = suggestions.id+"tmpsearch";
+var clearFunction = clearfunction;
+var noResultsID = suggestions.id+"N_R";
+
+
+
+    
+    
+    function hideAutoComplete(){
+    
+            suggestions.innerHTML = "";
+            suggestions.style.display = "none";
+    
+    }
+       
+    function getCursor()
+    {
+        if (suggestions.innerHTML.length == 0){
+            return -1;
+        }else{
+    
+            if(suggestions.childNodes[0].id == searchID || suggestions.childNodes[0].id == noResultsID)
+                return -1;
+            
+            for (var i = 0; i < suggestions.childNodes.length; i++){
+    
+                if (suggestions.childNodes[i].style.backgroundColor == bgColor || suggestions.childNodes[i].style.backgroundColor == bgColorRGB){
+    
+                    return i;
+                }
+            }
+            return suggestions.childNodes.length;
+        
+        }
+    }
+    
+    
+    function initializeMouseOver(event)
+    {
+
+                if(suggestions.childNodes.length > 0){
+                
+                    if(suggestions.childNodes[0].id == searchID || suggestions.childNodes[0].id == noResultsID){
+                        return;
+                    }else{
+                    
+                        if(IS_IE){
+                        
+                            for (var i = 0; i < suggestions.childNodes.length; i++){
+                                
+                                    suggestions.childNodes[i].attachEvent("onmouseover",handleMouseOver);
+                                    suggestions.childNodes[i].attachEvent("onmouseout",handleMouseOut);
+                                    suggestions.childNodes[i].attachEvent("onmousedown",handleMouseClick);      
+                            }
+                            
+                        }else{
+
+                            for (var i = 0; i < suggestions.childNodes.length; i++){
+                                                    
+                                    suggestions.childNodes[i].onmouseover = handleMouseOver;
+                                    suggestions.childNodes[i].onmouseout = handleMouseOut;
+                                    suggestions.childNodes[i].onmousedown = handleMouseClick;       
+                            }
+                                                
+                        }   
+                    }
+                }
+    }
+    
+    
+    function handleMouseClick(event){
+
+        if(IS_IE){
+        
+            if(event.srcElement.id)
+                input.value = event.srcElement.id;
+            else
+                input.value = event.srcElement.innerText;       
+        }else{
+            if(event.target.id)
+                input.value =  event.target.id;         
+            else
+                input.value =  event.target.textContent;
+
+        }
+        
+    }
+    
+    function handleMouseOver(event){
+
+        if(IS_IE){
+            if(event.srcElement.style.backgroundColor != bgColor)
+                event.srcElement.style.backgroundColor = searchColor;       
+        }else{
+            if(event.target.style.backgroundColor != bgColorRGB)
+                event.target.style.backgroundColor = searchColor;
+        }
+    }
+    
+    function handleMouseOut(event){
+
+        if(IS_IE){
+            if(event.srcElement.style.backgroundColor != bgColor)
+                event.srcElement.style.backgroundColor = "";        
+        }else{
+            if(event.target.style.backgroundColor != bgColorRGB)    
+                event.target.style.backgroundColor = "";
+        }
+    }
+    
+    function handleKeyUp(event){
+    
+        
+        //if key is not an arrow or enter
+        if (event.keyCode != 40 && event.keyCode != 38 && event.keyCode != 13 && event.keyCode != 37 && event.keyCode != 39 && event.keyCode != 27 && event.keyCode != 9  && event.keyCode != 16)
+        {
+            if(timer!=null){clearTimeout(timer);timer=null;}
+                                         
+                if (input.value.length == 0){
+                    hideAutoComplete();
+                }else{       
+                     timer = setTimeout(function(){window[lookupto](input.value,objectn);displayStatus();},350);
+                }
+        }
+        
+    }
+
+    function displayStatus(){
+    
+                    suggestions.innerHTML='';
+                    suggestions.style.display='';
+                    var myElement = document.createElement('div');
+                    myElement.id = searchID;
+                    myElement.style.backgroundColor=searchColor;
+                    var textNode = document.createTextNode(searchString);
+                    myElement.appendChild(textNode);
+                    suggestions.appendChild(myElement);
+    
+    }
+    
+    function handleArrows(event){
+    
+        if (input.value.length == 0 || event.keyCode == 27){
+            //make sure autocomplete has no values
+            hideAutoComplete();
+            return;
+
+        }
+        
+    try{
+    
+        var cursor = getCursor();
+                
+        if (event.keyCode == 13 || event.keyCode == 9){
+
+
+            if (cursor != -1 && cursor < suggestions.childNodes.length)
+            {
+
+                if (IS_IE){
+                    if(suggestions.childNodes[cursor].id)
+                        input.value = suggestions.childNodes[cursor].id;
+                    else
+                        input.value = suggestions.childNodes[cursor].innerText;
+                }else{
+                    if(suggestions.childNodes[cursor].id)
+                        input.value = suggestions.childNodes[cursor].id;
+                    else
+                        input.value = suggestions.childNodes[cursor].textContent;
+                }
+                hideAutoComplete();
+            }
+        
+        }else if(event.keyCode == 40 || event.keyCode == 38){
+        
+        
+            if (cursor != -1){
+        
+                if (event.keyCode == 40)
+                {
+                    if (cursor == suggestions.childNodes.length){
+                        suggestions.childNodes[0].style.backgroundColor = bgColor;
+                    }else if (cursor < suggestions.childNodes.length - 1){
+                        suggestions.childNodes[cursor].style.backgroundColor = "";
+                        suggestions.childNodes[cursor + 1].style.backgroundColor = bgColor;
+                    }
+                    
+
+                }else{
+                    if (cursor > 0){
+                        suggestions.childNodes[cursor].style.backgroundColor = "";
+                        suggestions.childNodes[cursor - 1].style.backgroundColor = bgColor;
+                    
+                    }else{
+                        hideAutoComplete();
+                    }
+                }
+            }
+        }
+        
+
+        
+    }catch(e){}
+    
+    }
+    
+    
+    function handleBlur()
+    {       
+        hideAutoComplete();
+        if(timer!=null){window[clearFunction]();clearTimeout(timer);timer=null;}else{window[clearFunction]();}
+    
+    }
+    
+    function handleFocus(){
+    
+        hideAutoComplete();
+    
+    }
+    //Attach Event Handlers
+
+        if(input.attachEvent){
+            input.attachEvent("onkeyup", handleKeyUp);
+            input.attachEvent("onkeydown", handleArrows);
+            input.attachEvent("onblur",handleBlur);
+            input.attachEvent("onfocus",handleFocus);
+            suggestions.attachEvent("onmouseover",initializeMouseOver);
+        }else{
+            IS_IE = false;
+            bgColor= "#a3ceff";
+            bgColorRGB= "rgb(163, 206, 255)";
+            input.onkeyup=handleKeyUp;
+            input.onkeydown=handleArrows;
+            //input.addEventListener("keydown",handleArrows);
+            input.onblur=handleBlur; 
+            //input.onfocus=handleFocus;
+            input.addEventListener("focus",handleFocus);
+            suggestions.onmouseover=initializeMouseOver;
+        }
+}
+</script>
+          <apex:sectionHeader title="Collection Manager"/>
+          <apex:outputLink value="/apex/MenuItems">Back to menu items</apex:outputLink>
+          <apex:pageblock id="Filter" mode="Edit">
+              <apex:pageblockButtons >
+                  <apex:commandButton value="Filter" action="{!Filter}"/>
+                   <apex:commandButton value="Cancel" action="{!Cancel}"/>
+              </apex:pageblockButtons>
+              <apex:pageblockSection title="Filter Section">
+                  <apex:inputfield value="{!Filterrec.Geography__c}" id="GFilter">
+                      <c:AutoComplete Width="100" ClassName="autocomplete" InputId="{!$Component.GFilter}" AutoCompleteId="accACx1" ObjectName="Geography__c" />                    
+                  </apex:InputField>
+                  <apex:inputfield value="{!Filterrec.Business_Line__c}" id="BLFilter">
+                      <c:AutoComplete Width="100" ClassName="autocomplete" InputId="{!$Component.BLFilter}" AutoCompleteId="accACx2" ObjectName="Business_Line__c" />                    
+                  </apex:InputField>
+                  <apex:inputfield value="{!Filterrec.Practice_Area__c}" id="PAFilter">
+                      <c:AutoComplete Width="100" ClassName="autocomplete" InputId="{!$Component.PAFilter}" AutoCompleteId="accACx3" ObjectName="Practice_Area__c" />                    
+                  </apex:InputField>
+                  <apex:inputfield value="{!Filterrec.Sub_Practice_Area__c}" id="SPAFilter">
+                      <c:AutoComplete Width="100" ClassName="autocomplete" InputId="{!$Component.SPAFilter}" AutoCompleteId="accACx4" ObjectName="Sub_Practice_Area__c" />                    
+                  </apex:InputField>
+                  <script>
+                        document.getElementById("{!$Component.GFilter}").setAttribute("autocomplete", "off");
+                        document.getElementById("{!$Component.BLFilter}").setAttribute("autocomplete", "off");
+                        document.getElementById("{!$Component.PAFilter}").setAttribute("autocomplete", "off");
+                        document.getElementById("{!$Component.SPAFilter}").setAttribute("autocomplete", "off");
+                    </script>
+              </apex:pageblockSection>
+          </apex:pageblock>
+          <apex:pageblock id="FilterRes" rendered="{!showResult}" mode="Edit">
+              <apex:pageblockButtons >
+                  <apex:commandButton value="Save" action="{!Save}"/>
+                  <apex:commandButton value="Delete Selected" action="{!DeleteSelected}"/>
+              </apex:pageblockButtons>
+              <font color="red"><b><apex:messages /></b></font>
+              <apex:outputPanel rendered="{!IsOverLimit}">
+                  <font color="red"><b>There are more than 300 records. Showing only first 300.</b></font>
+              </apex:outputPanel> 
+              <table width="100%">
+              <tr>
+                    <th><input type="checkbox" id="mainchk" onclick="clickOnCheck()"/></th><th>Geography</th><th>Business Line</th><th>AECOM Work</th><th>Sub Practice Area</th>
+              </tr>
+              <apex:repeat id="theTable1" value="{!UpdateList}" var="rec">
+                  <tr>
+                    <td width="5%"><apex:inputCheckbox value="{!rec.isDelete}" id="chk1"/></td>
+                    <td width="20%"><div class="requiredInput"><div class="requiredBlock"></div>
+                    <apex:inputfield value="{!rec.rec.Geography__c}" id="id_g" onkeydown="onKeyUpDown(this,event,false);">
+                        <c:AutoComplete Width="100" ClassName="autocomplete" InputId="{!$Component.id_g}" AutoCompleteId="accAC1{!rec.rec.Id}" ObjectName="Geography__c" />                    
+                    </apex:inputField>
+                    </div></td>
+                    <td width="25%"><div class="requiredInput"><div class="requiredBlock"></div>
+                    <apex:inputfield value="{!rec.rec.Business_Line__c}" id="id_bl" onkeydown="onKeyUpDown(this,event,false);">
+                        <c:AutoComplete Width="100" ClassName="autocomplete" InputId="{!$Component.id_bl}" AutoCompleteId="accAC2{!rec.rec.Id}" ObjectName="Business_Line__c" />                    
+                    </apex:inputField>
+                    </div></td>                    
+                    <td width="25%"><div class="requiredInput"><div class="requiredBlock"></div>
+                    <apex:inputfield value="{!rec.rec.Practice_Area__c}" id="id_pa" onkeydown="onKeyUpDown(this,event,false);">
+                        <c:AutoComplete Width="100" ClassName="autocomplete" InputId="{!$Component.id_pa}" AutoCompleteId="accAC3{!rec.rec.Id}" ObjectName="Practice_Area__c" />                    
+                    </apex:inputField>
+                    </div></td>
+                    <td width="25%"><div class="requiredInput"><div class="requiredBlock"></div>
+                    <apex:inputfield value="{!rec.rec.Sub_Practice_Area__c}" id="id_spa" onkeydown="onKeyUpDown(this,event,false);">
+                        <c:AutoComplete Width="100" ClassName="autocomplete" InputId="{!$Component.id_spa}" AutoCompleteId="accAC4{!rec.rec.Id}" ObjectName="Sub_Practice_Area__c" />                    
+                    </apex:inputField>
+                    <script>
+                        document.getElementById("{!$Component.id_g}").setAttribute("autocomplete", "off");
+                        document.getElementById("{!$Component.id_bl}").setAttribute("autocomplete", "off");
+                        document.getElementById("{!$Component.id_pa}").setAttribute("autocomplete", "off");
+                        document.getElementById("{!$Component.id_spa}").setAttribute("autocomplete", "off");
+                    </script>
+                    </div></td>
+                  </tr>
+              </apex:repeat> 
+           </table>
+           <apex:outputPanel id="newRecTable">
+           <table width="100%">
+              <apex:repeat id="theTable2" value="{!NewcollectionList}" var="rec">
+                  <tr>
+                    <td  width="5%"><apex:inputCheckbox value="{!rec.isDelete}" id="chk1"/></td>
+                    <td  width="20%"><div class="requiredInput"><div class="requiredBlock"></div>
+                    <apex:inputfield value="{!rec.rec.Geography__c}" id="id_g" onfocus="iGotFocus(this,true);" onkeydown="onKeyUpDown(this,event,true);">
+                        <c:AutoComplete Width="100" ClassName="autocomplete" InputId="{!$Component.id_g}" AutoCompleteId="accAC5{!rec.rownumber}" ObjectName="Geography__c" />                    
+                    </apex:inputField>
+                    </div></td>
+                    <td  width="25%"><div class="requiredInput"><div class="requiredBlock"></div>
+                    <apex:inputfield value="{!rec.rec.Business_Line__c}" id="id_bl" onfocus="iGotFocus(this,true);" onkeydown="onKeyUpDown(this,event,true);">
+                    <c:AutoComplete Width="100" ClassName="autocomplete" InputId="{!$Component.id_bl}" AutoCompleteId="accAC6{!rec.rownumber}" ObjectName="Business_Line__c" />                    
+                    </apex:inputField>
+                    </div></td>
+                    <td  width="25%"><div class="requiredInput"><div class="requiredBlock"></div>
+                    <apex:inputfield value="{!rec.rec.Practice_Area__c}" id="id_pa" onfocus="iGotFocus(this,true);" onkeydown="onKeyUpDown(this,event,true);">
+                        <c:AutoComplete Width="100" ClassName="autocomplete" InputId="{!$Component.id_pa}" AutoCompleteId="accAC7{!rec.rownumber}" ObjectName="Practice_Area__c" />                    
+                    </apex:inputField>
+                    </div></td>
+                    <td  width="25%"><div class="requiredInput"><div class="requiredBlock"></div>
+                    <apex:inputfield value="{!rec.rec.Sub_Practice_Area__c}" id="id_spa" onfocus="iGotFocus(this,true);" onkeydown="onKeyUpDown(this,event,true);">
+                        <c:AutoComplete Width="100" ClassName="autocomplete" InputId="{!$Component.id_spa}" AutoCompleteId="accAC8{!rec.rownumber}" ObjectName="Sub_Practice_Area__c" />                    
+                    </apex:inputField>
+                    <script>
+                        document.getElementById("{!$Component.id_g}").setAttribute("autocomplete", "off");
+                        document.getElementById("{!$Component.id_bl}").setAttribute("autocomplete", "off");
+                        document.getElementById("{!$Component.id_pa}").setAttribute("autocomplete", "off");
+                        document.getElementById("{!$Component.id_spa}").setAttribute("autocomplete", "off");
+                    </script>
+                    </div></td>
+                  </tr>
+              </apex:repeat> 
+           </table>
+           </apex:outputPanel>
+           <apex:outputLink value="javascript:void(0);" onclick="AddNewRow()">Add new row</apex:outputLink>
+           <div align="center" style="height:16px"><font color="green">
+                <apex:actionStatus startText="Loading..." id="status1" stopText=" " startStyle="font-color:green;font-weight:bold" >
+                    <apex:facet name="start">Processing<img src="/img/loading.gif"/></apex:facet>
+                </apex:actionStatus></font>
+           </div>
+           <apex:actionFunction action="{!addRow}" id="AddNewRow" name="AddNewRow" reRender="newRecTable" status="status1"/>
+          </apex:pageblock>  
+
+      </apex:form>
+      
+</apex:page>

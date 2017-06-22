@@ -1,0 +1,103 @@
+<apex:component controller="rsSummaryController" allowDML="true">
+    <apex:attribute name="rsProfile" assignTo="{!profile}" description="" type="rsProfile" required="true"/>
+    <script type="text/javascript">
+        var $j = jQuery.noConflict();
+        $j(document).ready(function() {
+            $j('#collapsePoints').collapse();
+        });
+    </script>
+    <apex:outputPanel styleClass="panel panel-default" layout="block" rendered="{!ShowCMActions}">
+        <div class="panel-heading">
+            <h3 class="panel-title">{!$Label.Content_Manager_Actions}</h3>
+        </div>
+
+        <div class="panel-body">
+            <table>
+                <tr>
+                    <td colspan="2">
+                        <apex:commandLink value="{!$Label.Start_Review}" action="{!updateProfileStatus}" rendered="{!showStartReview}" styleClass="btn brandStyledBtn">
+                            <apex:param value="startReview" name="actionType"/>
+                            <span class="glyphicon glyphicon-ok-circle"></span>
+                        </apex:commandLink>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <apex:commandLink value="{!$Label.Stop_Review}" action="{!updateProfileStatus}" rendered="{!!showStartReview}" styleClass="btn btn--neutral">
+                            <apex:param value="stopReview" name="actionType"/>
+                            <span class="glyphicon glyphicon-remove-circle"></span>
+                        </apex:commandLink>
+                    </td>
+                    <td>
+                        <apex:commandLink value="{!$Label.Approve_All_Changes}" action="{!updateProfileStatus}" rendered="{!!showStartReview}" styleClass="btn brandStyledBtn">
+                            <apex:param value="approve" name="actionType"/>
+                            <span class="glyphicon glyphicon-ok-circle"></span>
+                        </apex:commandLink>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </apex:outputPanel>
+
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h3 class="panel-title">{!$Label.Overall_Profile_Status}</h3>
+        </div>
+
+        <div class="panel-body">
+            <table width="80%">
+                <tr>
+                    <td width="60%">
+                        <apex:outputLabel for="totalScore" value="{!$Label.Total_Score}" />
+                    </td>
+                    <td>
+                        <apex:outputText id="totalScore" value="{!totalScore}" />
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <apex:outputLabel for="completionStatus" value="{!$Label.Profile_Status}" />
+                    </td>
+                    <td>
+                        <apex:outputText id="completionStatus" value="{!profileCompletionStatus}" />
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <apex:outputLabel for="cmStatus" value="{!$Label.CM_Review_Status}" />
+                    </td>
+                    <td>
+                        <apex:outputText id="cmStatus" value="{!ProfileCMStatus}" />
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div class="panel-heading">
+            <h3 class="panel-title ui-state-default"><a data-toggle="collapse" data-target="#points" href="#points" id="collapsePoints">{!$Label.Area_Points_Collapse_Header}</a></h3>
+        </div>
+        <div class="panel-body panel-collapse collapse" id="points">
+            <table width="80%" >
+                <th style="font-size:1em;">
+                    {!$Label.Area}
+                </th>
+                <th style="font-size:1em;">
+                    {!$Label.Points}
+                </th>
+                <apex:repeat value="{!areaPointMap}" var="area">
+                    <tr>
+                        <td width="60%">
+                            <apex:outputLabel for="areaPoints" value="{!area}" />
+                        </td>
+                        <td>
+                            <div style="margin-bottom: 0px; height: 8px;" class="progress">
+                              <div style="width: {!NormalizedPointMap[area]}%" class="progress-bar" role="progressbar" aria-valuenow="{!NormalizedPointMap[area]}" aria-valuemin="0" aria-valuemax="5" >
+                                <span class="sr-only">{!NormalizedPointMap[area]}</span>
+                              </div>
+                            </div>
+                        </td>
+                    </tr>
+                </apex:repeat>
+            </table>
+        </div>
+    </div>
+</apex:component>

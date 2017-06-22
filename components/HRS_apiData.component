@@ -1,0 +1,117 @@
+<apex:component controller="HRS_apiDataController" >
+  <apex:attribute name="isAllowEdit" type="boolean" description="isAllowEdit" assignTo="{!isEdit}"/>
+  <apex:attribute name="HRSData" type="HRSManager" description="HRSData" assignTo="{!hrsManager}"/>
+  <apex:attribute name="ColumnCount" type="Integer" description="style" assignTo="{!columns}"/>
+
+  <apex:pageMessages id="confirm"> </apex:pageMessages>
+
+  <apex:pageBlock id="ReadEmployee" rendered="{!(!isAllowEdit)}"> 
+
+    <apex:pageBlockSection columns="{!columns}">
+                <apex:repeat value="{!HRSData.readWorker.fieldsList}" var="f">
+
+               <apex:pageBlockSectionItem rendered="{!(!IF(CONTAINS(HRSData.dateStr, f), true, false))}">
+                   {!$Label[f]}
+                   
+                    <apex:outputText value="{0}">
+                        <apex:param value="{!HRSData.employee[f]}" /> 
+                    </apex:outputText>
+
+                </apex:pageBlockSectionItem>
+
+                <apex:pageBlockSectionItem rendered="{!IF(CONTAINS(HRSData.dateStr, f), true, false)}">
+                   {!$Label[f]}
+                   
+                    <apex:outputText value="{0, date, MMMM' 'dd', 'yyyy}">
+                        <apex:param value="{!HRSData.employee[f]}" /> 
+                    </apex:outputText>
+
+                </apex:pageBlockSectionItem>
+
+               </apex:repeat> 
+    </apex:pageBlockSection>   
+             
+  </apex:pageBlock>
+
+  <apex:pageBlock id="EditCase" rendered="{!isAllowEdit}"> 
+
+  <apex:form >
+
+    <apex:commandButton value="Cancel" rendered="{!HRSData.isEditEdit}" onclick="cancelEdit(); return false;" />
+    <apex:commandButton value="Edit" rendered="{!IF(HRSData.isEditRead && NOT(HRSData.isLocked), true, false)}" onclick="enableEdit(); return false;" />   
+
+    <apex:actionFunction name="enableEdit" action="{!HRSData.EnableEdit}" rerender="EditCase"
+        oncomplete="return false">
+    </apex:actionFunction>
+
+    <apex:actionFunction name="cancelEdit" action="{!HRSData.CancelEdit}" rerender="EditCase,confirm"
+        oncomplete="return false">
+    </apex:actionFunction>
+
+       <apex:pageBlockSection id="ReadCasePanel" columns="{!columns}" rendered="{!IF(isAllowEdit && HRSData.isEditRead, true, false)}"  >  
+
+
+                <apex:repeat value="{!HRSData.editWorker.fieldsList}" var="f">
+                <apex:pageBlockSectionItem rendered="{!(!IF(CONTAINS(HRSData.dateStr, f), true, false))}">
+                   {!$Label[f]}
+                   
+                    <apex:outputText value="{0}">
+                        <apex:param value="{!HRSData.casepii[f]}" /> 
+                    </apex:outputText>
+
+                </apex:pageBlockSectionItem>
+
+                <apex:pageBlockSectionItem rendered="{!IF(CONTAINS(HRSData.dateStr, f), true, false)}">
+                   {!$Label[f]}
+                   
+                    <apex:outputText value="{0, date, MMMM' 'dd', 'yyyy}">
+                        <apex:param value="{!HRSData.casepii[f]}" /> 
+                    </apex:outputText>
+                    
+                </apex:pageBlockSectionItem>
+
+               </apex:repeat>   
+        </apex:pageBlockSection>  
+
+
+       <apex:pageBlockSection id="EditCasePanel" columns="{!columns}" rendered="{!IF(isAllowEdit && HRSData.isEditEdit, true, false)}" >  
+                <apex:repeat value="{!HRSData.editWorker.fieldsList}" var="f">
+
+                <apex:pageBlockSectionItem rendered="{!IF(CONTAINS(HRSData.inputStr, f), true, false)}">
+                   {!$Label[f]}
+
+                <apex:input value="{!HRSData.casepii[f]}" type="auto"/>
+                </apex:pageBlockSectionItem>
+                
+                <apex:pageBlockSectionItem rendered="{!IF(CONTAINS(HRSData.dateStr, f), true, false)}">
+                 {!$Label[f]} 
+                <apex:input label="datePicker" value="{!HRSData.casepii[f]}" type="auto"/>
+                
+                </apex:pageBlockSectionItem>
+                
+                <apex:pageBlockSectionItem rendered="{!IF(CONTAINS(HRSData.picklistStr, f), true, false)}">
+
+                     {!$Label[f]}
+
+        <apex:selectList value="{!HRSData.casepii[f]}" multiselect="false" size="1">
+
+            <apex:selectOptions value="{!HRSData.picklistOptionsMapping[f]}"/>
+
+        </apex:selectList>
+                  
+
+                </apex:pageBlockSectionItem>
+
+               </apex:repeat>  
+         </apex:pageBlockSection>       
+
+
+            <apex:commandButton value="Save" rendered="{!IF(HRSData.isEditEdit && NOT(HRSData.isLocked), true, false)}" onclick="Save(); return false;" />   
+
+            <apex:actionFunction name="Save" action="{!HRSData.SaveCase}" rerender="EditCase, confirm"
+                oncomplete="return false">
+            </apex:actionFunction>
+
+    </apex:form>
+  </apex:pageBlock>
+</apex:component>

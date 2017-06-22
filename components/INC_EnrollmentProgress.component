@@ -1,0 +1,301 @@
+<apex:component Controller="INC_EnrollmentPlanProgressController">
+<apex:componentBody >
+    <style>
+        body{
+        background-color:white;
+        }
+
+        .breadcrumb { 
+            list-style: none; 
+            overflow: hidden; 
+            font: 9px Helvetica, Arial, Sans-Serif;
+            padding:0 0 0 0;
+            margin:10px 0px;
+            background:#ededed;
+        }
+
+        .breadcrumb li { 
+            float: left;
+            width:10%;
+            min-width:75px;
+        }
+        .breadcrumb li a {
+            color: white;
+            text-decoration: none; 
+            padding: 10px 0;
+            position: relative; 
+            display: block;
+            float: left;
+            background:#A6A6A6;
+            text-align: center;
+            white-space:nowrap;
+            cursor: default;
+            font-weight:bold;
+            width:100%;
+        }
+
+        .breadcrumb li a span{
+            padding-left:8px;
+            display:block;
+        }
+
+        .breadcrumb li.wide {
+            min-width:95px;
+        }
+
+        .breadcrumb li.short {
+            min-width:65px;
+        }
+
+        .breadcrumb li.Complete a {
+            background:#4F81BD;
+        }
+
+        .breadcrumb li.Current a {
+            background:#00B050;
+        }
+
+        .breadcrumb li.Pending a {
+            background:#A6A6A6;
+        }
+
+        .breadcrumb li.Pending3 a{
+            background:#CC0000;
+        }
+
+        .breadcrumb li.approval a {
+            background:#A6B5A6;
+        }
+
+        .breadcrumb li.approval.Pending a {
+            background:#A6B5A6;
+        }
+        .breadcrumb li.approval.Complete a {
+            background:#00B050;
+        }
+
+        .breadcrumb li.Complete a:after{
+            border-left: 10px solid #4F81BD;
+        }
+
+        .breadcrumb li.Current a:after{
+            border-left: 10px solid #00B050;
+        }
+
+        .breadcrumb li.Pending a:after{
+            border-left: 10px solid #A6A6A6;
+        }
+
+        .breadcrumb li.Pending3 a:after{
+            border-left: 10px solid #CC0000;
+        }
+
+        .breadcrumb ul li:first-child a {
+            border-bottom-left-radius: 10px;
+            border-top-left-radius: 10px;
+            padding-left: 0px;
+        }
+
+        .breadcrumb li:last-child a:after {
+            display: none; 
+        }
+
+        .breadcrumb ul li a:after { 
+            content: " "; 
+            display: block; 
+            width: 0; 
+            height: 0;
+            border-top: 20px solid transparent;           /* Go big on the size, and let overflow hide */
+            border-bottom: 20px solid transparent;
+            border-left: 10px solid #A6A6A6;
+            position: absolute;
+            top: 50%;
+            margin-top: -20px; 
+            left: 100%;
+            z-index: 2; 
+        }
+        .breadcrumb ul li.lastli a {
+            border-bottom-right-radius: 10px;
+            border-top-right-radius: 10px;
+            padding-right: 10px;
+        }
+
+        .breadcrumb li a:before { 
+            content: " "; 
+            display: block; 
+            width: 0; 
+            height: 0;
+            border-top: 20px solid transparent;       
+            border-bottom: 20px solid transparent;
+            border-left: 10px solid white;
+            position: absolute;
+            top: 50%;
+            margin-top: -20px; 
+            margin-left: 1px;
+            left: 100%;
+            z-index: 1; 
+        }
+
+        .breadcrumb{
+            background-color:white;
+        }
+
+        .breadcrumb li.pastEnrolled a{
+            border-bottom-right-radius: 10px;
+            border-top-right-radius: 10px;
+            border-bottom-left-radius: 10px;
+            border-bottom-right-radius: 10px;
+            border-top-left-radius: 10px;
+            padding-right: 10px;
+            background-color: red;
+            width: 300px;
+        }
+        .breadcrumb li.pastEnrolled a:after {
+            display: none; 
+        }
+        .breadcrumb li.pastEnrolledHide a{
+            display: none;
+        }
+
+        .loadingimage{
+            margin-right: 5px;
+        }
+    </style>
+    <style>
+        .hidden{
+            display:none;
+        }
+    </style>
+    <apex:outputPanel id="fullprogress" rendered="true">
+    <apex:outputPanel id="progress" rendered="{!And(bShowProgress,(AND(oEnrollmentPlan.ExceptionFlag__c='No',oEnrollmentPlan.InterimPaymentRequested__c!='Yes',NOT(AggregatedProject), oEnrollmentPlan.ApplicationType__c != 'CCR')))}">
+        <div class="breadcrumb" title="{!ProgressToolTip}">
+            <ul class="breadcrumb">
+                <apex:outputpanel rendered="{!NOT(oEnrollmentPlan.ApplicationType__c == 'PAY')}">
+                <li class="{! If(oEnrollmentPlan.StatusNumber__c = 1 ,'Current',If(oEnrollmentPlan.StatusNumber__c > 1,'Complete wide', 'Pending wide')) }">
+                    <a href="#"><span>{!$Label.DTWINCEPPending}<br/>{!$Label.DTWINCPM_Action}</span></a>
+                </li>
+                </apex:outputpanel>
+                <li class="{! If(oEnrollmentPlan.StatusNumber__c = 2 ,'Current',If(oEnrollmentPlan.StatusNumber__c > 2,'Complete wide', 'Pending wide')) }">
+                    <a href="#"><span>{!$Label.DTWINCEPPending}<br/>{!$Label.DTWINCEPApprover_1_Action}</span></a>
+                </li>
+                <li class="{! If(oEnrollmentPlan.StatusNumber__c = 3 ,'Current',If(oEnrollmentPlan.StatusNumber__c > 3,'Complete wide', 'Pending wide')) }">
+                    <a href="#"><span>{!$Label.DTWINCEPPending} <br/>{!$Label.DTWINCEPApprover_2_Action}</span></a>
+                </li>
+                <li class="{! If(oEnrollmentPlan.StatusNumber__c = 5 ,'Current',If(oEnrollmentPlan.StatusNumber__c > 5,'Complete wide', 'Pending wide')) }">
+                    <a href="#"><span>{!$Label.DTWINCEPPending}<br/>{!$Label.DTWINCEPDTW_Admin}</span></a>
+                </li>
+                <li class="{! If(oEnrollmentPlan.StatusNumber__c = 6 ,'Current lastli',If(oEnrollmentPlan.StatusNumber__c > 6,'Complete wide lastli', 'Pending wide lastli'))}">
+                    <a href="#"><span>{!$Label.DTWINCEPProject}<br/>{!$Label.DTWINCEPEnrolled}</span></a>
+                </li>
+            </ul>
+        </div>
+    </apex:outputPanel>
+    <apex:outputPanel id="progress2" rendered="{!And(bShowProgress,AND(oEnrollmentPlan.ExceptionFlag__c='Yes',NOT(oEnrollmentPlan.InterimPaymentRequested__c='Yes'),NOT(AggregatedProject), NOT(oEnrollmentPlan.ApplicationType__c == 'CCR')))}">
+        <div class="breadcrumb" title="{!ProgressToolTip}">
+            <ul class="breadcrumb">
+                <apex:outputpanel rendered="{!NOT(oEnrollmentPlan.ApplicationType__c == 'PAY')}" >
+                    <li class="{! If(oEnrollmentPlan.StatusNumber__c = 1 ,'Current',If(oEnrollmentPlan.StatusNumber__c > 1,'Complete wide', 'Pending wide')) }">
+                        <a href="#"><span>{!$Label.DTWINCEPPending}<br/>{!$Label.DTWINCPM_Action}</span></a>
+                    </li>
+                </apex:outputpanel>
+                <li class="{! If(oEnrollmentPlan.StatusNumber__c = 2 ,'Current',If(oEnrollmentPlan.StatusNumber__c > 2,'Complete wide', 'Pending wide')) }">
+                    <a href="#"><span>{!$Label.DTWINCEPPending}<br/>{!$Label.DTWINCEPApprover_1_Action}</span></a>
+                </li>
+                <li class="{! If(oEnrollmentPlan.StatusNumber__c = 3 ,'Current',If(oEnrollmentPlan.StatusNumber__c > 3,'Complete wide', 'Pending wide')) }">
+                    <a href="#"><span>{!$Label.DTWINCEPPending} <br/>{!$Label.DTWINCEPApprover_2_Action}</span></a>
+                </li>
+                <li class="{! If(oEnrollmentPlan.StatusNumber__c = 4 ,'Current',If(oEnrollmentPlan.StatusNumber__c > 4,'Complete wide', 'Pending3 wide')) }">
+                    <a href="#"><span>{!$Label.DTWINCEPPending}<br/>{!$Label.DTWINCEPApprover_3_Action}</span></a>
+                </li>
+                <li class="{! If(oEnrollmentPlan.StatusNumber__c = 5 ,'Current',If(oEnrollmentPlan.StatusNumber__c > 5,'Complete wide', 'Pending wide')) }">
+                    <a href="#"><span>{!$Label.DTWINCEPPending}<br/>{!$Label.DTWINCEPDTW_Admin}</span></a>
+                </li>
+                <li class="{! If(oEnrollmentPlan.StatusNumber__c = 6 ,'Current lastli',If(oEnrollmentPlan.StatusNumber__c > 6,'Complete wide lastli', 'Pending wide lastli'))}">
+                    <a href="#"><span>{!$Label.DTWINCEPProject}<br/>{!$Label.DTWINCEPEnrolled}</span></a>
+                </li>
+            </ul>
+        </div>
+    </apex:outputPanel>
+    <apex:outputPanel id="progress3" rendered="{!And(bShowProgress,AND(OR(oEnrollmentPlan.InterimPaymentRequested__c='Yes',AggregatedProject), oEnrollmentPlan.ApplicationType__c != 'CCR'))}">
+        <div class="breadcrumb" title="{!ProgressToolTip}">
+            <ul class="breadcrumb">
+                <apex:outputpanel rendered="{!NOT(oEnrollmentPlan.ApplicationType__c == 'PAY')}">
+                    <li class="{! If(oEnrollmentPlan.StatusNumber__c = 1 ,'Current',If(oEnrollmentPlan.StatusNumber__c > 1,'Complete wide', 'Pending wide')) }">
+                        <a href="#"><span>{!$Label.DTWINCEPPending}<br/>{!$Label.DTWINCPM_Action}</span></a>
+                    </li>
+                </apex:outputpanel>
+                <li class="{! If(oEnrollmentPlan.StatusNumber__c = 2 ,'Current',If(oEnrollmentPlan.StatusNumber__c > 2,'Complete wide', 'Pending wide')) }">
+                    <a href="#"><span>{!$Label.DTWINCEPPending}<br/>{!$Label.DTWINCEPApprover_1_Action}</span></a>
+                </li>
+                <li class="{! If(oEnrollmentPlan.StatusNumber__c = 3 ,'Current',If(oEnrollmentPlan.StatusNumber__c > 3,'Complete wide', 'Pending wide')) }">
+                    <a href="#"><span>{!$Label.DTWINCEPPending} <br/>{!$Label.DTWINCEPApprover_2_Action}</span></a>
+                </li>
+                <li class="{! If(oEnrollmentPlan.ExceptionFlag__c='Yes', If(oEnrollmentPlan.StatusNumber__c = 4 ,'Current',If(oEnrollmentPlan.StatusNumber__c > 4,'Complete wide', 'Pending3 wide')), 'hidden') }">
+                    <a href="#"><span>{!$Label.DTWINCEPPending}<br/>{!$Label.DTWINCEPApprover_3_Action}</span></a>
+                </li>
+                <li class="{! If(oEnrollmentPlan.InterimPaymentRequested__c='Yes', If(oEnrollmentPlan.StatusNumber__c = 4.5 ,'Current',If(oEnrollmentPlan.StatusNumber__c > 4.5,'Complete wide', 'Pending3 wide')), 'hidden') }">
+                    <a href="#"><span>{!$Label.DTWINCEPPending}<br/>{!$Label.DTWINCEPPending_Corp_Review}</span></a>
+                </li>
+                <li class="{! If(oEnrollmentPlan.StatusNumber__c = 5 ,'Current',If(oEnrollmentPlan.StatusNumber__c > 5,'Complete wide', 'Pending wide')) }">
+                    <a href="#"><span>{!$Label.DTWINCEPPending}<br/>{!$Label.DTWINCEPDTW_Admin}</span></a>
+                </li>
+                <li class="{! If(oEnrollmentPlan.StatusNumber__c = 6 ,'Current lastli',If(oEnrollmentPlan.StatusNumber__c > 6,'Complete wide lastli', 'Pending wide lastli'))}">
+                    <a href="#"><span>{!$Label.DTWINCEPProject}<br/>{!$Label.DTWINCEPEnrolled}</span></a>
+                </li>
+            </ul>
+        </div>
+    </apex:outputPanel>
+    <apex:outputPanel id="progress5" rendered="{!And(bShowProgress, oEnrollmentPlan.ApplicationType__c == 'CCR')}">
+        <div class="breadcrumb" title="{!ProgressToolTip}">
+            <ul class="breadcrumb">
+                <apex:outputpanel rendered="{!NOT(oEnrollmentPlan.ApplicationType__c == 'PAY')}">
+                    <li class="{! If(oEnrollmentPlan.StatusNumber__c = 1 ,'Current',If(oEnrollmentPlan.StatusNumber__c > 1,'Complete wide', 'Pending wide')) }">
+                        <a href="#"><span>{!$Label.DTWINCEPPending}<br/>{!$Label.DTWINCPM_Action}</span></a>
+                    </li>
+                </apex:outputpanel>
+                <li class="{! If(oEnrollmentPlan.StatusNumber__c = 2 ,'Current',If(oEnrollmentPlan.StatusNumber__c > 2,'Complete wide', 'Pending wide')) }">
+                    <a href="#"><span>{!$Label.DTWINCEPPending}<br/>{!$Label.DTWINCEPApprover_1_Action}</span></a>
+                </li>
+                <li class="{! If(oEnrollmentPlan.StatusNumber__c = 3 ,'Current',If(oEnrollmentPlan.StatusNumber__c > 3,'Complete wide', 'Pending wide')) }">
+                    <a href="#"><span>{!$Label.DTWINCEPPending} <br/>{!$Label.DTWINCEPApprover_2_Action}</span></a>
+                </li>
+                <li class="{! If(oEnrollmentPlan.CCR_3rd_Approver_Required__c, If(oEnrollmentPlan.StatusNumber__c = 4 ,'Current',If(oEnrollmentPlan.StatusNumber__c > 4,'Complete wide', 'Pending3 wide')), 'hidden') }">
+                    <a href="#"><span>{!$Label.DTWINCEPPending}<br/>{!$Label.DTWINCEPApprover_3_Action}</span></a>
+                </li>
+                <li class="{! If((oEnrollmentPlan.CCR3rdApproverAll__c), If(oEnrollmentPlan.StatusNumber__c = 4.5 ,'Current',If(oEnrollmentPlan.StatusNumber__c > 4.5,'Complete wide', 'Pending3 wide')), 'hidden') }">
+                    <a href="#"><span>{!$Label.DTWINCEPPending}<br/>{!$Label.DTWINCEPPending_Corp_Review}</span></a>
+                </li>
+                <li class="{! If(oEnrollmentPlan.StatusNumber__c = 5 ,'Current',If(oEnrollmentPlan.StatusNumber__c > 5,'Complete wide', 'Pending wide')) }">
+                    <a href="#"><span>{!$Label.DTWINCEPPending}<br/>{!$Label.DTWINCEPDTW_Admin}</span></a>
+                </li>
+                <li class="{! If(oEnrollmentPlan.StatusNumber__c = 6 ,'Current lastli',If(oEnrollmentPlan.StatusNumber__c > 6,'Complete wide lastli', 'Pending wide lastli'))}">
+                    <a href="#"><span>{!$Label.DTWINCEPProject}<br/>{!$Label.DTWINCEPEnrolled}</span></a>
+                </li>
+            </ul>
+        </div>
+    </apex:outputPanel>
+    <apex:outputPanel id="progress4" rendered="{!Not(bShowProgress)}">
+        <div class="breadcrumb">
+            <ul class="breadcrumb" title="{!ProgressToolTip}">
+                <li class="{! If(oEnrollmentPlan.StatusNumber__c = 7,'pastEnrolled','pastEnrolledHide')}">
+                    <a href="#"><span>{!$label.DTWINCEPRejected}</span></a>
+                </li>
+                <li class="{! If(oEnrollmentPlan.StatusNumber__c = 8,'pastEnrolled','pastEnrolledHide')}">
+                    <a title="{!eightTooltip}" href="#"><span>{!$label.DTWINCEPRejected}<br/>{!$label.DTWINCEPfor_Correction}</span></a>
+                </li>
+                <li class="{! If(oEnrollmentPlan.StatusNumber__c = 9,'pastEnrolled','pastEnrolledHide')}">
+                    <a title="{!nineTooltip}" href="#"><span>{!$label.DTWINCEPOn_Hold}</span></a>
+                </li>
+                <li class="{! If(oEnrollmentPlan.StatusNumber__c = 10,'pastEnrolled','pastEnrolledHide')}">
+                    <a title="{!tenTooltip}" href="#"><span>{!$label.DTWINCEPUnenrolled}</span></a>
+                </li>
+                <li class="{! If(oEnrollmentPlan.StatusNumber__c = 11,'pastEnrolled','pastEnrolledHide')}">
+                    <a title="{!tenTooltip}" href="#"><span>{!$label.DTWINCEPProject_Manager_has_requested_Opt_Out}</span></a>
+                </li>
+
+            </ul>
+        </div>
+    </apex:outputPanel>
+    </apex:outputPanel>
+</apex:componentBody>
+</apex:component>

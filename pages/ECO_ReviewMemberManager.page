@@ -1,0 +1,381 @@
+<apex:page showheader="true" sidebar="true" standardcontroller="TechnicalQualityReview__c" extensions="ECO_ReviewMemberManagerController,nttdcore.DLabelParentController" >
+
+
+	<style>
+        .customHelpText{
+			padding: 7px;
+		    border: 1px solid #85B3CE;
+		    min-height: 30px;
+		    display: block;
+		    width: auto;
+		    margin: 0 0 5px 0;
+		    background-repeat: no-repeat;
+		    border-radius: 4px;
+		    background-color: #A2D3F1;
+		    
+		}
+		.customHelpBody{
+			display:inline-block;
+			color:#;
+			max-width:95%;
+		}
+        .ErrorRow{
+			background-color: #FFFF00;
+		}
+
+        .tableclass{
+			border: 1px solid black; border-collapse: collapse; padding: 30px;
+		}
+
+		.borderclass{
+			border: 1px solid black;padding: 10px;
+        }
+
+		.searchText{
+			text-align:center;
+			font-weight:bold;
+			font-size:20px;
+		}
+        body .bPageBlock, body .bPageBlock .pbBody, body .bPageBlock .pbBottomButtons {
+        	background-color: #FFFFFF;
+        }
+        .mouseOverInfo {
+            position: absolute;
+            display: none;
+            left: 05px;
+            bottom: 0px;
+            width: 69em;
+        	height: 2em;
+            background-color: #fefdb9;
+            padding: 2px;
+            border: 1px solid black;
+            z-index: 11;
+            opacity: 0;
+            white-space: normal;
+            font-weight: normal;
+            color: #000;
+        }
+        .helpIcon{
+            width: 24px !important;
+            height: 24px !important;
+        }
+	</style>
+                  
+	<apex:form id="newForm" >
+        <apex:outputpanel id="wholePanel" >
+		<apex:outputfield value="{!TechnicalQualityReview__c.Deliverable__c}" rendered="false" />
+		<apex:outputfield value="{!TechnicalQualityReview__c.ApproverRequiredDate__c}" rendered="false" />
+		<apex:outputfield value="{!TechnicalQualityReview__c.ReviewerRequiredDate__c}" rendered="false" />
+		<apex:outputfield value="{!TechnicalQualityReview__c.OriginatorRequiredDate__c}" rendered="false" />
+		<apex:outputfield value="{!TechnicalQualityReview__c.LeadVerifierRequiredDate__c}" rendered="false" />
+		<div style="visibility:hidden;" >
+		<apex:inputfield value="{!oTechnicalQualityReview.Deliverable__c}" />
+		</div>
+		<nttdcore:DLabel name="DL84" default="Technical Quality Review" labelParent="{!this}" /><nttdcore:DLabel name="DL85" default="{{1}} - {{2}}" labelParent="{!this}" p1="{!oTechnicalQualityReview.Deliverable__r.Project__r.Name}" p2="{!TechnicalQualityReview__c.Deliverable__r.Project__r.ProjectNumber__c }" /><apex:sectionheader title="{!dLabel['DL84']}" subtitle="{!dLabel['DL85']}" id="secHeader" />
+
+		<apex:pagemessages />
+		<div class="customHelpText" >
+			<div class="customHelpBody" >
+                <p><nttdcore:DLabel name="DL87" default="Use this section to 1) schedule the review date(s), 2) select the requested type of review, and 3) select what the review must encompass. Click &lsquo;Save&rsquo; to save this information. When you are ready to request that the TQR team complete the review, select the relevant technical team members in the &lsquo;Available TQR Members&rsquo; area and click &lsquo;Submit Review Request&rsquo; (without clicking the &lsquo;Save&rsquo; first). Once the review is complete, document your approval of the review process at the bottom of the page." labelParent="{!this}" /><b><nttdcore:DLabel name="DL86" default="Project Manager or Deliverable Originator:" labelParent="{!this}" />{!dLabel['DL86']}</b>  {!dLabel['DL87']} </p>
+                <p><nttdcore:DLabel name="DL89" default="Review this section to understand the type and scope of review requested for the project deliverable. Once your review is complete in accordance with the responsibilities of your assigned role, document your review against your name under Technical Quality Review Status." labelParent="{!this}" /><b><nttdcore:DLabel name="DL88" default="Technical Review Team:" labelParent="{!this}" />{!dLabel['DL88']}</b>  {!dLabel['DL89']}</p>
+
+			</div>
+	  	</div>		 
+		<apex:pageblock mode="edit" id="TQTPB" ><nttdcore:DLabel name="DL95" default="Saving..." labelParent="{!this}" /><nttdcore:DLabel name="DL96" default="Deliverable" labelParent="{!this}" /><nttdcore:DLabel name="DL97" default="TQR Details (COMPLETED BY DELIVERABLE ORIGINATOR)" labelParent="{!this}" /><nttdcore:DLabel name="DL98" default="TQR Details (COMPLETED BY DELIVERABLE ORIGINATOR)" labelParent="{!this}" /><nttdcore:DLabel name="DL99" default="TQR Type (COMPLETED BY DELIVERABLE ORIGINATOR)" labelParent="{!this}" /><nttdcore:DLabel name="DL100" default="Independent Review (IR)" labelParent="{!this}" /><nttdcore:DLabel name="DL101" default="Subconsultant, Client, or Third-Party Info Review" labelParent="{!this}" /><nttdcore:DLabel name="DL102" default="Design Assumptions (Technical Approach) Review" labelParent="{!this}" /><nttdcore:DLabel name="DL103" default="Other" labelParent="{!this}" /><nttdcore:DLabel name="DL104" default="TQR Type (COMPLETED BY DELIVERABLE ORIGINATOR)" labelParent="{!this}" /><nttdcore:DLabel name="DL105" default="Independent Review (IR)" labelParent="{!this}" /><nttdcore:DLabel name="DL106" default="Subconsultant, Client, or Third-Party Info Review" labelParent="{!this}" /><nttdcore:DLabel name="DL107" default="Design Assumptions (Technical Approach) Review" labelParent="{!this}" /><nttdcore:DLabel name="DL108" default="Other" labelParent="{!this}" /><nttdcore:DLabel name="DL109" default="TQR Scope (COMPLETED BY DELIVERABLE ORIGINATOR)" labelParent="{!this}" /><nttdcore:DLabel name="DL110" default="Edit for elements such as grammar, Technical punctuation and formatting." labelParent="{!this}" /><nttdcore:DLabel name="DL111" default="Soundness of Approach/Design" labelParent="{!this}" /><nttdcore:DLabel name="DL112" default="Adequacy of Statements of Limitations" labelParent="{!this}" /><nttdcore:DLabel name="DL113" default="Conformance with Standards" labelParent="{!this}" /><nttdcore:DLabel name="DL114" default="Basis and Validity of conclusion / recommendation" labelParent="{!this}" /><nttdcore:DLabel name="DL115" default="Detail Check of Calculations and graphics." labelParent="{!this}" /><nttdcore:DLabel name="DL116" default="Compliance With Scope" labelParent="{!this}" /><nttdcore:DLabel name="DL117" default="Review of client and third-party Information" labelParent="{!this}" /><nttdcore:DLabel name="DL118" default="Organization, clarity and Completeness" labelParent="{!this}" /><nttdcore:DLabel name="DL119" default="Other" labelParent="{!this}" /><nttdcore:DLabel name="DL120" default="TQR Scope (COMPLETED BY DELIVERABLE ORIGINATOR)" labelParent="{!this}" /><nttdcore:DLabel name="DL121" default="Edit for elements such as grammar, Technical punctuation and formatting." labelParent="{!this}" /><nttdcore:DLabel name="DL122" default="Soundness of Approach/Design" labelParent="{!this}" /><nttdcore:DLabel name="DL123" default="Adequacy of Statements of Limitations" labelParent="{!this}" /><nttdcore:DLabel name="DL124" default="Conformance with Standards" labelParent="{!this}" /><nttdcore:DLabel name="DL125" default="Basis and Validity of conclusion / recommendation" labelParent="{!this}" /><nttdcore:DLabel name="DL126" default="Detail Check of Calculations and graphics." labelParent="{!this}" /><nttdcore:DLabel name="DL127" default="Compliance With Scope" labelParent="{!this}" /><nttdcore:DLabel name="DL128" default="Review of client and third-party Information" labelParent="{!this}" /><nttdcore:DLabel name="DL129" default="Organization, clarity and Completeness" labelParent="{!this}" /><nttdcore:DLabel name="DL130" default="Other" labelParent="{!this}" /><nttdcore:DLabel name="DL131" default="Available TQR Members (SELECTED BY DELIVERABLE ORIGINATOR)" labelParent="{!this}" /><nttdcore:DLabel name="DL132" default="Available TQR Members (SELECTED BY DELIVERABLE ORIGINATOR)" labelParent="{!this}" /><nttdcore:DLabel name="DL133" default="Manage Technical Quality Team" labelParent="{!this}" /><nttdcore:DLabel name="DL134" default="There are no Technical Quality Team Members available." labelParent="{!this}" /><nttdcore:DLabel name="DL135" default="Select" labelParent="{!this}" /><nttdcore:DLabel name="DL136" default="Member" labelParent="{!this}" /><nttdcore:DLabel name="DL137" default="Role" labelParent="{!this}" /><nttdcore:DLabel name="DL138" default="TQR Status (COMPLETED BY DESIGNATED REVIEWERS)" labelParent="{!this}" /><nttdcore:DLabel name="DL139" default="For each technical team member, complete this section once your review of the document per your assigned role is completed.  Select your discipline, identify the format of your review comments and attach any relevant document (e.g., hard copy edits or comment review form).  Verifiers must also select if there are no outstanding issues or unresolved issues.  Completion of your review will be documented in the system once the &ldquo;Review Completed&rdquo; box is checked." labelParent="{!this}" /><nttdcore:DLabel name="DL140" default="Saving..." labelParent="{!this}" /><nttdcore:DLabel name="DL141" default="No Technical Quality Team Members associated with the request." labelParent="{!this}" /><nttdcore:DLabel name="DL142" default="Member" labelParent="{!this}" /><nttdcore:DLabel name="DL143" default="Role" labelParent="{!this}" /><nttdcore:DLabel name="DL144" default="Discipline" labelParent="{!this}" /><nttdcore:DLabel name="DL145" default="Comment Format" labelParent="{!this}" /><nttdcore:DLabel name="DL146" default="No Outstanding issues" labelParent="{!this}" /><nttdcore:DLabel name="DL147" default="(Verifiers Only)" labelParent="{!this}" /><nttdcore:DLabel name="DL148" default="Unresolved issues" labelParent="{!this}" /><nttdcore:DLabel name="DL149" default="(Verifiers Only)" labelParent="{!this}" /><nttdcore:DLabel name="DL150" default="Review Completed" labelParent="{!this}" /><nttdcore:DLabel name="DL151" default="Date/Time" labelParent="{!this}" /><nttdcore:DLabel name="DL152" default="Attachments" labelParent="{!this}" /><nttdcore:DLabel name="DL153" default="Add" labelParent="{!this}" /><nttdcore:DLabel name="DL154" default="Add Attachments" labelParent="{!this}" /><nttdcore:DLabel name="DL155" default="Action" labelParent="{!this}" /><nttdcore:DLabel name="DL156" default="Save" labelParent="{!this}" /><nttdcore:DLabel name="DL157" default="TQR Approval" labelParent="{!this}" /><nttdcore:DLabel name="DL158" default="TQR Approval" labelParent="{!this}" /><nttdcore:DLabel name="DL159" default="Saving..." labelParent="{!this}" /><nttdcore:DLabel name="DL160" default="No Approvals found" labelParent="{!this}" /><nttdcore:DLabel name="DL161" default="Member" labelParent="{!this}" /><nttdcore:DLabel name="DL162" default="Role" labelParent="{!this}" /><nttdcore:DLabel name="DL163" default="Approved" labelParent="{!this}" /><nttdcore:DLabel name="DL164" default="Date/Time" labelParent="{!this}" /><nttdcore:DLabel name="DL165" default="Action" labelParent="{!this}" /><nttdcore:DLabel name="DL166" default="Save" labelParent="{!this}" />
+
+			<apex:pageblockbuttons id="PBbuttons" ><nttdcore:DLabel name="DL90" default="Save" labelParent="{!this}" /><nttdcore:DLabel name="DL91" default="Submit Review Request" labelParent="{!this}" /><nttdcore:DLabel name="DL92" default="Processing..." labelParent="{!this}" /><nttdcore:DLabel name="DL93" default="Processing..." labelParent="{!this}" />
+				
+                <apex:actionstatus id="ReviewStatus" >
+                <apex:facet name="stop" >
+                    <apex:outputpanel >
+                	<apex:commandbutton action="{!savePage}" status="ReviewStatus" value="{!dLabel['DL90']}" rerender="newForm" disabled="{!NOT(inputFields)}" oncomplete="location.reload()" />
+                    <apex:commandbutton action="{!saveRequest}" status="ReviewStatus" value="{!dLabel['DL91']}" rerender="TQTPB, mySaveStatus, tabOne, tabOnee, tabTwo" disabled="{!OR(NOT(inputFields),IF(lstTQT_Wrapper.size = 0, true, false))}" />
+                    </apex:outputpanel>
+                </apex:facet>
+                <apex:facet name="start" >
+                    <apex:outputpanel >
+                	<apex:commandbutton action="{!savePage}" status="ReviewStatus" value="{!dLabel['DL92']}" disabled="true" /> 
+                    <apex:commandbutton action="{!saveRequest}" status="ReviewStatus" value="{!dLabel['DL93']}" disabled="true" /> 
+                    </apex:outputpanel>
+                </apex:facet>
+                </apex:actionstatus>
+                
+                <nttdcore:DLabel name="DL94" default="Return to Deliverable" labelParent="{!this}" /><apex:commandbutton action="/{!TechnicalQualityReview__c.Deliverable__c}" value="{!dLabel['DL94']}" immediate="true" />
+			</apex:pageblockbuttons>
+
+			<apex:actionstatus id="savestatus" >
+				<apex:facet name="start" >
+					<p style="padding-bottom:20px;" class="searchText" ><img style="position:relative;top:12px;" src="/img/loading32.gif" /> {!dLabel['DL95']}</p>
+				</apex:facet>
+				<apex:facet name="stop" >
+					<apex:outputpanel >
+                	<apex:pageblocksection title="{!dLabel['DL96']}" id="deliverable" collapsible="false" >
+                        <apex:outputfield value="{!oDeliverable.Name}" />
+                        <apex:inputfield value="{!oDeliverable.Status__c}" >
+                            <apex:actionsupport event="onchange" action="{!saveDeliverable}" />
+                        </apex:inputfield>
+                        <apex:outputfield value="{!oDeliverable.Project__c}" />
+                        <apex:outputfield value="{!oDeliverable.DueDate__c}" />
+                        <apex:outputfield value="{!oDeliverable.Project_Scope__c}" />
+                        <apex:outputfield value="{!oDeliverable.DateSubmitted__c}" />
+                        <apex:outputfield value="{!oDeliverable.ProjectTask__c}" />
+                        <apex:outputfield value="{!oDeliverable.InternalDeliverable__c}" />
+                        <apex:outputfield value="{!oDeliverable.DeliverablesOwner__c}" />
+                        <apex:outputfield value="{!oDeliverable.DeliverableType__c}" />
+                        <apex:outputfield value="{!oDeliverable.PracticeArea__c}" />
+                        <apex:outputfield value="{!oDeliverable.Description__c}" />
+                    </apex:pageblocksection>
+					<apex:pageblocksection title="{!dLabel['DL97']}" collapsible="false" rendered="{!inputFields}" >
+						<apex:repeat value="{!$ObjectType.TechnicalQualityReview__c.FieldSets.TQR_Field_View}" var="Field1" >
+							<apex:inputfield value="{!oTechnicalQualityReview[Field1]}" required="true" rendered="{!Field1.required}" />
+				           	<apex:inputfield value="{!oTechnicalQualityReview[Field1]}" rendered="{!not(Field1.required)}" />
+						</apex:repeat>
+					</apex:pageblocksection>
+                    <apex:pageblocksection title="{!dLabel['DL98']}" collapsible="false" rendered="{!NOT(inputFields)}" >
+						<apex:repeat value="{!$ObjectType.TechnicalQualityReview__c.FieldSets.TQR_Field_View}" var="Field1" >
+							<apex:outputfield value="{!oTechnicalQualityReview[Field1]}" />
+				           	
+						</apex:repeat>
+					</apex:pageblocksection>
+					<apex:pageblocksection title="{!dLabel['DL99']}" collapsible="false" id="typeBlock" rendered="{!inputFields}" >
+						<apex:inputfield value="{!oTechnicalQualityReview.TypeCalculationCheck__c}" />
+                        <apex:pageBlockSectionItem > </apex:pageBlockSectionItem>
+                        <apex:inputfield value="{!oTechnicalQualityReview.TypeIndependentReviewIR__c}" label="{!dLabel['DL100']}" />
+                        <apex:inputfield value="{!oTechnicalQualityReview.TypeInterdisciplinaryCoordinationReview__c}" />
+                        <apex:inputfield value="{!oTechnicalQualityReview.TypeBidabilityReview__c}" />
+                        <apex:inputfield value="{!oTechnicalQualityReview.TypeDesignReview__c}" />
+                        <apex:inputfield value="{!oTechnicalQualityReview.TypeSpecificationPackageReview__c}" />
+                        <apex:inputfield value="{!oTechnicalQualityReview.TypeSubconsultantClient__c}" label="{!dLabel['DL101']}" />
+                        <apex:inputfield value="{!oTechnicalQualityReview.TypeConstructabilityReview__c}" />
+                        <apex:inputfield value="{!oTechnicalQualityReview.TypeDesignAssumptions__c}" label="{!dLabel['DL102']}" />
+                        <apex:inputfield value="{!oTechnicalQualityReview.TypeOther__c}" label="{!dLabel['DL103']}" />
+                    </apex:pageblocksection>
+                    <apex:pageblocksection columns="1" rendered="{!(inputFields)}" >
+                        <apex:inputfield value="{!oTechnicalQualityReview.ReviewTypeComments__c}" style="width:100%" />
+                    </apex:pageblocksection>
+                    <apex:pageblocksection title="{!dLabel['DL104']}" collapsible="false" rendered="{!NOT(inputFields)}" >
+						
+                        <apex:outputfield value="{!oTechnicalQualityReview.TypeCalculationCheck__c}" />
+                        <apex:pageBlockSectionItem > </apex:pageBlockSectionItem>
+                        <apex:outputfield value="{!oTechnicalQualityReview.TypeIndependentReviewIR__c}" label="{!dLabel['DL105']}" />
+                        <apex:outputfield value="{!oTechnicalQualityReview.TypeInterdisciplinaryCoordinationReview__c}" />
+                        <apex:outputfield value="{!oTechnicalQualityReview.TypeBidabilityReview__c}" />
+                        <apex:outputfield value="{!oTechnicalQualityReview.TypeDesignReview__c}" />
+                        <apex:outputfield value="{!oTechnicalQualityReview.TypeSpecificationPackageReview__c}" />
+                        <apex:outputfield value="{!oTechnicalQualityReview.TypeSubconsultantClient__c}" label="{!dLabel['DL106']}" />
+                        <apex:outputfield value="{!oTechnicalQualityReview.TypeConstructabilityReview__c}" />
+                        <apex:outputfield value="{!oTechnicalQualityReview.TypeDesignAssumptions__c}" label="{!dLabel['DL107']}" />
+                        <apex:outputfield value="{!oTechnicalQualityReview.TypeOther__c}" label="{!dLabel['DL108']}" />
+                    </apex:pageblocksection>
+                    <apex:pageblocksection columns="1" rendered="{!NOT(inputFields)}" >
+                        <apex:outputfield value="{!oTechnicalQualityReview.ReviewTypeComments__c}" style="width:100%" />
+                    </apex:pageblocksection>
+					<apex:pageblocksection title="{!dLabel['DL109']}" collapsible="false" rendered="{!inputFields}" >
+						<apex:inputfield value="{!oTechnicalQualityReview.ScopeGrammerElements__c}" label="{!dLabel['DL110']}" />
+                        <apex:inputfield value="{!oTechnicalQualityReview.ScopeSoundnessofApproach__c}" label="{!dLabel['DL111']}" />
+                        <apex:inputfield value="{!oTechnicalQualityReview.ScopeAdequacyofStatements__c}" label="{!dLabel['DL112']}" />
+                        <apex:inputfield value="{!oTechnicalQualityReview.ScopeConformancewithStandards__c}" label="{!dLabel['DL113']}" />
+                        <apex:inputfield value="{!oTechnicalQualityReview.ScopeBasisandValidity__c}" label="{!dLabel['DL114']}" />
+                        <apex:inputfield value="{!oTechnicalQualityReview.ScopeDetailCalcCheck__c}" label="{!dLabel['DL115']}" />
+                        <apex:inputfield value="{!oTechnicalQualityReview.ScopeComplianceWithScope__c}" label="{!dLabel['DL116']}" />
+                        <apex:inputfield value="{!oTechnicalQualityReview.ScopeClientandThirdPartyInformation__c}" label="{!dLabel['DL117']}" />
+                        <apex:inputfield value="{!oTechnicalQualityReview.ScopeOrgClarityCompleteness__c}" label="{!dLabel['DL118']}" />
+                        <apex:inputfield value="{!oTechnicalQualityReview.ScopeOther__c}" label="{!dLabel['DL119']}" />
+					</apex:pageblocksection>
+                    <apex:pageblocksection columns="1" rendered="{!inputFields}" >
+							<apex:inputfield value="{!oTechnicalQualityReview.ReviewScopeComments__c}" style="width:100%" />                        
+                    </apex:pageblocksection>
+                    <apex:pageblocksection title="{!dLabel['DL120']}" collapsible="false" rendered="{!NOT(inputFields)}" >
+						<apex:outputfield value="{!oTechnicalQualityReview.ScopeGrammerElements__c}" label="{!dLabel['DL121']}" />
+                        <apex:outputfield value="{!oTechnicalQualityReview.ScopeSoundnessofApproach__c}" label="{!dLabel['DL122']}" />
+                        <apex:outputfield value="{!oTechnicalQualityReview.ScopeAdequacyofStatements__c}" label="{!dLabel['DL123']}" />
+                        <apex:outputfield value="{!oTechnicalQualityReview.ScopeConformancewithStandards__c}" label="{!dLabel['DL124']}" />
+                        <apex:outputfield value="{!oTechnicalQualityReview.ScopeBasisandValidity__c}" label="{!dLabel['DL125']}" />
+                        <apex:outputfield value="{!oTechnicalQualityReview.ScopeDetailCalcCheck__c}" label="{!dLabel['DL126']}" />
+                        <apex:outputfield value="{!oTechnicalQualityReview.ScopeComplianceWithScope__c}" label="{!dLabel['DL127']}" />
+                        <apex:outputfield value="{!oTechnicalQualityReview.ScopeClientandThirdPartyInformation__c}" label="{!dLabel['DL128']}" />
+                        <apex:outputfield value="{!oTechnicalQualityReview.ScopeOrgClarityCompleteness__c}" label="{!dLabel['DL129']}" />
+                        <apex:outputfield value="{!oTechnicalQualityReview.ScopeOther__c}" label="{!dLabel['DL130']}" />
+					</apex:pageblocksection>
+                    <apex:pageblocksection columns="1" rendered="{!NOT(inputFields)}" >
+							<apex:outputfield value="{!oTechnicalQualityReview.ReviewScopeComments__c}" style="width:100%" />                        
+                    </apex:pageblocksection>
+					<br/><br/><br/>
+						<apex:actionregion immediate="true" >
+                            <apex:pageblocksection title="{!dLabel['DL131']}" id="tabTwo" collapsible="false" columns="1" >
+                                <apex:facet name="header" >
+                                    <apex:outputpanel >
+                                        <br/>
+                                        <h3>{!dLabel['DL132']}</h3>
+                                        <c:ECO_HelpIcon helptext="Select the individuals from the Technical Quality Team to participate in this review. If the required reviewer names are not shown below, click the 'Manage Technical Quality Team' to add project team members to the list. Selected team members will be added to the TQR Status list." />
+                                    </apex:outputpanel>
+								</apex:facet>
+                                <apex:commandlink styleclass="btn" action="/apex/ECO_TechnicalQualityTeamOverride?id={!oTechnicalQualityReview.Deliverable__c}" value="{!dLabel['DL133']}" target="_blank" style="text-decoration:none;padding:4px;" immediate="true" />
+                                <apex:pagemessage severity="INFO" rendered="{!IF(lstTQT_Wrapper.size > 0, false, true)}" summary="{!dLabel['DL134']}" /> 
+                                <apex:pageblocktable value="{!lstTQT_Wrapper}" var="extsRow" rendered="{!IF(lstTQT_Wrapper.size > 0, true, false)}" >
+                                    <apex:column headervalue="{!dLabel['DL135']}" >
+                                        <apex:inputcheckbox value="{!extsRow.bSelected}" disabled="{!NOT(inputFields)}" />
+                                    </apex:column>
+                                    <apex:column headervalue="{!dLabel['DL136']}" > 
+                                        <apex:outputtext > {!extsRow.oTechnicalQualityTeam.TechnicalQualityTeamMember__r.Name}</apex:outputtext>
+                                    </apex:column>
+                                    <apex:column headervalue="{!dLabel['DL137']}" >
+                                        <apex:outputfield value="{!extsRow.oTechnicalQualityTeam.Role__c}" />
+                                    </apex:column>
+                                    
+                                </apex:pageblocktable>
+                            </apex:pageblocksection>
+                        </apex:actionregion>
+					
+					
+						<apex:pageblocksection title="{!dLabel['DL138']}" id="tabOne" rendered="{!oTechnicalQualityReview.id != null}" collapsible="false" columns="1" >
+                            
+                            <div class="customHelpText" >
+                                <div class="customHelpBody" >
+                                    <p>{!dLabel['DL139']}</p>
+                    
+                                </div>
+                            </div>
+							<apex:actionstatus id="approvalstatus" >
+							<apex:facet name="start" >
+								<p style="padding-bottom:20px;" class="searchText" ><img style="position:relative;top:12px;" src="/img/loading32.gif" /> {!dLabel['DL140']}</p>
+							</apex:facet>
+							<apex:facet name="stop" >
+								<apex:outputpanel id="STQT" >					
+
+									<apex:pagemessage severity="INFO" rendered="{!IF(lstReviewMember_Wrapper.size > 0, false, true)}" summary="{!dLabel['DL141']}" /> 
+									<apex:pageblocktable value="{!lstReviewMember_Wrapper}" var="members" rendered="{!IF(lstReviewMember_Wrapper.size > 0, true, false)}" >
+										<apex:column headervalue="{!dLabel['DL142']}" > 
+                                            <apex:outputtext > {!members.oReviewMember.TechnicalQualityTeamMember__r.TechnicalQualityTeamMember__r.Name}</apex:outputtext>
+										</apex:column> 
+                                        
+										<apex:column headervalue="{!dLabel['DL143']}" >
+											<apex:outputfield value="{!members.oReviewMember.TechnicalQualityTeamMember__r.Role__c}" />
+										</apex:column>
+										<apex:column headervalue="{!dLabel['DL144']}" >
+											<apex:inputfield value="{!members.oReviewMember.Discipline__c}" rendered="{!AND(members.oReviewMember.Status__c != 'Submitted', members.bSelected, NOT(bLockFields))}" />
+											<apex:outputfield value="{!members.oReviewMember.Discipline__c}" rendered="{!OR(members.oReviewMember.Status__c == 'Submitted', not(members.bSelected), bLockFields)}" />
+										</apex:column>
+										
+										<apex:column headervalue="{!dLabel['DL145']}" >
+											<apex:inputfield value="{!members.oReviewMember.Comments__c}" rendered="{!AND(members.oReviewMember.Status__c != 'Submitted', members.bSelected, NOT(bLockFields))}" />
+											<apex:outputfield value="{!members.oReviewMember.Comments__c}" rendered="{!OR(members.oReviewMember.Status__c == 'Submitted', not(members.bSelected), bLockFields)}" />
+										</apex:column>	
+                                        
+                                        <apex:column >
+                                            <apex:facet name="header" >
+                                                <apex:outputpanel layout="none" >
+                                                    
+                                                    {!dLabel['DL146']}<br/>{!dLabel['DL147']}
+                                                    <c:ECO_HelpIcon helptext="Verifier has verified that comments have been adequately addressed. There are no outstanding issues." />
+                                                </apex:outputpanel>
+                                            </apex:facet>  
+											<apex:inputfield value="{!members.oReviewMember.VerifierNoOutstandingIssues__c}" rendered="{!AND(members.oReviewMember.Status__c!= 'Submitted', members.oReviewMember.Role__c = 'Lead Verifier', members.bSelected, NOT(bLockFields))}" />
+											<apex:outputfield value="{!members.oReviewMember.VerifierNoOutstandingIssues__c}" rendered="{!OR(members.oReviewMember.Status__c == 'Submitted', members.oReviewMember.Role__c != 'Lead Verifier', not(members.bSelected), bLockFields)}" />
+										</apex:column>
+                                        <apex:column >
+                                            <apex:facet name="header" >
+                                            <apex:outputpanel layout="none" >
+                                                
+                                                {!dLabel['DL148']} <br/>{!dLabel['DL149']}
+                                                <c:ECO_HelpIcon helptext="Verifier has verified that comments have been adequately addressed, except for unresolved issues. Any unresolved issues have been submitted to the Project Manager or Designee for final resolution." />
+                                            </apex:outputpanel>
+                                            </apex:facet>  
+											<apex:inputfield value="{!members.oReviewMember.VerifierUnresolvedIssues__c}" rendered="{!AND(members.oReviewMember.Status__c!= 'Submitted', members.oReviewMember.Role__c = 'Lead Verifier', members.bSelected, NOT(bLockFields))}" />
+											<apex:outputfield value="{!members.oReviewMember.VerifierUnresolvedIssues__c}" rendered="{!OR(members.oReviewMember.Status__c == 'Submitted', members.oReviewMember.Role__c != 'Lead Verifier', not(members.bSelected), bLockFields)}" />
+										</apex:column>
+										
+                                        <apex:column headervalue="{!dLabel['DL150']}" >
+											<apex:inputfield value="{!members.oReviewMember.ReviewCompleted__c}" rendered="{!AND(members.oReviewMember.Status__c!= 'Submitted', members.bSelected, NOT(bLockFields))}" />
+											<apex:outputfield value="{!members.oReviewMember.ReviewCompleted__c}" rendered="{!OR(members.oReviewMember.Status__c == 'Submitted', not(members.bSelected), bLockFields)}" />
+										</apex:column>
+                                        <apex:column headervalue="{!dLabel['DL151']}" >
+											
+                                            <apex:outputfield value="{!members.oReviewMember.CheckerDateTime__c}" />
+										</apex:column>
+                                        
+                                        <apex:column headervalue="{!dLabel['DL152']}" >
+                                            <table width="100%" >
+                                            <tr>
+            
+                                            <td style="border:none" >
+                                            <table>
+                                                <apex:repeat value="{!RMAttachmentsMap[members.oReviewMember.id]}" var="attachment" >
+                                                <tr><td style="border:none" ><apex:outputlink value="{!URLFOR($Action.Attachment.Download, attachment.Id)}" target="_blank" ><apex:outputtext value="{!attachment.Name}" /></apex:outputlink></td></tr>
+                                                </apex:repeat>
+                                            </table>
+                                            </td>
+                                            <td style="border:none; text-align: right;" >
+                                                <apex:commandlink value="{!dLabel['DL153']}" action="{!createRMAttachment}" rerender="id2" title="{!dLabel['DL154']}" rendered="{!AND(members.oReviewMember.Status__c != 'Submitted', members.bSelected, NOT(bLockFields))}" >
+                                                    <apex:param name="inductionId" value="{!members.oReviewMember.id}" assignto="{!sRMId2}" />
+                                                    <apex:param name="inductionName" value="{members.oReviewMember.Name}" assignto="{!sRMName2}" />                                  
+                                                </apex:commandlink>
+                                            </td>
+            
+                                            </tr>
+                                            </table>
+
+                            			</apex:column>
+										<apex:column headervalue="{!dLabel['DL155']}" >
+                                            <apex:actionregion >
+                                            <apex:commandbutton value="{!dLabel['DL156']}" action="{!saveReview}" rendered="{!AND(members.oReviewMember.Status__c != 'Submitted', members.bSelected, NOT(bLockFields))}" />
+                                            
+                                            </apex:actionregion>
+                                        </apex:column>																																																
+									</apex:pageblocktable>		
+								</apex:outputpanel>
+							</apex:facet>
+							</apex:actionstatus>
+							</apex:pageblocksection>
+                        
+                        <apex:pageblocksection title="{!dLabel['DL157']}" id="tabOnee" rendered="{!oTechnicalQualityReview.id != null}" collapsible="false" columns="1" >
+							<apex:facet name="header" >
+                                <apex:outputpanel >
+                                    <br/>
+                                    <h3>{!dLabel['DL158']}</h3>&nbsp;
+                                    <c:ECO_HelpIcon helptext="Project Manager or Designee confirms that the Check / Review process has been followed. " />
+                                </apex:outputpanel>
+							</apex:facet>
+                            <apex:actionstatus id="approvalstatus" >
+							<apex:facet name="start" >
+								<p style="padding-bottom:20px;" class="searchText" ><img style="position:relative;top:12px;" src="/img/loading32.gif" /> {!dLabel['DL159']}</p>
+							</apex:facet>
+							<apex:facet name="stop" >
+								<apex:outputpanel id="STQT" >					
+									<apex:pagemessage severity="INFO" rendered="{!IF(lstReviewApprover_Wrapper.size > 0, false, true)}" summary="{!dLabel['DL160']}" /> 
+									<apex:pageblocktable value="{!lstReviewApprover_Wrapper}" var="members" rendered="{!IF(lstReviewApprover_Wrapper.size > 0, true, false)}" >
+										
+                                        <apex:column headervalue="{!dLabel['DL161']}" > 
+                                            <apex:outputtext > {!members.oReviewMember.TechnicalQualityTeamMember__r.TechnicalQualityTeamMember__r.Name}</apex:outputtext>
+										</apex:column> 
+                                        <apex:column headervalue="{!dLabel['DL162']}" >
+											<apex:outputfield value="{!members.oReviewMember.TechnicalQualityTeamMember__r.Role__c}" />
+										</apex:column>
+                                        <apex:column headervalue="{!dLabel['DL163']}" >
+                                            
+                                        	<apex:inputfield value="{!members.oReviewMember.Approved__c}" rendered="{!AND(members.oReviewMember.Status__c != 'Submitted', members.bSelected, NOT(bLockFields))}" />
+											<apex:outputfield value="{!members.oReviewMember.Approved__c}" rendered="{!OR(members.oReviewMember.Status__c == 'Submitted', not(members.bSelected), bLockFields)}" />	
+                                        </apex:column>
+										<apex:column headervalue="{!dLabel['DL164']}" >
+											<apex:outputfield value="{!members.oReviewMember.CheckerDateTime__c}" />
+										</apex:column>
+                                        <apex:column headervalue="{!dLabel['DL165']}" >
+                                            <apex:actionregion >
+                                            <apex:commandbutton value="{!dLabel['DL166']}" action="{!saveReview}" rendered="{!AND(members.oReviewMember.Status__c != 'Submitted', members.bSelected, NOT(bLockFields))}" />
+                                            
+                                        	</apex:actionregion>
+                                        </apex:column>																																																
+									</apex:pageblocktable>		
+								</apex:outputpanel>
+							</apex:facet>
+							</apex:actionstatus>
+							</apex:pageblocksection>
+						
+					</apex:outputpanel>
+				</apex:facet>
+			</apex:actionstatus>	
+			
+		</apex:pageblock>
+		</apex:outputpanel>
+	</apex:form>
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

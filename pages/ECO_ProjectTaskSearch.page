@@ -1,0 +1,139 @@
+<apex:page controller="ECO_ProjectTaskSearchController" tabstyle="POHeader__c" showheader="false" sidebar="false" extensions="nttdcore.DLabelParentController" >
+	<apex:form >
+
+		<apex:includeScript value="{!URLFOR($Resource.ECO_jQuery_1_11_2_min_js)}" />
+		<script type="text/javascript" >
+			j$ = jQuery.noConflict();
+			/*
+			function setSelectedTaskInParent(taskId, taskName){
+				parent.setTaskField(taskId, taskName);
+			}
+			*/
+
+			function setTaskField(taskId, taskName){				
+				j$("[id*=currentPOLineItem_TaskName]").html(taskName); 
+				j$("[id*=currentPOLineItem_TaskId]").val(taskId); 
+			}
+			
+
+			function closeMe(){
+				parent.closeDialog();
+			}
+
+			function closeMeAndReRender(){
+				parent.closeDialogAndReRender();
+			}
+
+		</script>
+
+		<div style="display:none;" >
+			<apex:inputText value="{!currentPOLineItem_TaskId}" id="currentPOLineItem_TaskId" />			
+		</div>
+
+		<apex:actionFunction action="{!saveCurrentPOLineItem}" name="saveCurrentPOLineItem_JS" oncomplete="closeMeAndReRender();" />
+		<apex:actionFunction action="{!getTasksForProject}" name="getTasksForProject_JS" rerender="pbTasks" immediate="true" oncomplete="return false;" />
+
+		<apex:pageMessages id="msg" escape="false" />
+
+			<apex:pageBlock id="pbCurrentPOLineItem" mode="MainDetail" >
+				<apex:pageBlockButtons >				
+					<nttdcore:DLabel name="DL1" default="Save" labelParent="{!this}" /><apex:commandButton onclick="saveCurrentPOLineItem_JS(); return false;" value="{!dLabel['DL1']}" />
+					<nttdcore:DLabel name="DL2" default="Cancel" labelParent="{!this}" /><apex:commandButton onclick="closeMe(); return false;" value="{!dLabel['DL2']}" />
+				</apex:pageBlockButtons>
+				<apex:pageBlockSection columns="2" >
+					<apex:pageBlockSectionItem >		
+						<apex:outputLabel value="{!$ObjectType.POLineItem__c.Fields.Name.Label}" for="currentPOLineItem_Name" />
+						<apex:outputField value="{!currentPOLineItem.Name}" id="currentPOLineItem_Name" />
+					</apex:pageBlockSectionItem>
+					<apex:pageBlockSectionItem >		
+						<apex:outputLabel value="{!$ObjectType.POLineItem__c.Fields.ProjectTask__c.Label}" for="currentPOLineItem_TaskName" />
+						<apex:outputLabel value="{!currentPOLineItem_TaskName}" id="currentPOLineItem_TaskName" />
+						<!--<apex:outputLabel value="{!currentPOLineItem.ProjectTask__r.Name}" id="currentPOLineItem_TaskName" />-->
+					</apex:pageBlockSectionItem>
+					<apex:pageBlockSectionItem >		
+						<apex:outputLabel value="{!$ObjectType.POLineItem__c.Fields.Amount__c.Label}" for="currentPOLineItem_Amount" />
+						<apex:outputPanel layout="block" >
+							<div class="requiredInput" >
+	                        	<div class="requiredBlock" >&nbsp;</div>
+								<apex:inputField value="{!currentPOLineItem.Amount__c}" id="currentPOLineItem_Amount" required="false" />
+							</div>
+						</apex:outputPanel>
+					</apex:pageBlockSectionItem>
+					<apex:pageBlockSectionItem >		
+						<apex:outputLabel value="{!$ObjectType.POLineItem__c.Fields.CurrencyIsoCode.Label}" for="currentPOLineItem_CurrencyIsoCode" />
+						<apex:inputField value="{!currentPOLineItem.CurrencyIsoCode}" id="currentPOLineItem_CurrencyIsoCode" />
+					</apex:pageBlockSectionItem>
+					<!--
+					<apex:pageBlockSectionItem >		
+						<apex:outputLabel value="{!$ObjectType.POLineItem__c.Fields.POHeader__c.Label}" for="currentPOLineItem_POHeader"/>
+						<apex:outputLabel value="{!currentPOLineItem.POHeader__r.Name}" id="currentPOLineItem_POHeader" />
+					</apex:pageBlockSectionItem>
+					-->
+				</apex:pageBlockSection>			
+				
+				
+			</apex:pageBlock>
+
+			<apex:pageBlock mode="MainDetail" ><nttdcore:DLabel name="DL3" default="Available Project Tasks" labelParent="{!this}" /><nttdcore:DLabel name="DL4" default="Search" labelParent="{!this}" /><nttdcore:DLabel name="DL5" default="No tasks were found." labelParent="{!this}" /><nttdcore:DLabel name="DL6" default="Action" labelParent="{!this}" /><nttdcore:DLabel name="DL7" default="Select" labelParent="{!this}" />
+				<apex:pageBlockSection columns="1" title="{!dLabel['DL3']}" >
+
+					<apex:pageBlockSectionItem >
+						
+						<apex:outputPanel >
+							<apex:outputLabel value="{!$ObjectType.pse__Project_Task__c.Fields.Name.Label}" for="taskFilter" />&nbsp;&nbsp;
+							<apex:inputText value="{!taskFilter}" id="taskFilter" />&nbsp;&nbsp;
+							<!--<apex:commandButton onclick="getTasksForProject_JS();" value="Search" />-->
+
+							<apex:commandButton action="{!getTasksForProject}" value="{!dLabel['DL4']}" />
+							<br/><br/>
+							<apex:outputPanel id="pbTasks" >
+							<div style="height:200px; overflow:scroll" >	
+							<apex:pageMessage rendered="{!noSearchResults}" summary="{!dLabel['DL5']}" severity="info" strength="3" id="msgNoResults" />
+							<apex:pageBlockTable value="{!projectTasks}" var="task" rowclasses="odd,even" styleclass="tableClass" rendered="{!!noSearchResults}" >
+								<apex:column >
+									<apex:facet name="header" >{!dLabel['DL6']}</apex:facet>
+									<a href="#" onclick="setTaskField('{!task.Id}','{!task.Name}'); return false;" >{!dLabel['DL7']}</a>
+								</apex:column>
+								<apex:column >
+									<apex:facet name="header" >{!$ObjectType.pse__Project_Task__c.Fields.Name.Label}</apex:facet>
+									{!task.Name}
+								</apex:column>
+								<apex:column >
+									<apex:facet name="header" >{!$ObjectType.pse__Project_Task__c.Fields.pse__Parent_Task__c.Label}</apex:facet>
+									{!task.pse__Parent_Task__r.Name}
+								</apex:column>
+								<apex:column >
+									<apex:facet name="header" >{!$ObjectType.pse__Project_Task__c.Fields.BillTo__c.Label}</apex:facet>
+									{!task.BillTo__c}
+								</apex:column>
+								<apex:column >
+									<apex:facet name="header" >{!$ObjectType.pse__Project_Task__c.Fields.ShipTo__c.Label}</apex:facet>
+									{!task.ShipTo__c}
+								</apex:column>
+								<apex:column >
+									<apex:facet name="header" >{!$ObjectType.pse__Project_Task__c.Fields.pse__Start_Date__c.Label}</apex:facet>
+<!--									<apex:outputText value="{0, date, yyyy-MM-dd}">
+										<apex:param value="{!task.pse__Start_Date__c}" />											
+									</apex:outputText>	-->
+									<c:ECO_DateFormat date="{!task.pse__Start_Date__c}" />
+								</apex:column>
+								<apex:column >
+									<apex:facet name="header" >{!$ObjectType.pse__Project_Task__c.Fields.pse__End_Date__c.Label}</apex:facet>
+<!--									<apex:outputText value="{0, date, yyyy-MM-dd}">
+										<apex:param value="{!task.pse__End_Date__c}" />											
+									</apex:outputText>	-->
+									<c:ECO_DateFormat date="{!task.pse__End_Date__c}" />
+								</apex:column>
+
+							</apex:pageBlockTable>
+							</div>
+							</apex:outputPanel>
+							
+						</apex:outputPanel>
+						
+					</apex:pageBlockSectionItem>
+				</apex:pageBlockSection>
+			</apex:pageBlock>
+			
+	</apex:form>
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

@@ -1,0 +1,181 @@
+<apex:page showheader="true" sidebar="false" standardcontroller="Assumption__c" extensions="ECO_AssumptionRegisterController,nttdcore.DLabelParentController" >
+	<style>
+
+
+        /* CUSTOM HELP / GUIDANCE TEXT BOX */
+        .customHelpText{
+            padding: 7px;
+            border: 1px solid #85B3CE;
+            min-height: 30px;
+            display: block;
+            width: auto;
+            margin: 0 0 5px 0;
+            background-repeat: no-repeat;
+            border-radius: 4px;
+            background-color: #A2D3F1;
+            
+        }
+        .customHelpBody{
+            display:inline-block;
+            color:#;
+            max-width:95%;
+        }
+
+
+		/* tables */
+		table.tablesorter {
+			font-family:arial;
+			background-color: #919191;
+			margin:10px 0pt 15px;
+			font-size: 9pt;
+			width: 1200px;
+			text-align: left;
+		}
+		table.tablesorter thead tr th, table.tablesorter tfoot tr th, table.tablesorter tr th {
+			background-color: #39c;
+			border: 1px solid #FFF;
+			font-size: 9pt;
+			padding: 4px 7px;
+			color:white;
+		}
+
+		table.tablesorter thead tr .header {
+			background-image: url(bg.gif);
+			background-repeat: no-repeat;
+			background-position: center right;
+			cursor: pointer;
+		}
+		table.tablesorter tbody td {
+			color: #3D3D3D;
+			padding: 4px 7px;
+			background-color: #FFF;
+			vertical-align: top;
+			height: 20px;
+		}
+
+		table.tablesorter tbody tr:hover td{
+			background-color:#FFFFEB !important;
+		}
+
+		table.tablesorter tbody tr.odd td {
+			background-color:#F0F0F6;
+		}
+		table.tablesorter thead tr .headerSortUp {
+			background-image: url(asc.gif);
+		}
+		table.tablesorter thead tr .headerSortDown {
+			background-image: url(desc.gif);
+		}
+		table.tablesorter thead tr .headerSortDown, table.tablesorter thead tr .headerSortUp {
+		background-color: #8dbdd8;
+		}
+
+		table.tablesorter thead tr th.budget{
+			background-color:#AFBCA0;
+		}
+
+		table.tablesorter tbody tr td.budget input, table.tablesorter tbody tr td.budget{
+			text-align:right;
+		}
+
+		table.tablesorter tbody tr:nth-child(odd) td.budget{
+			background-color:#EDF1E8;
+		}
+
+		table.tablesorter tbody tr:nth-child(even) td.budget{
+			background-color:#F9FAF8;
+		}
+
+		table.tablesorter tbody tr:nth-child(odd) td{
+			background-color:#EBF5FA;
+			white-space: nowrap;
+		}
+
+		table.tablesorter tbody tr:nth-child(even) td{
+			background-color:white;
+			white-space: nowrap;
+		}
+
+		table.tablesorter tbody tr input, table.tablesorter tbody tr select{
+			width:100%;
+		}
+
+		table.tablesorter tbody tr textarea{
+			width:100%;
+			height:200px;
+		}
+
+		.percSign{
+			position:relative;
+			top:1px;
+			padding-left:2px;
+		}
+
+		.budgetDetail{
+			display:none;
+		}
+
+		.budgetTotal{
+			cursor:pointer;
+		}
+	</style>
+	
+	<nttdcore:DLabel name="DL1" default="Assumptions Register" labelParent="{!this}" /><apex:sectionHeader title="{!dLabel['DL1']}" subtitle="{!oProject.ProjectNumber__c}  {!oProject.Name}" id="theSectionHeader" />
+	
+	<apex:pageMessages id="pageMessages" />
+	
+	<apex:form id="theForm" ><nttdcore:DLabel name="DL2" default="loading" labelParent="{!this}" />
+		
+		<apex:actionStatus starttext="{!dLabel['DL2']}" id="theStatus" />
+
+        <div class="customHelpText" >
+            <div class="customHelpBody" ><nttdcore:DLabel name="DL3" default="Assumptions form the basis for project planning and execution, filling in the gaps between known and unknown facts. They typically include elements of effort, schedule, resources, budget and process. For example, what is the expected level of effort to complete a task, when do we think it can be completed, what are the assumed resources needed, both type and skill, and are there any procedures or standards that may serve as a constraint?" labelParent="{!this}" /><nttdcore:DLabel name="DL4" default="The Assumptions Register should be as comprehensive as possible, as it will help define and shape project tasks, schedules, resources and budget allocations during planning, and reviewed frequently during execution to assess the project outcomes against the assumptions used to define the project roadmap." labelParent="{!this}" />
+                {!dLabel['DL3']} <br/>
+				{!dLabel['DL4']} <br/>
+            </div>
+        </div> 		
+		<nttdcore:DLabel name="DL5" default="Project Assumption List" labelParent="{!this}" /><apex:pageBlock id="assumptionRegister" title="{!dLabel['DL5']}" >
+		
+			<apex:pageBlockButtons >
+				<nttdcore:DLabel name="DL6" default="Add New Assumption" labelParent="{!this}" /><apex:commandButton action="{!addAssumption}" value="{!dLabel['DL6']}" rerender="pageMessages, assumptionRegister" />
+				<nttdcore:DLabel name="DL7" default="Save" labelParent="{!this}" /><apex:commandButton action="{!save}" value="{!dLabel['DL7']}" />
+				<nttdcore:DLabel name="DL8" default="Return to Project" labelParent="{!this}" /><apex:commandButton action="{!backToProject}" value="{!dLabel['DL8']}" immediate="true" />
+			</apex:pageBlockButtons>
+					
+				<table class="tablesorter" cellspacing="0" cellpadding="0" >
+					<thead>
+						<tr>
+							<th width="70px" ><nttdcore:DLabel name="DL9" default="Action" labelParent="{!this}" />
+								{!dLabel['DL9']}
+							</th>
+							<th width="260px" ><nttdcore:DLabel name="DL10" default="Plan Element" labelParent="{!this}" />
+								{!dLabel['DL10']}
+							</th>
+							<th><nttdcore:DLabel name="DL11" default="Assumption" labelParent="{!this}" />
+								{!dLabel['DL11']}
+							</th>
+						</tr>
+					</thead>
+					<tbody>
+						<apex:repeat value="{!lAssumptions}" var="assumption" >
+							<tr class="firstRow" >
+								<td>
+									<nttdcore:DLabel name="DL12" default="Remove" labelParent="{!this}" /><apex:commandLink action="{!removeAssumption}" value="{!dLabel['DL12']}" rerender="assumptionRegister" >
+										<apex:param assignto="{!sSelectedAssumptionId}" value="{!assumption.Id}" name="AssumptionId" />
+									</apex:commandLink>
+								</td>
+								<td>
+									<apex:inputField value="{!assumption.PlanElement__c}" />
+								</td>
+								<td>
+									<apex:inputTextarea rows="12" value="{!assumption.Assumption__c}" />
+								</td>
+							</tr>
+						</apex:repeat>
+					</tbody>
+				</table>
+		</apex:pageBlock>
+        <c:ECO_RiskFlyout projectid="{!oProject.Id}" planelement="" />
+        <c:ECO_ProjectTeamFlyout projectid="{!oProject.Id}" />
+	</apex:form>
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

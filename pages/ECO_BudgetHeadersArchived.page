@@ -1,0 +1,504 @@
+<apex:page standardcontroller="pse__Proj__c" extensions="ECO_BudgetHeaderSummaryController,nttdcore.DLabelParentController" sidebar="false" showheader="false" action="{!onArchiveLoad}" >
+    <apex:composition template="ECO_BudgetFrame" >
+    <apex:define name="budgetScreen" >
+<apex:form >
+    <style>
+		.budgetFrameWrapper th, .budgetFrameWrapper td {
+            border-top: 1px solid black;
+            border-bottom: 1px solid black;
+            border-left: 1px solid black;
+            border-right: 1px solid black;
+            border-collapse: collapse;        
+            padding: 5px;
+            text-align: left;
+        }
+        .budgetFrameWrapper table {
+            border: none;
+            border-collapse: collapse;
+        }
+        
+        .budgetFrameWrapper .dollarAmount {
+            text-align:right;
+        }
+        
+        .budgetFrameWrapper .percentAmount {
+            text-align:center;
+        }
+        
+        .budgetFrameWrapper .rightBlue {
+            background-color:#0070C0;color:white;text-align:right
+        }
+        
+        .budgetFrameWrapper .centerBlue {
+            background-color:#0070C0;color:white;text-align:center
+        }
+        
+        .budgetFrameWrapper .rightGreen {
+            background-color:#76933C;color:white;text-align:right
+        }
+        
+        .budgetFrameWrapper .centerGreen {
+            background-color:#76933C;color:white;text-align:center
+        }
+        
+        .budgetFrameWrapper .rightPurple {
+            background-color:#60497A;color:white;text-align:right
+        }
+        
+        .budgetFrameWrapper .centerPurple {
+            background-color:#60497A;color:white;text-align:center
+        }
+        
+        .budgetFrameWrapper .rightOrange {
+            background-color:#FF9900;color:white;text-align:right
+        }
+        
+        .budgetFrameWrapper .centerOrange {
+            background-color:#FF9900;color:white;text-align:center
+        }
+        
+        .budgetFrameWrapper .lightBlue {
+            background-color:#DCE6F1;
+        }
+        
+        .budgetFrameWrapper .lightGreen {
+            background-color:#EBF1DE;
+        }
+        
+        .budgetFrameWrapper .lightPurple {
+            background-color:#E4DFEC;
+        }
+        
+        .budgetFrameWrapper .lightOrange {
+            background-color:#FDE9D9;
+        }
+        
+        .budgetFrameWrapper .bold {
+            font-weight:bold;
+        }        
+    </style>
+     <script type="text/javascript" >
+    	$b = jQuery.noConflict();
+                
+        function setId(bhId) {
+            $b('[id$="hdnINPUT"]').val(bhId);
+            
+            onActionJS();
+        }
+    
+    	function setIdtest(obj, bhId) {
+            var actionSelected = obj.value;
+            var budgetHeaderId = bhId;
+            onActionJS(actionSelected, budgetHeaderId);        	
+        }
+    </script>
+    
+    <nttdcore:DLabel name="DL1" default="Archived Budget Summary" labelParent="{!this}" /><apex:sectionHeader title="{!dLabel['DL1']}" />
+    <apex:inputHidden value="{!selectedBudgetHeader}" id="hdnINPUT" />
+    <table style="width:100%" >
+        <tr>
+            <th style="border: 0px" />
+            <th style="border: 0px" />
+            <th style="border: 0px" />
+            <th style="border: 0px" />
+            <th colspan="2" class="centerBlue" ><nttdcore:DLabel name="DL2" default="CHANGE VALUE" labelParent="{!this}" />{!dLabel['DL2']}</th>
+            <th colspan="2" class="centerGreen" ><nttdcore:DLabel name="DL3" default="BUDGET / AS-SOLD" labelParent="{!this}" />{!dLabel['DL3']}</th>
+            <th colspan="2" class="centerPurple" ><nttdcore:DLabel name="DL4" default="FORECAST / EAC" labelParent="{!this}" />{!dLabel['DL4']}</th>
+            <th colspan="2" class="centerOrange" ><nttdcore:DLabel name="DL5" default="WORK AT RISK" labelParent="{!this}" />{!dLabel['DL5']}</th>
+        </tr>
+        <tr>
+            <th style="background-color:#ACACA8" ><nttdcore:DLabel name="DL6" default="Budget Name" labelParent="{!this}" />{!dLabel['DL6']}</th>
+            <th style="background-color:#ACACA8" ><nttdcore:DLabel name="DL7" default="Created Date" labelParent="{!this}" />{!dLabel['DL7']}</th>
+            <th style="background-color:#ACACA8" ><nttdcore:DLabel name="DL8" default="Status" labelParent="{!this}" />{!dLabel['DL8']}</th>
+            <th style="background-color:#ACACA8" ><nttdcore:DLabel name="DL9" default="Action" labelParent="{!this}" />{!dLabel['DL9']}</th>
+            <th class="rightBlue" ><nttdcore:DLabel name="DL10" default="Cost" labelParent="{!this}" />{!dLabel['DL10']}</th>
+            <th class="rightBlue" ><nttdcore:DLabel name="DL11" default="Revenue" labelParent="{!this}" />{!dLabel['DL11']}</th>
+            <th class="rightGreen" ><nttdcore:DLabel name="DL12" default="Approved Cost" labelParent="{!this}" />{!dLabel['DL12']}</th>
+            <th class="rightGreen" ><nttdcore:DLabel name="DL13" default="Approved Revenue" labelParent="{!this}" />{!dLabel['DL13']}</th>
+            <th class="rightPurple" ><nttdcore:DLabel name="DL14" default="Forecast Cost" labelParent="{!this}" />{!dLabel['DL14']}</th>
+            <th class="rightPurple" ><nttdcore:DLabel name="DL15" default="Forecast Revenue" labelParent="{!this}" />{!dLabel['DL15']}</th>
+            <th class="rightOrange" ><nttdcore:DLabel name="DL16" default="WaR - Cost" labelParent="{!this}" />{!dLabel['DL16']}</th>
+            <th class="rightOrange" ><nttdcore:DLabel name="DL17" default="War - Revenue" labelParent="{!this}" />{!dLabel['DL17']}</th>
+        </tr>
+        <apex:actionFunction name="onActionJS" action="{!OnAction}" rerender="none" >
+            <apex:param id="aSelected" name="actionSelected" value="" />
+            <apex:param id="bhId" name="budgetHeaderId" value="" />
+        </apex:actionFunction>
+        <apex:repeat value="{!budgetWrapper.dtoBudgetHeaders}" var="budgetHeader" >
+            <tr>
+                <td><a href="/apex/ECO_BudgetHeader?id={!budgetHeader.oBudgetHeader.Id}" >{!budgetHeader.budgetName}</a></td>
+                <td>
+                    <apex:outputText value="{0,date,d MMM yyyy}" >
+                        <apex:param value="{!budgetHeader.createdDate}" /> 
+                    </apex:outputText>
+                </td>
+                <td>{!budgetHeader.status}</td>
+                <td>
+                	<apex:selectList value="{!budgetHeader.strSelectedAction}" size="1" onchange="setIdtest(this, '{!budgetHeader.oBudgetHeader.Id}');" disabled="{! NOT(theProject.pse__Stage__c == 'Execution')}" >
+                    	<apex:selectOptions value="{!budgetHeader.lstActions}" />
+                        <!--<apex:actionSupport event="onchange" action="{!OnAction}">
+                        	<apex:param name="budgetHeaderId" value="{!budgetHeader.oBudgetHeader.Id}" assignTo="{!selectedBudgetHeader}"/>
+                        </apex:actionSupport>-->
+                    </apex:selectList>
+                </td>
+                <td class="dollarAmount lightBlue" >
+                    <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                        <apex:param value="{!budgetHeader.dTotalCost}" />
+                    </apex:outputText>
+                </td>
+                <td class="dollarAmount lightBlue" >
+                    <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                        <apex:param value="{!budgetHeader.dTotalRevenue}" />
+                    </apex:outputText>
+                </td>
+                <td class="dollarAmount lightGreen" >
+                    <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                        <apex:param value="{!budgetHeader.dTotalApprovedCost}" />
+                    </apex:outputText>
+                </td>
+                <td class="dollarAmount lightGreen" >
+                    <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                        <apex:param value="{!budgetHeader.dTotalApprovedRevenue}" />
+                    </apex:outputText>
+                </td>
+                <td class="dollarAmount lightPurple" >
+                    <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                        <apex:param value="{!budgetHeader.dTotalForecastCost}" />
+                    </apex:outputText>
+                </td>
+                <td class="dollarAmount lightPurple" >
+                    <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                        <apex:param value="{!budgetHeader.dTotalForecastRevenue}" />
+                    </apex:outputText>
+                </td>
+                <td class="dollarAmount lightOrange" >
+                    <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                        <apex:param value="{!budgetHeader.dTotalWorkAtRiskCost}" />
+                    </apex:outputText>
+                </td>
+                <td class="dollarAmount lightOrange" >
+                    <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                        <apex:param value="{!budgetHeader.dTotalWorkAtRiskRevenue}" />
+                    </apex:outputText>
+                </td>
+            </tr>
+        </apex:repeat>
+        <tr>
+            <td style="height:30px;border-right: 0px solid #fff !important; border-left: 0px solid #fff !important;border-bottom:0px solid #fff !important;" colspan="12" />
+        </tr>
+        <apex:outputPanel rendered="{!NOT(theProject.MultiLineBurdening__c)}" >
+        <tr>
+            <td style="border-right: 0px solid #fff !important;border-left: 0px solid #fff !important;border-top:0px solid #fff !important;border-bottom:0px solid #fff !important;" colspan="5" />
+            <td class="dollarAmount" ><nttdcore:DLabel name="DL18" default="FBLR" labelParent="{!this}" />{!dLabel['DL18']}</td>
+            <td class="dollarAmount" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!budgetWrapper.getBudgetTotalFBLR}" />
+                </apex:outputText>
+            </td>
+            <td/>
+            <td class="dollarAmount" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!budgetWrapper.getForecastTotalFBLR}" />
+                </apex:outputText>
+            </td>
+            <td/>
+            <td class="dollarAmount" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!budgetWrapper.getWorkAtRiskTotalFBLR}" />
+                </apex:outputText>
+            </td>
+            <td/>
+        </tr>
+      </apex:outputPanel>
+      <apex:outputPanel rendered="{!theProject.MultiLineBurdening__c}" >        
+        <tr>
+            <td style="border-right: 0px solid #fff !important;border-left: 0px solid #fff !important;border-top:0px solid #fff !important;border-bottom:0px solid #fff !important;" colspan="5" />
+            <td class="dollarAmount" ><nttdcore:DLabel name="DL19" default="Raw Labour" labelParent="{!this}" />{!dLabel['DL19']}</td>
+            <td class="dollarAmount" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!budgetWrapper.getBudgetTotalRawLabour}" />
+                </apex:outputText>
+            </td>
+            <td/>
+            <td class="dollarAmount" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!budgetWrapper.getForecastTotalRawLabour}" />
+                </apex:outputText>
+            </td>
+            <td/>
+            <td class="dollarAmount" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!budgetWrapper.getWorkAtRiskTotalRawLabour}" />
+                </apex:outputText>
+            </td>
+            <td/>
+        </tr>
+        <tr>
+            <td style="border-right: 0px solid #fff !important;border-left: 0px solid #fff !important;border-top:0px solid #fff !important;border-bottom:0px solid #fff !important;" colspan="5" />
+            <td class="dollarAmount" ><nttdcore:DLabel name="DL20" default="Fringe" labelParent="{!this}" />{!dLabel['DL20']}</td>
+            <td class="dollarAmount" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!budgetWrapper.getBudgetTotalFringe}" />
+                </apex:outputText>
+            </td>
+            <td/>
+            <td class="dollarAmount" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!budgetWrapper.getForecastTotalFringe}" />
+                </apex:outputText>
+            </td>
+            <td/>
+            <td class="dollarAmount" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!budgetWrapper.getWorkAtRiskTotalFringe}" />
+                </apex:outputText>
+            </td>
+            <td/>
+        </tr>
+        <tr>
+            <td style="border-right: 0px solid #fff !important;border-left: 0px solid #fff !important;border-top:0px solid #fff !important;border-bottom:0px solid #fff !important;" colspan="5" />
+            <td class="dollarAmount" ><nttdcore:DLabel name="DL21" default="Overhead" labelParent="{!this}" />{!dLabel['DL21']}</td>
+            <td class="dollarAmount" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!budgetWrapper.getBudgetTotalOverhead}" />
+                </apex:outputText>
+            </td>
+            <td/>
+            <td class="dollarAmount" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!budgetWrapper.getForecastTotalOverhead}" />
+                </apex:outputText>
+            </td>
+            <td/>
+            <td class="dollarAmount" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!budgetWrapper.getWorkAtRiskTotalOverhead}" />
+                </apex:outputText>
+            </td>
+            <td/>
+        </tr>
+      </apex:outputPanel>   
+        <tr>
+            <td style="border-right: 0px solid #fff !important;border-left: 0px solid #fff !important;border-top:0px solid #fff !important;border-bottom:0px solid #fff !important;" colspan="5" />
+            <td class="dollarAmount" ><nttdcore:DLabel name="DL22" default="Subs" labelParent="{!this}" />{!dLabel['DL22']}</td>
+            <td class="dollarAmount" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!budgetWrapper.getBudgetTotalSubAmount}" />
+                </apex:outputText>
+            </td>
+            <td/>
+            <td class="dollarAmount" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!budgetWrapper.getForecastTotalSubAmount}" />
+                </apex:outputText>
+            </td>
+            <td/>
+            <td class="dollarAmount" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!budgetWrapper.getWorkAtRiskTotalSubAmount}" />
+                </apex:outputText>
+            </td>
+            <td/>
+        </tr>
+        <tr>
+            <td style="border-right: 0px solid #fff !important;border-left: 0px solid #fff !important;border-top:0px solid #fff !important;border-bottom:0px solid #fff !important;" colspan="5" />
+            <td class="dollarAmount" ><nttdcore:DLabel name="DL23" default="ODCs" labelParent="{!this}" />{!dLabel['DL23']}</td>
+            <td class="dollarAmount" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!budgetWrapper.getBudgetTotalFeeAmount}" />
+                </apex:outputText>
+            </td>
+            <td/>
+            <td class="dollarAmount" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!budgetWrapper.getForecastTotalFeeAmount}" />
+                </apex:outputText>
+            </td>
+            <td/>
+            <td class="dollarAmount" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!budgetWrapper.getWorkAtRiskTotalFeeAmount}" />
+                </apex:outputText>
+            </td>
+            <td/>
+        </tr>
+        <tr>
+            <td style="border-right: 0px solid #fff !important;border-left: 0px solid #fff !important;border-top:0px solid #fff !important;border-bottom:0px solid #fff !important;" colspan="5" />
+            <td class="dollarAmount" ><nttdcore:DLabel name="DL24" default="Contingency" labelParent="{!this}" />{!dLabel['DL24']}</td>
+            <td class="dollarAmount" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!budgetWrapper.getBudgetTotalContingencyAmount}" />
+                </apex:outputText>
+            </td>
+            <td/>
+            <td class="dollarAmount" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!budgetWrapper.getForecastTotalContingencyAmount}" />
+                </apex:outputText>
+            </td>
+            <td/>
+            <td class="dollarAmount" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!budgetWrapper.getWorkAtRiskTotalContingencyAmount}" />
+                </apex:outputText>
+            </td>
+            <td/>
+        </tr>
+        <tr>
+            <td style="border-right: 0px solid #fff !important;border-left: 0px solid #fff !important;border-top:0px solid #fff !important;border-bottom:0px solid #fff !important;" colspan="5" />
+            <td class="dollarAmount bold" ><nttdcore:DLabel name="DL25" default="Current Budget total" labelParent="{!this}" />{!dLabel['DL25']}</td>
+            <td class="dollarAmount bold" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!budgetWrapper.getBudgetTotalCost}" />
+                </apex:outputText>
+            </td>
+            <td class="dollarAmount bold" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!budgetWrapper.getBudgetTotalRevenue}" />
+                </apex:outputText>
+            </td>
+            <td class="dollarAmount bold" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!budgetWrapper.getForecastTotalCost}" />
+                </apex:outputText>
+            </td>
+            <td class="dollarAmount bold" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!budgetWrapper.getForecastTotalRevenue}" />
+                </apex:outputText>
+            </td>
+            <td class="dollarAmount bold" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!budgetWrapper.getWorkAtRiskTotalCost}" />
+                </apex:outputText>
+            </td>
+            <td class="dollarAmount bold" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!budgetWrapper.getWorkAtRiskTotalRevenue}" />
+                </apex:outputText>
+            </td>
+        </tr>
+        <tr>
+            <td style="height:30px;border-right: 0px solid #fff !important; border-left: 0px solid #fff !important;border-bottom:0px solid #fff !important;border-top:0px solid #fff !important;" colspan="12" />
+        </tr>
+        <tr>
+            <td style="border-right: 0px solid #fff !important;border-left: 0px solid #fff !important;border-top:0px solid #fff !important;border-bottom:0px solid #fff !important;" colspan="5" />
+            <td class="rightBlue" ><nttdcore:DLabel name="DL26" default="BUDGET METRICS" labelParent="{!this}" />{!dLabel['DL26']}</td>
+            <td colspan="2" class="centerGreen" ><nttdcore:DLabel name="DL27" default="BUDGET / AS - SOLD" labelParent="{!this}" />{!dLabel['DL27']}</td>
+            <td colspan="2" class="centerPurple" ><nttdcore:DLabel name="DL28" default="FORECAST / EAC" labelParent="{!this}" />{!dLabel['DL28']}</td>
+            <td colspan="2" class="centerOrange" ><nttdcore:DLabel name="DL29" default="WORK AT RISK" labelParent="{!this}" />{!dLabel['DL29']}</td>
+        </tr>
+        <tr>
+            <td style="border-right: 0px solid #fff !important;border-left: 0px solid #fff !important;border-top:0px solid #fff !important;border-bottom:0px solid #fff !important;" colspan="5" />
+            <td class="rightBlue" ><nttdcore:DLabel name="DL30" default="Net Service Revenue" labelParent="{!this}" />{!dLabel['DL30']}</td>
+            <td colspan="2" class="dollarAmount" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!budgetWrapper.getBudgetTotalNetServiceRevenue}" />
+                </apex:outputText>
+            </td>
+            <td colspan="2" class="dollarAmount" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!budgetWrapper.getForecastTotalNetServiceRevenue}" />
+                </apex:outputText>
+            </td>
+            <td colspan="2" class="dollarAmount" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!budgetWrapper.getWorkAtRiskTotalNetServiceRevenue}" />
+                </apex:outputText>
+            </td>
+        </tr>
+        <tr>
+            <td style="border-right: 0px solid #fff !important;border-left: 0px solid #fff !important;border-top:0px solid #fff !important;border-bottom:0px solid #fff !important;" colspan="5" />
+            <td class="rightBlue" ><nttdcore:DLabel name="DL31" default="Gross Margin" labelParent="{!this}" />{!dLabel['DL31']}</td>
+            <td colspan="2" class="dollarAmount" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!budgetWrapper.getBudgetTotalGrossMargin}" />
+                </apex:outputText>
+            </td>
+            <td colspan="2" class="dollarAmount" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!budgetWrapper.getForecastTotalGrossMargin}" />
+                </apex:outputText>
+            </td>
+            <td colspan="2" class="dollarAmount" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!budgetWrapper.getWorkAtRiskTotalGrossMargin}" />
+                </apex:outputText>
+            </td>
+        </tr>
+        <tr>
+            <td style="border-right: 0px solid #fff !important;border-left: 0px solid #fff !important;border-top:0px solid #fff !important;border-bottom:0px solid #fff !important;" colspan="5" />
+            <td class="rightBlue" ><nttdcore:DLabel name="DL32" default="Net Margin" labelParent="{!this}" />{!dLabel['DL32']}</td>
+            <td colspan="2" class="dollarAmount" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!budgetWrapper.getBudgetTotalNetMargin}" />
+                </apex:outputText>
+            </td>
+            <td colspan="2" class="dollarAmount" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!budgetWrapper.getForecastTotalNetMargin}" />
+                </apex:outputText>
+            </td>
+            <td colspan="2" class="dollarAmount" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!budgetWrapper.getWorkAtRiskTotalNetMargin}" />
+                </apex:outputText>
+            </td>
+        </tr>
+        <tr>
+            <td style="border-right: 0px solid #fff !important;border-left: 0px solid #fff !important;border-top:0px solid #fff !important;border-bottom:0px solid #fff !important;" colspan="5" />
+            <td class="rightBlue" ><nttdcore:DLabel name="DL33" default="GM/NSR" labelParent="{!this}" />{!dLabel['DL33']}</td>
+            <td colspan="2" class="percentAmount" ><nttdcore:DLabel name="DL34" default="{{1}}%" labelParent="{!this}" p1="{!budgetWrapper.getBudgetTotalGMNSR}" />{!dLabel['DL34']}</td>
+            <td colspan="2" class="percentAmount" ><nttdcore:DLabel name="DL35" default="{{1}}%" labelParent="{!this}" p1="{!budgetWrapper.getForecastTotalGMNSR}" />{!dLabel['DL35']}</td>
+            <td colspan="2" class="percentAmount" ><nttdcore:DLabel name="DL36" default="{{1}}%" labelParent="{!this}" p1="{!budgetWrapper.getWorkAtRiskTotalGMNSR}" />{!dLabel['DL36']}</td>
+        </tr>
+        <tr>
+            <td style="border-right: 0px solid #fff !important;border-left: 0px solid #fff !important;border-top:0px solid #fff !important;border-bottom:0px solid #fff !important;" colspan="5" />
+            <td class="rightBlue" ><nttdcore:DLabel name="DL37" default="NM/NSR" labelParent="{!this}" />{!dLabel['DL37']}</td>
+            <td colspan="2" class="percentAmount" ><nttdcore:DLabel name="DL38" default="{{1}}%" labelParent="{!this}" p1="{!budgetWrapper.getBudgetTotalNMNSR}" />{!dLabel['DL38']}</td>
+            <td colspan="2" class="percentAmount" ><nttdcore:DLabel name="DL39" default="{{1}}%" labelParent="{!this}" p1="{!budgetWrapper.getForecastTotalNMNSR}" />{!dLabel['DL39']}</td>
+            <td colspan="2" class="percentAmount" ><nttdcore:DLabel name="DL40" default="{{1}}%" labelParent="{!this}" p1="{!budgetWrapper.getWorkAtRiskTotalNMNSR}" />{!dLabel['DL40']}</td>
+        </tr>
+        <tr>
+            <td style="border-right: 0px solid #fff !important;border-left: 0px solid #fff !important;border-top:0px solid #fff !important;border-bottom:0px solid #fff !important;" colspan="5" />
+            <td class="rightBlue" ><nttdcore:DLabel name="DL41" default="Salary Cost Multiplier" labelParent="{!this}" />{!dLabel['DL41']}</td>
+            <td colspan="2" class="percentAmount" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!budgetWrapper.getBudgetTotalsalaryCostMultiplier}" />
+                </apex:outputText>
+            </td>
+            <td colspan="2" class="percentAmount" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!budgetWrapper.getForecastTotalsalaryCostMultiplier}" />
+                </apex:outputText>
+            </td>
+            <td colspan="2" class="percentAmount" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!budgetWrapper.getWorkAtRiskTotalsalaryCostMultiplier}" />
+                </apex:outputText>
+            </td>
+        </tr>
+        <tr>
+            <td style="border-right: 0px solid #fff !important;border-left: 0px solid #fff !important;border-top:0px solid #fff !important;border-bottom:0px solid #fff !important;" colspan="5" />
+            <td class="rightBlue" ><nttdcore:DLabel name="DL42" default="Average Labour Rate Per Hour" labelParent="{!this}" />{!dLabel['DL42']}</td>
+            <td colspan="2" class="percentAmount" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!budgetWrapper.getBudgetTotalaverageLabourRatePerHour}" />
+                </apex:outputText>
+            </td>
+            <td colspan="2" class="percentAmount" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!budgetWrapper.getForecastTotalaverageLabourRatePerHour}" />
+                </apex:outputText>
+            </td>
+            <td colspan="2" class="percentAmount" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!budgetWrapper.getWorkAtRiskTotalaverageLabourRatePerHour}" />
+                </apex:outputText>
+            </td>
+        </tr>
+    </table>
+</apex:form>
+    </apex:define>
+    </apex:composition>
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

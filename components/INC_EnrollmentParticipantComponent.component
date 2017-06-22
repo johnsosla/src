@@ -1,0 +1,306 @@
+<apex:component controller="INC_EnrollmentParticipantEntryController" allowdml="true">
+<apex:attribute assignTo="{!fromWizard}" name="fromwizardval" type="String" description="let me know it is from the wizard"/>
+<apex:stylesheet value="https://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css"  />
+<apex:includeScript value="https://code.jquery.com/jquery-1.9.1.js" />
+<apex:includeScript value="https://code.jquery.com/ui/1.10.3/jquery-ui.js" />
+
+<style>
+  .projmessage{
+    border: 1px solid red;
+    background-color: #FFFFCC;
+  }
+  #enrollpdfdisplay{
+    position:absolute;
+  left:auto;
+    width:75%;
+    height:100%;
+    z-index: 49;
+    top: 0px;
+    border: 3px solid black;
+    background-color:white;
+  }
+  #internalPdf{
+    position: absolute;
+    z-index: 50;
+    width:100%;
+    height:97.5%;
+    border:none;
+  }
+  .hidden{
+    display:none;
+    
+  }
+  .show{
+    display:inline;
+    
+
+  }
+  #closeform{
+    height:20px; 
+    width:100px; 
+    left:40%;
+    position: absolute;
+    z-index: 100;
+  }
+
+  .pdfdisplay{
+    width:100%;
+    height:100%;
+    margin-top: 25px;
+  }
+
+</style>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+      <script type="text/javascript">
+        $j = jQuery.noConflict();
+        $j(document).ready(function(){
+        var currentTime = new Date();
+        var year = currentTime.getFullYear();
+        var startYear=(year - 10); //replace 1982 with whatever year you want to start with;
+        var endYear=(year + 10); //replace 2034 with whatever year you want to end with;
+            //-----EDIT BELLOW HERE AT YOUR OWN RISK-----
+        var optionsString='';
+            //Make sure that the endYear comes after the startYear
+            if(startYear<endYear){
+                //Loops through each date and renders the string for an option tag and addes it to the Optrionsstring variable
+                for(i=startYear;i<endYear+1;i++){
+                    optionsString += "<option value=\""+i+"\">"+i+"</option>";
+                }
+                //Replace the innerHTML of the calendar picker year select tag with the Optionsstring we constructed.
+                $j('#calYearPicker').html(optionsString);
+            }
+          });
+      </script>
+
+  <!--<apex:form > -->
+  
+    <apex:SectionHeader title="{!$Label.DTWINCEPCEnrollment_Information}"  rendered="{!NOT(fromWizard='Yes')}" />
+    <apex:outputPanel rendered="{!fromWizard='Yes'}">
+    
+      <div class="pbSubheader tertiaryPalette"><h3>{!$Label.DTWINCEPCEnrollment_Information}</h3></div>
+    </apex:outputPanel>
+
+    <apex:pageblock id="thepage">
+      <apex:pageBlockSection id="wizardheaderinfo">
+        <apex:outputField value="{!oEnrollmentPlan.Name}"/>
+        <apex:outputField value="{!oEnrollmentPlan.EnrollmentStatus__c}"/>
+        <apex:outputField value="{!oEnrollmentPlan.MaxIncentivePool__c}" />
+        <apex:outputField value="{!oEnrollmentPlan.ProjectStartDate__c}" />
+        <apex:outputField value="{!oEnrollmentPlan.NSRBudget__c}"/>
+        <apex:outputField value="{!oEnrollmentPlan.ScheduledFinishDate__c}" />
+        <apex:outputField value="{!oEnrollmentPlan.MinParticipantPayout__c}" rendered="{!oEnrollmentPlan.ApplicationType__c != 'PAY'}" />
+       
+        <apex:outputField value="{!oEnrollmentPlan.UnallocatedPercent__c}" rendered="{!NOT(oEnrollmentPlan.ApplicationType__c = 'PAY')}"/>
+        <apex:outputField value="{!oEnrollmentPlan.EstimatedPoolBaseline__c}" rendered="{!AND(bFixed, oEnrollmentPlan.ApplicationType__c != 'PAY')}" />
+        <apex:outputField value="{!oEnrollmentPlan.EstimatedPoolBaseline10__c}" rendered="{!AND(bTM, oEnrollmentPlan.ApplicationType__c != 'PAY')}" />
+        <apex:outputtext value="" rendered="{!OR(oEnrollmentPlan.ApplicationType__c == 'PAY', AND(NOT(bTM), NOT(bFixed)))}" />
+        <apex:outputField value="{!oEnrollmentPlan.UnallocatedAmount__c}" rendered="{!NOT(oEnrollmentPlan.ApplicationType__c = 'PAY')}" />
+        <apex:outputField value="{!oEnrollmentPlan.FinalIncentivePoolAdjusted__c}" rendered="{!oEnrollmentPlan.ApplicationType__c == 'PAY'}"/>
+        <apex:outputtext value="" rendered="{!oEnrollmentPlan.ApplicationType__c != 'PAY'}" />
+         <apex:outputField value="{!oEnrollmentPlan.ApplicationIssuesPay__c}" rendered="{!oEnrollmentPlan.ApplicationType__c='PAY'}" />
+
+          <apex:pageBlockSectionItem helpText="{!$ObjectType.EnrollmentPlan__c.fields.AppIicationIssues__c.InlineHelpText}" rendered="{!oEnrollmentPlan.ApplicationType__c != 'PAY'}">
+           
+          <apex:outputLabel value="{!$Label.DTWINCEPCApplication_Issues}" for="ApplicationExceptions"/>
+           
+          <apex:outputText label="{!$Label.DTWINCEPCApplication_Issues}" escape="false" value="{!sIssues}" />
+
+        </apex:pageBlockSectionItem>
+      
+        
+      </apex:pageBlockSection>
+    </apex:pageblock>
+   <div id="enrollpdfdisplay" class="hidden">
+      <span>
+       
+        <button type="button" id="closeform" title="Close">{!$label.DTWINCEPCCLOSE}</Button>
+      </span>
+      <div>
+        <span>
+        <div id="internalPdf">
+          <object class="pdfdisplay" data="{!URLFOR($Resource.DTWParticipantGuide)}" type="application/pdf" >
+        
+          <p>{!$label.DTWINCEPCIt_appears_you_don_t_have_a_PDF_plugin_for_this_browser}
+          
+             {!$label.DTWINCCPC_No_biggie_you_can}<a href="{!URLFOR($Resource.DTWParticipantGuide)}">{!$label.DTWINCCPCclick_here_to}
+              
+             {!$label.DTWINCCPCdownload_the_PDF_file}</a></p>
+  
+          </object>
+        </div>
+        </span>
+      </div> 
+    </div>
+    
+    <apex:outputPanel rendered="{!oEnrollmentPlan.ApplicationType__c != 'PAY'}">
+     
+      <p class="projmessage">{!$Label.DTWINCCPCAt_the_time_a_project_is_enrolled_in_DTW_up_to_60}
+      <br/><br/>
+
+      <apex:outputPanel rendered="{!bFixed}">
+      
+      {!$Label.DTWINCCPCFor_the_purposes_of_allocating_potential_award_earnings_to_employees}
+      </apex:outputPanel>       
+      <apex:outputPanel rendered="{!bTM}">
+      {!$Label.DTWINCCPCFor_the_purposes_of_allocating_potential_award_earnings_to_employees10}
+       </apex:outputPanel>
+
+      </p>
+    </apex:outputPanel>
+    <apex:outputPanel rendered="{!oEnrollmentPlan.ApplicationType__c == 'PAY'}">
+    
+      <p class="projmessage">{!$label.DTWINCCPCReference_the_Final_Pool_Adjusted_for_Ops_Metrics}
+      <br/><br/>
+ 
+{!$label.DTWINCCPCWatch_the_short} <a Href="http://intranet.aecomnet.com/hosted/dtwpayments/story.html">{!$label.DTWINCCPCHow_to_Pay_a_DTW_Award}</a> {!$label.DTWINCCPC_module_posted_on_the} <A href="http://my.aecomnet.com/Intranet/About/Delivery+Excellence/Design+and+Consulting+Services?appInstanceName=intranet&vgnextrefresh=1">{!$label.DTWINCCPCDTW_webpage}</a> {!$label.DTWINCCPC_for_more_information_about_next_steps} 
+      </p>
+    </apex:outputPanel>
+
+    <br/>
+    <a href="{!$Label.DTWINCEAView_Participant_Guidelines_URL}" target="_blank" id="viewpdf">{!$Label.DTWINCEAView_Participant_Guidelines}</a>
+    
+    <apex:outputPanel id="epList">
+  
+    <apex:sectionHeader title="{!$Label.DTWINCCPCAdd_Enrollment_Participants}"  rendered="{!NOT(fromWizard='Yes')}"/>
+    <apex:outputPanel rendered="{!fromWizard='Yes'}">
+
+
+      <div class="pbSubheader tertiaryPalette"><h3>{!$Label.DTWINCCPCAdd_Enrollment_Participants}</h3></div>
+    </apex:outputPanel>
+
+    
+
+    <apex:pageBlock Title="{!$Label.DTWINCCPCParticipants}" id="Participants">
+   
+
+        <apex:pageBlockButtons location="top">
+    
+            <apex:commandButton value="{!$Label.DTWINCCPCAdd_Row}" action="{!addBlankRow}" reRender="partTable,Participants" rendered="{!AND(OR(editParticipants, bPaid), NOT(AND(oEnrollmentPlan.ApplicationType__c == 'PAY', bTMorFixed)))}">
+            </apex:commandButton>
+           
+            <apex:commandButton value="{!$Label.DTWINCCPCAdd_Discretionary_Participant}" action="{!addBlankRow}" reRender="partTable,Participants" rendered="{!AND(OR(editParticipants, bPaid), AND(oEnrollmentPlan.ApplicationType__c == 'PAY', bTMorFixed))}">
+            </apex:commandButton>
+            <apex:actionStatus id="saveStatus">
+            <apex:facet name="stop">
+                <apex:commandButton styleclass="participantsave" id="participantsave" value="{!$Label.DTWINCCPCSave_and_Recalculate}" action="{!SaveandRecalc}" status="saveStatus" oncomplete="checkappstatusfunc()" reRender="message,wizardheaderinfo,partTable,Participants">
+            </apex:commandButton>
+            </apex:facet>
+            <apex:facet name="start">
+                <apex:commandButton value="{!$Label.DTWINCCPCSave_and_Recalculate}" disabled="true" status="saveStatus"/>
+            </apex:facet>
+            </apex:actionStatus>
+            
+            <apex:commandButton value="{!$Label.DTWINCCPCSave_and_Continue}" action="{!SaveAndContinue}" rendered="{!NOT(fromWizard='Yes')}">
+            </apex:commandButton>
+            
+            <apex:commandButton value="{!$Label.DTWINCCPCCancel}" action="{!Cancel}" rendered="{!NOT(fromWizard='Yes')}">
+            </apex:commandButton>
+        </apex:pageBlockButtons>
+        <apex:outputpanel id="message">
+         <apex:pagemessages escape="false"></apex:pagemessages>
+        </apex:outputpanel>
+        
+        <apex:pageMessage severity="INFO" rendered="{!bPaid}" summary="{!$Label.DTWINCCPCOnly_Discretionary_Participants_can_be_added_at_this_time}" />
+
+
+        <apex:variable var="rowNum" value="{!0}"/>
+        <apex:pageBlockTable value="{!listParticipant}" var="Participant" id="partTable">
+         
+          <apex:column headerValue="{!$Label.DTWINCCPCAction}" rendered="{!AND(oEnrollmentPlan.ApplicationType__c = 'ENR', oEnrollmentPlan.EnrollmentStatus__c != 'Enrolled')}">
+               <apex:variable var="rowNum" value="{!rowNum + 1}"/>
+               <center>
+              
+               <apex:commandLink style="text-decoration: none;" value="X" action="{!RemoveEP}" title="{!$Label.DTWINCCPCRemove}" reRender="epList">
+                  <apex:param name="rowIndex" value="{!rowNum}" assignTo="{!rowNumber}"/>
+               </apex:commandLink>
+               </center>
+          </apex:column>
+           
+           <apex:Column headervalue="{!$Label.DTWINCCPCEmployee}">
+              <apex:inputField value="{!Participant.participant.EmployeeName__c}" rendered="{!Participant.bEnableEmpName}"/>
+              <apex:OutputField value="{!Participant.participant.EmployeeName__c}" rendered="{!NOT(Participant.bEnableEmpName)}"/>
+           </apex:Column>
+           
+           <apex:Column headervalue="{!$Label.DTWINCCPCTracking_ID}">
+              <apex:OutputField value="{!Participant.participant.EmployeeID__c}"/>
+           </apex:Column>
+           
+           <apex:Column headervalue="{!$Label.DTWINCCPCTitle}">
+              <apex:OutputField value="{!Participant.participant.HRJobTitle__c}"/>
+           </apex:Column>
+            
+           <apex:Column headervalue="{!$Label.DTWINCCPCParticipant_Category}">
+              <apex:inputField value="{!Participant.participant.ParticipantCategory__c}" rendered="{!Participant.bPaymentEnabledField}"/>
+              <apex:OutputField value="{!Participant.participant.ParticipantCategory__c}" rendered="{!NOT(Participant.bPaymentEnabledField)}"/>
+           </apex:Column>
+            
+           <apex:Column headervalue="{!$Label.DTWINCCPCTarget}">
+               <apex:inputField value="{!Participant.participant.TargetIncentivePoolAllocated__c}" rendered="{!Participant.bCCREnabledField}"/>
+               <apex:OutputField value="{!Participant.participant.TargetIncentivePoolAllocated__c}" rendered="{!NOT(Participant.bCCREnabledField)}"/>
+           </apex:Column>
+            
+           <apex:Column headervalue="{!$Label.DTWINCCPCSample_Payout}" rendered="{!oEnrollmentPlan.ApplicationType__c != 'PAY'}">
+              <apex:OutputField value="{!Participant.participant.EstimatedPayout__c}"/>
+           </apex:Column>
+           
+           <apex:Column headervalue="{!$Label.DTWINCCPCCalculated_Incentive}" rendered="{!oEnrollmentPlan.ApplicationType__c == 'PAY'}">
+              <apex:OutputField value="{!Participant.participant.CalculatedIncentive__c}"/>
+           </apex:Column>
+            
+           <apex:Column headervalue="{!$Label.DTWINCCPCPayment_Adjustments}" rendered="{!oEnrollmentPlan.ApplicationType__c == 'PAY'}">
+              <apex:inputField value="{!Participant.participant.PaymentAdjustments__c}" rendered="true"/>
+           </apex:Column>
+           
+           <apex:Column headervalue="{!$Label.DTWINCCPCPmt_Adj_Reason}" rendered="{!oEnrollmentPlan.ApplicationType__c == 'PAY'}">
+              <apex:inputField value="{!Participant.participant.PaymentAdjReason__c}" rendered="true"/>
+           </apex:Column>
+          
+           <apex:Column headervalue="{!$Label.DTWINCCPCPayment_Amount}" rendered="{!AND(oEnrollmentPlan.ApplicationType__c == 'PAY', bTMorFixed)}">
+              <apex:outputField value="{!Participant.participant.PaymentAmount__c}" />
+                <apex:facet name="footer">
+                    <apex:outputPanel >
+                    
+                    <apex:outputText value="{!$Label.DTWINCCPCTotal_Payment_Amount}"  rendered="{!AND(oEnrollmentPlan.ApplicationType__c == 'PAY', bTMorFixed)}" />&nbsp;&nbsp;
+                    <apex:outputField value="{!oEnrollmentPlan.TotalPaymentAmount__c}" rendered="{!AND(oEnrollmentPlan.ApplicationType__c == 'PAY', bTMorFixed)}" /><br/>
+                    
+                    {!$label.DTWINCCPCUnallocated_Amount}:&nbsp;&nbsp;
+                    <apex:outputField value="{!oEnrollmentPlan.UnallocatedAmount__c}" />                 
+                    </apex:outputPanel>
+                </apex:facet>
+           </apex:Column>
+            
+           <apex:Column headervalue="{!$Label.DTWINCCPCPayment_Date}" rendered="{!oEnrollmentPlan.ApplicationType__c == 'PAY'}">
+              <apex:inputField value="{!Participant.participant.PaymentDate__c}" rendered="{!Participant.bPaymentDateEnabled}"/>
+              <apex:outputField value="{!Participant.participant.PaymentDate__c}" rendered="{!NOT(Participant.bPaymentDateEnabled)}"/>
+           </apex:Column>
+            
+           <apex:Column headervalue="{!$Label.DTWINCCPCStart_Date_on_Project}">
+              <apex:inputField value="{!Participant.participant.StartDateonProject__c}" rendered="{!Participant.bStartDateEnabled}"/>
+              <apex:outputField value="{!Participant.participant.StartDateonProject__c}" rendered="{!NOT(Participant.bStartDateEnabled)}"/>
+           </apex:Column>
+           
+           <apex:Column headervalue="{!$Label.DTWINCCPCEnd_Date_on_Project}" rendered="{!oEnrollmentPlan.ApplicationType__c != 'ENR'}">
+              <apex:inputField value="{!Participant.participant.EndDateonProject__c}" rendered="{!Participant.bEndDateEnabled}"/>
+              <apex:outputField value="{!Participant.participant.EndDateonProject__c}" rendered="{!NOT(Participant.bEndDateEnabled)}"/>
+           </apex:Column>
+            
+           <apex:Column headervalue="{!$Label.DTWINCCPCEmployee_Status}">
+              <apex:inputField value="{!Participant.participant.EmployeeStatus__c}"/>
+           </apex:Column>
+          <apex:Column headervalue="">
+               <apex:inputField value="{!Participant.participant.EmployeeStatusAlert__c}"/>
+           </apex:Column>
+          </apex:pageBlockTable>
+          <br />
+          <apex:pageBlockSection columns="1">
+          
+          <apex:pageBlockSectionItem >
+          
+             <apex:Outputlabel value="{!$Label.DTWINCCPCComments}" />
+             <apex:inputTextarea value="{!partComments}" rows="5" cols="100"/>
+          </apex:pageBlockSectionItem>
+          </apex:pageBlockSection>
+    </apex:pageBlock> 
+    </apex:outputPanel>
+  <!--</apex:form> -->
+</apex:component>

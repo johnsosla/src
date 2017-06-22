@@ -1,0 +1,381 @@
+<apex:component layout="none" controller="ECO_RiskFlyoutController" allowDML="true">
+	<apex:attribute name="ProjectId" description="Parent Project ID" type="ID" assignTo="{!sProjectId}"  required="true"/>
+	<apex:attribute name="PlanElement" description="Plan Element String" type="String" assignTo="{!sPlanElement}"  required="true"/>
+
+	<apex:stylesheet value="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/css/font-awesome.min.css')}" />
+	
+	
+	<apex:includeScript value="{!$Resource.ECO_jQuery_1_11_2_min_js}"/>
+	<apex:includeScript value="{!URLFOR($Resource.ECO_jQueryUI_1_11_2, 'jquery-ui.min.js')}" />
+
+	<script>
+		$q = jQuery.noConflict();
+
+		var oldWidth4;
+
+		var RiskFlyout = {
+			init : function(){
+
+				$q('body').on('click', RiskFlyout.hideContentFlyout);
+	       		
+	       		$q('#riskPane').on('click', function(event) { 
+  					event.stopPropagation();
+	       		});
+	       		
+	       		$q('#riskPane .tab').on('click', RiskFlyout.showContentFlyout);
+	       		
+	       		$q('#riskPane .close').click(function(){
+	       			RiskFlyout.hideContentFlyout();
+	       		});
+			},
+
+			hideContentFlyout : function(){
+	       		// var width = $q('#riskPane').outerWidth() * -1 + 'px';
+	       		
+	       		$q('#riskPane').animate({
+		       		right : oldWidth4
+				  }, 550, 'easeInCubic');
+	        },
+	       
+	        showContentFlyout : function(event){
+	       		event.stopPropagation();
+	       		
+	       		if($q('#riskPane').css('right') == '0px'){
+	       			RiskFlyout.hideContentFlyout();
+	       		}else{
+	       			oldWidth4 = $q('#riskPane').css('right');
+	       			$q('#riskPane').animate({
+			       		right : 0
+					  }, 550, 'easeOutCubic');
+	       		}
+	        }
+	    }
+
+	    $q(document).ready(function (){
+	    	RiskFlyout.init();
+	    });
+    </script>
+
+    <style>
+    	/*
+				FLYOUT STYLES
+		*/
+
+		#riskPane.riskFlyout {
+			background-color:#f3f3f3;
+			position: fixed;
+			width: 725px;
+			right: -777px;
+			top: 100px;
+			height:550px;
+			padding: 10px 30px 20px 20px;
+			border-right: none;
+			-webkit-border-top-left-radius: 20px;
+			-webkit-border-bottom-left-radius: 20px;
+			-moz-border-radius-topleft: 20px;
+			-moz-border-radius-bottomleft: 20px;
+			border-top-left-radius: 20px;
+			border-bottom-left-radius: 20px;
+			
+			margin-left: 42px;
+			min-height: 400px;
+			box-shadow: 0 0 10px #787878;
+			border: 1px solid #DEDEDE;
+		}
+
+		#riskPane.riskFlyout .tab {
+			position: absolute;
+			border-right: none;
+			background-color: #f3f3f3;
+			
+			-webkit-border-top-left-radius: 10px;
+			-webkit-border-top-right-radius: 10px;
+			-moz-border-radius-topleft: 10px;
+			border-top-left-radius: 10px;
+			cursor: pointer;
+			padding:7px 8px;
+			box-shadow:0 -3px 4px #959595;
+
+			top:100px;
+			left: -57px;
+
+			-webkit-transform: rotate(-90deg); 
+			-moz-transform: rotate(-90deg);	
+			-ms-transform: rotate(-90deg);
+		}
+
+		#riskPane.riskFlyout .close {
+			color: #D6D6D6;
+			cursor: pointer;
+			display: block;
+			float: right;
+			font-family: 'Platform-Font', Helvetica, Arial, sans-serif;
+			padding-left: 25px;
+			padding-right: 20px;
+			text-align: right;
+			text-transform: uppercase;
+		}
+
+		#riskPane.riskFlyout .delete{
+			position: absolute;
+			top: 12px;
+			right: 7px;
+			padding: 6px 8px;
+		}
+
+		#riskPane.riskFlyout .delete:hover{
+			text-decoration:underline;
+		}
+
+		#riskPane.riskFlyout .header {
+			color: #333;
+			font-size: 25px;
+			padding-bottom: 15px;
+			padding-top: 10px;
+		}
+		
+		#riskPane.riskFlyout .body {
+			padding-right: 20px;
+			overflow: scroll;
+		}
+
+		#riskPane.riskFlyout select{
+			margin:2px 0 5px 0;
+		}
+
+		#riskPane.riskFlyout .table{
+			width: 100%;
+			max-width: 100%;
+			margin-bottom: 20px;
+			margin-top:15px;
+		}
+
+		#riskPane.riskFlyout .table th{
+			font-size: 1.05em;
+			font-weight: 600;
+			border-bottom: 2px solid rgba(0, 0, 0, 0.14);
+		}
+
+		#riskPane.riskFlyout .table-striped > tbody > tr:nth-child(4n), #riskPane.riskFlyout .table-striped > tbody > tr:nth-child(4n-1){
+			background-color: #f6f8fa;
+		}
+
+		#riskPane.riskFlyout .table td{
+			border-top: 1px solid rgba(0, 0, 0, 0.05);
+		}
+
+		#riskPane.riskFlyout .table>tbody>tr>td, .flyout .table>tbody>tr>th, .flyout .table>tfoot>tr>td, .flyout .table>tfoot>tr>th, .flyout .table>thead>tr>td, .flyout .table>thead>tr>th{
+			padding: 8px;
+			line-height: 1.42857143;
+			vertical-align: top;
+		}
+
+		#riskPane.riskFlyout .label-table{
+			display: inline-block;
+			width: 80%;
+			min-width: 8ex;
+			font-size: 1em;
+			max-width: 100px;
+			padding: 5px;
+			text-overflow: ellipsis;
+			overflow: hidden;
+		}
+
+		/* tables */
+		#riskPane.riskFlyout table.tablesorter {
+			font-family:arial;
+			background-color: #CDCDCD;
+			margin:10px 0pt 15px;
+			font-size: 8pt;
+			width: 100%;
+			text-align: left;
+		}
+
+		#riskPane.riskFlyout table.tablesorter thead tr th, table.tablesorter tfoot tr th {
+			background-color: #aebdee;
+			border: 1px solid #FFF;
+			font-size: 8pt;
+			padding: 4px;
+		}
+
+		#riskPane.riskFlyout table.tablesorter thead tr .header {
+			background-image: url(bg.gif);
+			background-repeat: no-repeat;
+			background-position: center right;
+			cursor: pointer;
+		}
+
+		#riskPane.riskFlyout table.tablesorter tbody td {
+			color: #3D3D3D;
+			padding: 4px;
+			background-color: #FFF;
+			vertical-align: top;
+			height: 20px;
+		}
+
+		#riskPane.riskFlyout table.tablesorter tbody tr.odd td {
+			background-color:#F0F0F6;
+		}
+
+		#riskPane.riskFlyout table.tablesorter thead tr .headerSortUp {
+			background-image: url(asc.gif);
+		}
+
+		#riskPane.riskFlyout table.tablesorter thead tr .headerSortDown {
+			background-image: url(desc.gif);
+		}
+
+		#riskPane.riskFlyout table.tablesorter thead tr .headerSortDown, table.tablesorter thead tr .headerSortUp {
+		background-color: #8dbdd8;
+		}
+
+		.noteText{
+			color:#818181;
+			font-style: italic;
+		}
+
+    </style>
+    
+	    <div id="riskPane" class="riskFlyout flyout">
+			<div class="close">
+				<i class="fa fa-arrow-right" style="color:#333;"></i>
+			</div>
+            <div class="tab">
+                {!$Label.Risk_Flyout_Risk_Tab}
+            </div>
+            <div class="header">
+                {!$Label.Risk_Flyout_Risk_Tab}
+            </div>
+			<apex:outputPanel id="riskPanel">
+				<apex:actionRegion >
+				<div>
+					<apex:pageBlock mode="mainDetail">
+						<apex:pageBlockSection columns="1" collapsible="false" title="{!$Label.Risk_Flyout_Project_Risks_List}"></apex:pageBlockSection>
+						<div style="text-align:right;margin-bottom:8px;float:right;white-space:nobreak;">{!$Label.Filter}:&nbsp;
+							<apex:selectList size="1" value="{!sFilterCriteria}">
+								<apex:selectOptions value="{!lPlanElements}" />
+								<apex:actionSupport rerender="riskPanel" event="onchange" />
+							</apex:selectList>
+						</div>
+						<apex:outputPanel rendered="{!AND(IF(lDOARegisters.size == 0, true, false), sFilterCriteria == 'DOA')}">
+							<p>{!$Label.Risk_Flyout_No_DOA_Registers}</p>
+						</apex:outputPanel>
+						<apex:outputPanel rendered="{!AND(IF(lDOARegisters.size == 0, false, true), sFilterCriteria == 'DOA')}">
+							<table class="tablesorter" cellpadding="0" cellspacing="0" style="height:200px; overflow-y:auto; display:block;">
+								<thead>
+									<tr>
+										<th width="35px" />
+										<apex:repeat value="{!$ObjectType.DOARegister__c.FieldSets.RiskFlyoutDisplayFields}" var="field">
+											<th>
+												<apex:outputText value="{!$ObjectType.DOARegister__c.Fields[field].label}" />
+											</th>
+										</apex:repeat>
+									</tr>
+								</thead>
+								<tbody>
+									<apex:repeat value="{!lDOARegisters}" var="doaRegister">
+										<tr>
+											<td rowspan="1" align="center">
+												<a href="/{!doaRegister.Id}">View</a>
+											</td>
+											<apex:repeat value="{!$ObjectType.DOARegister__c.FieldSets.RiskFlyoutDisplayFields}" var="Field">
+												<td>
+													<apex:outputField value="{!doaRegister[Field]}" />
+												</td>
+											</apex:repeat>
+										</tr>
+									</apex:repeat>
+								</tbody>
+							</table>
+						</apex:outputPanel>
+						<apex:outputPanel rendered="{!AND(IF(lRisks.size == 0, true, false), sFilterCriteria != 'DOA')}">
+							<p>{!$Label.Risk_Flyout_No_Risks_Associated}</p>
+						</apex:outputPanel>
+						<apex:outputPanel rendered="{!AND(IF(lRisks.size == 0, false, true), sFilterCriteria != 'DOA')}">
+							<div class="list" style="overflow:scroll;height:200px;">
+								<table class="tablesorter" cellpadding="0" cellspacing="0">
+									<thead>
+										<tr>
+                                            <th width="35px">
+
+                                            </th>
+                                            <th>
+                                                {!$Label.Risk_Flyout_Risk_List_Project_Element}
+                                            </th>
+                                            <th width="300px">
+                                                {!$Label.Risk_Flyout_Risk_List_Risk_Title}
+                                            </th>
+                                            <th>
+                                                {!$Label.Risk_Flyout_Risk_List_Current_Status}
+                                            </th>
+                                            <th>
+                                                {!$Label.Risk_Flyout_Risk_List_Post_Mitigation_Contingency}
+                                            </th>
+
+										</tr>
+									</thead>
+
+									<tbody>
+										<apex:repeat value="{!lRisks}" var="risk">
+											<tr>
+												<td rowspan="1" align="center">
+													<a href="/{!risk.Id}">View</a>
+												</td>
+												<td rowspan="1">
+													<apex:outputField rendered="{!NOT(ISBLANK(risk.PlanElement__c))}" value="{!risk.PlanElement__c}" />
+													<apex:outputText styleClass="noteText" rendered="{!ISBLANK(risk.PlanElement__c)}" value="Uncategorized" />
+												</td>
+												<td rowspan="1">
+													<apex:outputField value="{!risk.Name}" />
+												</td>
+												<!--<td rowspan="2">
+													<apex:outputField value="{!risk.ContingencyDollars__c}" />
+												</td>-->
+												<td rowspan="1">
+													<apex:outputField value="{!risk.CurrentStatus__c}" />
+												</td>
+												<!--<td rowspan="1">
+													<apex:outputField rendered="{!NOT(ISBLANK(risk.RiskMitigation__c))}" value="{!risk.RiskMitigation__c}" />
+													<apex:outputText styleClass="noteText" rendered="{!ISBLANK(risk.RiskMitigation__c)}" value="No Mitigation Provided" />
+												</td>-->												
+												<td rowspan="1">
+                									<apex:outputtext value="{0, number, currency}">
+				   										<apex:param value="{!risk.PostmitigationContingencyTotal__c}" />
+													</apex:outputtext>  												
+													<!--<apex:outputField value="{!risk.PostmitigationContingencyTotal__c}" />-->
+												</td>
+
+											</tr>
+<!--											<tr>
+												<td>
+													<apex:outputField rendered="{!NOT(ISBLANK(risk.RiskMitigation__c))}" value="{!risk.RiskMitigation__c}" />
+													<apex:outputText styleClass="noteText" rendered="{!ISBLANK(risk.RiskMitigation__c)}" value="No Mitigation Provided" />
+												</td>
+											</tr>-->
+										</apex:repeat>
+									</tbody>
+								</table>
+							</div>
+
+							
+						</apex:outputPanel>
+
+						<apex:pageBlockSection columns="1" collapsible="false" title="Add a New Risk">
+							<apex:repeat value="{!$ObjectType.Risk__c.FieldSets.RiskFlyoutInputFields}" var="Field">
+								<apex:pageBlockSectionItem >
+									<apex:outputLabel value="{!Field.label}" />
+							    	<apex:inputField style="width:85%" value="{!oRisk[Field]}"/>
+							    </apex:pageBlockSectionItem>
+							</apex:repeat>
+							<apex:pageBlockSectionItem >
+								<apex:commandButton value="{!$Label.Risk_Flyout_Add_Risk_Button}" action="{!saveRisk}" rerender="riskPanel" />
+								<apex:commandButton value="{!$Label.Risk_Flyout_View_Risk_Register_Button}" action="{!viewRegister}" />		
+							</apex:pageBlockSectionItem>
+						</apex:pageBlockSection>
+					</apex:pageBlock>
+				</div>
+				</apex:actionRegion>
+			</apex:outputPanel>
+		</div>
+	
+</apex:component>

@@ -1,0 +1,42 @@
+<apex:component controller="INC_ObjectFieldHistory_Controller">
+
+<!-- Attribute Definition -->
+<apex:attribute name="imyObject" description="Object we wish to view the history of" type="SObject" required="true" assignTo="{!myObject}" />
+
+<apex:attribute name="show_more_number" description="Number of lines of history to display" type="Integer" required="false" assignTo="{!showmorenumber}" />
+
+
+<!-- Object History Related List -->
+<apex:form id="formRelatedList">
+    <apex:pageBlock title="{!objectLabel} History">
+        <apex:pageBlockTable value="{!ObjectHistory}" var="History">
+            
+            <apex:column headerValue="{!$Label.DTWINCOFHDate}" value="{!History.thedate}"/>
+            
+            <apex:column headerValue="{!$Label.DTWINCOFHUser}">
+                <apex:outputLink value="/{!History.userId}"> {!History.who} </apex:outputLink>
+            </apex:column>
+           
+            <apex:column headerValue="{!$Label.DTWINCOFHAction}">
+                <apex:outputText escape="false" value="{!History.action}"/>
+            </apex:column>
+        </apex:pageBlockTable>
+        <apex:outputPanel id="panelShowMore"
+                            layout="block"
+                            styleClass="pShowMore"
+                            rendered="{!allowShowMore}">
+       
+            <apex:commandLink id="linkShowMore"
+                                action="{!showMore}"
+                                rerender="formRelatedList">{!$Label.DTWINCOFHShowmore}</apex:commandLink>
+
+                                <span> | </span>
+       
+            <apex:outputLink id="linkGotoList"
+                                value="/_ui/common/history/ui/EntityHistoryFilterPage?id={!imyObject.id}">{!$Label.DTWINCOFHgotolist}
+                            </apex:outputLink>
+        </apex:outputPanel>                    
+
+    </apex:pageBlock>
+</apex:form>
+</apex:component>

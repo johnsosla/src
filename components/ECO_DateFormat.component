@@ -1,0 +1,5 @@
+<apex:component controller="ECO_DateFormatController">
+    <apex:attribute name="date" description="The date to be formatted" type="Date" required="true" assignTo="{!theDate}" />
+
+	<apex:outputText >{!formattedDate}</apex:outputText>                                           
+</apex:component>

@@ -1,0 +1,114 @@
+<apex:page extensions="ECO_CityCountryFinderController" standardController="pse__Proj__c" showheader="true" sidebar="true">
+
+	<!--<apex:sectionHeader title="Location Manager" subtitle="Manage Project Location(s)" />
+
+	<style>
+		.searchText{
+			text-align:center;
+			font-weight:bold;
+			font-size:20px;
+		}
+		.tt-search-box.tt-input{
+			border-radius:0;
+			border:1px solid #a9a9a9;
+		}
+	</style>
+
+	<apex:outputPanel id="messages">
+		<apex:pageMessages />
+	</apex:outputPanel>
+
+	<apex:form >
+
+		<apex:outputField value="{!pse__Proj__c.PrimaryCity__c}" rendered="false"/>
+		<apex:outputField value="{!pse__Proj__c.PrimaryCountry__c}" rendered="false"/>
+		
+		<apex:pageBlock title="Project City" >
+
+			<apex:pageBlockButtons location="top">
+				<apex:commandButton value="Return to Project" action="{!cancel}" />
+			</apex:pageBlockButtons>
+
+			<apex:panelGrid columns="3">
+				<c:Typeahead object="City__c" style="width:150px;height:0.5em;" recordLimit="10" destinationForSelectedId="CityID" searchBoxId="CitySearch" stealFocus="false" />
+				<apex:commandButton action="{!SelectPrimaryCity}" value="Add Primary" id="CityRiskAddPrimary" rerender="ProjectCityPanel"  status="CityUpdateStatus" />
+				<apex:commandButton action="{!SelectSecondaryCity}" value="Add Secondary" id="CityRiskAddSecondary" rerender="ProjectCityPanel"  status="CityUpdateStatus" />
+			</apex:panelGrid>
+			<apex:inputHidden id="CityID" value="{!idCityID}" />
+
+			<BR /><BR />
+
+			<apex:outputPanel id="ProjectCityPanel">
+				<apex:actionStatus id="CityUpdateStatus">
+					<apex:facet name="start">
+						<p style="padding-bottom:20px;" class="searchText"><img style="position:relative;top:12px;" src="/img/loading32.gif" /> Updating...</p>
+
+					</apex:facet>
+					<apex:facet name="stop">
+						<apex:outputPanel >
+							<apex:outputPanel rendered="{!if(lstProjectCities.size > 0, false, true)}">
+		                        <p style="padding-bottom:20px;">No Cities have been selected</p>
+		                    </apex:outputPanel>
+							<apex:pageBlockTable value="{!lstProjectCities}" var="ProjectCity" rendered="{!if(lstProjectCities.size > 0, true, false)}">
+								<apex:column >
+									<apex:facet name="header">Action</apex:facet>
+					            	<apex:commandLink action="{!SelectPrimaryCity}" value="Make Primary" rerender="messages, ProjectCityPanel" status="CityUpdateStatus">
+					            		<apex:param assignTo="{!idCityID}" name="CityID" value="{!ProjectCity.City__c}" />
+					            	</apex:commandLink>&nbsp;&nbsp;
+					            	<apex:commandLink action="{!RemoveEntryCity}" value="Remove" rerender="messages, ProjectCityPanel" status="CityUpdateStatus">
+					            		<apex:param assignTo="{!idCityID}" name="CityID" value="{!ProjectCity.City__c}" />
+					            	</apex:commandLink>
+								</apex:column>
+								<apex:column value="{!ProjectCity.City__c}" />
+								<apex:column value="{!ProjectCity.Type__c}" />
+							</apex:pageBlockTable>
+						</apex:outputPanel>
+					</apex:facet>
+				</apex:actionStatus>
+			</apex:outputPanel>
+			<BR /><BR /><BR />
+		</apex:pageBlock>
+		
+		<apex:pageBlock title="Project Country Risk">
+			<apex:panelGrid columns="3">
+				<c:Typeahead object="CountryRisk__c" style="width:150px;height:0.5em;" recordLimit="10" destinationForSelectedId="CountryRiskID" searchBoxId="CountryRiskSearch"  stealFocus="false" />
+				<apex:commandButton action="{!SelectPrimaryCountryRisk}" value="Add Primary" id="CountryRiskAddPrimary" rerender="ProjectCountyRiskPanel"  status="CountryRiskUpdateStatus" />
+				<apex:commandButton action="{!SelectSecondaryCountryRisk}" value="Add Secondary" id="CountryRiskAddSecondary" rerender="ProjectCountyRiskPanel"  status="CountryRiskUpdateStatus" />
+			</apex:panelGrid>
+			<apex:inputHidden id="CountryRiskID" value="{!idCountryRiskID}" />
+
+			<BR /><BR />
+
+			<apex:outputPanel id="ProjectCountyRiskPanel">
+				<apex:actionStatus id="CountryRiskUpdateStatus">
+					<apex:facet name="start">
+						<p style="padding-bottom:20px;" class="searchText"><img style="position:relative;top:12px;" src="/img/loading32.gif" /> Updating...</p>
+
+					</apex:facet>
+					<apex:facet name="stop">
+						<apex:outputPanel >
+							<apex:outputPanel rendered="{!if(lstProjectCountryRisks.size > 0, false, true)}">
+		                        <p style="padding-bottom:20px;">No Country Risk have been selected</p>
+		                    </apex:outputPanel>
+							<apex:pageBlockTable value="{!lstProjectCountryRisks}" var="ProjectCountryRisk" rendered="{!if(lstProjectCountryRisks.size > 0, true, false)}">
+								<apex:column >
+									<apex:facet name="header">Action</apex:facet>
+					            	<apex:commandLink action="{!SelectPrimaryCountryRisk}" value="Make Primary" rerender="messages, ProjectCountyRiskPanel" status="CountryRiskUpdateStatus">
+					            		<apex:param assignTo="{!idCountryRiskID}" name="CountryRiskID" value="{!ProjectCountryRisk.CountryRisk__c}" />
+					            	</apex:commandLink>&nbsp;&nbsp;
+					            	<apex:commandLink action="{!RemoveEntryCountryRisk}" value="Remove" rerender="messages, ProjectCountyRiskPanel" status="CountryRiskUpdateStatus">
+					            		<apex:param assignTo="{!idCountryRiskID}" name="CountryRiskID" value="{!ProjectCountryRisk.CountryRisk__c}" />
+					            	</apex:commandLink>
+								</apex:column>
+								<apex:column value="{!ProjectCountryRisk.CountryRisk__c}" />
+								<apex:column value="{!ProjectCountryRisk.Safety_Rating__c}" />
+								<apex:column value="{!ProjectCountryRisk.Type__c}" />
+							</apex:pageBlockTable>
+						</apex:outputPanel>
+					</apex:facet>
+				</apex:actionStatus>
+			</apex:outputPanel>	
+			<BR /><BR /><BR />
+		</apex:pageBlock>
+	</apex:form>-->
+</apex:page>

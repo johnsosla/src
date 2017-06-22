@@ -1,0 +1,97 @@
+<apex:component controller="rsFileController" allowDML="true">
+
+    <apex:attribute name="rsProfile" assignTo="{!profile}" description="" type="rsProfile" required="true"/>
+
+    <apex:attribute name="reRender" description="" type="String" required="false"/>
+
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h3 class="panel-title">Files</h3>
+        </div>
+
+        <div class="panel-body">
+
+            <apex:outputPanel rendered="{!IsEditMode}">
+
+                <div class="col-md-4 text-center">
+                    <apex:commandLink action="{!savePart}" value="Save" styleClass="btn btn-success btn-sm" reRender="{!reRender}">
+                         <span class="glyphicon glyphicon-ok-circle"></span>
+                    </apex:commandLink>
+                    &nbsp;
+                    <apex:commandLink action="{!cancelPart}" immediate="true" value="Cancel" styleClass="btn btn-danger btn-sm" reRender="{!reRender}">
+                         <span class="glyphicon glyphicon-remove-circle"></span>
+                    </apex:commandLink>
+                </div>
+
+            </apex:outputPanel>
+
+            <apex:outputPanel rendered="{!IsViewMode}">
+
+            </apex:outputPanel>
+
+
+
+
+            <apex:outputPanel rendered="{!IsListMode}">
+
+            <table id="regTable" class="table">
+                <thead>
+                    <tr>
+                        <th>Action</th>
+                        <th>File Name</th>
+                        <th>File Description</th>
+                        <th>Uploaded On</th>
+                        <th>Uploaded By</th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                    <apex:repeat value="{!Parts}" var="part">
+                        <tr>
+                            <td>
+                                <div class="dropdown">
+                                    <button class="wrench btn-default btn-sm dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown">
+                                        <span class="glyphicon glyphicon-wrench"></span>
+                                    </button>
+                                    <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">
+                                        <li role="presentation">
+
+                                            <apex:commandLink tabindex="-1" html-data-role="menuitem" action="{!editPart}" value="Edit" reRender="{!reRender}">
+                                                <apex:param value="{!part.Id}" name="partId"/>
+                                            </apex:commandLink>
+
+
+                                        </li>
+                                        <li role="presentation">
+                                            <a role="menuitem" tabindex="-1" href="#">View</a>
+                                        </li>
+                                        <li role="presentation" class="divider"></li>
+                                        <li role="presentation">
+                                            <apex:commandLink tabindex="-1" html-data-role="menuitem" action="{!deletePart}" value="Delete" reRender="{!reRender}">
+                                                <apex:param value="{!part.Id}" name="partId"/>
+                                            </apex:commandLink>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </td>
+                            <td>Evil File</td>
+                            <td>Don't open me</td>
+                            <td>12/28/1985</td>
+                            <td>Jason Swenski</td>
+                        </tr>
+                    </apex:repeat>
+                </tbody>
+            </table>
+
+            <apex:commandLink value="Add" styleClass="btn btn-success btn-sm" reRender="{!reRender}" action="{!newPart}">
+                 <span class="glyphicon glyphicon-plus"></span>
+            </apex:commandLink>
+
+
+            </apex:outputPanel>
+
+
+
+        </div>
+    </div>
+</apex:component>

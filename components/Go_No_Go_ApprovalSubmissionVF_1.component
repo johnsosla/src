@@ -1,0 +1,22 @@
+<apex:component controller="nttdcore.DLabelChildController" access="global" language="{!theLanguage}" extensions="nttdcore.DLabelChildController" >
+	<apex:attribute name="theRelatedTo" type="QuestionnaireSet__c" required="true" description="related to" access="global" />
+	<apex:attribute name="theRecipient" type="User" required="true" description="thethetheRecipient" access="global" />
+	<apex:attribute name="theLanguage" type="String" required="true" description="language" access="global" />
+
+    <apex:outputpanel ><nttdcore:DLabel name="DL1" default="Pursuit of the subject project has been recommended as a {{1}}.  Click on the link below to review the results of the Risk and Market Assessment and approve or reject the recommendation." labelParent="{!this}" componentContext="Go_No_Go_ApprovalSubmissionVF_1" p1="{!theRelatedTo.GoNoGoRecommendation__c}" /><nttdcore:DLabel name="DL5" default="Please approve or reject this item via clicking on the link below or replying to this email with the words 'approve • approved • yes • reject • rejected • no'.  Any additional comments to be recorded can be added in a second line of the email reply." labelParent="{!this}" componentContext="Go_No_Go_ApprovalSubmissionVF_1" />
+        {!dlRoot.dLabel['DL1']}
+        <br/><br/>
+        <b><nttdcore:DLabel name="DL2" default="Project Name:" labelParent="{!this}" componentContext="Go_No_Go_ApprovalSubmissionVF_1" />{!dlRoot.dLabel['DL2']}</b> {!theRelatedTo.ProjectLongName__c}
+        <br/>
+        <b><nttdcore:DLabel name="DL3" default="Client:" labelParent="{!this}" componentContext="Go_No_Go_ApprovalSubmissionVF_1" />{!dlRoot.dLabel['DL3']}</b> {!theRelatedTo.InvoicingClient__c}
+        <br/>
+        <b><nttdcore:DLabel name="DL4" default="Requestor:" labelParent="{!this}" componentContext="Go_No_Go_ApprovalSubmissionVF_1" />{!dlRoot.dLabel['DL4']}</b> {!theRelatedTo.CreatedBy.Name}
+        <br/><br/>
+        {!dlRoot.dLabel['DL5']} <c:ECO_ApprovalRequestComments relatedtoid="{!theRelatedTo.id}" />
+        
+        <br/><br/>
+        <c:ECO_ApprovalRequestURL relatedtoid="{!theRelatedTo.id}" />
+        <br/>
+        <a href="{!theRelatedTo.ProjectLink__c}" ><nttdcore:DLabel name="DL6" default="Project Link" labelParent="{!this}" componentContext="Go_No_Go_ApprovalSubmissionVF_1" />{!dlRoot.dLabel['DL6']}</a>
+    </apex:outputpanel>
+<nttdcore:DLabelInit language="{!theLanguage}" labelparentinit="{!this}" /></apex:component>

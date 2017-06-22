@@ -1,0 +1,6 @@
+<apex:component language="{!theLanguage}" controller="nttdcore.DLabelChildController" access="global" ><nttdcore:DLabel name="DL1" default="Dear {{1}}, 
+    Please use the following link to update the status of your tasks for the subject project.
+    Link to Earned Value Report:{{2}}apex/ECO_EarnedValueReport?id={{3}}&selectedSnapshotDate={{4}}" labelParent="{!this}" componentContext="RequestTaskManagerInputHTML_VF_3" p1="{!theRelatedTo.Name}" p2="{!LEFT($Api.Partner_Server_URL_290,FIND('services',$Api.Partner_Server_URL_290)-1)}" p3="{!theRelatedTo.Project__c}" p4="{!IF(ISBLANK(theRelatedTo.EarnedValueReportWeek__c),'',text(year(theRelatedTo.EarnedValueReportWeek__c))+'-'+text(month(theRelatedTo.EarnedValueReportWeek__c))+'-'+text(day(theRelatedTo.EarnedValueReportWeek__c)))}" /><apex:attribute name="theLanguage" type="String" required="true" description="language" access="global" /><apex:attribute name="theRecipient" type="Contact" required="true" description="recipient" access="global" /><apex:attribute name="theRelatedTo" type="ProjectTeamMember__c" required="true" description="related to" access="global" />
+    {!dlRoot.dLabel['DL1']}
+     
+<nttdcore:DLabelInit language="{!theLanguage}" labelParentInit="{!this}" /></apex:component>

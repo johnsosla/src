@@ -1,0 +1,51 @@
+<!--
+* @author Nathan Pilkington
+* @version 1.0
+* @description COMPONENT: AECOM Sales Goal Tracking (ASGT)
+*              PAGE: SGT_CriteriaDisplay
+*              PURPOSE: Visualforce page used on the SGT_Sales_Goal__c page layout to display Business Line goal criteria
+*              CREATED: 01/2017 Ethos Solutions - www.ethos.com
+-->
+<apex:page showHeader="true" sidebar="true" standardController="SGT_Sales_Goal__c" extensions="SGT_CriteriaDisplayController">
+
+	<style type="text/css">
+
+		.criteriaTable {
+			border: 1px solid #000;
+			min-width: 900px;
+		}
+		.criteriaTable td, .criteriaTable th {
+			padding: 5px;
+		}
+
+	</style>
+	<apex:outputPanel rendered="{!logicRows == null || logicRows.size == 0}">
+		No criteria specified
+	</apex:outputPanel>
+
+	<apex:outputPanel rendered="{!logicRows != null && logicRows.size > 0}">
+		
+		<apex:dataTable value="{!logicRows}" var="logicRow" styleClass="criteriaTable" border="1">
+			<apex:column >
+				<apex:outputText value="{!logicRow.position}" />
+			</apex:column>
+			<apex:column headerValue="Field">
+				<apex:outputText value="{!logicRow.fieldLabel}" />
+			</apex:column>
+			<apex:column headerValue="Operator">
+				<apex:outputText value="{!logicRow.operatorLabel}" />
+			</apex:column>
+			<apex:column headerValue="Value">
+				<apex:outputText value="{!logicRow.logicValue}" />
+			</apex:column>
+		</apex:dataTable>
+
+		<br/><br/>
+		<apex:outputPanel rendered="{!!ISBLANK(SGT_Sales_Goal__c.Filter_Logic__c)}">
+		<b>Filter Logic:</b> &nbsp; <apex:outputText value="{!SGT_Sales_Goal__c.Filter_Logic__c}" />
+		</apex:outputPanel>
+		
+		
+	</apex:outputPanel>
+
+</apex:page>

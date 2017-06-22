@@ -1,0 +1,181 @@
+<apex:page standardController="Opportunity" extensions="opportunityCustomDepartmentReport" 
+recordSetVar="recs"  showHeader="false" sidebar="false" contentType="application/vnd.ms-excel#Opportunity.xls" cache="true">
+<table>
+<tr>
+<TD><apex:outputLabel value="Account Name"/></TD>
+<TD><apex:outputLabel value="Opportunity Name"/></TD>
+<TD><apex:outputLabel value="Record Type Name"/></TD>
+<TD><apex:outputLabel value="Stage"/></TD>
+<TD><apex:outputLabel value="Estimated Award Date"/></TD>
+<TD><apex:outputLabel value="Estimated work start date"/></TD>
+<TD><apex:outputLabel value="AECOM Role"/></TD>
+<TD><apex:outputLabel value="Ceiling Amount (Total)"/></TD>
+<TD><apex:outputLabel value="Gross AECOM Contract Revenue"/></TD>
+<TD><apex:outputLabel value="Go Probability"/></TD>
+<TD><apex:outputLabel value="Probability"/></TD>
+<TD><apex:outputLabel value="Subs/Other Revenue"/></TD>
+<TD><apex:outputLabel value="Contract duration in Months"/></TD>
+<TD><apex:outputLabel value="{!RoleHeaders.Head1}"/></TD>
+<TD><apex:outputLabel value="{!RoleHeaders.Head2}"/></TD>
+<TD><apex:outputLabel value="{!RoleHeaders.Head3}"/></TD>
+<TD><apex:outputLabel value="{!RoleHeaders.Head4}"/></TD>
+<TD><apex:outputLabel value="{!RoleHeaders.Head5}"/></TD>
+<TD><apex:outputLabel value="{!RoleHeaders.Head6}"/></TD>
+<TD><apex:outputLabel value="{!RoleHeaders.Head7}"/></TD>
+<TD><apex:outputLabel value="{!RoleHeaders.Head8}"/></TD>
+<TD><apex:outputLabel value="{!RoleHeaders.Head9}"/></TD>
+<TD><apex:outputLabel value="{!RoleHeaders.Head10}"/></TD>
+<TD><apex:outputLabel value="{!RoleHeaders.Head11}"/></TD>
+<TD><apex:outputLabel value="{!RoleHeaders.Head12}"/></TD>
+<TD><apex:outputLabel value="{!RoleHeaders.Head13}"/></TD>
+<TD><apex:outputLabel value="{!RoleHeaders.Head14}"/></TD>
+<TD><apex:outputLabel value="{!RoleHeaders.Head15}"/></TD>
+<TD><apex:outputLabel value="{!RoleHeaders.Head16}"/></TD>
+<TD><apex:outputLabel value="Task Order Number"/></TD>
+<TD><apex:outputLabel value="Primary Business Line"/></TD>
+<TD><apex:outputLabel value="Market Segment"/></TD>
+<TD><apex:outputLabel value="Practice Area"/></TD>
+<TD><apex:outputLabel value="{!DeptHeaders.Head1}"/></TD>
+<TD><apex:outputLabel value="{!DeptHeaders.Head1} %"/></TD>
+<TD><apex:outputLabel value="{!DeptHeaders.Head2}"/></TD>
+<TD><apex:outputLabel value="{!DeptHeaders.Head2} %"/></TD>
+<TD><apex:outputLabel value="{!DeptHeaders.Head3}"/></TD>
+<TD><apex:outputLabel value="{!DeptHeaders.Head3} %"/></TD>
+<TD><apex:outputLabel value="{!DeptHeaders.Head4}"/></TD>
+<TD><apex:outputLabel value="{!DeptHeaders.Head4} %"/></TD>
+<TD><apex:outputLabel value="{!DeptHeaders.Head5}"/></TD>
+<TD><apex:outputLabel value="{!DeptHeaders.Head5} %"/></TD>
+<TD><apex:outputLabel value="{!DeptHeaders.Head6}"/></TD>
+<TD><apex:outputLabel value="{!DeptHeaders.Head6} %"/></TD>
+<TD><apex:outputLabel value="Multiple Geographies?"/></TD>
+<TD><apex:outputLabel value="Bid & Proposal Charge #"/></TD>
+<TD><apex:outputLabel value="B&P Budget"/></TD>
+<TD><apex:outputLabel value="B&P Actual to-date"/></TD>
+<TD><apex:outputLabel value="BL Distribution"/></TD>
+<TD><apex:outputLabel value="Book date"/></TD>
+<TD><apex:outputLabel value="Client Solicitation ID number"/></TD>
+<TD><apex:outputLabel value="Competitive Bid or Sole source"/></TD>
+<TD><apex:outputLabel value="Construction cost"/></TD>
+<TD><apex:outputLabel value="Contract Type"/></TD>
+<TD><apex:outputLabel value="Date lost/cancelled/no-go"/></TD>
+<TD><apex:outputLabel value="Date RFP expected"/></TD>
+<TD><apex:outputLabel value="Date RFP received"/></TD>
+<TD><apex:outputLabel value="Date RFQ expected"/></TD>
+<TD><apex:outputLabel value="Date RFQ received"/></TD>
+<TD><apex:outputLabel value="Project City"/></TD>
+<TD><apex:outputLabel value="Project State/Province"/></TD>
+<TD><apex:outputLabel value="Project Country"/></TD>
+<TD><apex:outputLabel value="Submittal Date (Proposal)"/></TD>
+<TD><apex:outputLabel value="Go/No Go Request submitted date"/></TD>
+<TD><apex:outputLabel value="Hub Approval required?"/></TD>
+<TD><apex:outputLabel value="Internal proposal ID number"/></TD>
+<TD><apex:outputLabel value="Market Segment Priority?"/></TD>
+<TD><apex:outputLabel value="MPRC Approval required?"/></TD>
+<TD><apex:outputLabel value="Project Delivery Method"/></TD>
+<TD><apex:outputLabel value="Proposal Location"/></TD>
+<TD><apex:outputLabel value="Reason Won or Lost"/></TD>
+<TD><apex:outputLabel value="Report comments"/></TD>
+<TD><apex:outputLabel value="Strategic Win?"/></TD>
+<TD><apex:outputLabel value="Transportation Initiatives"/></TD>
+<TD><apex:outputLabel value="PDD D+P+E Primary Global Practice Line"/></TD>
+<TD><apex:outputLabel value="PDD D+P+E Secondary Global Practice Line"/></TD>
+<TD><apex:outputLabel value="PDD General Market Sector"/></TD>
+<TD><apex:outputLabel value="PDD Practice Line"/></TD>
+<TD><apex:outputLabel value="PDD Services"/></TD>
+<TD><apex:outputLabel value="Transportation Services"/></TD>
+<TD><apex:outputLabel value="Stimulus Funding?"/></TD>
+<TD><apex:outputLabel value="Opportunity ID#"/></TD>
+
+
+</tr>
+<apex:repeat value="{!lstMyOpportunities}" var="opp">
+<tr>
+<TD><APEX:OUTPUTTEXT Value="{!opp.Opp.AccountId}"/></TD>
+<TD><apex:outputLink value="/{!opp.Opp.Id}">{!opp.Opp.Name}</apex:outputLink></TD>
+<TD><APEX:OUTPUTTEXT Value="{!opp.Opp.RecordType.Name}"/></TD>
+<TD><APEX:OUTPUTTEXT Value="{!opp.Opp.StageName}"/></TD>
+<TD><APEX:OUTPUTField Value="{!opp.Opp.CloseDate}"/></TD>
+<TD><APEX:OUTPUTField Value="{!opp.Opp.Estimated_work_start_date__c }"/></TD>
+<TD><APEX:OUTPUTTEXT Value="{!opp.Opp.AECOM_Role__c }"/></TD>
+<TD><APEX:OUTPUTTEXT Value="{!opp.Opp.Ceiling_Amount_Total__c}"/></TD>
+<TD><APEX:OUTPUTTEXT Value="{!opp.Opp.Amount}"/></TD>
+<TD><APEX:OUTPUTTEXT Value="{!opp.Opp.Go_Probability__c }"/></TD>
+<TD><APEX:OUTPUTTEXT Value="{!opp.Opp.Probability }"/></TD>
+<TD><APEX:OUTPUTTEXT Value="{!opp.Opp.Subs_Other_Revenue__c }"/></TD>
+<TD><APEX:OUTPUTTEXT Value="{!opp.Opp.Contract_duration_in_Months__c}"/></TD>
+<APEX:outputPanel rendered="{!IF(RoleHeaders.Head1='',false,true)}" ><TD><APEX:OUTPUTTEXT Value="{!opp.roles.role1}"/></TD></APEX:outputPanel>
+<APEX:outputPanel rendered="{!IF(RoleHeaders.Head2='',false,true)}" ><TD><APEX:OUTPUTTEXT Value="{!opp.roles.role2}"/></TD></APEX:outputPanel>
+<APEX:outputPanel rendered="{!IF(RoleHeaders.Head3='',false,true)}" ><TD><APEX:OUTPUTTEXT Value="{!opp.roles.role3}"/></TD></APEX:outputPanel>
+<APEX:outputPanel rendered="{!IF(RoleHeaders.Head4='',false,true)}" ><TD><APEX:OUTPUTTEXT Value="{!opp.roles.role4}"/></TD></APEX:outputPanel>
+<APEX:outputPanel rendered="{!IF(RoleHeaders.Head5='',false,true)}" ><TD><APEX:OUTPUTTEXT Value="{!opp.roles.role5}"/></TD></APEX:outputPanel>
+<APEX:outputPanel rendered="{!IF(RoleHeaders.Head6='',false,true)}" ><TD><APEX:OUTPUTTEXT Value="{!opp.roles.role6}"/></TD></APEX:outputPanel>
+<APEX:outputPanel rendered="{!IF(RoleHeaders.Head7='',false,true)}" ><TD><APEX:OUTPUTTEXT Value="{!opp.roles.role7}"/></TD></APEX:outputPanel>
+<APEX:outputPanel rendered="{!IF(RoleHeaders.Head8='',false,true)}" ><TD><APEX:OUTPUTTEXT Value="{!opp.roles.role8}"/></TD></APEX:outputPanel>
+<APEX:outputPanel rendered="{!IF(RoleHeaders.Head9='',false,true)}" ><TD><APEX:OUTPUTTEXT Value="{!opp.roles.role9}"/></TD></APEX:outputPanel>
+<APEX:outputPanel rendered="{!IF(RoleHeaders.Head10='',false,true)}" ><TD><APEX:OUTPUTTEXT Value="{!opp.roles.role10}"/></TD></APEX:outputPanel>
+<APEX:outputPanel rendered="{!IF(RoleHeaders.Head11='',false,true)}" ><TD><APEX:OUTPUTTEXT Value="{!opp.roles.role11}"/></TD></APEX:outputPanel>
+<APEX:outputPanel rendered="{!IF(RoleHeaders.Head12='',false,true)}" ><TD><APEX:OUTPUTTEXT Value="{!opp.roles.role12}"/></TD></APEX:outputPanel>
+<APEX:outputPanel rendered="{!IF(RoleHeaders.Head13='',false,true)}" ><TD><APEX:OUTPUTTEXT Value="{!opp.roles.role13}"/></TD></APEX:outputPanel>
+<APEX:outputPanel rendered="{!IF(RoleHeaders.Head14='',false,true)}" ><TD><APEX:OUTPUTTEXT Value="{!opp.roles.role14}"/></TD></APEX:outputPanel>
+<APEX:outputPanel rendered="{!IF(RoleHeaders.Head15='',false,true)}" ><TD><APEX:OUTPUTTEXT Value="{!opp.roles.role15}"/></TD></APEX:outputPanel>
+<APEX:outputPanel rendered="{!IF(RoleHeaders.Head16='',false,true)}" ><TD><APEX:OUTPUTTEXT Value="{!opp.roles.role16}"/></TD></APEX:outputPanel>
+<TD><APEX:OUTPUTTEXT Value="{!opp.Opp.Task_Order_Number__c }"/></TD>
+<TD><APEX:OUTPUTTEXT Value="{!opp.Opp.Primary_Business_Line__c }"/></TD>
+<TD><APEX:OUTPUTTEXT Value="{!opp.Opp.Market_Segment__c }"/></TD>
+<TD><APEX:OUTPUTTEXT Value="{!opp.Opp.Practice_Area__c }"/></TD>
+<APEX:outputPanel rendered="{!IF(DeptHeaders.Head1='',false,true)}" ><TD><APEX:OUTPUTTEXT Value="{!opp.depts.Dept1Name}"/></TD></APEX:outputPanel>
+<APEX:outputPanel rendered="{!IF(DeptHeaders.Head1='',false,true)}" ><TD><APEX:OUTPUTTEXT Value="{!opp.depts.Dept1Per}"/></TD></APEX:outputPanel>
+<APEX:outputPanel rendered="{!IF(DeptHeaders.Head2='',false,true)}" ><TD><APEX:OUTPUTTEXT Value="{!opp.depts.Dept2Name}"/></TD></APEX:outputPanel>
+<APEX:outputPanel rendered="{!IF(DeptHeaders.Head2='',false,true)}" ><TD><APEX:OUTPUTTEXT Value="{!opp.depts.Dept2Per}"/></TD></APEX:outputPanel>
+<APEX:outputPanel rendered="{!IF(DeptHeaders.Head3='',false,true)}" ><TD><APEX:OUTPUTTEXT Value="{!opp.depts.Dept3Name}"/></TD></APEX:outputPanel>
+<APEX:outputPanel rendered="{!IF(DeptHeaders.Head3='',false,true)}" ><TD><APEX:OUTPUTTEXT Value="{!opp.depts.Dept3Per}"/></TD></APEX:outputPanel>
+<APEX:outputPanel rendered="{!IF(DeptHeaders.Head4='',false,true)}" ><TD><APEX:OUTPUTTEXT Value="{!opp.depts.Dept4Name}"/></TD></APEX:outputPanel>
+<APEX:outputPanel rendered="{!IF(DeptHeaders.Head4='',false,true)}" ><TD><APEX:OUTPUTTEXT Value="{!opp.depts.Dept4Per}"/></TD></APEX:outputPanel>
+<APEX:outputPanel rendered="{!IF(DeptHeaders.Head5='',false,true)}" ><TD><APEX:OUTPUTTEXT Value="{!opp.depts.Dept5Name}"/></TD></APEX:outputPanel>
+<APEX:outputPanel rendered="{!IF(DeptHeaders.Head5='',false,true)}" ><TD><APEX:OUTPUTTEXT Value="{!opp.depts.Dept5Per}"/></TD></APEX:outputPanel>
+<APEX:outputPanel rendered="{!IF(DeptHeaders.Head6='',false,true)}" ><TD><APEX:OUTPUTTEXT Value="{!opp.depts.Dept6Name}"/></TD></APEX:outputPanel>
+<APEX:outputPanel rendered="{!IF(DeptHeaders.Head6='',false,true)}" ><TD><APEX:OUTPUTTEXT Value="{!opp.depts.Dept6Per}"/></TD></APEX:outputPanel>
+<TD><APEX:OUTPUTTEXT Value="{!if(opp.Opp.Multiple_Geographies__c = true,'Yes','No')}"/></TD>
+<TD><APEX:OUTPUTTEXT Value="{!opp.Opp.Bid_Proposal_Charge__c }"/></TD>
+<TD><APEX:OUTPUTTEXT Value="{!opp.Opp.B_P_Budget__c }"/></TD>
+<TD><APEX:OUTPUTTEXT Value="{!opp.Opp.B_P_Actual_to_date__c }"/></TD>
+<TD><APEX:OUTPUTTEXT Value="{!opp.Opp.BL_Distribution__c }"/></TD>
+<TD><APEX:OUTPUTField Value="{!opp.Opp.Book_date__c }"/></TD>
+<TD><APEX:OUTPUTTEXT Value="{!opp.Opp.Client_Solicitation_ID_number__c }"/></TD>
+<TD><APEX:OUTPUTTEXT Value="{!opp.Opp.Competitive_Bid_or_Sole_source__c }"/></TD>
+<TD><APEX:OUTPUTTEXT Value="{!opp.Opp.Construction_cost__c }"/></TD>
+<TD><APEX:OUTPUTTEXT Value="{!opp.Opp.Contract_Type__c }"/></TD>
+<TD><APEX:OUTPUTField Value="{!opp.Opp.Date_lost_cancelled_no_go__c }"/></TD>
+<TD><APEX:OUTPUTField Value="{!opp.Opp.Date_RFP_expected__c }"/></TD>
+<TD><APEX:OUTPUTField Value="{!opp.Opp.Date_RFP_received__c }"/></TD>
+<TD><APEX:OUTPUTField Value="{!opp.Opp.Date_RFQ_expected__c }"/></TD>
+<TD><APEX:OUTPUTField Value="{!opp.Opp.Date_RFQ_received__c }"/></TD>
+<TD><APEX:OUTPUTTEXT Value="{!opp.Opp.Project_City__c }"/></TD>
+<TD><APEX:OUTPUTTEXT Value="{!opp.Opp.Project_State_Province__c }"/></TD>
+<TD><APEX:OUTPUTTEXT Value="{!opp.Opp.ProjectCountry__c }"/></TD>
+<TD><APEX:OUTPUTField Value="{!opp.Opp.Submittal_Date_Proposal__c }"/></TD>
+<TD><APEX:OUTPUTField Value="{!opp.Opp.Go_No_Go_Request_submitted_date__c }"/></TD>
+<TD><APEX:OUTPUTTEXT Value="{!opp.Opp.Hub_Approval_required__c }"/></TD>
+<TD><APEX:OUTPUTTEXT Value="{!opp.Opp.Internal_proposal_ID_number__c }"/></TD>
+<TD><APEX:OUTPUTTEXT Value="{!opp.Opp.Market_Segment_Priority__c }"/></TD>
+<TD><APEX:OUTPUTTEXT Value="{!opp.Opp.MPRC_Approval_required__c }"/></TD>
+<TD><APEX:OUTPUTTEXT Value="{!opp.Opp.Project_Delivery_Method__c }"/></TD>
+<TD><APEX:OUTPUTTEXT Value="{!opp.Opp.Proposal_Location__c }"/></TD>
+<TD><APEX:OUTPUTTEXT Value="{!opp.Opp.Reason_Won_or_Lost_OLD__c }"/></TD>
+<TD><APEX:OUTPUTTEXT Value="{!opp.Opp.Report_comments__c }"/></TD>
+<TD><APEX:OUTPUTTEXT Value="{!opp.Opp.Strategic_Pursuit__c }"/></TD>
+<TD><APEX:OUTPUTTEXT Value="{!opp.Opp.Transportation_Initiatives__c }"/></TD>
+<TD><APEX:OUTPUTTEXT Value="{!opp.Opp.PDD_D_P_E_Primary_Global_Practice_Line__c }"/></TD>
+<TD><APEX:OUTPUTTEXT Value="{!opp.Opp.PDD_D_P_E_Secondary_Global_Practice_Line__c}"/></TD>
+<TD><APEX:OUTPUTTEXT Value="{!opp.Opp.PDD_General_Market_Sector__c}"/></TD>
+<TD><APEX:OUTPUTTEXT Value="{!opp.Opp.PDD_Practice_Line__c }"/></TD>
+<TD><APEX:OUTPUTTEXT Value="{!opp.Opp.PDD_Services__c }"/></TD>
+<TD><APEX:OUTPUTTEXT Value="{!opp.Opp.Services__c }"/></TD>
+<TD><APEX:OUTPUTTEXT Value="{!opp.Opp.Stimulus_Funding__c }"/></TD>
+<TD><APEX:OUTPUTTEXT Value="{!opp.Opp.Opportunity_ID__c}"/></TD>
+
+
+</tr>
+</apex:repeat>
+</table>
+</apex:page>

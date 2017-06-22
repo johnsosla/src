@@ -1,0 +1,2 @@
+<apex:page standardController="CFM_Survey_Batch__c" extensions="CFM_SurveyBatchController" action="{!notifyPMAction}">
+</apex:page>

@@ -1,0 +1,299 @@
+<apex:page showheader="false" sidebar="false" standardstylesheets="true" action="{!onLoad}" id="portalPage" title="NextGen Catalog" controller="Service_Catalog_AECOMServiceCatalog">
+<apex:includeScript value="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js" />   
+<apex:includeScript value="/soap/ajax/24.0/connection.js" />   
+<apex:includeScript value="/soap/ajax/24.0/apex.js" />   
+    <link href="{!URLFOR($Resource.Service_Catalog_Main,'ServicesCatalog/css/page_formats.css')}" rel="stylesheet" type="text/css" media="screen" />
+    <link href="{!URLFOR($Resource.Service_Catalog_Main,'ServicesCatalog/css/navigation.css')}" rel="stylesheet" type="text/css" media="screen" />
+    <link href="{!URLFOR($Resource.Service_Catalog_Main,'ServicesCatalog/css/style_general_2.css')}" rel="stylesheet" type="text/css" media="screen" />
+    <link href="{!URLFOR($Resource.Service_Catalog_Main,'ServicesCatalog/css/style_general.css')}" rel="stylesheet" type="text/css" media="screen" />
+    <link href="{!URLFOR($Resource.Service_Catalog_Main,'ServicesCatalog/css/print.css')}" rel="stylesheet" type="text/css" media="print" />
+    <style type="text/css">
+  #grid div h3
+  {
+  text-align: center!important;
+  display:inherit;
+  }
+    </style>
+    
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-33974532-25', 'auto');
+  ga('send', 'pageview');
+
+</script>
+    
+
+ 
+    <div id="superWrapper" >
+        
+            <div id="headContainer" style="width:100%">
+                    <c:myEcosystemHeader ></c:myEcosystemHeader>
+            </div><!--headContainer -->
+	
+            <div class="threeColTop" id="columnTops"/>
+
+            <div class="twoCol clearfix" id="wrapper">
+                    
+                    <div id="colLeft">
+                            <div id="sidenavContainer"> 
+                                <c:Service_Catalog_categorycomponent ></c:Service_Catalog_categorycomponent>  
+                               <!-- <c:nextgen_categorycomponent ></c:nextgen_categorycomponent>        -->
+                            </div>
+                    </div><!-- colLeft-->
+
+
+                    <div id="colCenter">
+                             <div class="box">
+                                 <!--
+                                <div class="breadCrumb">
+                                          <ul style="margin-left:0px;">
+                                            <li style="margin-left:0px;" ><a href="#">Not</a></li>
+                                            <li style="margin-left:0px;">&gt;</li>
+                                            <li style="margin-left:0px;"><a href="#">Sure</a></li>
+                                            <li style="margin-left:0px;">&gt;</li>
+                                            <li style="margin-left:0px;"><a href="#">What</a></li>
+                                            <li style="margin-left:0px;">&gt;</li>
+                                            <li style="margin-left:0px;"><a href="#">Should Be</a></li>
+                                            <li style="margin-left:0px;">&gt;</li>
+                                            <li style="margin-left:0px;"><a href="#">Here</a></li>
+                                          </ul>
+                                </div>
+                                -->
+
+                                    <div class="portlet">
+          <h1 class="heading">AECOM Technology Capability Catalog</h1>                                                                    
+          
+          <p>AECOM’s Technology as a Service (TaaS) program offers world class capabilities to support project execution and 
+             technology solutions for clients. The Catalog is a centralized, searchable repository of technology capabilities 
+             and solutions from across AECOM. The Catalog is powered by Salesforce so Capabilities can be linked to people, 
+             projects, and opportunities. Anyone can add their capability and improve their exposure to potential users across 
+             AECOM. Add your capability today!
+             <!--Click&nbsp;<apex:outputlink value="{!URLFOR($Action.Service_Catalog_Entry__c.New)}">here</apex:outputlink> to add a new capability.-->
+          </p>
+            </div>
+                                 
+          <!--<div class="searchBox">-->
+            <table width="100%">
+              <tbody>
+              <tr>
+                <td width="100%">
+                    <apex:form >
+                    <apex:commandButton action="{!URLFOR($Action.Service_Catalog_Entry__c.New)}" value="Add New Capability to the Catalog" style="width: 100%;"/>
+                        </apex:form>
+                    <!--<input id="searchQueryText" name="query" type="button" value="Search the Technology Capability Catalog"/>-->
+                    <!--<apex:outputlink value="{!URLFOR($Action.Service_Catalog_Entry__c.New)}">Add New Capability to the Catalog</apex:outputlink>-->
+                </td>
+                <!--<td width="30" class="searchBtn">&nbsp; </td>-->
+              </tr>
+            </tbody></table>
+          <!--</div>-->
+          
+                                 <br/>
+                                 
+          <div class="searchBox">
+            <table width="100%">
+              <tbody><tr>
+                <td><b>Search the Technology Capability Catalog</b></td>
+                <td width="200">
+                  <input id="searchQueryText" name="query" type="text" value=""/>
+                </td>
+                <td width="30" class="searchBtn">&nbsp; </td>
+              </tr>
+            </tbody></table>
+          </div>  
+        
+        <apex:includeScript value="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js" />                     
+        <script type="text/javascript">
+                                        
+            j$ = jQuery.noConflict();
+       
+            function runSearch()
+            {
+                var searchText = j$("#searchQueryText").val();
+                var searchString = "";
+                
+                if (searchText != "")
+                {
+                    //https://aecom--sfuat--c.cs15.visual.force.com/apex/ECO_SmartSearch#f:@aecomsource=[Salesforce]&f:@objecttype=[ServiceCatalogEntryC]
+                    //https://aecom--sfuat--c.cs15.visual.force.com/apex/ECO_SmartSearch#q=GIS&f:@aecomsource=[Salesforce]&f:@objecttype=[ServiceCatalogEntryC]
+                    
+                    searchString = "{!coveoSrchStr1}" + "{!coveoSrchStr3}" + searchText + "%26" + "{!coveoSrchStr2}";
+                    
+                    window.open(decodeURIComponent(searchString),"_target","","");
+                }
+                //else
+                //{
+                //searchString = "{!coveoSrchStr1}" + "{!coveoSrchStr2}";
+                //}
+                
+                //window.open(decodeURIComponent(searchString),"_target","","");
+            }
+                                        
+            //j$(".searchBtn").on("click", runSearch());
+            j$(".searchBtn").click(function(e){     
+              runSearch();
+              e.stopPropagation();
+            });                              
+        
+        </script>                                   
+                                 
+<div id="grid" class="clearfix">
+          <div align="center" style="height:auto;">
+              <apex:outputlink value="{!vw_AECOMIntellectualProperty}" 
+                               title="Technologies or software applications for which AECOM has a patent or exclusive license."> 
+                  <img width="136" height="67" src="{!URLFOR($Resource.Service_Catalog_Categories,'ServicesCatalogCategories/images/intellectualProp_icn.png')}"/>
+                  <h3>AECOM Intellectual Property<br/><br/></h3>      
+              </apex:outputlink>               
+          </div>
+          <div align="center" style="height:auto;">
+              <apex:outputlink value="{!vw_ApplicationDevelopmentMobile}" 
+                               title="Software development capabilities & mobile solutions."> 
+                  <img width="136" height="67" src="{!URLFOR($Resource.Service_Catalog_Categories,'ServicesCatalogCategories/images/appDev_icn.png')}"/>
+                  <h3>Application Development &amp; Mobile</h3>       
+              </apex:outputlink>               
+          </div>    
+          <div class="right" align="center" style="height:auto;">
+              <apex:outputlink value="{!vw_AssetManagementSolutions}" 
+                               title="Asset management technology solutions like Maximo, Cityworks, mobile field data collection, asset monitoring, condition assessments, asset tagging & tracking, etc."> 
+                  <img width="136" height="67" src="{!URLFOR($Resource.Service_Catalog_Categories,'ServicesCatalogCategories/images/asset_icn.png')}"/>
+                  <h3>Asset Management Solutions<br/><br/></h3>  
+              </apex:outputlink>               
+          </div>
+          <div align="center" style="height:auto;">
+              <apex:outputlink value="{!vw_ConvergedResilience}" 
+                               title="Critical infrastructure protection solutions which combine cybersecurity, wired & wireless technologies and physical security."> 
+                  <img width="136" height="67" src="{!URLFOR($Resource.Service_Catalog_Categories,'ServicesCatalogCategories/images/resilience_icn.png')}"/>
+                  <h3><br/><br/>Converged Resilience<br/><br/></h3>
+              </apex:outputlink> 
+          </div>        
+          <div align="center" style="height:auto;">
+              <apex:outputlink value="{!vw_BIM}" 
+                               title="Building Information Modeling consulting, BIM Healthy Starts & BIM tools."> 
+                  <img width="136" height="67" src="{!URLFOR($Resource.Service_Catalog_Categories,'ServicesCatalogCategories/images/BIM_icn.png')}"/>
+                  <h3><br/><br/>BIM<br/><br/><br/></h3>      
+              </apex:outputlink>               
+          </div>       
+          <div class="right" align="center" style="height:auto;">
+              <apex:outputlink value="{!vw_ImmersiveTechnologyVisualization}" 
+                               title="Immersive Technology includes virtual reality (VR), augmented reality (AR), computer vision (CV) and natural interaction (NI)."> 
+                  <img width="136" height="67" src="{!URLFOR($Resource.Service_Catalog_Categories,'ServicesCatalogCategories/images/immersive_icn.png')}"/>
+                  <h3>Immersive Technology &amp; Visualization<br/><br/></h3>      
+              </apex:outputlink>               
+          </div>
+          <div align="center" style="height:auto;">
+              <apex:outputlink value="{!vw_CloudInfrastructureServices}" 
+                               title="Network & communication technologies, project collaboration, project office setups, IT operations & help desk services, Infrastructure as a Service (IaaS), Platform as a Service ( PaaS ), etc."> 
+                  <img width="136" height="67" src="{!URLFOR($Resource.Service_Catalog_Categories,'ServicesCatalogCategories/images/cloud_icn.png')}"/>
+                  <h3>Cloud &amp; Infrastructure Services</h3>
+              </apex:outputlink> 
+          </div>      
+          <div align="center" style="height:auto;">
+              <apex:outputlink value="{!vw_Certifications}" 
+                               title="Certifications held by AECOM & AECOM staff."> 
+                  <img width="136" height="67" src="{!URLFOR($Resource.Service_Catalog_Categories,'ServicesCatalogCategories/images/certifications_icn.png')}"/>
+                  <h3>Certifications<br/><br/><br/></h3>   
+              </apex:outputlink>               
+          </div>
+          <div class="right" align="center" style="height:auto;">
+              <apex:outputlink value="{!vw_ITOperationsSupportServices}" 
+                               title="Onsite & remote IT Network Operations, Help Desk & Field Services."> 
+                  <img width="136" height="67" src="{!URLFOR($Resource.Service_Catalog_Categories,'ServicesCatalogCategories/images/ITops_icn.png')}"/>
+                  <h3>IT Operations &amp; Support services<br/><br/></h3>
+              </apex:outputlink> 
+          </div> 
+          <div align="center" style="height:auto;">
+              <apex:outputlink value="{!vw_InfoDataManagementservices}" 
+                               title="Project & Data management solutions like EMIS, Environmental Technical Data Management, GIS, etc."> 
+                  <img width="136" height="67" src="{!URLFOR($Resource.Service_Catalog_Categories,'ServicesCatalogCategories/images/infoMngmnt_icn.png')}"/>
+                  <h3>Information &amp; Data Management services</h3>
+              </apex:outputlink> 
+          </div>
+          <div align="center" style="height:auto;">
+              <apex:outputlink value="{!vw_SensorsRemoteMonitoringSmartCities}" 
+                               title="Sensors used in remote monitoring of bridges, buildings, dams, environment, roads, etc. & Smart city solutions."> 
+                  <img width="136" height="67" src="{!URLFOR($Resource.Service_Catalog_Categories,'ServicesCatalogCategories/images/remote_icn.png')}"/>
+                  <h3>Sensors, Remote Monitoring, Smart Cities</h3>
+              </apex:outputlink> 
+          </div>   
+          <div style="width:138px; background-color: white;"></div>    
+
+</div><!--GRID-->
+                                 
+                               
+                                 
+<div id="ChatterContainer" >
+<h1 class="heading" style="display:inline">Tech4Clients Chatter</h1>
+ <apex:form style="display:inline">
+         <apex:commandButton value="Join Group" action="{!addUserToChatterGroup}" rendered="{!isMemberOfChatterGroup == false}" style="float:right" 
+         styleClass="zen-btn zen-highlightBtn" disabled="{!joinBtnDisabled}" id="btnJoinGroup" onclick="setTimeout('document.getElementById(\'' + this.id + '\').disabled=true;', 50);" />
+         <apex:commandButton value="Leave Group" action="{!removeUserFromChatterGroup}" rendered="{!isMemberOfChatterGroup}" style="float:right"
+          styleClass="zen-btn zen-highlightBtn" disabled="{!leaveBtnDisabled}" id="btnLeaveGroup" onclick="setTimeout('document.getElementById(\'' + this.id + '\').disabled=true;', 50);"/>
+     </apex:form>
+</div>                               
+                                 
+                                 
+<script type="text/javascript">
+ 
+
+</script>
+<div class="withRuleAbove"></div> 
+                                 
+                                 <chatter:feed entityId="{!chatterGroupId}" />
+                             </div>
+                    </div>
+                
+                    <div id="colRight" class="clearfix">
+                        <!--<div class="box">
+                            <c:Service_Catalog_keycontacts ></c:Service_Catalog_keycontacts>
+                        </div>-->
+                        <div class="portlet">
+                            <div class="boxPadding">
+                                <h2>Key Contacts</h2>
+                                <c:Service_Catalog_keycontacts ></c:Service_Catalog_keycontacts>
+                            </div>
+                        </div>                     
+            
+      
+            <!--            <div class="portlet">
+        <div class="boxPadding">
+          <h2>Events</h2>
+            <c:Service_Catalog_eventcomponent ></c:Service_Catalog_eventcomponent> 
+        </div>
+      </div>
+-->
+               
+      <div class="portlet">
+        <div class="boxPadding">
+          <h2>Trending Topics</h2>
+            <c:Service_Catalog_TrendingTopics ></c:Service_Catalog_TrendingTopics> 
+        </div>
+      </div>
+                        
+      <div class="portlet">
+        <div class="boxPadding">
+          <h2>Help &amp; Support</h2>
+            <c:Service_Catalog_supportcomponent ></c:Service_Catalog_supportcomponent>
+        </div>
+      </div>                        
+                        
+</div>
+
+<div class="twoColBtm" id="columnsBtm"></div>
+
+            </div> <!-- class="twoCol clearfix" id="wrapper"> -->
+    </div><!--superWrapper -->
+   
+    <div>
+
+    
+     
+    
+</div>
+
+
+</apex:page>

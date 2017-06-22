@@ -1,0 +1,368 @@
+<apex:page applyBodyTag="false" controller="ECO_PortalController" showheader="false" sidebar="false" standardStylesheets="false" id="portalPage" title="{!$Label.Ecosystem}" >
+    <title>{!$Label.Ecosystem}</title>
+
+
+    <style>
+
+    @media screen and (max-width:768px){
+        .hiddenOnMobile{
+            opacity:0.8;
+            display:none;
+            background-color:#333 !important;
+        }
+        .showHideSwap{
+            float: right;
+            width: 132px;
+            margin-top: -33px;
+        }
+    }
+    .badge-header{
+        margin-top: 8px !important;
+        top:0 !important;
+    }
+    .publishercontainer .bottomBar{
+        height:45px !important;
+    }
+    .editReports .fa-cog{
+        color:#fff !important;
+    }
+    #aside .navbar-header{
+        border-bottom:3px solid #59ba47;
+        margin-bottom:15px;
+    }
+    .scroll-wrapper {
+        position: fixed;
+        /*right: 0; 
+        bottom: 0; 
+        left: 0;
+        top: 0;*/
+        -webkit-overflow-scrolling: touch;
+        overflow-y: scroll;
+        height: 100%;   
+    }
+
+    </style>
+
+    <body class="nifty-ready">
+
+    <apex:composition template="ECO_Temp_Portal" >
+        
+        <apex:define name="head">
+            <script>var AWAN_online = false;</script>
+            <script src="{!awanJSPath}"></script>
+        </apex:define>
+
+        <apex:define name="mainContent">
+        <div id="content-container">
+
+                <a class="aside-toggle hidden-xs" href="#" title="{!$Label.ECOPortalshowhideReports}"> 
+                    <div class="reportsMenuButton" title="{!$Label.ECOPortalshowhideReports}">
+                        <i class="fa fa-file" style="font-size:20px; color:#fff;"></i>
+                        <div class="menuText">{!$Label.ECOPortalReports}</div>
+                    </div>
+                </a>
+
+
+                <apex:outputPanel layout="none" rendered="{!AND(tickerMessages != NULL, tickerMessages.size > 0)}" >
+                    <div class="gallery autoplay items-{!tickerMessages.size}">
+                        <apex:repeat value="{!tickerMessages}" var="message" >
+                            <apex:outputPanel layout="none" rendered="{!AND(message.NewsFeedTranslations__r != NULL, message.NewsFeedTranslations__r.size>0)}">
+                                <div id="item-{!message.Order__c}" class="control-operator"></div>
+                                <figure class="item">
+                                    <h4 id="tickerHeader">{!message.NewsFeedTranslations__r[0].Subject__c}</h4>
+                                    <apex:outputText value="{!message.NewsFeedTranslations__r[0].LongDescription__c}" />
+                                </figure>
+                            </apex:outputPanel>
+                        </apex:repeat>
+
+                        <div class="controls">
+                            <apex:repeat value="{!tickerMessages}" var="message" >
+                                <apex:outputPanel layout="none" rendered="{!AND(message.NewsFeedTranslations__r != NULL, message.NewsFeedTranslations__r.size>0)}">
+                                    <a href="#item-{!message.Order__c}" class="control-button">&bull;</a>
+                                </apex:outputPanel>
+                            </apex:repeat>
+                        </div>
+                    </div>
+                </apex:outputPanel>
+
+                
+                <!--Page content-->
+                <!--===================================================-->
+                <div id="page-content">
+
+                    <!-- <div id="cstm-loading-img"></div> -->
+                    
+                    <div class="row">
+
+
+
+
+                        <div class="col-lg-7">
+                    
+                            <div id="newsFeed" class="panel">
+                                <div class="panel-heading">
+                                    <div class="panel-control">
+                                        
+                                    </div>
+                                    <a name="newsFeed" style="height:0;"></a>
+                                    <h3 class="panel-title">{!$Label.ECOPortalNewsFeed}</h3>
+                                </div>
+
+                                <div class="panel-body collapse in nano"  style="max-height:372px; min-height:372px;">
+                                    <div class="nano-content pad-all">
+                                        <!-- REPEAT THIS -->
+                                        <apex:repeat value="{!newsFeed}" var="feedItem" >
+                                            <apex:outputPanel layout="none" rendered="{!AND(feedItem.NewsFeedTranslations__r != NULL, feedItem.NewsFeedTranslations__r.size>0)}">
+                                            <div class="row">
+                                                <div class="col-sm-2">
+                                                    <apex:image value="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/img/loader.gif')}" html-data-original="{!feedItem.FullImageUrl__c}" styleClass="media-object hidden-xs lazy" rendered="{!feedItem.FullImageUrl__c != ''}"/>
+                                                    <apex:image value="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/img/loader.gif')}" html-data-original="{!$Resource.ECO_DELogo}" styleClass="media-object hidden-xs lazy" rendered="{!feedItem.FullImageUrl__c == ''}"/>
+                                                </div>
+                                                <div class="col-sm-10" style="line-height:165%;">
+                                                    <apex:outputPanel layout="none" rendered="{!AND(feedItem.NewsFeedTranslations__r != NULL, feedItem.NewsFeedTranslations__r.size>0, feedItem.NewsFeedTranslations__r[0].LinkToRecord__c != '')}">
+                                                        <a href="{!feedItem.NewsFeedTranslations__r[0].LinkToRecord__c}" class="linkFix hidden-xs" target="_newsFeedItem{!feedItem.Id}">
+                                                            {!feedItem.NewsFeedTranslations__r[0].Subject__c}
+                                                        </a>
+                                                    </apex:outputPanel>
+                                                    <apex:outputPanel layout="none" rendered="{!AND(feedItem.NewsFeedTranslations__r != NULL, feedItem.NewsFeedTranslations__r.size>0, feedItem.NewsFeedTranslations__r[0].LinkToRecord__c == '')}">
+                                                        <h2 style="line-height:200%;">
+                                                            <apex:outputText value="{!feedItem.NewsFeedTranslations__r[0].Subject__c}" />
+                                                        </h2>
+                                                    </apex:outputPanel>
+                                                    <br />
+                                                    <div class="nf">
+                                                        <p>{!feedItem.NewsFeedTranslations__r[0].LongDescription__c}</p>
+                                                    </div>
+                                                    
+                                                    <br />
+                                                    <span style="color:#c6c6c6; font-size:10px; margin-top:5px; display:block;">
+                                                        <!-- Posted on Feb. 26th, 2015 | By: This Person -->
+                                                        <apex:outputText value="{!$Label.ECOPortalPostedOn} {!feedItem.StartDate__c} | {!$Label.ECOPortalBy}:  {!feedItem.User__r.Name} "/>
+                                                    </span>
+                                                </div>
+                                                <div class="col-sm-12">
+                                                    <hr />
+                                                </div>
+                                            </div>
+                                            </apex:outputPanel>
+                                        </apex:repeat>
+                                        <!-- END REPEAT -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+
+
+
+                        <div class="col-lg-5">
+
+                    
+                            <!--Chat Widget-->
+                            <div class="panel hidden-xs"> 
+                                <div class="panel-heading">
+                                    <a href="/home/home.jsp" target="_blank">
+                                    <div class="panel-control">
+                                        <div class="btn-group">
+                                        <i class="fa fa-sign-in" style="float:right; font-size:16px; margin-right:6px;"></i>
+                                        </div>
+                                    </div>
+                                    <a name="chatterFeed" style="height:0;"></a>
+                                    <h3 class="panel-title">{!$Label.ECOPortalChatter}</h3>
+                                    </a>
+                                </div>
+                    
+                                
+                                <div class="panel-body collapse in nano" style="padding-top:5px; max-height:372px; min-height:372px;">
+                                    <div class="nano-content pad-all"> 
+                                        <chatter:newsfeed />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- END FIRST ROW -->
+
+
+<!--                     START SECOND ROW  -->
+                    <div id="myProjectsPortfolio" class="row">
+                        <div class="col-lg-12">
+                    
+                            <div class="panel">
+                                <div class="panel-heading">                               
+                                    <a name="myProjects" style="height:0;"></a>
+                                    <h3 class="panel-title">{!$Label.ECOPortalMyProjectsPortfolio}</h3>
+                                </div>
+
+   
+                                <div class="panel-body myProjectsPortfolio">
+                                   
+                                    <div class="tempAlert">
+                                        {!$Label.ECOPortalMyProjectsPortfolioMessage}
+                                    </div>
+
+                                </div>
+                               
+                            </div>
+                        </div>
+                    </div> 
+<!--                END 2nd Row (my projects table)    -->
+
+           
+                    <div class="row">
+                    <a name="graphs" style="height:0;"></a>
+            
+                        <!-- CLIENT CARE PROGRAM -->
+                        <div class="col-md-4">
+                            <div class="panel panel-dark panel-colorful">
+                                <div class="panel-body text-center">
+                                    <p class="text-uppercase mar-btm text-sm">{!$Label.ECOPortalClientCareProgram}</p>
+                                    <div id="client-care-program" class="box-inline "></div>
+                                    <hr />
+                                    <p class="h2 text-thin">{!$Label[clientCareNpsTextLabel]}</p>
+                                </div>
+                            </div>
+                        </div>
+            
+            
+                        <!-- SAFETY -->
+                        <div class="col-md-4">
+                            <div class="panel panel-danger panel-colorful">
+                                <div class="panel-body text-center">
+                                    <p class="text-uppercase mar-btm text-sm">{!$Label.ECOPortalTotalCaseIncidentRate}</p>
+                                    <!-- Dynamic graph out <div id="demo-sparkline-bar" class="box-inline "></div> -->
+
+                                    <!--Gauge placeholder-->
+                                    <canvas id="case-incident-rate" height="120" class="canvas-responsive"></canvas>
+            
+                                    <p class="h4" style="display:none;">
+                                        <span id="case-incident-rate-txt" class="label label-primary"></span>
+                                    </p>
+                                    <hr />
+
+                                    <p class="h2 text-thin">{!$Label[incidentRateTextLabel]}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TPN -->
+                        <div class="col-md-4">
+                            <div class="panel panel-primary panel-colorful">
+                                <div class="panel-body text-center">
+                                    <p class="text-uppercase mar-btm text-sm">{!$Label.ECOPortalTechincalPracticeNetworks}</p>
+                                    <div id="technical-practice-networks" style="height:120px"></div>
+                                    <hr />
+                                    <p class="h2 text-thin">{!$Label.ECOPortalVisitorData}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="row">
+                        <div class="col-sm-3">
+                        </div>
+
+                        <div class="col-sm-6" style="text-align:center;">
+                            <div class="tempAlert">
+                                {!$Label.ECOPortalAlertMessage}
+                            </div>
+                        </div>
+
+                        <div class="col-sm-3">
+                        </div>
+                    </div>
+            
+                            
+                </div>
+                <!--===================================================-->
+                <!--End page content-->
+
+            </div>
+            <!--===================================================-->
+            <!--END CONTENT CONTAINER-->
+
+            
+
+        </apex:define>
+        
+        <apex:define name="rightNav">
+            <!--ASIDE: Edit Reports and list reports -->
+            <!--===================================================-->
+            <aside id="aside-container">
+                <div id="aside">
+                    <div class="nano">
+                        <div class="nano-content">
+                            <div class="tab-pane fade in active" id="demo-asd-tab-1">
+
+                                <div class="navbar-header">
+                                    <a style="" class="navbar-brand">
+                                        <div class="brand-title" style="padding:0; margin:0; text-align:center; width:100%;">
+                                            <span class="brand-text">{!$Label.ECOPortalReports}</span>
+                                        </div>
+                                    </a>
+                                </div>
+
+                                <div>
+                                    <div class="list-group bg-trans">
+
+
+                                        <a style="cursor:pointer" onclick="goToReportsBuilder()" class="list-group-item editReports editApps" >
+                                            <div class="media-left">
+                                                <i class="fa fa-cog" style="font-size:22px;" title="{!$Label.ECOPortalEditReports}"></i>
+                                            </div>
+                                            <div class="media-body menu-title">
+                                                Edit {!$Label.ECOPortalReports}
+                                            </div>
+                                        </a>
+
+
+                                        <apex:repeat value="{!reports}" var="report" >
+                                        <apex:outputLink value="/{!report.ReportId__c}" styleClass="list-group-item" target="_Report-{!report.ReportId__c}">
+                                            <div class="media-left">
+                                                <i class="fa fa-file" style="font-size:20px; padding-top:5px;"></i>
+                                            </div>
+                                            <div class="media-body">
+                                                <apex:outputText value="{!report.ReportName__c}" />
+                                            </div>
+                                        </apex:outputLink>
+                                        </apex:repeat>
+                                    </div>
+                                </div>
+
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+            <!--===================================================-->
+            <!--END ASIDE-->
+        </apex:define>
+    </apex:composition>
+    <!--IE INPUT PLACEHOLDER SCRIPT-->
+    
+    <script>
+        $(document).ready(function(){
+            // Plugin used: http://jedfoster.com/Readmore.js, part of ECONiftyResources static resource
+            $('div.nf').readmore({
+              speed: 75,
+              collapsedHeight: 40,
+              moreLink: '<a href="#">{!$Label.ECOPortalMore}</a>',
+              lessLink: '<a href="#">{!$Label.ECOPortalLess}</a>'
+
+            });
+            
+            // Plugin used: http://tablesorter.com/docs, part of ECONiftyResources static resource
+            $("#projectsTable").tablesorter();            
+        });
+
+    </script>
+    <script>
+    // TAKES OFF FOCUS ON INPUT
+    $(function () {
+        $('input').blur();
+    });
+    </script>
+</body>
+</apex:page>

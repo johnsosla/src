@@ -1,0 +1,767 @@
+<apex:page showheader="true" sidebar="true" tabstyle="DOAApprovalRequest__c" standardcontroller="DOAApprovalRequest__c" extensions="ECO_DOAApprovalsController,nttdcore.DLabelParentController" >
+    <style>
+        .hideDropdown select{
+            display:none !important;
+        }
+        body .bPageBlock, body #bodyCell .bResource .secondaryPalette, body .secondaryPalette.bPageBlock, body .individualPalette .secondaryPalette.bPageBlock, body .bodyDiv .genericTable, body .genericPageBlockTable, body .bodyDiv .bSubBlock, body .bComponentBlock .bPageBlock, body .bMyDashboard .bPageBlock, body.rlHoverFrame .bPageBlock, body.subjectSelectionPopup div.choicesBox, body.lookupTab .secondaryPalette.bPageBlock, body.popupTab .secondaryPalette.bPageBlock, body.UserTagStatsPage .secondaryPalette.bPageBlock
+        {
+            background-color: #FFFFFF;
+        }
+        /*.bPageBlock .detailList .dataCol {
+            width: 40%;
+        }
+        .bPageBlock .detailList .labelCol {
+            width: 40%;
+        }*/
+        .customHelpText{
+            padding: 7px;
+            border: 1px solid #85B3CE;
+            min-height: 30px;
+            display: block;
+            width: auto;
+            margin: 0 0 5px 0;
+            background-repeat: no-repeat;
+            border-radius: 4px;
+            background-color: #A2D3F1;
+            
+        }
+        .customHelpBody{
+            display:inline-block;
+            color:#;
+            max-width:95%;
+        }
+        
+    </style>
+    <apex:actionregion >
+    <apex:form id="theform" >
+        
+        <nttdcore:DLabel name="DL147" default="DOA Approval Request" labelParent="{!this}" /><apex:sectionheader title="{!dLabel['DL147']}" subtitle="{!oDOA.Name}" />
+        <apex:pagemessages id="messages" />
+        <div class="customHelpText" >
+            <div class="customHelpBody" >
+                <!--<p>This section summarizes the DOA approval request details prior to submitting the request and initiating the approval process.  Attach necessary documents or notes, view and revise approval forms, as needed, and click the “Submit to DoA Approval Queue” when ready to request approval for the selected DOA matters listed in the DOA Register.  The request will be submitted to a local queue and assigned to an appropriate ORM administrator to facilitate the approval process.  </p>-->
+                <p><nttdcore:DLabel name="DL148" default="This section serves as a &lsquo;dashboard&rsquo; for the approver to review the DOA approval request, the completed approval request form(s), DOA matters under consideration, approval participant names/roles, existing and/or pending approvals, contract review status (as needed), and any existing conditions of approval." labelParent="{!this}" />{!dLabel['DL148']} </p>
+                <p><nttdcore:DLabel name="DL149" default="Use this section to locate your name and select &quot;Approve&quot;, &quot;Conditionally Approved&quot; or &quot;Reject&quot; for the subject DOA matter(s).  Add any comments associated with your approval under the DOA Conditions of Approval section." labelParent="{!this}" />{!dLabel['DL149']}</p>
+            </div>
+        </div>
+        <nttdcore:DLabel name="DL150" default="Approvals" labelParent="{!this}" /><apex:pageblock title="{!dLabel['DL150']}" id="thepageblock" ><nttdcore:DLabel name="DL153" default="DOA Approval Request Detail" labelParent="{!this}" /><nttdcore:DLabel name="DL154" default="Approvals Required" labelParent="{!this}" /><nttdcore:DLabel name="DL155" default="Approvals (Geography)" labelParent="{!this}" /><nttdcore:DLabel name="DL156" default="No Approvals Found." labelParent="{!this}" /><nttdcore:DLabel name="DL157" default="Geography President" labelParent="{!this}" /><nttdcore:DLabel name="DL158" default="Geography President Approval" labelParent="{!this}" /><nttdcore:DLabel name="DL159" default="Geography President Approved By" labelParent="{!this}" /><nttdcore:DLabel name="DL160" default="Geography President Time Approved" labelParent="{!this}" /><nttdcore:DLabel name="DL161" default="Geography Chief Operating Officer" labelParent="{!this}" /><nttdcore:DLabel name="DL162" default="Geo Chief Operating Officer Approval" labelParent="{!this}" /><nttdcore:DLabel name="DL163" default="Geo Chief Operating Officer Approved By" labelParent="{!this}" /><nttdcore:DLabel name="DL164" default="Geo Chief Operating Officer Time Approved" labelParent="{!this}" /><nttdcore:DLabel name="DL165" default="Region/BL Executive" labelParent="{!this}" /><nttdcore:DLabel name="DL166" default="Region/BL Executive Approval" labelParent="{!this}" /><nttdcore:DLabel name="DL167" default="Region/BL Executive Approved By" labelParent="{!this}" /><nttdcore:DLabel name="DL168" default="Region/BL Executive Time Approved" labelParent="{!this}" /><nttdcore:DLabel name="DL169" default="Area Manager" labelParent="{!this}" /><nttdcore:DLabel name="DL170" default="Area Manager Approval" labelParent="{!this}" /><nttdcore:DLabel name="DL171" default="Area Manager Approved By" labelParent="{!this}" /><nttdcore:DLabel name="DL172" default="Area Manager Time Approved" labelParent="{!this}" /><nttdcore:DLabel name="DL173" default="Business Unit Leader" labelParent="{!this}" /><nttdcore:DLabel name="DL174" default="Business Unit Lead Approval" labelParent="{!this}" /><nttdcore:DLabel name="DL175" default="Business Unit Leader Time Approved" labelParent="{!this}" /><nttdcore:DLabel name="DL176" default="Business Unit Leader Approved By" labelParent="{!this}" /><nttdcore:DLabel name="DL177" default="Project Manager" labelParent="{!this}" /><nttdcore:DLabel name="DL178" default="Project Manager Approval" labelParent="{!this}" /><nttdcore:DLabel name="DL179" default="Project Manager Approved By" labelParent="{!this}" /><nttdcore:DLabel name="DL180" default="Project Manager Time Approved" labelParent="{!this}" /><nttdcore:DLabel name="DL181" default="Geography Chief Counsel" labelParent="{!this}" /><nttdcore:DLabel name="DL182" default="Geography Chief Counsel Approval" labelParent="{!this}" /><nttdcore:DLabel name="DL183" default="Geography Chief Counsel Approved By" labelParent="{!this}" /><nttdcore:DLabel name="DL184" default="Geography Chief Counsel Time Approved" labelParent="{!this}" /><nttdcore:DLabel name="DL185" default="Region Chief Counsel" labelParent="{!this}" /><nttdcore:DLabel name="DL186" default="Region Chief Counsel Approval" labelParent="{!this}" /><nttdcore:DLabel name="DL187" default="Region Chief Counsel Approved By" labelParent="{!this}" /><nttdcore:DLabel name="DL188" default="Region Chief Counsel Time Approved" labelParent="{!this}" /><nttdcore:DLabel name="DL189" default="Counsel/Contracts Manager" labelParent="{!this}" /><nttdcore:DLabel name="DL190" default="Counsel Contracts Manager Approval" labelParent="{!this}" /><nttdcore:DLabel name="DL191" default="Counsel Contracts Manager Approved By" labelParent="{!this}" /><nttdcore:DLabel name="DL192" default="Counsel Contracts Manager Time Approved" labelParent="{!this}" /><nttdcore:DLabel name="DL193" default="Area Counsel" labelParent="{!this}" /><nttdcore:DLabel name="DL194" default="Area Counsel Approval" labelParent="{!this}" /><nttdcore:DLabel name="DL195" default="Area Counsel Approved By" labelParent="{!this}" /><nttdcore:DLabel name="DL196" default="Area Counsel Time Approved" labelParent="{!this}" /><nttdcore:DLabel name="DL197" default="Finance Geography Controller" labelParent="{!this}" /><nttdcore:DLabel name="DL198" default="Finance Geography Controller Approval" labelParent="{!this}" /><nttdcore:DLabel name="DL199" default="Finance Geography Controller Approved By" labelParent="{!this}" /><nttdcore:DLabel name="DL200" default="Finance Geo Controller Time Approved" labelParent="{!this}" /><nttdcore:DLabel name="DL201" default="Fed Contacts and Procurement" labelParent="{!this}" /><nttdcore:DLabel name="DL202" default="Fed Contracts and Procurement Approval" labelParent="{!this}" /><nttdcore:DLabel name="DL203" default="Fed Contracts &amp; Procurement Approved By" labelParent="{!this}" /><nttdcore:DLabel name="DL204" default="Fed Contracts &amp; Procurement Time Approve" labelParent="{!this}" /><nttdcore:DLabel name="DL205" default="Geography Other" labelParent="{!this}" /><nttdcore:DLabel name="DL206" default="Geography Other Approval" labelParent="{!this}" /><nttdcore:DLabel name="DL207" default="Geography Other Approved By" labelParent="{!this}" /><nttdcore:DLabel name="DL208" default="Geography Other Time Approved" labelParent="{!this}" /><nttdcore:DLabel name="DL209" default="DCS Geography Risk Committee" labelParent="{!this}" /><nttdcore:DLabel name="DL210" default="DCS Geo Risk Committee Approval" labelParent="{!this}" /><nttdcore:DLabel name="DL211" default="DCS Geo Risk Committee Approved By" labelParent="{!this}" /><nttdcore:DLabel name="DL212" default="DCS Geo Risk Committee Time Approved" labelParent="{!this}" /><nttdcore:DLabel name="DL213" default="HR Director - Geo Director" labelParent="{!this}" /><nttdcore:DLabel name="DL214" default="HR Director - Geo Director Approval" labelParent="{!this}" /><nttdcore:DLabel name="DL215" default="HR Director - Geo Director Approved By" labelParent="{!this}" /><nttdcore:DLabel name="DL216" default="HR Director - Geo Director Time Approved" labelParent="{!this}" /><nttdcore:DLabel name="DL217" default="Approvals (Group)" labelParent="{!this}" /><nttdcore:DLabel name="DL218" default="No Approvals Found." labelParent="{!this}" /><nttdcore:DLabel name="DL219" default="Group Chief Executive" labelParent="{!this}" /><nttdcore:DLabel name="DL220" default="Group Chief Executive Approval" labelParent="{!this}" /><nttdcore:DLabel name="DL221" default="Group Chief Executive Approved By" labelParent="{!this}" /><nttdcore:DLabel name="DL222" default="Group Chief Executive Time Approved" labelParent="{!this}" /><nttdcore:DLabel name="DL223" default="Group Chief Counsel" labelParent="{!this}" /><nttdcore:DLabel name="DL224" default="Group Chief Counsel Approval" labelParent="{!this}" /><nttdcore:DLabel name="DL225" default="Group Chief Counsel Approved By" labelParent="{!this}" /><nttdcore:DLabel name="DL226" default="Group Chief Counsel Time Approved" labelParent="{!this}" /><nttdcore:DLabel name="DL227" default="Group Chief Financial Officer" labelParent="{!this}" /><nttdcore:DLabel name="DL228" default="Group Chief Financial Officer Approval" labelParent="{!this}" /><nttdcore:DLabel name="DL229" default="Group Chief Fin. Officer Approved By" labelParent="{!this}" /><nttdcore:DLabel name="DL230" default="Group Chief Fin. Officer Time Approved" labelParent="{!this}" /><nttdcore:DLabel name="DL231" default="Group Other" labelParent="{!this}" /><nttdcore:DLabel name="DL232" default="Group Other Approval" labelParent="{!this}" /><nttdcore:DLabel name="DL233" default="Group Other Approved By" labelParent="{!this}" /><nttdcore:DLabel name="DL234" default="Group Other Time Approved" labelParent="{!this}" /><nttdcore:DLabel name="DL235" default="Approvals (Enterprise)" labelParent="{!this}" /><nttdcore:DLabel name="DL236" default="No Approvals Found." labelParent="{!this}" /><nttdcore:DLabel name="DL237" default="Enterprise Risk Committee" labelParent="{!this}" /><nttdcore:DLabel name="DL238" default="Enterprise Risk Committee Approval" labelParent="{!this}" /><nttdcore:DLabel name="DL239" default="Enterprise Risk Committee Time Approved" labelParent="{!this}" /><nttdcore:DLabel name="DL240" default="Enterprise Risk Committee Approved By" labelParent="{!this}" /><nttdcore:DLabel name="DL241" default="Other" labelParent="{!this}" /><nttdcore:DLabel name="DL242" default="Enterprise Other Approval" labelParent="{!this}" /><nttdcore:DLabel name="DL243" default="Enterprise Other Time Approved" labelParent="{!this}" /><nttdcore:DLabel name="DL244" default="Enterprise Other Approved By" labelParent="{!this}" /><nttdcore:DLabel name="DL245" default="General Counsel" labelParent="{!this}" /><nttdcore:DLabel name="DL246" default="General Counsel Approval" labelParent="{!this}" /><nttdcore:DLabel name="DL247" default="General Counsel Time Approved" labelParent="{!this}" /><nttdcore:DLabel name="DL248" default="General Counsel Approved By" labelParent="{!this}" /><nttdcore:DLabel name="DL249" default="President/CFO" labelParent="{!this}" /><nttdcore:DLabel name="DL250" default="President/CFO Approval" labelParent="{!this}" /><nttdcore:DLabel name="DL251" default="President/CFO Time Approved" labelParent="{!this}" /><nttdcore:DLabel name="DL252" default="President CFO Approved By" labelParent="{!this}" /><nttdcore:DLabel name="DL253" default="CEO" labelParent="{!this}" /><nttdcore:DLabel name="DL254" default="CEO Approval" labelParent="{!this}" /><nttdcore:DLabel name="DL255" default="CEO Time Approved" labelParent="{!this}" /><nttdcore:DLabel name="DL256" default="CEO Approved By" labelParent="{!this}" /><nttdcore:DLabel name="DL257" default="AECOM Hub" labelParent="{!this}" /><nttdcore:DLabel name="DL258" default="No Approvals Found." labelParent="{!this}" /><nttdcore:DLabel name="DL259" default="AECOM Hub Administrator" labelParent="{!this}" /><nttdcore:DLabel name="DL260" default="AECOM Hub Administrator Approval" labelParent="{!this}" /><nttdcore:DLabel name="DL261" default="AECOM Hub Administrator Time Approved" labelParent="{!this}" /><nttdcore:DLabel name="DL262" default="AECOM Hub Administrator Approved By" labelParent="{!this}" />
+            
+            <apex:pageblockbuttons >
+                <div style="" >
+                    &nbsp;&nbsp;&nbsp;
+                    <nttdcore:DLabel name="DL151" default="Save" labelParent="{!this}" /><apex:commandbutton action="{!saveDOA}" value="{!dLabel['DL151']}" rerender="theform" /> <!--oncomplete="location.reload();"-->
+                    <nttdcore:DLabel name="DL152" default="New DOA Page" labelParent="{!this}" /><apex:commandbutton action="{!newDOAPage}" value="{!dLabel['DL152']}" immediate="true" rendered="{!displayToggleButton}" />
+                </div>
+                
+            </apex:pageblockbuttons>
+            <apex:pageblocksection title="{!dLabel['DL153']}" >
+                    <apex:outputfield value="{!oDOA.Project__c}" rendered="{!IF(oDOA.Project__c != null, true, false)}" />
+                    <apex:inputfield value="{!oDOA.ProjectNameSubject__c}" rendered="{!IF(oDOA.Project__c != null, false, true)}" />
+                    <apex:outputfield value="{!oDOA.OwnerId}" />
+                    <apex:outputfield value="{!oDOA.Name}" />
+                    <apex:outputfield value="{!oDOA.Requestor__c}" />
+                    <apex:outputfield value="{!oDOA.ProjectNumber__c}" rendered="{!IF(oDOA.Project__c != null, true, false)}" />
+                    <apex:inputfield value="{!oDOA.OracleProjectNumber__c}" rendered="{!IF(oDOA.Project__c != null, false, true)}" />
+                    <apex:outputfield value="{!oDOA.EndClientPrimary__c}" />
+                    <apex:outputfield value="{!oDOA.BillingClientPrimary__c}" />
+                    <apex:outputfield value="{!oDOA.ApprovalStatus__c}" />
+                    <apex:outputfield value="{!oDOA.DateRequired__c}" />
+                    <apex:outputfield value="{!oDOA.Opportunity__c}" rendered="{!IF(oDOA.Project__c != null, true, false)}" />
+                    <apex:inputfield value="{!oDOA.OpportunityNumber__c}" rendered="{!IF(oDOA.Project__c != null, false, true)}" />
+                    
+            </apex:pageblocksection>
+            <apex:pageblocksection title="{!dLabel['DL154']}" id="thepageblocksectionAR" >
+                <apex:repeat value="{!$ObjectType.DOAApprovalRequest__c.FieldSets.ECO_ApprovalsRequired}" var="Field1" >
+                    <apex:outputfield value="{!oDOA[Field1]}" />
+                </apex:repeat>
+            </apex:pageblocksection>
+            
+            <script> twistSection(document.getElementById('{!$Component.theform.thepageblock.thepageblocksectionAR}').getElementsByTagName('img')[0]) </script>
+            
+            <apex:pageblocksection title="{!dLabel['DL155']}" columns="2" id="thepageblocksection" >
+                <apex:pagemessage severity="INFO" summary="{!dLabel['DL156']}" rendered="{!IF(oDOA.GeoPresidentApprover__c == null && oDOA.GeoChiefOperatingOfficerApprover__c == null && oDOA.RegBLExecutiveApprover__c == null && oDOA.AreaManagerApprover__c == null && oDOA.BusinessUnitLeaderApprover__c == null && oDOA.ProjectManagerApprover__c == null && oDOA.GeographyChiefCounselApprover__c == null && oDOA.RegionChiefCounselApprover__c == null && oDOA.CounselContractsManagerApprover__c == null && oDOA.AreaCounselApprover__c == null && oDOA.FinanceGeographyControlApprover__c == null && oDOA.FedContractsandProcurementApprover__c == null && oDOA.GeoOtherApprover__c == null && oDOA.DCSgeoRiskCommitteeApprover__c == null && oDOA.HRDirectorGeographyDirApprover__c == null, true, false)}" >
+                </apex:pagemessage>
+                
+                <apex:pageblocksection columns="1" rendered="{!If(oDOA.GeoPresidentApprover__c == null, false, true)}" >
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL157']}</apex:outputlabel>
+                        <apex:outputfield value="{!oDOA.GeoPresidentApprover__c}" style="width:80px" />
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL158']}</apex:outputlabel>
+                        <apex:outputpanel >
+                            <apex:inputfield value="{!oDOA.GeoPresidentCheckApp__c}" rendered="{! oDOA.GeoPresidentCheckApp__c == '' }" />
+                            <apex:outputfield value="{!oDOA.GeoPresidentCheckApp__c}" style="width:80px" rendered="{! oDOA.GeoPresidentCheckApp__c != '' }" />
+                        </apex:outputpanel>
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL159']}</apex:outputlabel>
+                        <apex:outputfield value="{!oDOA.GeoPresidentApprovedBy__c}" style="width:80px" />
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL160']}</apex:outputlabel>
+                        <apex:outputfield value="{!oDOA.GeoPresidentTimeApp__c}" style="width:80px" />
+                    </apex:pageblocksectionitem>
+                </apex:pageblocksection>
+                
+                <apex:pageblocksection columns="1" rendered="{!If(oDOA.GeoChiefOperatingOfficerApprover__c == null, false, true)}" >
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL161']}</apex:outputlabel>
+                        <apex:outputfield value="{!oDOA.GeoChiefOperatingOfficerApprover__c}" style="width:80px" />
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL162']}</apex:outputlabel>
+                        <apex:outputpanel >
+                            <apex:inputfield value="{!oDOA.GeoChiefOperatingOfficerCheckApp__c}" rendered="{! oDOA.GeoChiefOperatingOfficerCheckApp__c == '' }" />
+                            <apex:outputfield value="{!oDOA.GeoChiefOperatingOfficerCheckApp__c}" style="width:80px" rendered="{! oDOA.GeoChiefOperatingOfficerCheckApp__c != '' }" />
+                        </apex:outputpanel>
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL163']}</apex:outputlabel>
+                        <apex:outputfield value="{!oDOA.GeoChiefOperatingOfficerApprovedBy__c}" style="width:80px" />
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL164']}</apex:outputlabel>
+                        <apex:outputfield value="{!oDOA.GeoChiefOperatingOfficerTimeApp__c}" style="width:80px" />
+                    </apex:pageblocksectionitem>
+                </apex:pageblocksection>
+               
+                <apex:pageblocksection columns="1" rendered="{!If(oDOA.RegBLExecutiveApprover__c == null, false, true)}" >
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL165']}</apex:outputlabel>
+                        <apex:outputfield value="{!oDOA.RegBLExecutiveApprover__c}" style="width:80px" />
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL166']}</apex:outputlabel>
+                        <apex:outputpanel >
+                            <apex:inputfield value="{!oDOA.RegBLExecutiveCheckApp__c}" rendered="{! oDOA.RegBLExecutiveCheckApp__c == '' }" />
+                            <apex:outputfield value="{!oDOA.RegBLExecutiveCheckApp__c}" style="width:80px" rendered="{! oDOA.RegBLExecutiveCheckApp__c != '' }" />
+                        </apex:outputpanel>
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL167']}</apex:outputlabel>
+                        <apex:outputfield value="{!oDOA.RegBLExecutiveApprovedBy__c}" style="width:80px" />
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL168']}</apex:outputlabel>
+                        <apex:outputfield value="{!oDOA.RegBLExecutiveTimeApp__c}" style="width:80px" />
+                    </apex:pageblocksectionitem>
+                </apex:pageblocksection>
+                
+                <apex:pageblocksection columns="1" rendered="{!If(oDOA.AreaManagerApprover__c == null, false, true)}" >
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL169']}</apex:outputlabel>
+                        <apex:outputfield value="{!oDOA.AreaManagerApprover__c}" style="width:80px" />
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL170']}</apex:outputlabel>
+                        <apex:outputpanel >
+                            <apex:inputfield value="{!oDOA.AreaManagerCheckApp__c}" rendered="{! oDOA.AreaManagerCheckApp__c == '' }" />
+                            <apex:outputfield value="{!oDOA.AreaManagerCheckApp__c}" style="width:80px" rendered="{! oDOA.AreaManagerCheckApp__c != '' }" />
+                        </apex:outputpanel>
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL171']}</apex:outputlabel>
+                        <apex:outputfield value="{!oDOA.AreaManagerApprovedBy__c}" style="width:80px" />
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL172']}</apex:outputlabel>
+                        <apex:outputfield value="{!oDOA.AreaManagerTimeApp__c}" style="width:80px" />
+                    </apex:pageblocksectionitem>
+                </apex:pageblocksection>
+                
+                <apex:pageblocksection columns="1" rendered="{!If(oDOA.BusinessUnitLeaderApprover__c == null, false, true)}" >
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL173']}</apex:outputlabel>
+                        <apex:outputfield value="{!oDOA.BusinessUnitLeaderApprover__c}" style="width:80px" />
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL174']}</apex:outputlabel>
+                        <apex:outputpanel >
+                            <apex:inputfield value="{!oDOA.BusinessUnitLeaderCheckApp__c}" rendered="{! oDOA.BusinessUnitLeaderCheckApp__c == '' }" />
+                            <apex:outputfield value="{!oDOA.BusinessUnitLeaderCheckApp__c}" style="width:80px" rendered="{! oDOA.BusinessUnitLeaderCheckApp__c != '' }" />
+                        </apex:outputpanel>
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL175']}</apex:outputlabel>
+                        <apex:outputfield value="{!oDOA.BusinessUnitLeaderTimeApp__c}" style="width:80px" />
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL176']}</apex:outputlabel>
+                        <apex:outputfield value="{!oDOA.BusinessUnitLeaderApprovedBy__c}" style="width:80px" />
+                    </apex:pageblocksectionitem>
+                </apex:pageblocksection>
+                
+                <apex:pageblocksection columns="1" rendered="{!If(oDOA.ProjectManagerApprover__c == null, false, true)}" >
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL177']}</apex:outputlabel>
+                        <apex:outputfield value="{!oDOA.ProjectManagerApprover__c}" style="width:80px" />
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL178']}</apex:outputlabel>
+                        <apex:outputpanel >
+                            <apex:inputfield value="{!oDOA.ProjectManagerCheckApp__c}" rendered="{! oDOA.ProjectManagerCheckApp__c == '' }" />
+                            <apex:outputfield value="{!oDOA.ProjectManagerCheckApp__c}" style="width:80px" rendered="{! oDOA.ProjectManagerCheckApp__c != '' }" />
+                        </apex:outputpanel>
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL179']}</apex:outputlabel>
+                        <apex:outputfield value="{!oDOA.ProjectManagerApprovedBy__c}" style="width:80px" />
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL180']}</apex:outputlabel>
+                        <apex:outputfield value="{!oDOA.ProjectManagerTimeApp__c}" style="width:80px" />
+                    </apex:pageblocksectionitem>
+                </apex:pageblocksection>
+                
+                <apex:pageblocksection columns="1" rendered="{!If(oDOA.GeographyChiefCounselApprover__c == null, false, true)}" >
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL181']}</apex:outputlabel>
+                        <apex:outputfield value="{!oDOA.GeographyChiefCounselApprover__c}" style="width:80px" />
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL182']}</apex:outputlabel>
+                        <apex:outputpanel >
+                            <apex:inputfield value="{!oDOA.GeographyChiefCounselCheckApp__c}" rendered="{! oDOA.GeographyChiefCounselCheckApp__c == '' }" />
+                            <apex:outputfield value="{!oDOA.GeographyChiefCounselCheckApp__c}" style="width:80px" rendered="{! oDOA.GeographyChiefCounselCheckApp__c != '' }" />
+                        </apex:outputpanel>
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL183']}</apex:outputlabel>
+                        <apex:outputfield value="{!oDOA.GeographyChiefCounselApprovedBy__c}" style="width:80px" />
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL184']}</apex:outputlabel>
+                        <apex:outputfield value="{!oDOA.GeographyChiefCounselTimeApp__c}" style="width:80px" />
+                    </apex:pageblocksectionitem>
+                </apex:pageblocksection>
+                
+                <apex:pageblocksection columns="1" rendered="{!If(oDOA.RegionChiefCounselApprover__c == null, false, true)}" >
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL185']}</apex:outputlabel>
+                        <apex:outputfield value="{!oDOA.RegionChiefCounselApprover__c}" style="width:80px" />
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL186']}</apex:outputlabel>
+                        <apex:outputpanel >
+                            <apex:inputfield value="{!oDOA.RegionChiefCounselCheckApp__c}" rendered="{! oDOA.RegionChiefCounselCheckApp__c == '' }" />
+                            <apex:outputfield value="{!oDOA.RegionChiefCounselCheckApp__c}" style="width:80px" rendered="{! oDOA.RegionChiefCounselCheckApp__c != '' }" />
+                        </apex:outputpanel>
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL187']}</apex:outputlabel>
+                        <apex:outputfield value="{!oDOA.RegionChiefCounselApprovedBy__c}" style="width:80px" />
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL188']}</apex:outputlabel>
+                        <apex:outputfield value="{!oDOA.RegionChiefCounselTimeApp__c}" style="width:80px" />
+                    </apex:pageblocksectionitem>
+                </apex:pageblocksection>
+                
+                <apex:pageblocksection columns="1" rendered="{!If(oDOA.CounselContractsManagerApprover__c == null, false, true)}" >
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL189']}</apex:outputlabel>
+                        <apex:outputfield value="{!oDOA.CounselContractsManagerApprover__c}" style="width:80px" />
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL190']}</apex:outputlabel>
+                        <apex:outputpanel >
+                            <apex:inputfield value="{!oDOA.CounselContractsManagerCheckApp__c}" rendered="{! oDOA.CounselContractsManagerCheckApp__c == '' }" />
+                            <apex:outputfield value="{!oDOA.CounselContractsManagerCheckApp__c}" style="width:80px" rendered="{! oDOA.CounselContractsManagerCheckApp__c != '' }" />
+                        </apex:outputpanel>
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL191']}</apex:outputlabel>
+                        <apex:outputfield value="{!oDOA.CounselContractsManagerApprovedBy__c}" style="width:80px" />
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL192']}</apex:outputlabel>
+                        <apex:outputfield value="{!oDOA.CounselContractsManagerTimeApp__c}" style="width:80px" />
+                    </apex:pageblocksectionitem>
+                </apex:pageblocksection>
+                
+                <apex:pageblocksection columns="1" rendered="{!If(oDOA.AreaCounselApprover__c == null, false, true)}" >
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL193']}</apex:outputlabel>
+                        <apex:outputfield value="{!oDOA.AreaCounselApprover__c}" style="width:80px" />
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL194']}</apex:outputlabel>
+                        <apex:outputpanel >
+                            <apex:inputfield value="{!oDOA.AreaCounselCheckApp__c}" rendered="{! oDOA.AreaCounselCheckApp__c == '' }" />
+                            <apex:outputfield value="{!oDOA.AreaCounselCheckApp__c}" style="width:80px" rendered="{! oDOA.AreaCounselCheckApp__c != '' }" />
+                        </apex:outputpanel>
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL195']}</apex:outputlabel>
+                        <apex:outputfield value="{!oDOA.AreaCounselApprovedBy__c}" style="width:80px" />
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL196']}</apex:outputlabel>
+                        <apex:outputfield value="{!oDOA.AreaCounselTimeApp__c}" style="width:80px" />
+                    </apex:pageblocksectionitem>
+                </apex:pageblocksection>
+                
+                <apex:pageblocksection columns="1" rendered="{!If(oDOA.FinanceGeographyControlApprover__c == null, false, true)}" >
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL197']}</apex:outputlabel>
+                        <apex:outputfield value="{!oDOA.FinanceGeographyControlApprover__c}" style="width:80px" />
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL198']}</apex:outputlabel>
+                        <apex:outputpanel >
+                            <apex:inputfield value="{!oDOA.FinanceGeographyControlCheckApp__c}" rendered="{! oDOA.FinanceGeographyControlCheckApp__c == '' }" />
+                            <apex:outputfield value="{!oDOA.FinanceGeographyControlCheckApp__c}" style="width:80px" rendered="{! oDOA.FinanceGeographyControlCheckApp__c != '' }" />
+                        </apex:outputpanel>
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL199']}</apex:outputlabel>
+                        <apex:outputfield value="{!oDOA.FinanceGeographyControlApprovedBy__c}" style="width:80px" />
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL200']}</apex:outputlabel>
+                        <apex:outputfield value="{!oDOA.FinanceGeographyControlTimeApp__c}" style="width:80px" />
+                    </apex:pageblocksectionitem>
+                </apex:pageblocksection>
+                
+                <apex:pageblocksection columns="1" rendered="{!If(oDOA.FedContractsandProcurementApprover__c == null, false, true)}" >
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL201']}</apex:outputlabel>
+                        <apex:outputfield value="{!oDOA.FedContractsandProcurementApprover__c}" style="width:80px" />
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL202']}</apex:outputlabel>
+                        <apex:outputpanel >
+                            <apex:inputfield value="{!oDOA.FedContractsandProcurementCheckApp__c}" rendered="{! oDOA.FedContractsandProcurementCheckApp__c == '' }" />
+                            <apex:outputfield value="{!oDOA.FedContractsandProcurementCheckApp__c}" style="width:80px" rendered="{! oDOA.FedContractsandProcurementCheckApp__c != '' }" />
+                        </apex:outputpanel>
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL203']}</apex:outputlabel>
+                        <apex:outputfield value="{!oDOA.FedContractsandProcurementApprovedBy__c}" style="width:80px" />
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL204']}</apex:outputlabel>
+                        <apex:outputfield value="{!oDOA.FedContractsandProcurementTimeApp__c}" style="width:80px" />
+                    </apex:pageblocksectionitem>
+                </apex:pageblocksection>
+                
+                <apex:pageblocksection columns="1" rendered="{!If(oDOA.GeoOtherApprover__c == null, false, true)}" >
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL205']}</apex:outputlabel>
+                        <apex:outputfield value="{!oDOA.GeoOtherApprover__c}" style="width:80px" />
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL206']}</apex:outputlabel>
+                        <apex:outputpanel >
+                            <apex:inputfield value="{!oDOA.GeoOtherCheckApp__c}" rendered="{! oDOA.GeoOtherCheckApp__c == '' }" />
+                            <apex:outputfield value="{!oDOA.GeoOtherCheckApp__c}" style="width:80px" rendered="{! oDOA.GeoOtherCheckApp__c != '' }" />
+                        </apex:outputpanel>
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL207']}</apex:outputlabel>
+                        <apex:outputfield value="{!oDOA.GeoOtherApprovedBy__c}" style="width:80px" />
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL208']}</apex:outputlabel>
+                        <apex:outputfield value="{!oDOA.GeoOtherTimeApp__c}" style="width:80px" />
+                    </apex:pageblocksectionitem>
+                </apex:pageblocksection>
+                
+                <apex:pageblocksection columns="1" rendered="{!If(oDOA.DCSgeoRiskCommitteeApprover__c == null, false, true)}" >
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL209']}</apex:outputlabel>
+                        <apex:outputfield value="{!oDOA.DCSgeoRiskCommitteeApprover__c}" style="width:80px" />
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL210']}</apex:outputlabel>
+                        <apex:outputpanel >
+                            <apex:inputfield value="{!oDOA.DCSgeoRiskCommitteeCheckApp__c}" rendered="{! oDOA.DCSgeoRiskCommitteeCheckApp__c == '' }" />
+                            <apex:outputfield value="{!oDOA.DCSgeoRiskCommitteeCheckApp__c}" style="width:80px" rendered="{! oDOA.DCSgeoRiskCommitteeCheckApp__c != '' }" />
+                        </apex:outputpanel>
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL211']}</apex:outputlabel>
+                        <apex:outputfield value="{!oDOA.DCSgeoRiskCommitteeApprovedBy__c}" style="width:80px" />
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL212']}</apex:outputlabel>
+                        <apex:outputfield value="{!oDOA.DCSgeoRiskCommitteeTimeApp__c}" style="width:80px" />
+                    </apex:pageblocksectionitem>
+                </apex:pageblocksection>
+                
+                <apex:pageblocksection columns="1" rendered="{!If(oDOA.HRDirectorGeographyDirApprover__c == null, false, true)}" >
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL213']}</apex:outputlabel>
+                        <apex:outputfield value="{!oDOA.HRDirectorGeographyDirApprover__c}" style="width:80px" />
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL214']}</apex:outputlabel>
+                        <apex:outputpanel >
+                            <apex:inputfield value="{!oDOA.HRDirectorGeographyDirCheckApp__c}" rendered="{! oDOA.HRDirectorGeographyDirCheckApp__c == '' }" />
+                            <apex:outputfield value="{!oDOA.HRDirectorGeographyDirCheckApp__c}" style="width:80px" rendered="{! oDOA.HRDirectorGeographyDirCheckApp__c != '' }" />
+                        </apex:outputpanel>
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL215']}</apex:outputlabel>
+                        <apex:outputfield value="{!oDOA.HRDirectorGeographyDirApprovedBy__c}" style="width:80px" />
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL216']}</apex:outputlabel>
+                        <apex:outputfield value="{!oDOA.HRDirectorGeographyDirTimeApp__c}" style="width:80px" />
+                    </apex:pageblocksectionitem>
+                </apex:pageblocksection>
+            </apex:pageblocksection>
+            
+            <script> twistSection(document.getElementById('{!$Component.theform.thepageblock.thepageblocksection}').getElementsByTagName('img')[0]) </script>
+            <apex:pageblocksection title="{!dLabel['DL217']}" id="thepageblocksection2" >
+                <apex:pagemessage severity="INFO" summary="{!dLabel['DL218']}" rendered="{!IF(oDOA.GroupChiefExecutiveApprover__c == null && oDOA.GroupChiefCounselApprover__c == null && oDOA.GroupChiefFinancialOfficerApprover__c == null && oDOA.GroupOtherApprover__c == null , true, false)}" >
+                </apex:pagemessage>
+                <apex:pageblocksection columns="1" rendered="{!If(oDOA.GroupChiefExecutiveApprover__c == null, false, true)}" >
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL219']}</apex:outputlabel>
+                        <apex:outputfield value="{!oDOA.GroupChiefExecutiveApprover__c}" style="width:80px" />
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL220']}</apex:outputlabel>
+                        <apex:outputpanel >
+                            <apex:inputfield value="{!oDOA.GroupChiefExecutiveCheckApp__c}" rendered="{! oDOA.GroupChiefExecutiveCheckApp__c == '' }" />
+                            <apex:outputfield value="{!oDOA.GroupChiefExecutiveCheckApp__c}" style="width:80px" rendered="{! oDOA.GroupChiefExecutiveCheckApp__c != '' }" />
+                        </apex:outputpanel>
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL221']}</apex:outputlabel>
+                        <apex:outputfield value="{!oDOA.GroupChiefExecutiveApprovedBy__c}" style="width:80px" />
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL222']}</apex:outputlabel>
+                        <apex:outputfield value="{!oDOA.GroupChiefExecutiveTimeApp__c}" style="width:80px" />
+                    </apex:pageblocksectionitem>
+                </apex:pageblocksection>
+                
+                <apex:pageblocksection columns="1" rendered="{!If(oDOA.GroupChiefCounselApprover__c == null, false, true)}" >
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL223']}</apex:outputlabel>
+                        <apex:outputfield value="{!oDOA.GroupChiefCounselApprover__c}" style="width:80px" />
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL224']}</apex:outputlabel>
+                        <apex:outputpanel >
+                            <apex:inputfield value="{!oDOA.GroupChiefCounselCheckApp__c}" rendered="{! oDOA.GroupChiefCounselCheckApp__c == '' }" />
+                            <apex:outputfield value="{!oDOA.GroupChiefCounselCheckApp__c}" style="width:80px" rendered="{! oDOA.GroupChiefCounselCheckApp__c != '' }" />
+                        </apex:outputpanel>
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL225']}</apex:outputlabel>
+                        <apex:outputfield value="{!oDOA.GroupChiefCounselApprovedBy__c}" style="width:80px" />
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL226']}</apex:outputlabel>
+                        <apex:outputfield value="{!oDOA.GroupChiefCounselTimeApp__c}" style="width:80px" />
+                    </apex:pageblocksectionitem>
+                </apex:pageblocksection>
+                
+                <apex:pageblocksection columns="1" rendered="{!If(oDOA.GroupChiefFinancialOfficerApprover__c == null, false, true)}" >
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL227']}</apex:outputlabel>
+                        <apex:outputfield value="{!oDOA.GroupChiefFinancialOfficerApprover__c}" style="width:80px" />
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL228']}</apex:outputlabel>
+                        <apex:outputpanel >
+                            <apex:inputfield value="{!oDOA.GroupChiefFinancialOfficerCheckApp__c}" rendered="{! oDOA.GroupChiefFinancialOfficerCheckApp__c == '' }" />
+                            <apex:outputfield value="{!oDOA.GroupChiefFinancialOfficerCheckApp__c}" style="width:80px" rendered="{! oDOA.GroupChiefFinancialOfficerCheckApp__c != '' }" />
+                        </apex:outputpanel>
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL229']}</apex:outputlabel>
+                        <apex:outputfield value="{!oDOA.GroupChiefFinancialOfficerApprovedBy__c}" style="width:80px" />
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL230']}</apex:outputlabel>
+                        <apex:outputfield value="{!oDOA.GroupChiefFinancialOfficerTimeApp__c}" style="width:80px" />
+                    </apex:pageblocksectionitem>
+                </apex:pageblocksection>
+                
+                <apex:pageblocksection columns="1" rendered="{!If(oDOA.GroupOtherApprover__c == null, false, true)}" >
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL231']}</apex:outputlabel>
+                        <apex:outputfield value="{!oDOA.GroupOtherApprover__c}" style="width:80px" />
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL232']}</apex:outputlabel>
+                        <apex:outputpanel >
+                            <apex:inputfield value="{!oDOA.GroupOtherCheckApp__c}" rendered="{! oDOA.GroupOtherCheckApp__c == '' }" />
+                            <apex:outputfield value="{!oDOA.GroupOtherCheckApp__c}" style="width:80px" rendered="{! oDOA.GroupOtherCheckApp__c != '' }" />
+                        </apex:outputpanel>
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL233']}</apex:outputlabel>
+                        <apex:outputfield value="{!oDOA.GroupOtherApprovedBy__c}" style="width:80px" />
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL234']}</apex:outputlabel>
+                        <apex:outputfield value="{!oDOA.GroupOtherTimeApp__c}" style="width:80px" />
+                    </apex:pageblocksectionitem>
+                </apex:pageblocksection>
+            </apex:pageblocksection>
+            
+            <script> twistSection(document.getElementById('{!$Component.theform.thepageblock.thepageblocksection2}').getElementsByTagName('img')[0]) </script>
+            
+            <apex:pageblocksection title="{!dLabel['DL235']}" id="thepageblocksection3" >
+                <apex:pagemessage severity="INFO" summary="{!dLabel['DL236']}" rendered="{!IF(oDOA.EnterpriseRiskCommitteeApprover__c == null && 
+                	oDOA.EnterpriseOtherApprover__c == null && oDOA.PresidentCFOApprover__c == null && oDOA.CEOApprover__c == null && 
+                	oDOA.GeneralCounselApprover__c == null, true, false)}" >
+                </apex:pagemessage>
+                <apex:pageblocksection columns="1" rendered="{!If(oDOA.EnterpriseRiskCommitteeApprover__c == null, false, true)}" >
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL237']}</apex:outputlabel>
+                        <apex:outputfield value="{!oDOA.EnterpriseRiskCommitteeApprover__c}" style="width:80px" />
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL238']}</apex:outputlabel>
+                        <apex:outputpanel >
+                            <apex:inputfield value="{!oDOA.EnterpriseRiskCommitteeCheckApp__c}" rendered="{! oDOA.EnterpriseRiskCommitteeCheckApp__c == '' }" />
+                            <apex:outputfield value="{!oDOA.EnterpriseRiskCommitteeCheckApp__c}" style="width:80px" rendered="{! oDOA.EnterpriseRiskCommitteeCheckApp__c != '' }" />
+                        </apex:outputpanel>
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL239']}</apex:outputlabel>
+                        <apex:outputfield value="{!oDOA.EnterpriseRiskCommitteeTimeApp__c}" style="width:80px" />
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL240']}</apex:outputlabel>
+                        <apex:outputfield value="{!oDOA.EnterpriseRiskCommitteeApprovedBy__c}" style="width:80px" />
+                    </apex:pageblocksectionitem>
+                </apex:pageblocksection>
+                
+                <apex:pageblocksection columns="1" rendered="{!If(oDOA.EnterpriseOtherApprover__c == null, false, true)}" >
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL241']}</apex:outputlabel>
+                        <apex:outputfield value="{!oDOA.EnterpriseOtherApprover__c}" style="width:80px" />
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL242']}</apex:outputlabel>
+                        <apex:outputpanel >
+                            <apex:inputfield value="{!oDOA.EnterpriseOtherCheckApp__c}" rendered="{! oDOA.EnterpriseOtherCheckApp__c == '' }" />
+                            <apex:outputfield value="{!oDOA.EnterpriseOtherCheckApp__c}" style="width:80px" rendered="{! oDOA.EnterpriseOtherCheckApp__c != '' }" />
+                        </apex:outputpanel>
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL243']}</apex:outputlabel>
+                        <apex:outputfield value="{!oDOA.EnterpriseOtherTimeApp__c}" style="width:80px" />
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL244']}</apex:outputlabel>
+                        <apex:outputfield value="{!oDOA.EnterpriseOtherApprovedBy__c}" style="width:80px" />
+                    </apex:pageblocksectionitem>
+                </apex:pageblocksection>
+                
+                <apex:pageblocksection columns="1" rendered="{!If(oDOA.GeneralCounselApprover__c == null, false, true)}" >
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL245']}</apex:outputlabel>
+                        <apex:outputfield value="{!oDOA.GeneralCounselApprover__c}" style="width:80px" />
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL246']}</apex:outputlabel>
+                        <apex:outputpanel >
+                            <apex:inputfield value="{!oDOA.GeneralCounselCheckApp__c}" rendered="{! oDOA.GeneralCounselCheckApp__c == '' }" />
+                            <apex:outputfield value="{!oDOA.GeneralCounselCheckApp__c}" style="width:80px" rendered="{! oDOA.GeneralCounselCheckApp__c != '' }" />
+                        </apex:outputpanel>
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL247']}</apex:outputlabel>
+                        <apex:outputfield value="{!oDOA.GeneralCounselTimeApp__c}" style="width:80px" />
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL248']}</apex:outputlabel>
+                        <apex:outputfield value="{!oDOA.GeneralCounselApprovedBy__c}" style="width:80px" />
+                    </apex:pageblocksectionitem>
+                </apex:pageblocksection>
+                
+                <apex:pageblocksection columns="1" rendered="{!If(oDOA.PresidentCFOApprover__c == null, false, true)}" >  
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL249']}</apex:outputlabel>
+                        <apex:outputfield value="{!oDOA.PresidentCFOApprover__c}" style="width:80px" />
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL250']}</apex:outputlabel>
+                        <apex:outputpanel >
+                            <apex:inputfield value="{!oDOA.PresidentCFOCheckApp__c}" rendered="{! oDOA.PresidentCFOCheckApp__c == '' }" />
+                            <apex:outputfield value="{!oDOA.PresidentCFOCheckApp__c}" style="width:80px" rendered="{! oDOA.PresidentCFOCheckApp__c != '' }" />
+                        </apex:outputpanel>
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL251']}</apex:outputlabel>
+                        <apex:outputfield value="{!oDOA.PresidentCFOTimeApp__c}" style="width:80px" />
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL252']}</apex:outputlabel>
+                        <apex:outputfield value="{!oDOA.PresidentCFOApprovedBy__c}" style="width:80px" />
+                    </apex:pageblocksectionitem>
+                </apex:pageblocksection>
+                
+                <apex:pageblocksection columns="1" rendered="{!If(oDOA.CEOApprover__c == null, false, true)}" >
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL253']}</apex:outputlabel>
+                        <apex:outputfield value="{!oDOA.CEOApprover__c}" style="width:80px" />
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL254']}</apex:outputlabel>
+                        <apex:outputpanel >
+                            <apex:inputfield value="{!oDOA.CEOCheckApp__c}" rendered="{! oDOA.CEOCheckApp__c == '' }" />
+                            <apex:outputfield value="{!oDOA.CEOCheckApp__c}" style="width:80px" rendered="{! oDOA.CEOCheckApp__c != '' }" />
+                        </apex:outputpanel>
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL255']}</apex:outputlabel>
+                        <apex:outputfield value="{!oDOA.CEOTimeApp__c}" style="width:80px" />
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL256']}</apex:outputlabel>
+                        <apex:outputfield value="{!oDOA.CEOApprovedBy__c}" style="width:80px" />
+                    </apex:pageblocksectionitem>
+                </apex:pageblocksection>
+                
+            </apex:pageblocksection>
+            
+            <script> twistSection(document.getElementById('{!$Component.theform.thepageblock.thepageblocksection3}').getElementsByTagName('img')[0]) </script>
+            
+            <apex:pageblocksection title="{!dLabel['DL257']}" id="thepageblocksection4" >
+                <apex:pagemessage severity="INFO" summary="{!dLabel['DL258']}" rendered="{!IF(oDOA.AECOMHubAdministratorApprover__c == null, true, false)}" />
+
+                <apex:pageblocksection columns="1" rendered="{!If(oDOA.AECOMHubAdministratorApprover__c == null, false, true)}" >
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL259']}</apex:outputlabel>
+                        <apex:outputfield value="{!oDOA.AECOMHubAdministratorApprover__c}" style="width:80px" />
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL260']}</apex:outputlabel>
+                        <apex:outputpanel >
+                            <apex:inputfield value="{!oDOA.AECOMHubAdministratorCheckApp__c}" rendered="{! oDOA.AECOMHubAdministratorCheckApp__c == '' }" />
+                            <apex:outputfield value="{!oDOA.AECOMHubAdministratorCheckApp__c}" style="width:80px" rendered="{! oDOA.AECOMHubAdministratorCheckApp__c != '' }" />
+                        </apex:outputpanel>
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL261']}</apex:outputlabel>
+                        <apex:outputfield value="{!oDOA.AECOMHubAdministratorTimeApp__c}" style="width:80px" />
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem datastyle="width:50%" labelstyle="width:50%" >
+                        <apex:outputlabel >{!dLabel['DL262']}</apex:outputlabel>
+                        <apex:outputfield value="{!oDOA.AECOMHubAdministratorApprovedBy__c}" style="width:80px" />
+                    </apex:pageblocksectionitem>
+                </apex:pageblocksection>
+            </apex:pageblocksection>
+            
+            <script> twistSection(document.getElementById('{!$Component.theform.thepageblock.thepageblocksection4}').getElementsByTagName('img')[0]) </script>
+            
+        </apex:pageblock>
+
+
+    <nttdcore:DLabel name="DL263" default="Contract Reviews" labelParent="{!this}" /><apex:pageblock title="{!dLabel['DL263']}" >
+        <apex:outputpanel rendered="{!lContractReviews.size > 0}" ><nttdcore:DLabel name="DL264" default="Contract Review Id" labelParent="{!this}" /><nttdcore:DLabel name="DL265" default="Review Status" labelParent="{!this}" /><nttdcore:DLabel name="DL266" default="Review Request Type" labelParent="{!this}" /><nttdcore:DLabel name="DL267" default="Opportunity Name" labelParent="{!this}" /><nttdcore:DLabel name="DL268" default="Date Review is Required" labelParent="{!this}" /><nttdcore:DLabel name="DL269" default="Client / Vendor" labelParent="{!this}" />
+            <apex:pageblocktable value="{!lContractReviews}" var="contractReview" >
+    
+                <apex:column headervalue="{!dLabel['DL264']}" >
+                    <apex:commandlink action="{!URLFOR($Action.Contract_Review__c.view, contractReview.Id)}" ><apex:outputfield value="{!contractReview.Name}" /></apex:commandlink>
+                </apex:column>        
+
+                <apex:column headervalue="{!dLabel['DL265']}" >
+                    <apex:outputfield value="{!contractReview.Status_Review__c}" />
+                </apex:column>    
+                <apex:column headervalue="{!dLabel['DL266']}" >
+                    <apex:outputfield value="{!contractReview.Review_Request_Type__c}" />
+                </apex:column>  
+                <apex:column headervalue="{!dLabel['DL267']}" >
+                    <apex:outputfield value="{!contractReview.Opportunity_Name__c}" />
+                </apex:column>  
+                <apex:column headervalue="{!dLabel['DL268']}" >
+                    <apex:outputfield value="{!contractReview.Date_Required__c}" />
+                </apex:column>                                  
+                <apex:column headervalue="{!dLabel['DL269']}" >
+                    <apex:outputfield value="{!contractReview.Client_Vendor__c}" />
+                </apex:column>  
+            </apex:pageblocktable>
+        </apex:outputpanel>
+        <apex:outputpanel rendered="{!lContractReviews.size == 0}" >
+            <nttdcore:DLabel name="DL270" default="No records to display" labelParent="{!this}" /><apex:outputtext value="{!dLabel['DL270']}" />
+        </apex:outputpanel>  
+    </apex:pageblock>
+
+        <nttdcore:DLabel name="DL271" default="Approval Request Forms" labelParent="{!this}" /><apex:pageblock title="{!dLabel['DL271']}" ><nttdcore:DLabel name="DL272" default="Form Number" labelParent="{!this}" /><nttdcore:DLabel name="DL273" default="Record Type" labelParent="{!this}" /><nttdcore:DLabel name="DL274" default="Created By" labelParent="{!this}" /><nttdcore:DLabel name="DL275" default="Created Date" labelParent="{!this}" />
+            <apex:pageblocktable rendered="{!If(lForm.size > 0 , true, false)}" value="{!lForm}" var="form" >
+                <apex:column headervalue="{!dLabel['DL272']}" >
+                    <apex:outputlink value="/apex/ECO_RFA?id={!form.Id}&vfp=true" target="_blank" >{!form.Name}</apex:outputlink>
+                </apex:column>
+                <apex:column headervalue="{!dLabel['DL273']}" >
+                    <apex:outputfield value="{!form.RecordTypeId}" />
+                </apex:column>
+                <apex:column headervalue="{!dLabel['DL274']}" >
+                    <apex:outputfield value="{!form.CreatedById}" />
+                </apex:column>
+                <apex:column headervalue="{!dLabel['DL275']}" >
+                    <apex:outputfield value="{!form.CreatedDate}" />
+                </apex:column>
+            </apex:pageblocktable>
+        </apex:pageblock>
+        
+        <nttdcore:DLabel name="DL276" default="DOA Register" labelParent="{!this}" /><apex:pageblock title="{!dLabel['DL276']}" ><nttdcore:DLabel name="DL277" default="DOA Register" labelParent="{!this}" /><nttdcore:DLabel name="DL278" default="Action" labelParent="{!this}" /><nttdcore:DLabel name="DL279" default="View" labelParent="{!this}" /><nttdcore:DLabel name="DL280" default="DCS sub-DOA" labelParent="{!this}" /><nttdcore:DLabel name="DL281" default="DOA Title" labelParent="{!this}" /><nttdcore:DLabel name="DL282" default="DOA Trigger" labelParent="{!this}" /><nttdcore:DLabel name="DL283" default="Approval Status" labelParent="{!this}" />
+            <apex:pageblocktable rendered="{!If(lDOARegister.size > 0 , true, false)}" value="{!lDOARegister}" var="DOA" title="{!dLabel['DL277']}" >
+                <apex:column headervalue="{!dLabel['DL278']}" >
+                    <apex:outputlink value="/{!DOA.Id}?retURL=/apex/ECO_DOAApprovals?Id={!oDOA.Id}" target="_blank" >{!dLabel['DL279']}</apex:outputlink>
+                </apex:column>
+                <apex:column headervalue="{!dLabel['DL280']}" >
+                    <apex:outputfield value="{!DOA.DCSsubDOA__c}" />
+                </apex:column>
+                <apex:column headervalue="{!dLabel['DL281']}" >
+                    <apex:outputfield value="{!DOA.RiskTitle__c}" />
+                </apex:column>
+                <apex:column headervalue="{!dLabel['DL282']}" >
+                    <apex:outputfield value="{!DOA.DOATrigger__c}" />
+                </apex:column>
+                <apex:column headervalue="{!dLabel['DL283']}" >
+                    <apex:outputfield value="{!DOA.ApprovalStatus__c}" />
+                </apex:column>
+            </apex:pageblocktable>
+        </apex:pageblock>
+        
+        <nttdcore:DLabel name="DL284" default="DOA Conditions of Approval" labelParent="{!this}" /><apex:pageblock title="{!dLabel['DL284']}" ><nttdcore:DLabel name="DL286" default="Condition of Approval" labelParent="{!this}" /><nttdcore:DLabel name="DL287" default="Condition" labelParent="{!this}" /><nttdcore:DLabel name="DL288" default="Approver" labelParent="{!this}" /><nttdcore:DLabel name="DL289" default="Created Date" labelParent="{!this}" /><nttdcore:DLabel name="DL290" default="Status" labelParent="{!this}" /><nttdcore:DLabel name="DL291" default="Status Date" labelParent="{!this}" />
+            <apex:pageblockbuttons location="top" >
+                <div style="" >
+                    &nbsp;&nbsp;&nbsp;
+                    <nttdcore:DLabel name="DL285" default="New DOA Conditions of Approval" labelParent="{!this}" /><apex:commandbutton action="/apex/ECO_DOAConditionsOfApproval?doaId={!oDOA.Id}&retApprovals=true" value="{!dLabel['DL285']}" />
+                </div>
+            </apex:pageblockbuttons>
+            
+            <apex:pageblocktable rendered="{!If(lDOAConditions.size > 0 , true, false)}" value="{!lDOAConditions}" var="DOACondition" >
+                <apex:column headervalue="{!dLabel['DL286']}" width="80" >
+                    <apex:outputlink value="/{!DOACondition.Id}?retURL=/apex/ECO_DOAApprovals?Id={!oDOA.Id}" target="_blank" >{!DOACondition.Name}</apex:outputlink>
+                    
+                </apex:column>
+                <apex:column headervalue="{!dLabel['DL287']}" width="36%" >
+                    <apex:outputfield value="{!DOACondition.ConditionLongText__c}" />
+                </apex:column>
+                <apex:column headervalue="{!dLabel['DL288']}" >
+                    <apex:outputfield value="{!DOACondition.CreatedBy__c}" />
+                </apex:column>
+                <apex:column headervalue="{!dLabel['DL289']}" >
+                    <apex:outputfield value="{!DOACondition.CreatedDate}" />
+                </apex:column>
+                <apex:column headervalue="{!dLabel['DL290']}" >
+                    <apex:outputfield value="{!DOACondition.Mitigation_Plan__c}" />
+                </apex:column>
+                <apex:column headervalue="{!dLabel['DL291']}" >
+                    <apex:outputfield value="{!DOACondition.Status_Date__c}" />
+                </apex:column>
+            </apex:pageblocktable>
+        </apex:pageblock>
+    </apex:form>
+    </apex:actionregion>
+
+    <!-- <apex:pageBlock title="Contract Reviews">
+        <apex:include pageName="ECO_ContractReviewRequests" />
+    </apex:pageBlock> -->
+        
+    <nttdcore:DLabel name="DL292" default="Notes and Attachments" labelParent="{!this}" /><apex:relatedlist list="CombinedAttachments" subject="{!oDOA}" title="{!dLabel['DL292']}" />
+    
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

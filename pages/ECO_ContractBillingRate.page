@@ -1,0 +1,315 @@
+<apex:page controller="ECO_BillRateManagement" tabstyle="Agreement__c" extensions="nttdcore.DLabelParentController" >
+<head>
+    <apex:stylesheet value="https://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css" />
+    <apex:includeScript value="https://code.jquery.com/jquery-1.9.1.js" />
+    <apex:includeScript value="https://code.jquery.com/ui/1.10.3/jquery-ui.js" />
+</head>
+<style>
+.ctable, .ctr, .ctd, .cth {
+  border: 1px solid #dbdbdb;
+  padding: 10px;
+  border-collapse:separate; 
+  border-spacing:1em;  
+}
+
+.cth span {
+  padding: 0 .5em;
+  writing-mode: tb-rl;
+  filter: flipv fliph;
+  -webkit-transform:rotate(-45deg); 
+  white-space:nowrap; 
+  display:block;
+}
+
+        .customHelpIcon
+        {
+            display:inline-block;
+            margin:0 5px 0 0;
+            width:24px;
+            height:24px;
+            vertical-align:top !important;
+        }
+        /* CUSTOM HELP / GUIDANCE TEXT BOX */
+        .customHelpText{
+            padding: 7px;
+            border: 1px solid #85B3CE;
+            min-height: 10px;
+            display: block;
+            width: auto;
+            margin: 0 0 5px 0;
+            background-repeat: no-repeat;
+            border-radius: 4px;
+            background-color: #A2D3F1;
+            
+        }
+        .customHelpBody{
+            display:inline-block;
+            color:#;
+            max-width:95%;
+        }   
+
+</style>
+
+<script>
+    function updateBillRate(input, key)
+    {
+        updateBillRateApex(key, input.value);
+    }
+
+    function closeAuthenticationModal(window){
+        closeModal(window);
+        closeAuthenticationWindow();
+        return false;
+    }
+
+    function cancelModal(window)
+    {
+        closeModal(window);  
+    }    
+
+    function createNewBillingRatePeriod()
+    {
+        //$x('[id$=hidden1]').val('true');
+        //$x('[id$=hidden2]').val('false');
+        createNewBillRatePeriod();
+    }
+
+    function createNewLaborCategoryJS()
+    {
+        createNewLaborCategoryApex();
+    }
+
+    function createNewBillingRateLaborCategory()
+    {
+        //$x('[id$=hidden1]').val('false');
+        //$x('[id$=hidden2]').val('true');
+        createNewBillRate();
+    }
+
+    function saveNewBillingRatePeriod(){
+        saveNewBillRatePeriod();
+        //alert('1');
+        //$x('[id$=updateLaborCategoryField]').val(laborCategory);
+        //alert('2');
+        closeModal('modalBillRatePeriod');
+        //alert('3');
+    }
+
+    function saveLaborCategory()
+    {
+        saveNewLaborCategory();
+        $x('[id$=newLaborCategoryNew]').val('');
+        closeModal('modalLaborCategory');
+    }   
+
+    /*function saveNewBillingRateLaborCategory()
+    {
+        saveNewBillRate();
+        $x('[id$=newLaborCategory]').val('');
+        closeModal('modalLaborCategory');
+    }*/
+
+    function updateDeleteBillingRateLaborCategory(laborCategory)
+    {
+        $x('[id$=updateLaborCategoryField]').val(laborCategory);
+    }
+
+</script>
+
+<apex:form >
+
+<apex:pageMessages />
+<apex:actionFunction id="updateBillRateApex" name="updateBillRateApex" rerender="updatedKey, updatedValue" action="{!updateBillRateApex}" immediate="true" >
+    <apex:param id="updatedKey" name="updatedKey" assignto="{!updatedKey}" value="" />
+    <apex:param id="updatedValue" name="updatedValue" assignto="{!updatedValue}" value="" /> 
+</apex:actionFunction>
+
+
+
+<nttdcore:DLabel name="DL1" default="{{1}}({{2}})" labelParent="{!this}" p1="{!agreement.ContractTitle__c}" p2="{!agreement.AgreementNumber__c}" /><nttdcore:DLabel name="DL2" default="Contract Billing Rate Edit" labelParent="{!this}" /><apex:sectionHeader subtitle="{!dLabel['DL1']}" title="{!dLabel['DL2']}" />
+        <div class="customHelpText" >
+            <div class="customHelpBody" ><nttdcore:DLabel name="DL3" default="Complete this section to add any contract bill rates that Project Managers should be aware of when estimating task order proposals and invoicing projects.   Billing rate records by labor category can be created for periods of time (e.g. fiscal or calendar years) or for the life of the contract." labelParent="{!this}" /><nttdcore:DLabel name="DL4" default="Select &quot;Create Bill Rate Period&quot; to create a start and end date of the effective period, then &quot;Create New Labor Category&quot; to enter labor categories and the respective bill rates .  Additional billing rate periods can then be added for the defined labor categories.   Billing rate sheets can also be attached to the Contracts section on the home page." labelParent="{!this}" />
+{!dLabel['DL3']}  <br/><br/>
+
+{!dLabel['DL4']} 
+            </div>
+        </div> 
+
+<nttdcore:DLabel name="DL5" default="Contract Billing Rate Edit" labelParent="{!this}" /><apex:pageBlock title="{!dLabel['DL5']}" mode="edit" id="pb" ><nttdcore:DLabel name="DL8" default="Contract Number" labelParent="{!this}" /><nttdcore:DLabel name="DL9" default="Agreement Currency" labelParent="{!this}" /><nttdcore:DLabel name="DL10" default="Bill Rates" labelParent="{!this}" /><nttdcore:DLabel name="DL11" default="Delete" labelParent="{!this}" /><nttdcore:DLabel name="DL12" default="{0,date,dd-MMM-yyyy}&#39; - &#39;" labelParent="{!this}" /><nttdcore:DLabel name="DL13" default="Delete" labelParent="{!this}" /><nttdcore:DLabel name="DL14" default="Create Labor Category" labelParent="{!this}" /><nttdcore:DLabel name="DL15" default="Create Bill Rate Period" labelParent="{!this}" /><nttdcore:DLabel name="DL16" default=" Bill Rate Start" labelParent="{!this}" /><nttdcore:DLabel name="DL17" default=" Bill Rate End" labelParent="{!this}" /><nttdcore:DLabel name="DL18" default="Save" labelParent="{!this}" /><nttdcore:DLabel name="DL19" default="Cancel" labelParent="{!this}" />
+<apex:pageBlockButtons location="top" >
+    <nttdcore:DLabel name="DL6" default="Save" labelParent="{!this}" /><apex:commandButton value="{!dLabel['DL6']}" action="{!saveBillRates}" immediate="false" >
+     <!--   <apex:actionSupport event="onclick" immediate="true"/>-->
+    </apex:commandButton>
+    <nttdcore:DLabel name="DL7" default="Return To MSA" labelParent="{!this}" /><apex:commandButton value="{!dLabel['DL7']}" action="{!returnToAgreement}" />
+</apex:pageBlockButtons>
+
+<apex:inputHidden value="{!laborCategoryToDelete}" id="laborCategoryToDelete" />
+<apex:actionFunction id="deleteLaborCategory" name="deleteLaborCategory" action="{!deleteLaborCategory}" rerender="pb" >
+    <apex:param id="laborCat" name="laborCat" assignto="{!laborCategoryToDelete}" value="" />
+</apex:actionFunction>
+
+<apex:inputHidden value="{!billRatePeriodToDelete}" id="billRatePeriodToDelete" />
+<apex:actionFunction id="deleteBillRatePeriod" name="deleteBillRatePeriod" action="{!deleteBillRatePeriod}" rerender="pb" >
+    <apex:param id="billRatePeriod" name="billRatePeriod" assignto="{!billRatePeriodToDelete}" value="" />
+</apex:actionFunction>
+
+
+<apex:pageBlockSection columns="1" >
+    <apex:pageBlockSectionItem >
+        <apex:outputText value="{!dLabel['DL8']}" />
+        <apex:outputText value="{!agreement.AgreementNumber__c}" />
+    </apex:pageBlockSectionItem>
+    <apex:pageBlockSectionItem >
+    <apex:outputText value="{!dLabel['DL9']}" />
+    <apex:outputField value="{!agreement.FundingCurrencyCode__c}" />
+    </apex:pageBlockSectionItem>
+</apex:pageBlockSection>
+
+<apex:pageBlockSection title="{!dLabel['DL10']}" columns="1" id="billRates" >
+<apex:outputPanel >
+<table cellpadding="5" cellspacing="3" >
+    <tr>
+        <th/>
+        <apex:repeat value="{!periods}" var="period" >
+            <th><span>
+                <div align="center" >
+                    <apex:commandLink title="{!dLabel['DL11']}" onclick="deleteBillRatePeriod('{!period.Id}'); return false;" >
+                        <!--<apex:param name="budgetLabourId" value="{!budgetLabour.oBudgetResource.Id}"/>-->
+                        <apex:image value="{!URLFOR($Resource.ECO_CustomGraphicAssets, 'trash.png')}" width="12" height="14" />
+                    </apex:commandLink>
+                </div><br/>
+                <apex:outputText value="{!dLabel['DL12']}" >
+                    <apex:param value="{!period.BillRateStart__c}" />
+                </apex:outputText>
+
+                <apex:outputText value="{0,date,dd-MMM-yyyy}" >
+                    <apex:param value="{!period.BillRateEnd__c}" />
+                </apex:outputText>
+                
+            </span></th>
+        </apex:repeat>
+    </tr>
+    <apex:repeat value="{!laborCategories}" var="laborCategory" >
+        <tr>
+            <td>
+                <apex:commandLink title="{!dLabel['DL13']}" onclick="deleteLaborCategory('{!laborCategory}'); return false;" >
+                    <apex:image value="{!URLFOR($Resource.ECO_CustomGraphicAssets, 'trash.png')}" width="12" height="14" />
+                </apex:commandLink>&nbsp;&nbsp;&nbsp;
+                <apex:outputText value="{!laborCategoryMap[laborCategory]}" />
+                </td>
+                <apex:repeat value="{!periods}" var="period" >
+                    <apex:variable var="key" value="{!period.Id}-{!laborCategory}" />
+                    <td>
+                        <!--<apex:inputField value="{!billRatePeriodCategoryRateMap[key].BillRateNew__c}"  onkeyup="updateBillRate(this, '{!key}'); return false;">-->
+                        <apex:inputText value="{!billRatePeriodCategoryRateMap[key].BillRate__c}" onchange="updateBillRate(this, '{!key}'); return true;" onblur="updateBillRate(this, '{!key}'); return true;" >
+                        </apex:inputText>                   
+                    </td>           
+                </apex:repeat> 
+        </tr>
+    </apex:repeat>
+</table></apex:outputPanel>
+
+<apex:outputPanel >
+
+<apex:commandButton value="{!dLabel['DL14']}" rendered="{!NOT(creatingNewBillRate) && NOT(creatingNewBillRatePeriod) && periods.size > 0}" onclick="openModal('modalLaborCategory', createNewLaborCategoryJS());return false;" />
+
+<apex:outputPanel ><apex:commandButton value="{!dLabel['DL15']}" rendered="{!NOT(creatingNewBillRate) && NOT(creatingNewBillRatePeriod)}" onclick="openModal('modalBillRatePeriod', createNewBillingRatePeriod());return false;" /></apex:outputPanel>
+
+
+<apex:outputPanel rendered="{!creatingNewBillRatePeriod}" >
+        <apex:outputLabel value="{!dLabel['DL16']}" /><c:ECO_HelpIcon helptext="The  date the bill rate is in effect." />
+        <apex:inputField value="{!newBillRatePeriod.BillRateStart__c}" /> 
+
+        <apex:outputLabel value="{!dLabel['DL17']}" /><c:ECO_HelpIcon helptext="The date the effective bill rate ends." />  
+        <apex:inputField value="{!newBillRatePeriod.BillRateEnd__c}" /> 
+
+    <apex:commandButton value="{!dLabel['DL18']}" action="{!saveNewBillRatePeriod}" />
+    <apex:commandButton value="{!dLabel['DL19']}" action="{!cancelNewBillRatePeriod}" />
+</apex:outputPanel>
+</apex:outputPanel>
+</apex:pageBlockSection>
+</apex:pageBlock>
+
+    <c:ECO_ModalDialog width="425" padding="0px 0px 0px 0px" name="modalBillRatePeriod" id="modal" >
+
+        <nttdcore:DLabel name="DL20" default="New Bill Rate Period" labelParent="{!this}" /><apex:pageBlock title="{!dLabel['DL20']}" ><nttdcore:DLabel name="DL21" default="The  date the bill rate is in effect." labelParent="{!this}" /><nttdcore:DLabel name="DL22" default=" Bill Rate Start" labelParent="{!this}" /><nttdcore:DLabel name="DL23" default="The date the effective bill rate ends." labelParent="{!this}" /><nttdcore:DLabel name="DL24" default=" Bill Rate End" labelParent="{!this}" />
+
+            <apex:pageBlockSection columns="1" >  
+                <apex:pageBlockSectionItem helptext="{!dLabel['DL21']}" > 
+                    <apex:outputLabel value="{!dLabel['DL22']}" />
+                    <apex:inputField value="{!newBillRatePeriod.BillRateStart__c}" id="newBillRateStart" /> 
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem helptext="{!dLabel['DL23']}" >
+                    <apex:outputLabel value="{!dLabel['DL24']}" />
+                    <apex:inputField value="{!newBillRatePeriod.BillRateEnd__c}" id="newBillRateEnd" /> 
+                </apex:pageBlockSectionItem>
+            </apex:pageBlockSection>
+
+            <apex:outputPanel id="btn1" >
+                <div align="center" >
+                    <apex:outputPanel layout="inline" styleclass="btn" onclick="saveNewBillingRatePeriod()" ><nttdcore:DLabel name="DL25" default="Save" labelParent="{!this}" />{!dLabel['DL25']}</apex:outputPanel>
+                    <apex:outputPanel layout="inline" styleclass="btn" onclick="cancelModal('modalBillRatePeriod')" ><nttdcore:DLabel name="DL26" default="Cancel" labelParent="{!this}" />{!dLabel['DL26']}</apex:outputPanel>
+                </div>
+            </apex:outputPanel>
+        </apex:pageBlock>
+    </c:ECO_ModalDialog> 
+
+    <!--<c:ECO_ModalDialog width="425" padding="0px 0px 0px 0px" name="modalLaborCategory" >
+        <apex:pageBlock title="New Bill Rate Labor Category">
+            <apex:pageBlockSection columns="1"> 
+                <apex:inputField value="{!newBillRate.LaborCategory__c}" id="newLaborCategory"/>
+            </apex:pageBlockSection>
+        
+            <apex:outputPanel id="btn1">
+                <div align="center">
+                    <apex:outputPanel layout="inline" styleClass="btn" onclick="saveNewBillingRateLaborCategory()">Save</apex:outputPanel>
+                    <apex:outputPanel layout="inline" styleClass="btn" onclick="cancelModal('modalLaborCategory')">Cancel</apex:outputPanel>
+                </div>
+            </apex:outputPanel>   
+        </apex:pageBlock>            
+    </c:ECO_ModalDialog> -->
+
+    <c:ECO_ModalDialog width="425" padding="0px 0px 0px 0px" name="modalLaborCategory" >
+        <nttdcore:DLabel name="DL27" default="New Bill Rate Labor Category" labelParent="{!this}" /><apex:pageBlock title="{!dLabel['DL27']}" >
+            <apex:pageBlockSection columns="1" > 
+                <apex:inputField value="{!newLaborCategory.Name}" id="newLaborCategory" />
+            </apex:pageBlockSection>
+        
+            <apex:outputPanel id="btn1" >
+                <div align="center" >
+                    <apex:outputPanel layout="inline" styleclass="btn" onclick="saveLaborCategory()" ><nttdcore:DLabel name="DL28" default="Save" labelParent="{!this}" />{!dLabel['DL28']}</apex:outputPanel>
+                    <apex:outputPanel layout="inline" styleclass="btn" onclick="cancelModal('modalLaborCategory')" ><nttdcore:DLabel name="DL29" default="Cancel" labelParent="{!this}" />{!dLabel['DL29']}</apex:outputPanel>
+                </div>
+            </apex:outputPanel>   
+        </apex:pageBlock>            
+    </c:ECO_ModalDialog> 
+
+
+     <c:ECO_ModalDialog width="425" padding="0px 0px 0px 0px" name="modalUpdateDeleteLaborCategory" >
+        <nttdcore:DLabel name="DL30" default="Update/Delete Labor Category" labelParent="{!this}" /><apex:pageBlock title="{!dLabel['DL30']}" >
+            <apex:pageBlockSection columns="1" > 
+            </apex:pageBlockSection>
+        
+            <apex:outputPanel id="btn1" >
+                <div align="center" >
+                    <apex:outputPanel layout="inline" styleclass="btn" onclick="saveNewBillingRateLaborCategory()" ><nttdcore:DLabel name="DL31" default="Update" labelParent="{!this}" />{!dLabel['DL31']}</apex:outputPanel>
+                    <apex:outputPanel layout="inline" styleclass="btn" onclick="saveNewBillingRateLaborCategory()" ><nttdcore:DLabel name="DL32" default="Delete" labelParent="{!this}" />{!dLabel['DL32']}</apex:outputPanel>
+                    <apex:outputPanel layout="inline" styleclass="btn" onclick="cancelModal('modalUpdateDeleteLaborCategory')" ><nttdcore:DLabel name="DL33" default="Cancel" labelParent="{!this}" />{!dLabel['DL33']}</apex:outputPanel>
+                </div>
+            </apex:outputPanel>   
+        </apex:pageBlock>            
+    </c:ECO_ModalDialog> 
+
+<apex:actionFunction action="{!createNewBillRatePeriod}" name="createNewBillRatePeriod" rerender="saveError, modalMessages" status="saveStatus" oncomplete="checkForError()" /><apex:actionFunction action="{!saveNewBillRatePeriod}" name="saveNewBillRatePeriod" rerender="billRates, saveError, modalMessages" status="saveStatus" oncomplete="checkForError()" />  
+
+<apex:actionFunction action="{!createNewLaborCategory}" name="createNewLaborCategoryApex" rerender="saveError, modalMessages" status="saveStatus" oncomplete="checkForError()" />  
+<!--<apex:actionFunction action="{!createNewBillRate}" name="createNewBillRate" rerender="saveError, modalMessages" status="saveStatus" oncomplete="checkForError()"/>  -->
+<!--<apex:actionFunction action="{!saveNewBillRate}" name="saveNewBillRate" rerender="billRates, saveError, modalMessages" status="saveStatus" oncomplete="checkForError()" />-->
+<apex:actionFunction action="{!saveNewLaborCategory}" name="saveNewLaborCategory" rerender="billRates, saveError, modalMessages" status="saveStatus" oncomplete="checkForError()" />
+
+<apex:inputText value="{!updatedKey}" id="updatedKeyInput" style="width: 0px; visibility: hidden;" />
+<apex:inputText value="{!updatedValue}" id="updatedValueInput" style="width: 0px; visibility: hidden;" />
+
+</apex:form>
+
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

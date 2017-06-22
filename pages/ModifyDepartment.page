@@ -1,0 +1,127 @@
+<apex:page controller="ModifyDepartmentController" id="pg">
+<script>
+    function disableScreen() {  
+        var scHeight = document.body.offsetHeight;
+        var scWidth = document.body.offsetWidth;
+        var lft = scWidth/2-120;
+        
+        var str1 = "&lt&div style=\"width:300px;display:block;left:"+lft+"px;top:300px;visibility:visible;\" class=\"overlayDialog inlineEditDialog\" id=\"divpopup\"&gt&";
+        var str2 = "&lt&div class=\"topRight\"&gt&";
+        var str3 = "&lt&div class=\"topLeft\"&gt& &lt&h2 id=\"InlineEditDialogTitle\"&gt&Processing... Please wait&lt&/h2&gt& &lt&/div&gt&";
+        var str4 = "&lt&/div&gt& &lt&div class=\"middle\"&gt& &lt&div class=\"innerContent\" id=\"divpopupContent\"&gt& &lt&div class=\"activeField\"&gt& &lt&div id=\"acc20_ileinneredit\" class=\"inlineEditCompoundDiv\"&gt&";
+        var str5 = "&lt&img src=\"{!URLFOR($Resource.WaitIcon)}\" /&gt&";
+        var str6 = "&lt&div class=\"textCounterMiddle\"&gt& &lt&div class=\"textCounter\" id=\"acc20_counter\"&gt& &lt&/div&gt& &lt&/div&gt& &lt&/div&gt& &lt&/div&gt& &lt&div&gt& &lt&/div&gt& &lt&div style=\"display: none;\"&gt& &lt&/div&gt&";
+        var str7 = "&lt&/div&gt& &lt&/div&gt& &lt&div class=\"bottomRight\"&gt& &lt&div class=\"bottomLeft\"&gt& &lt&/div&gt& &lt&/div&gt&&lt&/div&gt&&lt&div style=\" ";
+        var str8 = "width: "+scWidth+"px;height:" + scHeight+"px; display: block;\" class=\"overlayBackground\" id='ho'&gt&&lt&/div&gt&";
+        
+        var sts = str1 + str2 + str3 + str4 + str5 + str6 + str7 + str8;
+        while(sts.indexOf("&lt&")>=0) {
+          sts=sts.replace("&lt&","<");
+          sts=sts.replace("&gt&",">");
+        }
+        document.getElementById('disableDiv').innerHTML = sts;
+    }
+        
+    function enableScreen() {
+      document.getElementById('disableDiv').innerHTML = "";
+    }
+  </script>
+  
+<div id='disableDiv'/>
+<apex:sectionHeader title="Department" subtitle="Opportunity:{!opp.Name}"/>
+<apex:form id="frm">
+    <apex:inputHidden value="{!PrimaryRowNumber}"  id="primaryId" />
+    <apex:actionFunction name="deleteRowJS" action="{!deleteRow}" rerender="pb" oncomplete="enableScreen();">
+      <apex:param value="" assignTo="{!delRowNumber}" name="del"/>
+    </apex:actionFunction>
+    <apex:actionFunction name="fillSubAreaJS" action="{!fillSubArea}" rerender="pb" oncomplete="enableScreen();">
+      <apex:param value="" assignTo="{!subAreaNumber}" name="subAreaNumber"/>
+      <apex:param value="" assignTo="{!PAID}" name="PAID"/>
+    </apex:actionFunction>
+    <apex:pageblock id="pb">
+        <apex:pageblockButtons >
+            <apex:commandButton value="Previous" action="{!Previous}" rendered="{!(CurrentStep=2)}"/>
+            <apex:commandButton value="Save" action="{!Save}" rendered="{!CurrentStep<>1}" onclick="disableScreen();"/>
+            <apex:commandButton value="Next" action="{!Save}" rendered="{!CurrentStep=1}"/>
+            <apex:commandButton value="cancel" action="{!Cancel}" rendered="{!showCancel}"/>
+            <!--
+            <apex:commandButton value="Update Opportunity" action="{!goBackToEditOpportunity}" disabled="{!disabledUpdateOpp}"/>
+            -->
+        </apex:pageblockButtons>
+        <font color="red"><b><apex:messages /></b></font>
+        <apex:pageBlockTable value="{!lstDept}" var="cur">
+           <apex:column rendered="{!(CurrentStep=1)}">
+              <apex:facet name="header">&nbsp;</apex:facet>
+              <apex:image value="{!$Resource.Delete_Image}" style="cursor:pointer" onclick="javascript: disableScreen();deleteRowJS({!cur.rowNumber});"/>
+            </apex:column>
+            <apex:column >
+                <apex:facet name="header">Department</apex:facet>
+                <apex:inputField value="{!cur.dept.AECOM_Department__c}" rendered="{!(CurrentStep=1)}"/>
+                <apex:OutPutField value="{!cur.dept.AECOM_Department__c}" rendered="{!(CurrentStep=2)}"/>
+            </apex:column>
+            <apex:column >
+                <apex:facet name="header">Primary</apex:facet>
+                <!--
+                <apex:outputField value="{!cur.dept.Primary__c}" rendered="{!(CurrentStep=2)}"/>
+                rendered="{!(CurrentStep=1)}"
+                -->
+                <apex:outputPanel >
+                <input type="radio" id="i{!cur.rowNumber}" name="masterContract"  value="{!cur.rowNumber}" onclick="document.getElementById('pg:frm:primaryId').value=this.value" />
+                <script>
+                    if({!if(PrimaryRowNumber = cur.RowNumber,true,false)})
+                    {
+                        document.getElementById("i{!cur.rowNumber}").checked='checked';
+                    }
+                </script>
+                </apex:outputPanel>
+                <!-- <apex:inputField value="{!cur.dept.Primary__c}"/>-->
+            </apex:column>
+            <apex:column >
+                <apex:facet name="header">Split %</apex:facet>
+                <apex:inputField value="{!cur.dept.split__c}" />
+                <!--
+                rendered="{!(CurrentStep=1)}"
+                <apex:outputField value="{!cur.dept.split__c}" rendered="{!(CurrentStep=2)}"/>
+                -->
+            </apex:column>
+            <apex:column rendered="{!(CurrentStep=2)}">
+                <apex:facet name="header">Business Line/SBU</apex:facet>
+                <apex:outputText value="{!cur.BusinessLine}"/>
+            </apex:column>
+            <apex:column rendered="{!(CurrentStep=2)}">
+                <apex:facet name="header">AECOM Work</apex:facet>
+                <!--<apex:inputField value="{!cur.dept.Practice_Area__c}"/>-->
+                
+                <apex:SelectList value="{!cur.dept.Practice_Area__c}" size="1" multiselect="false" onchange="javascript: disableScreen();fillSubAreaJS({!cur.rowNumber},this.value);">
+                  <apex:selectOptions value="{!cur.PracticeAreas}"/>
+                </apex:SelectList>
+                
+            </apex:column>
+            <apex:column rendered="{!(CurrentStep=2)}">
+                <apex:facet name="header">Sub Practice Area</apex:facet>
+                <!--<apex:inputField value="{!cur.dept.Sub_Practice_Area__c}"/>-->
+                <apex:SelectList value="{!cur.dept.Sub_Practice_Area__c}" size="1" multiselect="false" disabled="{!cur.isSubAreaDisabled}">
+                  <apex:selectOptions value="{!cur.SubPracticeAreas}"/>
+                </apex:SelectList>
+            </apex:column>
+        </apex:pageBlockTable>
+        <br/>
+        <apex:commandButton value="Add Row" action="{!addRow}" rendered="{!(CurrentStep=1)}"/>
+        <apex:pageBlockSection title="Opportunity Data"  rendered="{!(CurrentStep=2)}">
+            <apex:inputField value="{!opp.PCC_End_Market__c}"/>
+            <apex:inputField value="{!opp.PCC_Sub_Market__c}"/>
+             <!--<apex:inputField value="{!opp.PDD_General_Market_Sector__c}"/>-->
+             <apex:inputField value="{!opp.CM_Type__c}"/>
+            <apex:inputField value="{!opp.PDD_D_P_E_Primary_Global_Practice_Line__c}"/>
+            <apex:inputField value="{!opp.Project_Delivery_Method__c}"/>
+            <apex:inputField value="{!opp.Transportation_Initiatives__c}"/>
+            <apex:inputField value="{!opp.Services__c}"/>
+             <apex:inputField value="{!opp.Client_Service_Experience__c}"/>
+             <apex:inputField value="{!opp.Program_IDIQ_Type__c}"/>
+             <apex:inputField value="{!opp.Contingent_Liabilities__c}"/>
+             <apex:inputField value="{!opp.Total_Prime_Contract_Value__c}"/>
+
+        </apex:pageBlockSection> 
+    </apex:pageblock>
+</apex:form>
+</apex:page>

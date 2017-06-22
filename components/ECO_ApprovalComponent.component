@@ -1,0 +1,8 @@
+<apex:component controller="ECO_ApprovalCommentsController" access="global">
+<apex:attribute assignTo="{!objId}" name="ObjectId" type="String" description="Object Id"/>
+<apex:attribute assignTo="{!StepStatusMessage}" name="StepStatusMes" type="String" description="Object Id"/>
+
+{!StepStatusMessage} by: {!QuoteApprovalPerson}<br />
+Comment: {!QuoteApprovalComment}
+
+</apex:component>

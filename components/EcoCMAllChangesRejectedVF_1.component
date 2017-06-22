@@ -1,0 +1,41 @@
+<apex:component language="{!theLanguage}" controller="nttdcore.DLabelChildController" access="global" ><apex:attribute name="theLanguage" type="String" required="true" description="language" access="global" /><apex:attribute name="theRecipient" type="User" required="true" description="recipient" access="global" /><apex:attribute name="theRelatedTo" type="ChangeManager__c" required="true" description="related to" access="global" />
+    <apex:outputpanel >
+        <p><nttdcore:DLabel name="DL1" default="Your Change Request for Project" labelParent="{!this}" componentContext="EcoCMAllChangesRejectedVF_1" /><nttdcore:DLabel name="DL2" default="has been Rejected.  Comments pertaining to the rejection are as follows:" labelParent="{!this}" componentContext="EcoCMAllChangesRejectedVF_1" />
+        {!dlRoot.dLabel['DL1']} <b>{!theRelatedTo.ProjectLongName__c}</b> {!dlRoot.dLabel['DL2']}
+        <c:ECO_ApprovalRequestComments relatedtoid="{!theRelatedTo.id}" /></p><p><nttdcore:DLabel name="DL3" default="Please click on the links below for more detail." labelParent="{!this}" componentContext="EcoCMAllChangesRejectedVF_1" />
+        {!dlRoot.dLabel['DL3']}
+        </p><p>
+        <b><nttdcore:DLabel name="DL4" default="Impacted Changes:" labelParent="{!this}" componentContext="EcoCMAllChangesRejectedVF_1" />{!dlRoot.dLabel['DL4']}</b> 
+        </p><p>
+        <b><nttdcore:DLabel name="DL5" default="Task:" labelParent="{!this}" componentContext="EcoCMAllChangesRejectedVF_1" />{!dlRoot.dLabel['DL5']}</b> {!theRelatedTo.StringInt_Ext_Schedule__c}
+        <br/>
+        <b><nttdcore:DLabel name="DL6" default="Task Comments:" labelParent="{!this}" componentContext="EcoCMAllChangesRejectedVF_1" />{!dlRoot.dLabel['DL6']}</b> {!theRelatedTo.IntExtProjectTasksComments__c}
+        </p><p>
+        <b><nttdcore:DLabel name="DL7" default="Budget" labelParent="{!this}" componentContext="EcoCMAllChangesRejectedVF_1" />{!dlRoot.dLabel['DL7']}</b> {!theRelatedTo.StringInt_Ext_Budget_Change__c}
+        <br/>
+        <b><nttdcore:DLabel name="DL8" default="Budget Comments:" labelParent="{!this}" componentContext="EcoCMAllChangesRejectedVF_1" />{!dlRoot.dLabel['DL8']}</b> {!theRelatedTo.IntExtBudgetComments__c}
+        </p><p>
+        <b><nttdcore:DLabel name="DL9" default="Customers:" labelParent="{!this}" componentContext="EcoCMAllChangesRejectedVF_1" />{!dlRoot.dLabel['DL9']}</b> {!theRelatedTo.StringInt_Ext_Customers__c}
+        <br/>
+        <b><nttdcore:DLabel name="DL10" default="Customer Comments:" labelParent="{!this}" componentContext="EcoCMAllChangesRejectedVF_1" />{!dlRoot.dLabel['DL10']}</b> {!theRelatedTo.IntExtCustomersComments__c}
+        </p><p>
+        <b><nttdcore:DLabel name="DL11" default="Agreements:" labelParent="{!this}" componentContext="EcoCMAllChangesRejectedVF_1" />{!dlRoot.dLabel['DL11']}</b> {!theRelatedTo.StringInt_Ext_Contract_Management__c}
+        <br/>
+        <b><nttdcore:DLabel name="DL12" default="Agreement Comments:" labelParent="{!this}" componentContext="EcoCMAllChangesRejectedVF_1" />{!dlRoot.dLabel['DL12']}</b> {!theRelatedTo.IntExtContractManagementComments__c}
+        </p><p>
+        <b><nttdcore:DLabel name="DL13" default="Classifications:" labelParent="{!this}" componentContext="EcoCMAllChangesRejectedVF_1" />{!dlRoot.dLabel['DL13']}</b> {!theRelatedTo.StringIntExtClassifications__c}
+        <br/>
+        <b><nttdcore:DLabel name="DL14" default="Classification Comments:" labelParent="{!this}" componentContext="EcoCMAllChangesRejectedVF_1" />{!dlRoot.dLabel['DL14']}</b> {!theRelatedTo.IntExtClassificationsComments__c}
+        </p><p>
+        <b><nttdcore:DLabel name="DL15" default="Key Members:" labelParent="{!this}" componentContext="EcoCMAllChangesRejectedVF_1" />{!dlRoot.dLabel['DL15']}</b> {!theRelatedTo.StringInt_Ext_Key_Members__c}
+        <br/>
+        <b><nttdcore:DLabel name="DL16" default="Key Member Comments" labelParent="{!this}" componentContext="EcoCMAllChangesRejectedVF_1" />{!dlRoot.dLabel['DL16']}</b> {!theRelatedTo.IntExtKeyMembersComments__c}
+        
+        </p><p>
+        <!-- <a href = "{!ApprovalRequest.Internal_URL}" > Approval Link </a> -->
+        <c:ECO_ApprovalRequestURL relatedtoid="{!theRelatedTo.id}" />
+        <br/>
+        <a href="{!theRelatedTo.ProjectLink__c}" ><nttdcore:DLabel name="DL17" default="Project Link" labelParent="{!this}" componentContext="EcoCMAllChangesRejectedVF_1" /> {!dlRoot.dLabel['DL17']} </a>
+        </p>
+    </apex:outputpanel>
+<nttdcore:DLabelInit language="{!theLanguage}" labelParentInit="{!this}" /></apex:component>

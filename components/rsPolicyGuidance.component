@@ -1,0 +1,9 @@
+<apex:component id="rsPolicyGuidance">
+    <div class="policyGuidance">
+        <apex:outputLabel id="Policy_Guidance_Before" value="{!$Label.Policy_Guidance_Before}" />
+
+        <a target="_blank" class="profileUnderlined" href="{!$Setup.HR_Service_URL__c.Policy_Guidance_Link__c}">{!$Label.Policy_Guidance_Link} </a>
+
+        <apex:outputLabel id="Policy_Guidance_After" value="{!$Label.Policy_Guidance_After}" />
+    </div>
+</apex:component>

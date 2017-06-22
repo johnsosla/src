@@ -1,0 +1,555 @@
+<apex:component controller="INC_EnrollmentLetterController" allowDML="true" access="global">
+    <apex:attribute name="EP" description="EP ID." type="String" required="required" assignTo="{!epID}"/>
+  <apex:attribute name="PA" description="Participant Ack." type="ParticipantAcknowledgement__c" required="required" assignTo="{!oPA}"/>
+
+    <head>
+        <STYLE>
+            .page-break {
+                display:block; page-break-after:always;
+            }
+
+            th {font-size: 11px; font-face: arial;background: #CCCCCC; border-width: 1;  text-align: center; }
+            td  {font-size: 11px; font-face: verdana; }
+            table {border: solid #CCCCCC; border-width: 1;}
+            tr {border: solid #CCCCCC; border-width: 1;}
+            body {font-family: Arial Unicode MS;}
+        </STYLE>
+    </head>
+
+
+<body style="font-size: 12px; ">
+
+<img align="right" src="{!URLFOR($Resource.ECO_CustomGraphicAssets, 'AECOMLogo.jpg')}" height="25px" />
+
+<br/><br/>
+
+<apex:outputText value="{0, date, MMMM d',' yyyy}"><apex:param value="{!oCH.letterdate}" /></apex:outputText>
+<br />
+<apex:outputLabel value="{!$Label.DTWINCELTO}" escape="false"/>:   {!oEP.EmployeeName__r.name}
+<br />
+<apex:outputLabel value="{!$Label.DTWINCELFROM}" escape="false"/>:   {!oEP.EnrollmentPlan__r.Approver1__r.name}
+<br /><br />
+<apex:outputLabel value="{!$Label.DTWINCELDEAR}" escape="false"/> {!oEP.EmployeeName__r.firstname},
+<br />
+
+<apex:outputPanel rendered="{!oEP.EnrollmentPlan__r.IncentivePlan__r.ContractType__c  == 'Fixed Price'}">
+
+<apex:outputLabel value="{!$Label.DTWINCELCPE}" escape="false"/>
+<!--
+<P>
+    Project excellence is the foundation of AECOM’s success. Outstanding project execution is highly valued and central to our ability to deliver innovative solutions to our clients, to grow our business and to maintain our profitability.  
+</P>
+<P>
+We know that projects often command aggressive schedules, may take years to deliver, possess elevated client expectations, may have significant financial and operational risk profiles and may require flexibility by staff to work at project locations for extended periods. 
+</P>
+<P>
+To recognize project excellence and the effort it commands, the Deliver to Win Fixed Price Incentive Plan (the “Plan”) is designed to drive continued improvement in project delivery, including financial and operational results, and to reward strong team performance by sharing incremental profits with eligible plan participants.
+</P>
+-->
+<P>
+<apex:outputtext value="{!$Label.DTWINCELCAKT}" escape="false" />&nbsp;{!oEP.EnrollmentPlan__r.IncentiveProject__r.ProjectID__c} - {!oEP.EnrollmentPlan__r.IncentiveProject__r.name} {!$label.DTWINCELCPYH} 
+</P>
+<apex:outputlabel value="{!$Label.DTWINCELCTPPTA}" escape="false" />
+<!--
+<P>
+<B>About the Plan</B>
+</P>
+<P>
+The Plan provides the ability to recognize and financially reward key project employees for sustained and consistent excellence in project delivery. Plan participants are eligible for cash awards based on the achievement of project targets in profitability, safety, client satisfaction and cash collection.
+</P>
+
+-->
+<P>
+{!$Label.DTWINCELCTIPIG} {!oEP.EnrollmentPlan__r.IncentiveProject__r.ProjectID__c} - {!oEP.EnrollmentPlan__r.IncentiveProject__r.name} {!$Label.DTWINCELCAIPTBF} {!oEP.EnrollmentPlan__r.IncentivePlan__r.ContractSubType__c} {!$Label.DTWINCELCPERCENT} ({!oCH.gmnm}%) {!$Label.DTWINCELCMETTO}  {!oCH.gmnm}{!$Label.DTWINCELCTOS} {!oCH.gmnm}%) 
+</P>
+<P>{!$Label.DTWINCELCCCMO}&nbsp;<a href="{!$Label.DTWFixedPricePlanEmployeeGuideURL}">{!$Label.DTW17NPTHITHC8}</a> {!$Label.DTWINCEAFI}</P>
+<P>{!$Label.DTWINCELCCMA} {!oEP.EnrollmentPlan__r.IncentiveProject__r.ProjectID__c} - {!oEP.EnrollmentPlan__r.IncentiveProject__r.name} {!$Label.DTWINCELCPAS}  {!oCH.gmnm}{!$Label.DTWINCELCANDOR} {!oCH.gmnm}{!$Label.DTWINCELCITTAC}&nbsp;<a href="{!$Label.DTWFixedPricePlanEmployeeGuideURL}">{!$Label.DTW17NPTHITHC8}</a>.</P>
+
+<P>
+<table border="1" cellspacing="0" width="100%">
+<tr >
+   <th colspan="3" style="background: #CCCCCC;">{!oEP.EnrollmentPlan__r.IncentiveProject__r.ProjectID__c} - {!oEP.EnrollmentPlan__r.IncentiveProject__r.name}</th>
+   <th style="background: #CCCCCC;">{!oEP.CurrencyIsoCode}</th>
+</tr>
+  <tr>
+    <td>{!$label.DTWINCELCBaseline} {!oCH.gmnm}%</td>
+    <td><apex:outputText value="{0, number, 0.00%}"><apex:param value="{!oEP.EnrollmentPlan__r.BaselineGMofNSR__c/100}" /></apex:outputText></td>
+    <td>{!$Label.DTWINCELCBaseline} {!oCH.gmnm}$ ({!$Label.DTWINCELFORECASTNSRBASELINE} {!oCH.gmnm}%)</td>
+    <td><apex:outputText value="{0, number, ###,###,###,##0}"><apex:param value="{!oEP.EnrollmentPlan__r.BaselineGMofNSR__c/100*oEP.EnrollmentPlan__r.ForecastNSRBudget__c}" /></apex:outputText></td>
+  </tr>   
+  <tr>
+    <td>{!$Label.DTWINCELCThreshold} {!oCH.gmnm}%</td>
+    <td><apex:outputText value="{0, number, 0.00%}"><apex:param value="{!oEP.EnrollmentPlan__r.ThresholdGM__c/100}" /></apex:outputText></td>
+    <td>{!$Label.DTWINCELCThreshold} {!oCH.gmnm}$ ({!$Label.DTWINCELFORECASTNSRTHRESHOLD} {!oCH.gmnm}%)</td>
+    <td><apex:outputText value="{0, number, ###,###,###,##0}"><apex:param value="{!oEP.EnrollmentPlan__r.ThresholdGMatEAC__c}" /></apex:outputText></td>
+  </tr>         
+  <tr>
+    <td colspan="3">{!$Label.DTWINCELCPOIM}</td>
+    <td><apex:outputText value="{0, number, 0.00%}"><apex:param value="{!oEP.EnrollmentPlan__r.IncentivePlan__r.ProfitSharingPercent__c/100}" /></apex:outputText></td>
+  </tr>      
+  <tr>
+    <td colspan="3">{!$Label.DTWINCELCYIT}</td>
+    <td><apex:outputText value="{0, number, 0.00%}"><apex:param value="{!oEP.TargetIncentivePoolAllocated__c/100}" /></apex:outputText> {!$label.DTWINCELCOIP}</td>
+  </tr>     
+</table>
+</P>
+
+<div style="display:block; page-break-after:always;" />
+
+ 
+<B>{!$label.DTWINCPMAT}</B>
+<BR /><BR />
+
+<table border="1" cellspacing="0"  width="100%">
+ <tr >
+   <th style="background: #CCCCCC;">{!$label.DTWINCELCMetrics}</th>
+   <th style="background: #CCCCCC;">{!$label.DTWINCELCMeasurement}</th>
+   <th style="background: #CCCCCC;">{!$label.DTWINCELCTarget}</th>
+ </tr>
+ <tr >
+    <td colspan="3">{!$label.DTWINCELCFinancial}</td>
+ </tr> 
+  <tr>
+    <td>{!oEP.EnrollmentPlan__r.IncentivePlan__r.ContractSubType__c}%<span style="bottom: 3px; font-size: 8px; position: relative; top: -5px;">*</span></td>
+    <td>{!oCH.gmnm} {!$label.DTWINCELCATO}  {!oCH.gmnm}%</td>
+    <td>{!oCH.gmnm} {!$label.DTWINCELCGT} <apex:outputText value="{0, number, 0.00%}"><apex:param value="{!oEP.EnrollmentPlan__r.ThresholdGM__c/100}" /></apex:outputText></td>
+  </tr>     
+ <tr >
+    <td  colspan="3"> <apex:outputText value="{!$Label.DTWINCELCOperational}" escape="false"/></td>
+  </tr>     
+ <tr>
+    <td><apex:outputtext value="{!$Label.DTWINCELCSafety}" escape="false" /></td>
+    <td><apex:outputtext value="{!$Label.DTWINCELCSFL}" escape="false" /></td>
+    <td><apex:outputtext value="{!$Label.DTWINCELC8SOA}" escape="false" /></td>
+ </tr>
+ <tr>
+    <td><apex:outputtext value="{!$Label.DTWINCELCClientSatisfaction}" escape="false" /></td>
+    <td><apex:outputtext value="{!$Label.DTWINCELCCRTS}" escape="false"/></td>
+    <td><apex:outputtext value="{!$Label.DTWINCELCNPSO7}" escape="false"/></td>
+ </tr>
+ <tr>
+    <td><apex:outputtext value="{!$Label.DTWINCELCCashCollection}" escape="false" /></td>
+    <td><apex:outputtext value="{!$Label.DTWINCELCPSIS}" escape="false" /> </td>
+    <td>{!oEP.EnrollmentPlan__r.DSOTarget__c}&nbsp;<apex:outputtext value="{!$Label.DTWINCELCDAYS}" escape="false" /></td>
+ </tr>
+</table>
+ 
+<span style="bottom: 3px; font-size: 8px; position: relative; top: -5px;">*</span><span style="font-size: 10px;">{!oCH.gmnm} {!$label.DTWINCELCCA} ({!oEP.EnrollmentPlan__r.IncentivePlan__r.ContractSubType__c} / NSR)</span>
+<br /><br />
+
+<B><apex:outputtext value="{!$Label.DTWINCELCWYCE}" escape="false" /></B>
+<P>
+
+{!$label.DTWINCELCBATSP} {!oEP.EnrollmentPlan__r.IncentiveProject__r.ProjectID__c} - {!oEP.EnrollmentPlan__r.IncentiveProject__r.name} {!$label.DTWINCELCPAIES} <span style="bottom: 3px; font-size: 8px; position: relative; top: -5px;">(1)</span>{!$label.DTWINCELCAYPAI}
+
+</P>
+
+<table border="1" cellspacing="0"  width="100%">
+<tr >
+   <th style="background: #CCCCCC;">{!$label.DTWINCELCSIC}</th>
+   <!--<th style="background: #CCCCCC;">Scenario 1<br />{!$Label.DTWINCELCSB3G}<br />{!oEP.CurrencyIsoCode}</th>
+   <th style="background: #CCCCCC;">Scenario 2<br />{!$Label.DTWINCELCSB5G}<br />{!oEP.CurrencyIsoCode}</th>
+   <th style="background: #CCCCCC;">Scenario 3<br />{!$label.DTWINCELCAYPAI}<br />{!oEP.CurrencyIsoCode}</th> -->
+   <th style="background: #CCCCCC;"><apex:outputlabel value="{!$Label.DTWINCELCSB3G}" escape="false"/>{!oEP.CurrencyIsoCode}</th>
+   <th style="background: #CCCCCC;"><apex:outputlabel value="{!$Label.DTWINCELCSB5G}" escape="false"/>{!oEP.CurrencyIsoCode}</th>
+   <th style="background: #CCCCCC;"><apex:outputlabel value="{!$Label.DTWINCELCSMA}" escape="false"/>{!oEP.CurrencyIsoCode}</th>
+</tr>
+  <tr>
+    <td>{!$Label.DTWINCELCBaseline} {!oEP.EnrollmentPlan__r.IncentivePlan__r.ContractSubType__c}</td>
+    <td><apex:outputText value="{0, number, ###,###,###,##0}"><apex:param value="{!oEP.EnrollmentPlan__r.BaselineGMofNSR__c/100*oEP.EnrollmentPlan__r.ForecastNSRBudget__c}" /></apex:outputText></td>
+    <td><apex:outputText value="{0, number, ###,###,###,##0}"><apex:param value="{!oEP.EnrollmentPlan__r.BaselineGMofNSR__c/100*oEP.EnrollmentPlan__r.ForecastNSRBudget__c}" /></apex:outputText></td>
+    <td><apex:outputText value="{0, number, ###,###,###,##0}"><apex:param value="{!oEP.EnrollmentPlan__r.BaselineGMofNSR__c/100*oEP.EnrollmentPlan__r.ForecastNSRBudget__c}" /></apex:outputText></td>
+  </tr>  
+  <tr>
+    <td>{!$Label.DTWINCELCThreshold} {!oEP.EnrollmentPlan__r.IncentivePlan__r.ContractSubType__c}</td>
+    <td><apex:outputText value="{0, number, ###,###,###,##0}"><apex:param value="{!oEP.EnrollmentPlan__r.ThresholdGMatEAC__c}" /></apex:outputText></td>
+    <td><apex:outputText value="{0, number, ###,###,###,##0}"><apex:param value="{!oEP.EnrollmentPlan__r.ThresholdGMatEAC__c}" /></apex:outputText></td>
+    <td><apex:outputText value="{0, number, ###,###,###,##0}"><apex:param value="{!oEP.EnrollmentPlan__r.ThresholdGMatEAC__c}" /></apex:outputText></td>
+  </tr>  
+  <tr>
+    <td>{!$Label.DTWINCELCFinal} {!oEP.EnrollmentPlan__r.IncentivePlan__r.ContractSubType__c}</td>
+    <td><apex:outputText value="{0, number, ###,###,###,##0}"><apex:param value="{!oCH.fixedab}" /></apex:outputText></td>
+    <td><apex:outputText value="{0, number, ###,###,###,##0}"><apex:param value="{!oCH.fixedaf}" /></apex:outputText></td>
+    <td><apex:outputText value="{0, number, ###,###,###,##0}"><apex:param value="{!oCH.fixedao}" /></apex:outputText></td>
+  </tr>          
+  <tr>
+    <td>{!$Label.DTWINCELCIM} (Final {!oCH.gmnm} – baseline {!oCH.gmnm})</td>
+    <td><apex:outputText value="{0, number, ###,###,###,##0}"><apex:param value="{!oCH.fixedac}" /></apex:outputText></td>
+    <td><apex:outputText value="{0, number, ###,###,###,##0}"><apex:param value="{!oCH.fixedag}" /></apex:outputText></td>
+    <td><apex:outputText value="{0, number, ###,###,###,##0}"><apex:param value="{!oCH.fixedap}" /></apex:outputText></td>
+  </tr>    
+  <tr>
+    <td>{!$Label.DTWINCELCMOIM}</td>
+    <td><apex:outputText value="50%" /></td>
+    <td><apex:outputText value="50%" /></td>
+    <td><apex:outputText value="50%" /></td>
+  </tr>   
+  <tr>
+    <td>{!$Label.DTWINCELCPOPCR}</td>
+    <td><apex:outputText value="{0, number, 0.00%}"><apex:param value="{!oCH.fixedz}" /></apex:outputText></td>
+    <td><apex:outputText value="{0, number, 0.00%}"><apex:param value="{!oCH.fixedz}" /></apex:outputText></td>
+    <td><apex:outputText value="{0, number, 0.00%}"><apex:param value="{!oCH.fixedz}" /></apex:outputText></td>
+  </tr>    
+  <tr>
+    <td>{!$Label.DTWINCELCTIP}</td>
+    <td><apex:outputText value="{0, number, ###,###,###,##0}"><apex:param value="{!oCH.fixedad}" /></apex:outputText></td>
+    <td><apex:outputText value="{0, number, ###,###,###,##0}"><apex:param value="{!oCH.fixedah}" /></apex:outputText></td>
+    <td><apex:outputText value="{0, number, ###,###,###,##0}"><apex:param value="{!oCH.fixedai}" /></apex:outputText></td>
+  </tr> 
+  <tr>
+    <td>{!$Label.DTWINCELCYTA}<apex:outputText value="{0,number,0%}"><apex:param value="{!oEP.TargetIncentivePoolAllocated__c/100}" /></apex:outputText> {!$Label.DTWINCELCOFTIP}</td>
+    <td><apex:outputText value="{0, number, ###,###,###,##0}"><apex:param value="{!oCH.fixedak}" /></apex:outputText></td>
+    <td><apex:outputText value="{0, number, ###,###,###,##0}"><apex:param value="{!oCH.fixedal}" /></apex:outputText></td>
+    <td><apex:outputText value="{0, number, ###,###,###,##0}"><apex:param value="{!oCH.fixedam}" /></apex:outputText></td>
+  </tr>   
+</table>
+
+<P>{!$Label.DTWINCELCPNTYW}</P>
+<P>{!$Label.DTWINCELCRegards}</P>
+<P>{!oEP.EnrollmentPlan__r.Approver1__r.name}</P>
+
+<span style="bottom: 3px; font-size: 8px; position: relative; top: -5px;">(1)</span><span style="font-size: 10px;">{!$Label.DTWINCELCDIMBO}</span>
+ <!--br/><br/><br/><br/>
+<div style="display:block; page-break-after:always;" />
+<B>{!$label.DTWINCELCDTWIP}</B>
+<P>
+{!$label.DTWINCELCTDFPI}
+
+</P>
+
+<P>
+{!$label.DTWINCELCMIMB}&nbsp;<a href="{!$Label.DTWFixedPricePlanEmployeeGuideURL}">{!$Label.DTW17NPTHITHC8}</a>
+</P>
+
+
+<table border="1" cellspacing="0"  width="100%">
+<tr>
+    <td width ="150px">
+       <apex:outputText value="{!$Label.DTWINCELCSTEP1}" escape="false" /> 
+    </td>
+    <td>
+        <ul>
+         <apex:outputText value="{!$Label.DTWINCELCEPI}" escape="false" /-->
+        <!--<li>Eligible project identified
+            <ul>
+            <li>Currently, fixed price projects &gt;$500K NSR, and  &lt;85% of project costs complete or &gt;$75K backlog</li>
+            <li>Projects must meet data quality requirements</li>
+            </ul>
+        </li>   
+        <li>PM and key team members on the project are eligible</li>
+  -->
+        <!--/ul>
+    </td>
+</tr>
+<tr>
+    <td>
+     <apex:outputText value="{!$Label.DTWINCELCSTEP2}" escape="false" />
+    </td>
+    <td>
+        <ul>
+        <apex:outputText value="{!$Label.DTWINCELCFMFGM}" escape="false" /-->
+        <!--<li>Financial metric
+            <ul>
+                <li>Final gross margin* (%) greater than as-sold gross margin or current approved budget (baseline GM%) +2%</li>
+            </ul>
+        </li>
+        <li>Operational metrics</li>
+        <li>Safety  
+            <ul>
+                <li>80% score on Safety for Life metrics including Training, Participation, Planning, Observations &amp; Inspections, and Reporting criteria.  Zero violations of local regulatory requirements.</li>
+            </ul>
+        </li>
+        <li>Client Satisfaction 
+            <ul>
+                <li>Positive client feedback, based on survey feedback and/or determined by management</li>
+            </ul>
+        </li>
+        <li>Cash Collection 
+            <ul>
+                <li>Project-specific ITD DSO as determined by management</li>
+            </ul>
+        </li>
+        -->
+        <!--/ul>
+    </td>
+</tr>
+<tr>
+    <td>
+      <apex:outputText value="{!$Label.DTWINCELCSTEP3}" escape="false" />
+    </td>
+    <td>
+        <ul>
+         <apex:outputText value="{!$Label.DTWINCELCIFFGMISA}" escape="false" />
+        </ul>
+    </td>
+</tr>
+</table>
+<P>
+<table>
+<tr>
+
+<td><apex:outputText value="{!$Label.DTWINCELCFCBP}" escape="false" />
+</td>
+</tr>
+</table>
+</P-->
+</apex:outputPanel>
+<apex:outputPanel rendered="{!oEP.EnrollmentPlan__r.IncentivePlan__r.ContractType__c  == 'Time & Material'}">
+<apex:outputText value="{!$Label.DTWINCELCPEIT}" escape="false" />
+<!--<P>
+Project excellence is the foundation of AECOM’s success. Outstanding project execution is highly valued and central to our ability to deliver innovative solutions to our clients, to grow our business and to maintain our profitability.  
+</P>
+<P>
+We know that projects often command aggressive schedules, may take years to deliver, possess elevated client expectations, may have significant financial and operational risk profiles and may require flexibility by staff to work at project locations for extended periods. 
+</P>
+-->
+
+<P>
+<apex:outputText value="{!$Label.DTWINCELCTRPE}" escape="false" /> {!oEP.EnrollmentPlan__r.IncentiveProject__r.ProjectID__c} - {!oEP.EnrollmentPlan__r.IncentiveProject__r.name} &nbsp; <apex:outputText value="{!$Label.DTWINCELCPYHB}" escape="false" />
+</P>
+<apex:outputText value="{!$Label.DTWINCELCATAM}" escape="false" />
+<!--<B>About the T&amp;M Plan</B>
+<P>
+The T&amp;M Plan provides the ability to recognize and financially reward Project Managers and key team leaders for sustained excellence in project growth and delivery. Plan participants are eligible to earn awards based on the achievement of targets in margin growth, profitability, safety, client satisfaction and cash collection. 
+</P>
+---->
+<P>
+<apex:outputText value="{!$Label.DTWINCELCIGMT}" escape="false" /> {!oEP.EnrollmentPlan__r.IncentiveProject__r.ProjectID__c} - {!oEP.EnrollmentPlan__r.IncentiveProject__r.name} &nbsp;<apex:outputText value="{!$Label.DTWINCELCPUT}"/>&nbsp; {!oEP.EnrollmentPlan__r.IncentivePlan__r.ProfitSharingPercent__c}&nbsp;<apex:outputText value="{!$Label.DTWINCELCPOFIGMMB}" escape="false"/>
+</P>
+<P>
+
+<apex:outputText value="{!$Label.DTWINCELCFAIP}" escape="false"/> {!oEP.EnrollmentPlan__r.IncentivePlan__r.ContractSubType__c} <apex:outputText value="{!$Label.DTWINCELCTFPMM}" escape="false" /> {!oEP.EnrollmentPlan__r.IncentivePlan__r.ContractSubType__c}.&nbsp;<apex:outputText value="{!$Label.DTWINCELCTPMAM}" escape="false" /> {!oEP.EnrollmentPlan__r.IncentivePlan__r.ContractSubType__c}&nbsp;<apex:outputText value="{!$Label.DTWINCELCPERCENT}" escape="false"/> ({!oCH.gmnm}%)&nbsp;<apex:outputText value="{!$Label.DTWINELCAAMIS}" escape="false" />&nbsp;<a href="{!$Label.DTWTMPlanEmployeeGuideURL}">{!$Label.DTWTMPlanEmployeeGuide}</a>&nbsp;<apex:outputText value="{!$Label.DTWINCELCFFI}" escape="false" />
+</P>
+<P>
+<apex:outputText value="{!$Label.DTWINCELCCMAT}" escape="false" /> {!oEP.EnrollmentPlan__r.IncentiveProject__r.ProjectID__c} - {!oEP.EnrollmentPlan__r.IncentiveProject__r.name}&nbsp;<apex:outputText value="{!$Label.DTWINCELCPASITB}" escape="false" /> {!oCH.gmnm} &nbsp; <apex:outputText value="{!$Label.DTWINCELCAOR}" escape="false" /> {!oCH.gmnm}&nbsp;<apex:outputText value="{!$Label.DTWINCELCMDAI}" escape="false" />&nbsp;<a href="{!$Label.DTWTMPlanEmployeeGuideURL}">{!$Label.DTWTMPlanEmployeeGuide}</a>.
+
+</P>
+<!--done hec-->
+<B>{!$label.DTWINCELCAWARD}</B>
+<P>
+<table border="1" cellspacing="0" width="100%">
+<tr >
+   <th style="background: #CCCCCC;">{!oEP.EnrollmentPlan__r.IncentiveProject__r.ProjectID__c} - {!oEP.EnrollmentPlan__r.IncentiveProject__r.name}</th>
+   <th style="background: #CCCCCC;">{!oEP.CurrencyIsoCode}</th>
+</tr>
+  <tr>
+    <td>
+       {!$label.DTWINCELCPOIMSTA}
+    </td>
+    <td>
+        {!$label.DTWINCELCUPTO}<apex:outputText value="{0, number, 0.00%}"><apex:param value="{!oEP.EnrollmentPlan__r.IncentivePlan__r.ProfitSharingPercent__c/100}"/></apex:outputText>&nbsp;{!$Label.DTWINCELCOFINMOB}
+    </td>
+  </tr>   
+  <tr>
+    <td>
+        {!$Label.DTWINCELCYOUINCENTIVE}
+    </td>
+    <td>
+        <apex:outputText value="{0, number, 0.00%}"><apex:param value="{!oEP.TargetIncentivePoolAllocated__c/100}" /></apex:outputText> {!$label.DTWINCELCOFINCENTIVE}  </td>
+  </tr>          
+</table>
+</P>
+
+<div style="display:block; page-break-after:always;" />
+
+<B>{!$label.DTWINCELCPLANMETRICS}</B>
+<BR /><BR />
+
+<table border="1" cellspacing="0"  width="100%">
+ <tr >
+   <th style="background: #CCCCCC;">{!$label.DTWINCELCMetrics}</th>
+   <th style="background: #CCCCCC;">{!$label.DTWINCELCMeasurement}</th>
+   <th style="background: #CCCCCC;">{!$label.DTWINCELCTARGET} <br/> {!oEP.CurrencyIsoCode}</th>
+ </tr>
+ <tr >
+    <td colspan="3">{!$label.DTWINCELCFinancial}</td>
+ </tr> 
+  <tr>
+    <td>{!oEP.EnrollmentPlan__r.IncentivePlan__r.ContractSubType__c}</td>
+    <td>{!oCH.gmnm} {!$label.DTWINCELCABOVEBASELINE}</td>
+    <td><apex:outputText value="{0, number, ###,###,###,##0}"><apex:param value="{!oEP.EnrollmentPlan__r.BaselineGrossMargin__c}" /></apex:outputText></td>
+  </tr>     
+    <tr>
+    <td>{!oEP.EnrollmentPlan__r.IncentivePlan__r.ContractSubType__c}%</td>
+    <td>{!oCH.gmnm}{!$Label.DTWINCELCATORABOVE}</td>
+    <td><apex:outputText value="{0, number, 0.00%}"><apex:param value="{!oEP.EnrollmentPlan__r.BaselineGMofNSR__c/100}" /></apex:outputText></td>
+  </tr>    
+ <tr >
+    <td  colspan="3">{!$Label.DTWINCELCOperational}</td>
+  </tr>     
+ <tr>
+    <td>{!$Label.DTWINCELCSafety}</td>    
+    <td>{!$label.DTWINCELCSAFETYFORLIFE}</td>
+    <td>{!$Label.DTWINCELC8SOA}</td>
+ </tr>
+ <tr>
+    <td>{!$Label.DTWINCELCClientSatisfaction}</td>
+    <td>{!$Label.DTWINCELCCRTS}</td>   
+    <td>{!$Label.DTWINCELCNPSO7}</td>
+ </tr>
+ <tr>
+    <td>{!$Label.DTWINCELCCashCollection}</td>
+    <td>{!$label.DTWINCELCPSITD}</td>
+    <td>{!oEP.EnrollmentPlan__r.DSOTarget__c}&nbsp;<apex:outputtext value="{!$Label.DTWINCELCDAYS}" escape="false" /></td>
+ </tr>
+</table>
+
+<br /><br />
+
+<B>{!$Label.DTWINCELCWYCE}</B>
+<P>
+
+{!$label.DTWINCELCBATSP} {!oEP.EnrollmentPlan__r.IncentiveProject__r.ProjectID__c} - {!oEP.EnrollmentPlan__r.IncentiveProject__r.name} {!$label.DTWINCELCINEACH} <span style="bottom: 3px; font-size: 8px; position: relative; top: -5px;">(1)</span>{!$label.DTWINCELCANDYOURPERF}
+</P>
+
+<table border="1" cellspacing="0"  width="100%">
+<tr >
+   <th style="background: #CCCCCC;">{!$label.DTWINCELCSIC}</th>
+   <th style="background: #CCCCCC;">{!$label.DTWINCELCScenario1}<br />{!$label.DTWINELCB10G}<br />{!oEP.CurrencyIsoCode}</th>
+   <th style="background: #CCCCCC;">{!$label.DTWINCELCScenario2}<br />{!$label.DTWINELCB25G}<br />{!oEP.CurrencyIsoCode}</th>
+   <th style="background: #CCCCCC;">{!$label.DTWINCELCScenario3}<br />{!$label.DTWINELCB50G}<br />{!oEP.CurrencyIsoCode}</th>
+</tr>
+  <tr>
+    <td>{!$label.DTWINCELCBaseline} {!oEP.EnrollmentPlan__r.IncentivePlan__r.ContractSubType__c}</td>
+    <td><apex:outputText value="{0, number, ###,###,###,##0}"><apex:param value="{!oEP.EnrollmentPlan__r.BaselineGrossMargin__c}" /></apex:outputText></td>
+    <td><apex:outputText value="{0, number, ###,###,###,##0}"><apex:param value="{!oEP.EnrollmentPlan__r.BaselineGrossMargin__c}" /></apex:outputText></td>
+    <td><apex:outputText value="{0, number, ###,###,###,##0}"><apex:param value="{!oEP.EnrollmentPlan__r.BaselineGrossMargin__c}" /></apex:outputText></td>
+  </tr>  
+  <tr>
+    <td>{!$Label.DTWINCELCFinal}  {!oEP.EnrollmentPlan__r.IncentivePlan__r.ContractSubType__c}</td>
+    <td><apex:outputText value="{0, number, ###,###,###,##0}"><apex:param value="{!oCH.V}" /></apex:outputText></td>
+    <td><apex:outputText value="{0, number, ###,###,###,##0}"><apex:param value="{!oCH.Y}" /></apex:outputText></td>
+    <td><apex:outputText value="{0, number, ###,###,###,##0}"><apex:param value="{!oCH.AE}" /></apex:outputText></td>
+  </tr>          
+  <tr>
+    <td>{!$Label.DTWINCELCIFMBM}</td>
+    <td><apex:outputText value="{0, number, ###,###,###,##0}"><apex:param value="{!oCH.W}" /></apex:outputText></td>
+    <td><apex:outputText value="{0, number, ###,###,###,##0}"><apex:param value="{!oCH.Z}" /></apex:outputText></td>
+    <td><apex:outputText value="{0, number, ###,###,###,##0}"><apex:param value="{!oCH.AF}" /></apex:outputText></td>
+  </tr>    
+  <tr>
+    <td>{!$Label.DTWINCELCMOIM}</td>
+    <td><apex:outputText value="{0, number, 0.00%}"><apex:param value="{!oEP.EnrollmentPlan__r.IncentivePlan__r.ProfitSharingPercent__c/100}" /></apex:outputText></td>
+    <td><apex:outputText value="{0, number, 0.00%}"><apex:param value="{!oEP.EnrollmentPlan__r.IncentivePlan__r.ProfitSharingPercent__c/100}" /></apex:outputText></td>
+    <td><apex:outputText value="{0, number, 0.00%}"><apex:param value="{!oEP.EnrollmentPlan__r.IncentivePlan__r.ProfitSharingPercent__c/100}" /></apex:outputText></td>
+  </tr>   
+  <tr>
+    <td>{!$Label.DTWINCELCTIP}</td>
+    <td><apex:outputText value="{0, number, ###,###,###,##0}"><apex:param value="{!oCH.X}" /></apex:outputText></td>
+    <td><apex:outputText value="{0, number, ###,###,###,##0}"><apex:param value="{!oCH.AA}" /></apex:outputText></td>
+    <td><apex:outputText value="{0, number, ###,###,###,##0}"><apex:param value="{!oCH.AG}" /></apex:outputText></td>
+  </tr>    
+  <tr>
+    <td>{!$Label.DTWINCELCYTA}<apex:outputText value="{0,number,0%}"><apex:param value="{!oEP.TargetIncentivePoolAllocated__c/100}" /></apex:outputText> {!$Label.DTWINCELCOFTIP}</td>
+    <td><apex:outputText value="{0, number, ###,###,###,##0}"><apex:param value="{!oCH.AC}" /></apex:outputText></td>
+    <td><apex:outputText value="{0, number, ###,###,###,##0}"><apex:param value="{!oCH.AD}" /></apex:outputText></td>
+    <td><apex:outputText value="{0, number, ###,###,###,##0}"><apex:param value="{!oCH.AH}" /></apex:outputText></td>
+  </tr>   
+</table>
+
+<P>{!$Label.DTWINCELCPLANUNLESS}</P>
+<P>{!$Label.DTWINCELCRegards}</P>
+<P>{!oEP.EnrollmentPlan__r.Approver1__r.name}</P>
+
+<P>
+<span style="bottom: 3px; font-size: 8px; position: relative; top: -5px;">(1)</span><span style="font-size: 10px;"><apex:outputtext value="{!$Label.DTWINCELCDIMBO}" escape="false"/></span>
+</P>
+<!--br/><br/><br/><br/>
+<div style="display:block; page-break-after:always;" />
+
+<B><apex:outputtext value="{!$Label.DTWINCELCDELIVERTOWIN}" escape="false" /></B>
+<P>
+<apex:outputtext value="{!$Label.DTWINCELCINCENTIVEPLAN}" escape="false" />&nbsp;<a href="{!$Label.DTWTMPlanEmployeeGuideURL}">{!$Label.DTWTMPlanEmployeeGuide}</a>.
+</P>
+
+<table border="1" cellspacing="0"  width="100%">
+<tr>
+    <td width ="150px">
+         <apex:outputtext value="{!$Label.DTWINCELCSTEP1}" escape="false" /-->
+        <!--Step 1:<br/>
+        Eligible Project and Participants Identified
+        -->
+    <!--/td>
+    <td>             
+      <b><apex:outputtext value="{!$Label.DTWINCELCEligibleProjects}" escape="false" /> </b>
+      <ul>
+        <apex:outputtext value="{!$Label.DTWINCELCMMDQR}" escape="false" /-->
+        <!--  <li>&gt; USD $500K NSR</li>
+          <li>Must meet data quality requirements</li>-->
+      <!--/ul>
+      <b> <apex:outputtext value="{!$Label.DTWINCELCEligibleParticipants}" escape="false" /></b>
+      <ul>          
+        <li><apex:outputtext value="{!$Label.DTWINCELCPMKEY}" escape="false" /></li>
+      </ul>
+    </td>
+</tr>
+<tr>
+    <td>
+     <apex:outputtext value="{!$Label.DTWINCELCSTEP2}" escape="false" /-->
+       <!-- Step 2:<br/>
+        Targets for Plan Metrics Established
+        -->
+    <!--/td>
+    <td>   
+        <b><apex:outputtext value="{!$Label.DTWINCELCFinancialMetrics}" escape="false"/></b>
+        <ul>
+       <apex:outputtext value="{!$Label.DTWINCELCFINALGMM}" escape="false" /-->
+         <!--   <li>Final gross margin (GM) must be greater than baseline, or expected, GM for the project*</li>
+            <li>Baseline GM% must be maintained or improved*</li>-->
+        <!--/ul>
+        <apex:outputtext value="{!$Label.DTWINCELCOPERATIONALM}" escape="false"/-->
+       <!-- <b>Operational Metrics</b>
+        <ul>
+            <li><b>Safety</b>
+                <ul>
+                    <li>80% score on Safety for Life metrics, including Training, Participation, Planning, Observations &amp; Inspections, and Reporting criteria – Zero violations of local regulatory requirements</li>
+                </ul>
+            </li>
+            <li><b>Client Satisfaction</b>
+                <ul>
+                    <li>Positive client feedback, based on survey feedback and/or determined by management</li>
+                </ul>
+            </li>
+            <li><b>Cash Collection</b>
+                <ul>
+                    <li>Project specific ITD DSO as determined by management</li>
+                </ul>
+            </li>
+        </ul>
+        -->
+    <!--/td>
+</tr>
+<tr>
+    <td>
+     <apex:outputtext value="{!$Label.DTWINCELCSTEP3}" escape="false"/-->
+       <!-- Step 3:<br/>
+        Awards Paid Following Project Close -->
+    <!--/td>
+    <td>
+        <P><apex:outputtext value="{!$Label.DTWINCELCAOMA}" escape="false"/></P>
+        <P><apex:outputtext value="{!$Label.DTWINCELCprofitsharing}" escape="false"/> </P>
+    <B><apex:outputtext value="{!$Label.DTWINCELCExample}" escape="false"/></B>
+    <ul>       
+        <li><apex:outputtext value="{!$Label.DTWINCELC2MMGM}" escape="false"/></li>
+        <li><apex:outputtext value="{!$Label.DTWINCELCBUDGETED}" escape="false"/></li>
+        <li><apex:outputtext value="{!$Label.DTWINCELCBGM}" escape="false"/></li>
+        <li><apex:outputtext value="{!$Label.DTWINCELCFGM}" escape="false"/></li>
+        <li><apex:outputtext value="{!$Label.DTWINCELCALLOMAC}" escape="false"/></li>
+        <li><apex:outputtext value="{!$Label.DTWINCELCFIP}" escape="false"/></li>
+        <li><apex:outputtext value="{!$Label.DTWINCELCMAXPOOL}" escape="false"/></li>
+    </ul>
+
+    </td>
+</tr>
+</table>
+
+<P>
+<table>
+  <tr>
+    <td><apex:outputtext value="{!$Label.DTWINCELCTFMW}" escape="false" /></td>
+  </tr>
+</table>
+</P-->
+</apex:outputPanel>
+</body>
+</apex:component>

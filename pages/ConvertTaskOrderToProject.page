@@ -1,0 +1,121 @@
+<apex:page extensions="ConvertTaskOrderToProjectController" StandardController="Opportunity" 
+    title="{!headerString}" tabstyle="Opportunity" id="pg">
+    <script>
+    function confirmNext(){
+        var noneCheck = true;
+        var inputs = document.getElementById('pg:frm:optionBlock:optionBlockSection:options').getElementsByTagName('input');
+//        alert("Radio buttons length"+inputs.length);
+        for(var i=0; i<inputs.length; i++){
+            if(inputs[i].getAttribute('type')=='radio' && inputs[i].checked){
+               noneCheck = false;
+               if(inputs[i].getAttribute('value')=="sameAccount")
+                gotoStep2();
+               else
+                gotoSearchAccount();
+               break;
+            }
+        }
+        if(noneCheck)
+            alert("Please Select any Option");
+    }
+  
+</script>
+    <apex:form id="frm">
+        <apex:actionFunction name="gotoStep2" action="{!gotoStep2}"
+            rerender="optionBlock" status="status">
+        </apex:actionFunction>
+
+        <apex:actionFunction name="gotoSearchAccount"
+            action="{!gotoSearchAccount}" rerender="optionBlock" status="status">
+        </apex:actionFunction>
+    
+    <apex:sectionHeader title="{!Opportunity.Name}" subtitle="{!headerString}" />
+        <apex:pageblock id="optionBlock">
+        <!-- 
+            <apex:actionStatus startStyle="color:Red;" startText="Processing..."
+                id="status">
+                <apex:facet name="stop"> 
+                    <div></div>
+                </apex:facet>
+                <apex:facet name="start">
+                    <div style="color: Red;">Processing...</div>
+                </apex:facet>
+            </apex:actionStatus>
+-->
+
+            <apex:outputPanel rendered="{!step1}">
+                <apex:pageblockSection id="optionBlockSection" title="{!sectionString}">
+                    <apex:selectRadio id="options" layout="pageDirection"
+                        value="{!selectedOption}">
+                        <apex:selectoptions value="{!options}" />
+                    </apex:selectRadio>
+                </apex:pageblockSection>
+
+                <apex:pageBlockSection >
+                
+                    <apex:commandButton value="Continue"
+                        onclick="confirmNext();return false;" />&nbsp;
+                         <apex:actionstatus id="status">
+                       <apex:facet name="start">
+                         <apex:outputPanel layout="inline">
+                           <img src="/img/loading.gif" /> Processing...
+                         </apex:outputPanel>
+                       </apex:facet>
+                     </apex:actionstatus>
+                </apex:pageBlockSection>
+            </apex:outputPanel>
+
+            <apex:outputPanel rendered="{!step2}">
+                You are about to convert a {!convertString} associated to the Same Account.<br /> 
+                Are you sure you would like to do this? If Yes, Click Save, If No, click Cancel.<br />
+                <br />
+                <apex:commandButton value="Save" action="{!saveAccount}"
+                    status="status" />
+                <apex:commandButton value="Cancel" action="{!gotoCancel}" />
+            </apex:outputPanel>
+            <apex:outputPanel rendered="{!searchAccount}">
+                
+            <apex:pageBlock title="Search">
+                <apex:outputLabel >
+                    <h1>Account Name &nbsp;</h1>
+                </apex:outputLabel>
+                <apex:inputText value="{!accountName}" title="Account Name" />
+                <apex:commandButton title="Search" value="Search"
+                    action="{!searchAccounts}" />
+                      <apex:commandButton value="Cancel" action="{!gotoCancel}"/>
+            </apex:pageBlock>
+
+                <apex:pageBlock title="Search Results" id="pb">
+                <apex:pageblockbuttons >
+                <apex:commandButton value="Save" action="{!saveAccount}"
+                        rendered="{!NOT(ISNULL(accountList))}" /> &nbsp;&nbsp; 
+                        <apex:commandButton value="Cancel" action="{!gotoCancel}"
+                        rendered="{!NOT(ISNULL(accountList))}" />
+                </apex:pageblockbuttons>
+                    <apex:messages />
+
+
+                    <apex:inputHidden value="{!selectedAccountID}" id="selectedAccount" />
+                    <apex:outputPanel rendered="{!ShowMoreThen100}" style="color:red">
+                          *Your Search Results contain more than 100 records. Please enter more characters in your Keyword search
+                      </apex:outputPanel>
+                    <apex:pageBlockTable rules="All" value="{!accountList}" border="2"
+                        var="account" rendered="{!NOT(ISNULL(accountList))}">
+                        <apex:column headerValue="Select">
+                            <input type="radio" name="Account" value="{!account.id}"
+                                onclick="document.getElementById('pg:frm:optionBlock:pb:selectedAccount').value=this.value" />
+                        </apex:column>
+                        <apex:column value="{!account.Name}" />
+                        <apex:column value="{!account.City__c}" />
+                        <apex:column value="{!account.Street__c}" />
+                        <!--<apex:column value="{!account.Owner.Alias}"/>-->
+
+                        <apex:column value="{!account.Type__c}" />
+                        
+                    </apex:pageBlockTable>
+                    
+                </apex:pageBlock>
+            </apex:outputPanel>
+        </apex:pageblock>
+    </apex:form>
+</apex:page>

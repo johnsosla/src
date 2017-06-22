@@ -1,0 +1,211 @@
+<apex:component controller="rsProfileReviewComponentController" allowDML="true">
+    <apex:attribute name="ProfileIdsList" assignTo="{!ProfileIds}" description="" type="Id[]" required="true"/>
+    <apex:attribute name="ProjectIdsList" assignTo="{!ProjectIds}" description="" type="Id[]" required="true"/>
+    <apex:attribute name="profileViewType" assignTo="{!ViewType}" description="" type="String" required="true"/>
+    <apex:attribute name="SortingDirection" assignTo="{!sortDir}" description="Either ascending or descending" type="String" required="true"/>
+    <apex:attribute name="SortingValue" assignTo="{!sortVal}" description="The value that we are sorting by" type="String" required="true"/>
+    <apex:attribute name="ProjectWhereClause" assignTo="{!projWhere}" description="Additional where clause needed for approvals" type="String" required="true"/>
+    <apex:attribute name="PartWhereClause" assignTo="{!partWhere}" description="Addtional where clause needed for approvals" type="String" />
+    <apex:form id="profileForm">
+        <apex:actionFunction action="{!resetCounter}" name="resetCounter" reRender="results"/>
+        <apex:outputPanel layout="none" rendered="{!ProfileIds.size>0 || ProjectIds.size>0}" >
+            <table width="100%">
+                <apex:repeat value="{!viewResults}" var="currUser">
+                    <tr>
+                        <td colspan="2">
+                            <apex:commandLink value="{!currUser.Obj.Name}" action="{!viewProfile}" style="font-size:1.2em;font-weight:bold;" target="_blank">
+                                <apex:param value="{!currUser.Obj.Id}" name="userId"/>
+                            </apex:commandLink>
+
+                            <apex:commandLink value="({!$Label.Approve_All_Changes})" action="{!updatePartsStatus}" style="font-size:0.9em;padding-left:10px;" rendered="{!showActions && currUser.Obj.Is_Profile_Locked__c}">
+                                <apex:param value="{!currUser.Obj.Id}" name="userId"/>
+                                <apex:param value="approve" name="actionType"/>
+                            </apex:commandLink>
+
+                            <apex:commandLink value="{!$Label.Start_Review}" action="{!updatePartsStatus}" style="font-size:0.9em;padding-left:10px;" rendered="{!!currUser.Obj.Is_Profile_Locked__c && showActions}">
+                                <apex:param value="{!currUser.Obj.Id}" name="userId"/>
+                                <apex:param value="startReview" name="actionType"/>
+                            </apex:commandLink>
+
+                            <apex:commandLink value="{!$Label.Stop_Review}" action="{!updatePartsStatus}" style="font-size:0.9em;padding-left:10px;" rendered="{!currUser.Obj.Is_Profile_Locked__c && showActions}">
+                                <apex:param value="{!currUser.Obj.Id}" name="userId"/>
+                                <apex:param value="stopReview" name="actionType"/>
+                            </apex:commandLink>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" width="100%">
+                            <table width="100%">
+                                <tr>
+                                    <td width="16%">
+                                        <apex:outputLabel for="geo" value="{!$ObjectType['User'].fields['Geography__c'].Label}: " />
+                                        <apex:outputField id="geo" value="{!currUser.Obj.Geography__c}" />
+                                    </td>
+                                    <td width="16%">
+                                        <apex:outputLabel for="manager" value="{!$Label.Manager}: " />
+                                        <apex:outputField id="manager" value="{!currUser.Obj.Manager.Name}" />
+                                    </td>
+                                    <td width="16%">
+                                        <apex:outputLabel for="region" value="{!$ObjectType['User'].fields['Region__c'].Label}: " />
+                                        <apex:outputField id="region" value="{!currUser.Obj.Region__c}" />
+                                    </td>
+                                    <td width="16%">
+                                        <apex:outputLabel for="country" value="{!$ObjectType['User'].fields['Country'].Label}: " />
+                                        <apex:outputField id="country" value="{!currUser.Obj.Country}" />
+                                    </td>
+                                    <td width="16%">
+                                        <apex:outputLabel for="office" value="{!$ObjectType['User'].fields['Office__c'].Label}: " />
+                                        <apex:outputField id="office" value="{!currUser.Obj.Office__c}" />
+                                    </td>
+                                    <td width="16%">
+                                        <apex:outputLabel for="businessLine" value="{!$ObjectType['User'].fields['Business_Line__c'].Label}: " />
+                                        <apex:outputField id="businessLine" value="{!currUser.Obj.Business_Line__c}" />
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <tr><td></td></tr>
+                    <apex:outputPanel layout="none" rendered="{!showCurrentAssignee}">
+                    <tr>
+                        <td colspan="2">
+                            <apex:outputLabel for="currAssignee" value="{!$Label.Current_Assignee}: " />
+                            <apex:outputField id="currAssignee" value="{!currUser.Obj.Profile_Reviewer__c}"  />
+                        </td>
+                    </tr>
+                    </apex:outputPanel>
+                    <tr>
+                        <apex:outputPanel layout="none" rendered="{!showAssignAction && !currUser.Obj.Is_Profile_Locked__c}" >
+                            <td>
+                                <apex:commandLink value="{!IF(isReassign,$Label.Reassign,$Label.Assign)}" action="{!assign}" >
+                                    <apex:param value="{!currUser.Obj.Id}" name="userId"/>
+                                </apex:commandLink>
+                            </td>
+                        </apex:outputPanel>
+                    </tr>
+                    <apex:outputPanel layout="none" rendered="{!showAssignToMe}" >
+                        <tr>
+                            <td>
+                                <apex:actionStatus id="assignToMeActionStatus">
+                                    <apex:facet name="start">
+                                        <apex:image value="/img/loading.gif"/>
+                                    </apex:facet>
+                                    <apex:facet name="stop">
+                                        <apex:commandLink value="{!$Label.Assign_To_Me}" action="{!assignToMe}" status="assignToMeActionStatus" reRender="results" onclick="if (inProgress) return false; inProgress = true;" oncomplete="resetProgress();">
+                                            <apex:param value="{!currUser.Obj.Id}" name="userId"/>
+                                        </apex:commandLink>
+                                    </apex:facet>
+                                </apex:actionStatus>
+                            </td>
+                        </tr>
+                    </apex:outputPanel>
+                    <tr>
+                        <td width="10%"></td>
+                        <td>
+                            <table width="100%">
+                                <thead>
+                                    <tr>
+                                    <apex:outputPanel layout="none" rendered="{!showActions && currUser.Obj.Is_Profile_Locked__c}" >
+                                        <th>{!$Label.Action}</th>
+                                    </apex:outputPanel>
+                                        <th>{!$Label.Review_Type}</th>
+                                        <apex:outputPanel layout="none" rendered="{!showStatus}">
+                                            <th>{!$ObjectType['rs_Profile_Part__c'].fields['Status__c'].Label}</th>
+                                        </apex:outputPanel>
+                                        <th>{!$Label.Date_Time_Received}</th>
+                                        <th>{!$Label.Last_Modified_By}</th>
+                                    </tr>
+                                </thead>
+                                <apex:repeat value="{!UserProfilePartMap[currUser.Obj]}" var="part" >
+                                    <tr>
+                                    <apex:outputPanel layout="none" rendered="{!showActions && currUser.Obj.Is_Profile_Locked__c}" >
+                                        <td>
+                                            <apex:actionStatus id="profilePartActionStatus">
+                                                <apex:facet name="start">
+                                                    <apex:image value="/img/loading.gif"/>
+                                                </apex:facet>
+                                                <apex:facet name="stop">
+                                                    <apex:commandLink value="{!$Label.Approve_Item}" action="{!approvePart}" status="profilePartActionStatus" reRender="results" onclick="if (inProgress) return false; inProgress = true;" oncomplete="resetProgress();">
+                                                        <apex:param value="{!currUser.Obj.Id}" name="userId"/>
+                                                        <apex:param value="{!part.Id}" name="partId"/>
+                                                    </apex:commandLink>
+                                                </apex:facet>
+                                            </apex:actionStatus>
+                                        </td>
+                                    </apex:outputPanel>
+                                        <td width="20%">
+                                            <apex:commandLink action="{!navToPart}" target="_blank" value="{!profileRTMap[part.RecordTypeId]}" >
+                                                <apex:param value="{!currUser.Obj.Id}" name="userId"/>
+                                                <apex:param value="{!part.Id}" name="partId"/>
+                                                <apex:param value="{!profileRTMap[part.RecordTypeId]}" name="recordTypeName"/>
+                                            </apex:commandLink>
+                                        </td>
+                                    <apex:outputPanel layout="none" rendered="{!showStatus}">
+                                        <td width="20%">
+                                            <apex:outputField label="" value="{!part.Status__c}" />
+                                        </td>
+                                    </apex:outputPanel>
+                                        <td>
+                                            <apex:outputField label="" value="{!part.Date_Time_Sent_for_Review__c}" />
+                                        </td>
+                                        <td>
+                                            <apex:outputField label="" value="{!part.LastModifiedById}" />
+                                        </td>
+                                    </tr>
+                                </apex:repeat>
+                                <apex:repeat value="{!UserProjectMap[currUser.Obj]}" var="project" >
+                                    <tr>
+                                    <apex:outputPanel layout="none" rendered="{!showActions && currUser.Obj.Is_Profile_Locked__c}" >
+                                        <td>
+                                            <apex:actionStatus id="projectActionStatus">
+                                                <apex:facet name="start">
+                                                    <apex:image value="/img/loading.gif"/>
+                                                </apex:facet>
+                                                <apex:facet name="stop">
+                                                    <apex:commandLink value="{!$Label.Approve_Item}" action="{!approvePart}" status="projectActionStatus" reRender="results" onclick="if (inProgress) return false; inProgress = true;" oncomplete="resetProgress();">
+                                                        <apex:param value="{!currUser.Obj.Id}" name="userId"/>
+                                                        <apex:param value="{!project.Id}" name="partId"/>
+                                                    </apex:commandLink>
+                                                </apex:facet>
+                                            </apex:actionStatus>
+                                        </td>
+                                    </apex:outputPanel>
+                                        <td width="20%">
+                                            <apex:commandLink action="{!navToPart}" target="_blank" value="{!profileRTMap[project.RecordTypeId]}" >
+                                                <apex:param value="{!currUser.Obj.Id}" name="userId"/>
+                                                <apex:param value="{!project.Id}" name="partId"/>
+                                                <apex:param value="{!profileRTMap[project.RecordTypeId]}" name="recordTypeName"/>
+                                            </apex:commandLink>
+                                        </td>
+                                    <apex:outputPanel layout="none" rendered="{!showStatus}">
+                                        <td width="20%">
+                                            <apex:outputText label="" value="{!project.Status}" />
+                                        </td>
+                                    </apex:outputPanel>
+                                        <td>
+                                            <apex:outputField label="" value="{!project.Obj.Date_Time_Sent_For_Review__c}" />
+                                        </td>
+                                        <td>
+                                            <apex:outputField label="" value="{!project.Obj.LastModifiedById}" />
+                                        </td>
+                                    </tr>
+                                </apex:repeat>
+                            </table>
+                        </td>
+                    </tr>
+                </apex:repeat>
+            </table>
+            <div style="float: left;">{!$Label.Showing_Page} {!PageNumber} {!$Label.Of} {!TotalPages}</div><div style="float: right;">{!$Label.Showing_Results} {!FromResult} - {!ToResult} {!$Label.Of} {!TotalSearchResults}</div>
+            <div align="center">
+                <apex:commandButton action="{!Beginning}" title="Beginning" value="<<" disabled="{!disabledPrevious}" reRender="profileForm"/>
+                <apex:commandButton action="{!Previous}" title="Previous" value="<" disabled="{!disabledPrevious}" reRender="profileForm"/>
+                <apex:commandButton action="{!Next}" title="Next" value=">" disabled="{!disabledNext}" reRender="profileForm"/>
+                <apex:commandButton action="{!End}" title="End" value=">>" disabled="{!disabledNext}" reRender="profileForm"/>
+            </div>
+        </apex:outputPanel>
+    </apex:form>
+
+    <apex:outputPanel layout="none" rendered="{!ProfileIds.size<1 && ProjectIds.size<1}">
+        <apex:outputText value="{!$Label.No_Records_To_Display}" />
+    </apex:outputPanel>
+</apex:component>

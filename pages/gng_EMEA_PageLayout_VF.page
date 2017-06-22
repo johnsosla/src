@@ -1,0 +1,517 @@
+<apex:page showHeader="false" sidebar="false" standardController="Go_No_Go_Conversation__c" extensions="gng_EMEA_PageLayout_Controller">
+<apex:includeScript value="{!$Resource.jQueryMin}"></apex:includeScript>
+<style type="text/css">
+    .questionCell1 { width: 75%; padding-right: 5px; }
+    .questionCell2 { width: 20%; padding-right: 5px; float: right; }
+    .questionNotes { width: 95% }
+    .questionTitle { vertical-align: top; width: 5%; }
+    table { width: 100%; }
+</style>
+<script type="text/javascript">
+    var $ = jQuery.noConflict();
+    $(document).ready(function() {
+        setupCheckBoxes();
+    });
+    // Function to setup checkboxes, if none are checked TextB is shown else TextA
+    function setupCheckBoxes() {
+        checkRisk();
+        $('input:checkbox').on("click",function() {
+            checkRisk();
+        });
+        function checkRisk() {
+            if($('input:checkbox:checked').length || $('.checkImg[src="/img/checkbox_checked.gif"]').length) {
+                $('#textA,#approvalHighSection').show();
+                $('#textB').hide();
+            } else {
+                $('#textA,#approvalHighSection').hide();
+                $('#textB').show();
+            }
+        }
+    }
+
+    function checkComments() {
+        var alertString = 'Comments have not been filled out in Sections: ';
+        var commentNotFilled = false;
+        $('#aSection').find('input[type="checkbox"]').each(function() {
+            if($(this).prop('checked') && !$('[id$="aComments"]').val().length && alertString.indexOf('A, ') == -1) {
+                alertString += 'A, ';
+                commentNotFilled = true;
+            }
+            console.log(alertString);
+        });
+        $('#bSection').find('input[type="checkbox"]').each(function() {
+            if($(this).prop('checked') && !$('[id$="bComments"]').val().length && alertString.indexOf('B, ') == -1) {
+                alertString += 'B, ';
+                commentNotFilled = true;
+            }
+            console.log(alertString);
+        });
+        $('#cSection').find('input[type="checkbox"]').each(function() {
+            if($(this).prop('checked') && !$('[id$="cComments"]').val().length && alertString.indexOf('C, ') == -1) {
+                alertString += 'C, ';
+                commentNotFilled = true;
+            }
+            console.log(alertString);
+        });
+        $('#dSection').find('input[type="checkbox"]').each(function() {
+            if($(this).prop('checked') && !$('[id$="dComments"]').val().length && alertString.indexOf('D, ') == -1) {
+                alertString += 'D, ';
+                commentNotFilled = true;
+            }
+            console.log(alertString);
+        });
+        $('#eSection').find('input[type="checkbox"]').each(function() {
+            if($(this).prop('checked') && !$('[id$="eComments"]').val().length && alertString.indexOf('E') == -1) {
+                alertString += 'E';
+                commentNotFilled = true;
+            }
+            console.log(alertString);
+        });
+        if(commentNotFilled) {
+            if(alertString.lastIndexOf(',') == (alertString.length - 2)) alertString = alertString.substring(0,(alertString.length-2));
+            alert(alertString);
+            return false;
+        } else {
+            return true;
+        }
+    }
+</script> 
+<apex:form id="formId">
+    <apex:pageMessages id="error" escape="false"/>
+    <br/>
+    <div align="center" draggable="false" >
+        <apex:commandButton value="Edit" rendered="{!!isEdit}" action="{!editMode}" oncomplete="setupCheckBoxes();" reRender="formId"/>
+        <apex:commandButton value="Save" rendered="{!isEdit}" action="{!saveGNG}" onclick="if(!checkComments()) return false;" oncomplete="setupCheckBoxes();" reRender="formId"/>
+    </div>
+    <br/>
+    <span>Complete assessments A to E below identifying current uncertainties using the tick boxes and comments area.</span>
+    <br/><br/>
+    <h4>A - Contract / Risk Assessment</h4>
+    <br/><br/>
+    <h5>Guidance Links</h5>
+    <br/><br/>
+    <div>
+        <table>
+            <tr>
+                <td>
+                    Contract Guidance
+                </td>
+                <td>
+                    <a target="_blank" href="http://my.aecomnet.com/Intranet/About/Technical+Excellence/IMS/PDS/1+Proposal/2+Go+-+No+Go">Middle East</a>
+                </td>
+                <td>
+                    <a target="_blank" href="http://my.aecomnet.com/Intranet/Geographies/Europe/Functions/Legal/Contracts/UK+and+Ireland">UK/IRE</a>
+                </td>
+                <td>
+                    <a target="_blank" href="http://my.aecomnet.com/Intranet/Geographies/Europe/Functions/Legal/Contracts/Continental+Europe+and+CIS">CE</a>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    Commercial Guidance
+                </td>
+                <td>
+                    <a target="_blank" href="http://myaecomeurope.eu.aecomnet.com/overrides/a/GNG/Middle East/__.asp">Middle East</a>
+                </td>
+                <td>
+                    <a target="_blank" href="http://myaecomeurope.eu.aecomnet.com/overrides/a/GNG/CE/__.asp">UK/IRE/CE</a>
+                </td>
+                <td>
+                    <a target="_blank" href="http://myaecomeurope.eu.aecomnet.com/overrides/a/GNG/Africa/__.asp">Africa</a>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    Delegation of Authority (DOA)
+                </td>
+                <td>
+                    <a target="_blank" href="http://my.aecomnet.com/deployedfiles/Intranet/About/About AECOM/Documents/Delegation of Authority_July 2012_12.pdf">English</a>
+                </td>
+                <td colspan="2">
+                    <a target="_blank" href="http://my.aecomnet.com/Intranet/About/AECOM+Policies/_Corporate+Policies+&+Procedures/DOA">Translations</a>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    Sub DOA
+                </td>
+                <td>
+                    <a target="_blank" href="http://my.aecomnet.com/Intranet/Geographies/Middle+East/Functions/Quality,+Delivery+and+Risk/Delegation+of+Authority">Middle East</a>
+                </td>
+                <td>
+                    <a target="_blank" href="http://my.aecomnet.com/deployedfiles/Intranet/Geographies/Europe/Functions/Legal/europe_sub_doa.pdf">Europe</a>
+                </td>
+                <td>
+                    <a target="_blank" href="http://my.aecomnet.com/deployedfiles/Intranet/Geographies/Europe/Functions/Legal/europe_sub_doa_approvals_matrix.pdf">Matrix</a>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <br/>
+    <div id="aSection"> 
+        <table>
+            <tr>
+                <td class="questionTitle" >
+                    A.1
+                </td>
+                <td class="questionCell1">
+                    Performance Obligations in excess of normal standards / industry standards of care not covered by standard PI particularly Fitness for Purpose Guarantees
+                </td>
+                <td class="questionCell2">
+                    <apex:inputCheckbox value="{!GNG.Contract_Assessment_Question_A1__c}" rendered="{!isEdit}"></apex:inputCheckbox>
+                    <apex:outputField value="{!GNG.Contract_Assessment_Question_A1__c}" rendered="{!!isEdit}"></apex:outputField>
+                </td>
+            </tr>
+            <tr>
+                <td class="questionTitle" >
+                    A.2
+                </td>
+                <td class="questionCell1">
+                    Other contract issues likely to require Hub approval (see Contract Review Checklist) particularly unlimited liability, uninsurable work, liquidated damages, incidental and consequential damages, Project Specific PII, Parent Company or systems/process Guarantees and Third Party Reliance Agreements
+                </td>
+                <td class="questionCell2">
+                    <apex:inputCheckbox value="{!GNG.Contract_Assessment_Question_A2__c}" rendered="{!isEdit}"></apex:inputCheckbox>
+                    <apex:outputField value="{!GNG.Contract_Assessment_Question_A2__c}" rendered="{!!isEdit}"></apex:outputField>
+                </td>
+            </tr>
+            <tr>
+                <td class="questionTitle">
+                    A.3
+                </td>
+                <td class="questionCell1">
+                    Working in an unfamiliar or high risk country including security and travel risks
+                </td>
+                <td class="questionCell2">
+                    <apex:inputCheckbox value="{!GNG.Contract_Assessment_Question_A3__c}" rendered="{!isEdit}"></apex:inputCheckbox>
+                    <apex:outputField value="{!GNG.Contract_Assessment_Question_A3__c}" rendered="{!!isEdit}"></apex:outputField>
+                </td>
+            </tr>
+            <tr>
+                <td class="questionTitle">
+                    A.4
+                </td>
+                <td class="questionCell1">
+                    Elevated Safety, Health or Environmental risks including Clients who do not uphold high SHE standards such as the right to stop work in unsafe conditions or the regular exposure of our people to significant SHE hazards.
+                </td>
+                <td class="questionCell2">
+                    <apex:inputCheckbox value="{!GNG.Contract_Assessment_Question_A4__c}" rendered="{!isEdit}"></apex:inputCheckbox>
+                    <apex:outputField value="{!GNG.Contract_Assessment_Question_A4__c}" rendered="{!!isEdit}"></apex:outputField>
+                </td>
+            </tr>
+            <tr>
+                <td class="questionTitle">
+                    A.5
+                </td>
+                <td class="questionCell1">
+                    Construction responsibility and related risk
+                </td>
+                <td class="questionCell2">
+                    <apex:inputField label="" value="{!GNG.Contract_Assessment_Question_A5__c}" rendered="{!isEdit}"></apex:inputField>
+                    <apex:outputField value="{!GNG.Contract_Assessment_Question_A5__c}" rendered="{!!isEdit}"></apex:outputField>
+                </td>
+            </tr>
+            <tr>
+                <td class="questionTitle"></td>
+                <td colspan="2" class="questionNotes">
+                    <apex:inputTextarea rows="5" label=""  id="aComments" styleClass="questionNotes" value="{!GNG.Contract_Assessment_Notes__c}" html-placeholder="Further notes on uncertainties identified" rendered="{!isEdit}"></apex:inputTextarea>
+                    <apex:inputTextarea rows="5" html-placeholder="Further notes on uncertainties identified"  readonly="true" value="{!GNG.Contract_Assessment_Notes__c}" rendered="{!!isEdit}" styleClass="questionNotes"></apex:inputTextarea>
+                </td>
+            </tr>
+        </table>
+    </div> 
+    <br/>
+    <div id="bSection">
+        <h4>B - Competitive Assessment</h4>
+        <br/><br/>
+        <table>
+            <tr>
+                <td class="questionTitle" >
+                    B.1
+                </td>
+                <td class="questionCell1">
+                    Difficult to differentiate our offer and/or respond to award criteria
+                </td>
+                <td class="questionCell2">
+                    <apex:inputCheckbox value="{!GNG.Competetive_Assessment_Questions_B1__c}" rendered="{!isEdit}"></apex:inputCheckbox>
+                    <apex:outputField value="{!GNG.Competetive_Assessment_Questions_B1__c}" rendered="{!!isEdit}"></apex:outputField>
+                </td>
+            </tr>
+            <tr>
+                <td class="questionTitle" >
+                    B.2
+                </td>
+                <td class="questionCell1">
+                    Competing against an incumbent or selection process not transparent
+                </td>
+                <td class="questionCell2">
+                    <apex:inputCheckbox value="{!GNG.Competetive_Assessment_Questions_B2__c}" rendered="{!isEdit}"></apex:inputCheckbox>
+                    <apex:outputField value="{!GNG.Competetive_Assessment_Questions_B2__c}" rendered="{!!isEdit}"></apex:outputField>
+                </td>
+            </tr>
+            <tr>
+                <td class="questionTitle"></td>
+                <td colspan="2" class="questionNotes">
+                    <apex:inputTextarea rows="5" id="bComments" styleClass="questionNotes" html-placeholder="Further notes on uncertainties identified" value="{!GNG.Competetive_Assessment_Notes__c}" rendered="{!isEdit}"></apex:inputTextarea>
+                    <apex:inputTextarea rows="5" html-placeholder="Further notes on uncertainties identified" styleClass="questionNotes" readonly="true" value="{!GNG.Competetive_Assessment_Notes__c}" rendered="{!!isEdit}"></apex:inputTextarea>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <br/>
+    <div id="cSection">
+        <h4>C - Client Assessment</h4>
+        <br/><br/>
+        <table>
+            <tr>
+                <td class="questionTitle" >
+                    C.1
+                </td>
+                <td class="questionCell1">
+                    Compliance issues including MK Denial, work based in areas subject to export restrictions and controls, working in countries or for client who participate in the Arab Boycott of Israel, employing new third party agents to win projects
+                </td>
+                <td class="questionCell2">
+                    <apex:inputCheckbox value="{!GNG.Client_Assessment_Questions_C1__c}" rendered="{!isEdit}"></apex:inputCheckbox>
+                    <apex:outputField value="{!GNG.Client_Assessment_Questions_C1__c}" rendered="{!!isEdit}"></apex:outputField>
+                </td>
+            </tr>
+            <tr>
+                <td class="questionTitle" >
+                    C.2
+                </td>
+                <td class="questionCell1">
+                    Client approach i.e. adversarial 
+                </td>
+                <td class="questionCell2">
+                    <apex:inputCheckbox value="{!GNG.Client_Assessment_Questions_C2__c}" rendered="{!isEdit}"></apex:inputCheckbox>
+                    <apex:outputField value="{!GNG.Client_Assessment_Questions_C2__c}" rendered="{!!isEdit}"></apex:outputField>
+                </td>
+            </tr>
+            <tr>
+                <td class="questionTitle" >
+                    C.3
+                </td>
+                <td class="questionCell1">
+                    Client with poor credit worthiness rating
+                </td>
+                <td class="questionCell2">
+                    <apex:inputCheckbox value="{!GNG.Client_Assessment_Questions_C3__c}" rendered="{!isEdit}"></apex:inputCheckbox>
+                    <apex:outputField value="{!GNG.Client_Assessment_Questions_C3__c}" rendered="{!!isEdit}"></apex:outputField>
+                </td>
+            </tr>
+            <tr>
+                <td class="questionTitle" >
+                    C.4
+                </td>
+                <td class="questionCell1">
+                    AECOM previous performance / client feedback not positive
+                </td>
+                <td class="questionCell2">
+                    <apex:inputCheckbox value="{!GNG.Client_Assessment_Questions_C4__c}" rendered="{!isEdit}"></apex:inputCheckbox>
+                    <apex:outputField value="{!GNG.Client_Assessment_Questions_C4__c}" rendered="{!!isEdit}"></apex:outputField>
+                </td>
+            </tr>
+            <tr>
+                <td class="questionTitle" >
+                    C.5
+                </td>
+                <td class="questionCell1">
+                    Required to form or trade with SPV (not with named / recognised Client) or form alternative delivery mechanisms 
+                </td>
+                <td class="questionCell2">
+                    <apex:inputCheckbox value="{!GNG.Client_Assessment_Questions_C5__c}" rendered="{!isEdit}"></apex:inputCheckbox>
+                    <apex:outputField value="{!GNG.Client_Assessment_Questions_C5__c}" rendered="{!!isEdit}"></apex:outputField>
+                </td>
+            </tr>
+            <tr>
+                <td class="questionTitle" >
+                    C.6
+                </td>
+                <td class="questionCell1">
+                    Possible conflicts of interest
+                </td>
+                <td class="questionCell2">
+                    <apex:inputCheckbox value="{!GNG.Client_Assessment_Questions_C6__c}" rendered="{!isEdit}"></apex:inputCheckbox>
+                    <apex:outputField value="{!GNG.Client_Assessment_Questions_C6__c}" rendered="{!!isEdit}"></apex:outputField>
+                </td>
+            </tr>
+            <tr>
+                <td class="questionTitle"></td>
+                <td colspan="2" class="questionNotes">
+                    <apex:inputTextarea rows="5" id="cComments" styleClass="questionNotes" html-placeholder="Further notes on uncertainties identified" value="{!GNG.Client_Assessment_Notes__c}" rendered="{!isEdit}"></apex:inputTextarea>
+                    <apex:inputTextarea rows="5" styleClass="questionNotes" readonly="true" html-placeholder="Further notes on uncertainties identified" value="{!GNG.Client_Assessment_Notes__c}" rendered="{!!isEdit}"></apex:inputTextarea>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <br/>
+    <div id="dSection">
+        <h4>D - Capabilities Assessment</h4>
+        <br/><br/>
+        <table>
+            <tr>
+                <td class="questionTitle" >
+                    D.1
+                </td>
+                <td class="questionCell1">
+                    Full capabilities not currently available and / or too much reliance on other Geographies or sub – consultants
+                </td>
+                <td class="questionCell2">
+                    <apex:inputCheckbox value="{!GNG.Capabilities_Assessment_Questions_D1__c}" rendered="{!isEdit}"></apex:inputCheckbox>
+                    <apex:outputField value="{!GNG.Capabilities_Assessment_Questions_D1__c}" rendered="{!!isEdit}"></apex:outputField>
+                </td>
+            </tr>
+            <tr>
+                <td class="questionTitle" >
+                    D.2
+                </td>
+                <td class="questionCell1">
+                    Clients timeframe / delivery schedule not realistic with budget / resources
+                </td>
+                <td class="questionCell2">
+                    <apex:inputCheckbox value="{!GNG.Capabilities_Assessment_Questions_D2__c}" rendered="{!isEdit}"></apex:inputCheckbox>
+                    <apex:outputField value="{!GNG.Capabilities_Assessment_Questions_D2__c}" rendered="{!!isEdit}"></apex:outputField>
+                </td>
+            </tr>
+            <tr>
+                <td class="questionTitle" >
+                    D.3
+                </td>
+                <td class="questionCell1">
+                    Regulatory risks may impact ability to deliver
+                </td>
+                <td class="questionCell2">
+                    <apex:inputCheckbox value="{!GNG.Capabilities_Assessment_Questions_D3__c}" rendered="{!isEdit}"></apex:inputCheckbox>
+                    <apex:outputField value="{!GNG.Capabilities_Assessment_Questions_D3__c}" rendered="{!!isEdit}"></apex:outputField>
+                </td>
+            </tr>
+            <tr>
+                <td class="questionTitle" >
+                    D.4
+                </td>
+                <td class="questionCell1">
+                    No previous experience of Project Delivery Type or complex/ ambiguous scope
+                </td>
+                <td class="questionCell2">
+                    <apex:inputCheckbox value="{!GNG.Capabilities_Assessment_Questions_D4__c}" rendered="{!isEdit}"></apex:inputCheckbox>
+                    <apex:outputField value="{!GNG.Capabilities_Assessment_Questions_D4__c}" rendered="{!!isEdit}"></apex:outputField>
+                </td>
+            </tr>
+            <tr>
+                <td class="questionTitle"></td>
+                <td colspan="2" class="questionNotes">
+                    <apex:inputTextarea rows="5" id="dComments" styleClass="questionNotes" html-placeholder="Further notes on uncertainties identified" value="{!GNG.Capabilities_Assessment_Notes__c}" rendered="{!isEdit}"></apex:inputTextarea>
+                    <apex:inputTextarea rows="5" styleClass="questionNotes" html-placeholder="Further notes on uncertainties identified" value="{!GNG.Capabilities_Assessment_Notes__c}" rendered="{!!isEdit}" readonly="true"></apex:inputTextarea>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <br/>
+    <div id="eSection">
+        <h4>E - Cost / Financial Assessment</h4>
+        <br/><br/>
+        <table>
+            <tr>
+                <td class="questionTitle" >
+                    E.1
+                </td>
+                <td class="questionCell1">
+                    Bidding cost likely to exceed 5% of contract value or USD $75K
+                </td>
+                <td class="questionCell2">
+                    <apex:inputCheckbox value="{!GNG.Cost_Assessment_E1__c}" rendered="{!isEdit}"></apex:inputCheckbox>
+                    <apex:outputField value="{!GNG.Cost_Assessment_E1__c}" rendered="{!!isEdit}"></apex:outputField>
+                </td>
+            </tr>
+            <tr>
+                <td class="questionTitle" >
+                    E.2
+                </td>
+                <td class="questionCell1">
+                    Estimated net margin i.e. EBIT / NSR below Country / Business Line Strategic Plan
+                </td>
+                <td class="questionCell2">
+                    <apex:inputCheckbox value="{!GNG.Cost_Assessment_E2__c}" rendered="{!isEdit}"></apex:inputCheckbox>
+                    <apex:outputField value="{!GNG.Cost_Assessment_E2__c}" rendered="{!!isEdit}"></apex:outputField>
+                </td>
+            </tr>
+            <tr>
+                <td class="questionTitle">
+                    E.3
+                </td>
+                <td class="questionCell1">
+                    Potential cross-border transactions
+                </td>
+                <td class="questionCell2">
+                    <apex:inputCheckbox value="{!GNG.Cost_Assessment_E3__c}" rendered="{!isEdit}"></apex:inputCheckbox>
+                    <apex:outputField value="{!GNG.Cost_Assessment_E3__c}" rendered="{!!isEdit}"></apex:outputField>
+                </td>
+            </tr>
+            <tr>
+                <td class="questionTitle">
+                    E.4
+                </td>
+                <td class="questionCell1">
+                    Bank guarantees and/or letters of credit, or guarantees for the project. Bid performance and or surety bonds (excluding notary or licensing bonds) ≥$250K
+                </td>
+                <td class="questionCell2">
+                    <apex:inputCheckbox value="{!GNG.Cost_Assessment_E4__c}" rendered="{!isEdit}"></apex:inputCheckbox>
+                    <apex:outputField value="{!GNG.Cost_Assessment_E4__c}" rendered="{!!isEdit}"></apex:outputField>
+                </td>
+            </tr>
+            <tr>
+                <td class="questionTitle">
+                    E.5
+                </td>
+                <td class="questionCell1">
+                    No likelihood of profitable future business
+                </td>
+                <td class="questionCell2">
+                    <apex:inputCheckbox value="{!GNG.Cost_Assessment_E5__c}" rendered="{!isEdit}"></apex:inputCheckbox>
+                    <apex:outputField value="{!GNG.Cost_Assessment_E5__c}" rendered="{!!isEdit}"></apex:outputField>
+                </td>
+            </tr>
+            <tr>
+                <td class="questionTitle"></td>
+                <td colspan="2" class="questionNotes">
+                    <apex:inputTextarea rows="5" id="eComments" styleClass="questionNotes" value="{!GNG.Cost_Assessment_Notes__c}" html-placeholder="Further notes on uncertainties identified" rendered="{!isEdit}"></apex:inputTextarea>
+                    <apex:inputTextarea rows="5" styleClass="questionNotes" value="{!GNG.Cost_Assessment_Notes__c}" html-placeholder="Further notes on uncertainties identified" readonly="true" rendered="{!!isEdit}"></apex:inputTextarea>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <br/>
+    <div id="disclaimer">
+        <table>
+            <tr id="textA">
+                <td style="width: 100%" colspan="3">
+                    The Go/ No Go assessment indicates an initial High risk grading for this project. All uncertainties identified through the G/NG assessment should therefore be raised with the Business Line / Regional Commercial/ Risk Director and approval sought in relation to the recommendation to proceed.
+                </td>
+            </tr>
+            <tr id="textB">
+                <td style="width: 100%;" colspan="3">
+                    No uncertainties have been identified from  the Go/ No Go assessment indicating an initial Medium or Low Project risk grading at this stage. This will be validated in ePMP during the Proposal and Planning stage.
+                </td>
+            </tr>
+        </table>
+    </div>
+    <br/> 
+    <div id="approvalSection">
+        <br/>
+        <!-- Need radio picklist for Go/No Go -->
+        <div align="center">
+            <apex:commandButton id="approveButton" value="Approve" action="{!approveGNG}" onclick="if(!checkComments()) return false;" rendered="{!isProjectDirector}" ></apex:commandButton> 
+            <apex:commandButton id="rejectButton" onclick="if(!checkComments()) return false;" value="Reject" action="{!rejectGNG}" rendered="{!isProjectDirector}" ></apex:commandButton> 
+        </div> 
+        <br/><br/>
+        <div align="right" class="questionNotes">
+        <apex:inputTextarea rows="5" id="appComments" styleClass="questionNotes" value="{!approvalComment}" html-placeholder="Approval Notes" rendered="{!isProjectDirector}"></apex:inputTextarea>
+        </div>
+    </div>
+    <!-- record detail refresh -->
+    <apex:outputPanel rendered="{!refreshPage}">
+       <script>
+          window.top.location='/{!GNG.Id}';
+       </script>
+    </apex:outputPanel> 
+</apex:form>
+</apex:page>

@@ -1,0 +1,498 @@
+<apex:page controller="ECO_ProjectFundingController" tabstyle="pse__Proj__c" action="{!init}" extensions="nttdcore.DLabelParentController" >
+
+
+
+<style>
+.table {
+  font-family: 'Arial';
+  margin: 1px auto;
+  border-collapse: collapse;
+  border: 1px solid #eee;
+ /* box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.1), 0px 10px 20px rgba(0, 0, 0, 0.05), 0px 20px 20px rgba(0, 0, 0, 0.05), 0px 30px 20px rgba(0, 0, 0, 0.05); */
+  width: 100%;
+  heigth: 20px;
+  table-layout: fixed;
+}
+
+.table tr{
+  border-bottom: 1px solid #f2f3f3;
+}
+
+.table tr:hover {
+  background: #e8f4f8;
+}
+
+.table tr:hover td {
+    background: #e8f4f8;
+}
+
+.table th, .table td {
+  border: 0px solid #eee;
+  padding: 3px 3px 3px 3px;
+  border-collapse: collapse;
+}
+
+.table td {
+  background: #fff;
+}
+
+.table .tdleft{
+    padding-left: 1px;
+    padding-right: 1px;
+}
+
+.table .tdfooter{
+    align: right;
+}
+
+
+.table th {
+
+  background:  #f2f3f3;
+  font-size: .9em;
+  font-weight: bold;  
+  border: 1px solid #D3D3D3;
+}
+
+.table th.last {
+  border-right: none;
+}
+
+.customHelpText{
+    padding: 7px;
+    border: 1px solid #85B3CE;
+    min-height: 30px;
+    display: block;
+    width: auto;
+    margin: 0 0 5px 0;
+    background-repeat: no-repeat;
+    border-radius: 4px;
+    background-color: #A2D3F1;            
+}
+
+.customHelpBody{
+    display:inline-block;
+    color:#;
+    max-width:95%;
+}
+
+.warningHelpText{
+    padding: 7px;
+    border: 1px solid #85B3CE;
+    min-height: 30px;
+    display: block;
+    width: auto;
+    margin: 0 0 5px 0;
+    background-repeat: no-repeat;
+    border-radius: 4px;
+    background-color: yellow;            
+}
+
+</style>
+
+<script>
+	function setFocusOnLoad() {}
+	
+    function handleNewFunding(taskId) {
+        createNewFunding(taskId);
+    }
+    
+    function functionalRateTypeChange()
+    {
+        rateTypeChange();
+    }
+          
+</script>
+
+<apex:form >
+<apex:pageMessages id="pageMessages" />
+<nttdcore:DLabel name="DL7" default="Project Funding Management" labelParent="{!this}" /><apex:sectionHeader subtitle="{!project.Name}" title="{!dLabel['DL7']}" />
+  <div class="customHelpText" >
+    <div class="customHelpBody" >{!$Label.ProjectFundingGuidance}</div>
+  </div>
+  <apex:outputPanel rendered="{!(project.ProjectFunctionalCurrencyCode__c) != (agreement.FundingCurrencyCode__c)}" >
+  <div class="warningHelpText" >{!$Label.ForeignCurrencyAgreement}</div>
+  </apex:outputPanel>
+<nttdcore:DLabel name="DL8" default="Project Funding Managment Edit" labelParent="{!this}" /><apex:pageBlock title="{!dLabel['DL8']}" id="pb" ><nttdcore:DLabel name="DL14" default="Report" labelParent="{!this}" /><nttdcore:DLabel name="DL15" default="The currency of the Agreement - this is setup on the Agreement Record." labelParent="{!this}" /><nttdcore:DLabel name="DL16" default="Agreement Currency" labelParent="{!this}" /><nttdcore:DLabel name="DL17" default="The Project Functional Currency - the currency of the operatin g unit that is running/owning the project." labelParent="{!this}" /><nttdcore:DLabel name="DL18" default="Project Functional Currency" labelParent="{!this}" /><nttdcore:DLabel name="DL19" default="Agreement Amount (confirmed and committed)" labelParent="{!this}" /><nttdcore:DLabel name="DL20" default="{{1}} {0, number, ###,###,###,##0.00}" labelParent="{!this}" p1="{!agreement.FundingCurrencyCode__c}" /><nttdcore:DLabel name="DL21" default="Total Approved Revenue" labelParent="{!this}" /><nttdcore:DLabel name="DL22" default="{{1}} {0, number, ###,###,###,##0.00}" labelParent="{!this}" p1="{!project.ProjectFunctionalCurrencyCode__c}" /><nttdcore:DLabel name="DL23" default="The Total Approved Revenue Limit entered on theAgreement Record.  The total funding allocated cannot exceed the this value." labelParent="{!this}" /><nttdcore:DLabel name="DL24" default="Total Approved Revenue Limit" labelParent="{!this}" /><nttdcore:DLabel name="DL25" default="{{1}} {0, number, ###,###,###,##0.00}" labelParent="{!this}" p1="{!agreement.FundingCurrencyCode__c}" /><nttdcore:DLabel name="DL26" default="Total Forecast Revenue" labelParent="{!this}" /><nttdcore:DLabel name="DL27" default="{{1}} {0, number, ###,###,###,##0.00}" labelParent="{!this}" p1="{!project.ProjectFunctionalCurrencyCode__c}" /><nttdcore:DLabel name="DL28" default="The total of all funding allocated in the table below." labelParent="{!this}" /><nttdcore:DLabel name="DL29" default="Total Funding Amount" labelParent="{!this}" /><nttdcore:DLabel name="DL30" default="{{1}} {0, number, ###,###,###,##0.00}" labelParent="{!this}" p1="{!agreement.FundingCurrencyCode__c}" /><nttdcore:DLabel name="DL31" default="The variance between the Total Approved Revenue Limit and funding allocated.  This should be zero in order to succesfully sync the project to Oracle." labelParent="{!this}" /><nttdcore:DLabel name="DL32" default="Unallocated Funding" labelParent="{!this}" /><nttdcore:DLabel name="DL33" default="{{1}} {0, number, ###,###,###,##0.00}" labelParent="{!this}" p1="{!agreement.FundingCurrencyCode__c}" /><nttdcore:DLabel name="DL34" default="Segmented" labelParent="{!this}" /><nttdcore:DLabel name="DL35" default="Segmentation Status" labelParent="{!this}" /><nttdcore:DLabel name="DL36" default="&lt;th width=65px&gt;&lt;/th&gt;&lt;th width=85px&gt;Task Name&lt;/th&gt;
+                                               &lt;th&gt;Task Number&lt;/th&gt;
+                                               &lt;th&gt;Customer&lt;/th&gt;
+                                               &lt;th&gt;Classification&lt;/th&gt;
+                                               &lt;th&gt;Work At Risk&lt;/th&gt;
+                                               &lt;th&gt;Allocation Amount&lt;/th&gt;
+                                               &lt;th&gt;Allocation Date&lt;/th&gt;
+                                               &lt;th&gt;Note&lt;/th&gt;
+                                               &lt;th&gt;Total Funded&lt;/th&gt;" labelParent="{!this}" /><nttdcore:DLabel name="DL37" default="&lt;th width=65px&gt;&lt;/th&gt;&lt;th width=85px&gt;Task Name&lt;/th&gt;
+                                              &lt;th&gt;Task Number&lt;/th&gt;
+                                               &lt;th&gt;Customer&lt;/th&gt;
+                                               &lt;th&gt;Classification&lt;/th&gt;
+                                               &lt;th&gt;Work At Risk&lt;/th&gt;
+                                               &lt;th&gt;Allocation Amount&lt;/th&gt;
+                                               &lt;th&gt;Allocation Date&lt;/th&gt;
+                                               &lt;th&gt;Note&lt;/th&gt;
+                                               &lt;th&gt;Rate Type&lt;/th&gt;
+                                               &lt;th&gt;Rate&lt;/th&gt;
+                                               &lt;th&gt;Rate Date&lt;/th&gt;                                            
+                                               &lt;th&gt;Total Funded&lt;/th&gt;" labelParent="{!this}" /><nttdcore:DLabel name="DL38" default="&lt;th width=65px&gt;&lt;/th&gt;&lt;th width=85px&gt;Task Name&lt;/th&gt;
+                                               &lt;th&gt;Task Number&lt;/th&gt;
+                                               &lt;th&gt;Classification&lt;/th&gt;
+                                               &lt;th&gt;Work At Risk&lt;/th&gt;
+                                               &lt;th&gt;Allocation Amount&lt;/th&gt;
+                                               &lt;th&gt;Allocation Date&lt;/th&gt;
+                                               &lt;th&gt;Note&lt;/th&gt;
+                                              &lt;!--  &lt;th width=65px&gt;Changed&lt;/th&gt; --&gt;
+                                               &lt;th&gt;Total Funded&lt;/th&gt;" labelParent="{!this}" /><nttdcore:DLabel name="DL39" default="&lt;th width=65px&gt;&lt;/th&gt;&lt;th width=85px&gt;Task Name&lt;/th&gt;
+                                              &lt;th&gt;Task Number&lt;/th&gt;
+                                               &lt;th&gt;Classification&lt;/th&gt;
+                                               &lt;th&gt;Work At Risk&lt;/th&gt;
+                                               &lt;th&gt;Allocation Amount&lt;/th&gt;
+                                               &lt;th&gt;Allocation Date&lt;/th&gt;
+                                               &lt;th&gt;Note&lt;/th&gt;
+                                               &lt;th&gt;Rate Type&lt;/th&gt;
+                                               &lt;th&gt;Rate&lt;/th&gt;
+                                               &lt;th&gt;Rate Date&lt;/th&gt;
+                                              &lt;!--  &lt;th width=65px&gt;Changed&lt;/th&gt; --&gt;                                         
+                                               &lt;th&gt;Total Funded&lt;/th&gt;" labelParent="{!this}" /><nttdcore:DLabel name="DL40" default="Fund Task" labelParent="{!this}" /><nttdcore:DLabel name="DL41" default="&lt;td colspan=9&gt;" labelParent="{!this}" /><nttdcore:DLabel name="DL42" default="&lt;td colspan=6&gt;" labelParent="{!this}" /><nttdcore:DLabel name="DL43" default="&lt;td colspan=8&gt;" labelParent="{!this}" /><nttdcore:DLabel name="DL44" default="&lt;td colspan=5&gt;" labelParent="{!this}" /><nttdcore:DLabel name="DL45" default="&lt;/td&gt;" labelParent="{!this}" /><nttdcore:DLabel name="DL46" default="Del" labelParent="{!this}" /><nttdcore:DLabel name="DL47" default="&lt;td&gt;&lt;/td&gt;&lt;td&gt;&lt;/td&gt;&lt;td&gt;&lt;/td&gt;" labelParent="{!this}" /><nttdcore:DLabel name="DL48" default="&lt;td&gt;&lt;/td&gt;&lt;td&gt;&lt;/td&gt;" labelParent="{!this}" /><nttdcore:DLabel name="DL49" default="{{1}} {0, number, ###,###,###,##0.00}" labelParent="{!this}" p1="{!agreement.FundingCurrencyCode__c}" /><nttdcore:DLabel name="DL50" default="{{1}} {0, number, ###,###,###,##0.00}" labelParent="{!this}" p1="{!agreement.FundingCurrencyCode__c}" /><nttdcore:DLabel name="DL51" default="&lt;td&gt;" labelParent="{!this}" /><nttdcore:DLabel name="DL52" default="&lt;/td&gt;" labelParent="{!this}" /><nttdcore:DLabel name="DL53" default="&lt;td&gt;" labelParent="{!this}" /><nttdcore:DLabel name="DL54" default="&lt;/td&gt;" labelParent="{!this}" /><nttdcore:DLabel name="DL55" default="&lt;td&gt;" labelParent="{!this}" /><nttdcore:DLabel name="DL56" default="&lt;/td&gt;" labelParent="{!this}" /><nttdcore:DLabel name="DL57" default="&lt;td&gt;" labelParent="{!this}" /><nttdcore:DLabel name="DL58" default="&lt;/td&gt;" labelParent="{!this}" /><nttdcore:DLabel name="DL59" default="&lt;td&gt;" labelParent="{!this}" /><nttdcore:DLabel name="DL60" default="&lt;/td&gt;" labelParent="{!this}" /><nttdcore:DLabel name="DL61" default="&lt;td&gt;" labelParent="{!this}" /><nttdcore:DLabel name="DL62" default="&lt;/td&gt;" labelParent="{!this}" /><nttdcore:DLabel name="DL63" default="&lt;td colspan=8 align=right&gt;&lt;b&gt;Grand Total&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{{1}} {{2}}&lt;/td&gt;" labelParent="{!this}" p1="{!agreement.FundingCurrencyCode__c}" p2="{!agreementFundingAllocation}" /><nttdcore:DLabel name="DL64" default="&lt;td colspan=9 align=right&gt;&lt;b&gt;Grand Total&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{{1}} {{2}}&lt;/td&gt;" labelParent="{!this}" p1="{!agreement.FundingCurrencyCode__c}" p2="{!agreementFundingAllocation}" /><nttdcore:DLabel name="DL65" default="&lt;td colspan=6 align=right&gt;&lt;b&gt;Grand Total&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{{1}} {{2}}&lt;/td&gt;" labelParent="{!this}" p1="{!agreement.FundingCurrencyCode__c}" p2="{!agreementFundingAllocation}" /><nttdcore:DLabel name="DL66" default="&lt;td colspan=6 align=right&gt;&lt;b&gt;Grand Total&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{{1}} {{2}}&lt;/td&gt;" labelParent="{!this}" p1="{!agreement.FundingCurrencyCode__c}" p2="{!agreementFundingAllocation}" /><nttdcore:DLabel name="DL67" default="&lt;td colspan=5 align=right&gt;&lt;b&gt;Total Project Functional Currency Funding&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{{1}} {{2}}&lt;/td&gt;" labelParent="{!this}" p1="{!project.ProjectFunctionalCurrencyCode__c}" p2="{!ProjectCurrencyFunding}" /><nttdcore:DLabel name="DL68" default="&lt;td colspan=6 align=right&gt;&lt;b&gt;Total Project Functional Currency Funding&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{{1}} {{2}}&lt;/td&gt;" labelParent="{!this}" p1="{!project.ProjectFunctionalCurrencyCode__c}" p2="{!ProjectCurrencyFunding}" /><nttdcore:DLabel name="DL69" default="&lt;th width=35px&gt;&lt;/th&gt;
+                                               &lt;th&gt;Classification&lt;/th&gt;
+                                               &lt;th&gt;Work At Risk&lt;/th&gt;
+                                               &lt;th&gt;Allocation Amount&lt;/th&gt;
+                                               &lt;th&gt;Allocation Date&lt;/th&gt;
+                                               &lt;th&gt;Note&lt;/th&gt;" labelParent="{!this}" /><nttdcore:DLabel name="DL70" default="&lt;th width=35px&gt;&lt;/th&gt;
+                                               &lt;th&gt;Classification&lt;/th&gt;
+                                               &lt;th&gt;Allocation Amount&lt;/th&gt;
+                                               &lt;th&gt;Allocation Date&lt;/th&gt;
+                                               &lt;th&gt;Note&lt;/th&gt;
+                                               &lt;th&gt;Rate Type&lt;/th&gt;
+                                               &lt;th&gt;Rate&lt;/th&gt;
+                                               &lt;th&gt;Rate Date&lt;/th&gt;" labelParent="{!this}" /><nttdcore:DLabel name="DL71" default="Del" labelParent="{!this}" /><nttdcore:DLabel name="DL72" default="{{1}} {0, number, ###,###,###,##0.00}" labelParent="{!this}" p1="{!agreement.FundingCurrencyCode__c}" /><nttdcore:DLabel name="DL73" default="{{1}} {0, number, ###,###,###,##0.00}" labelParent="{!this}" p1="{!agreement.FundingCurrencyCode__c}" /><nttdcore:DLabel name="DL74" default="&lt;td&gt;" labelParent="{!this}" /><nttdcore:DLabel name="DL75" default="&lt;/td&gt;" labelParent="{!this}" /><nttdcore:DLabel name="DL76" default="&lt;td&gt;" labelParent="{!this}" /><nttdcore:DLabel name="DL77" default="&lt;/td&gt;" labelParent="{!this}" /><nttdcore:DLabel name="DL78" default="&lt;td&gt;" labelParent="{!this}" /><nttdcore:DLabel name="DL79" default="&lt;/td&gt;" labelParent="{!this}" /><nttdcore:DLabel name="DL80" default="&lt;td colspan=5 align=right&gt;&lt;b&gt;Grand Total&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{{1}} {{2}}&lt;/td&gt;" labelParent="{!this}" p1="{!agreement.FundingCurrencyCode__c}" p2="{!agreementFundingAllocation}" /><nttdcore:DLabel name="DL81" default="&lt;td colspan=4 align=right&gt;&lt;b&gt;Grand Total&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{{1}} {{2}}&lt;/td&gt;" labelParent="{!this}" p1="{!agreement.FundingCurrencyCode__c}" p2="{!agreementFundingAllocation}" /><nttdcore:DLabel name="DL82" default="&lt;td colspan=3 align=right&gt;&lt;b&gt;Total Project Functional Currency Funding&lt;/b&gt;&lt;/td&gt;&lt;td&gt;{{1}} {{2}}&lt;/td&gt;" labelParent="{!this}" p1="{!project.ProjectFunctionalCurrencyCode__c}" p2="{!ProjectCurrencyFunding}" /><nttdcore:DLabel name="DL83" default="Fund Project" labelParent="{!this}" />
+
+<apex:pageBlockButtons >
+    <nttdcore:DLabel name="DL9" default="Save" labelParent="{!this}" /><apex:commandButton id="save" value="{!dLabel['DL9']}" action="{!save}" rendered="{!hasUpdatePermission}" />
+    <nttdcore:DLabel name="DL10" default="Cancel" labelParent="{!this}" /><apex:commandButton id="cancel" value="{!dLabel['DL10']}" action="{!cancel}" immediate="true" rendered="{!creatingNewFunding}" />
+    <nttdcore:DLabel name="DL11" default="Segmentation" labelParent="{!this}" /><apex:commandButton id="segmentation" value="{!dLabel['DL11']}" action="{!launchSegmentationQuestionnaire}" rendered="{!NOT(project.ProjectLevelFundingFlag__c)}" />
+    <nttdcore:DLabel name="DL12" default="Return to Project" labelParent="{!this}" /><apex:commandButton value="{!dLabel['DL12']}" action="{!returnToProject}" onclick="alert('{!$Label.FundingReturnTo}'); return true;" />
+    <nttdcore:DLabel name="DL13" default="Return to Agreement" labelParent="{!this}" /><apex:commandButton value="{!dLabel['DL13']}" action="{!returnToAgreement}" onclick="alert('{!$Label.FundingReturnTo}'); return true;" />
+
+</apex:pageBlockButtons>
+
+<!--<apex:actionFunction name="createNewFunding" action="{!createFunding}"  rerender="pageMessages,pb,taskLevelExchange,taskLevelNoExchange, projectLevelNoExchange, projectLevelExchange, repeat">     -->
+<apex:actionFunction name="createNewFunding" action="{!createFunding}" rerender="pb,pageMessages" immediate="true" >
+    <apex:param id="tId" name="taskId" value="" />
+</apex:actionFunction>
+
+<apex:actionFunction name="rateTypeChange" rerender="taskLevel,projectLevel,taskLevel,projectLevel" />
+
+<apex:actionFunction name="taskChanged" action="{!taskChanged}" rerender="" >     
+    <apex:param id="tId2" name="taskId" value="" />
+</apex:actionFunction>
+
+<apex:inputHidden value="{!fundingToDelete}" />
+<apex:actionFunction name="deleteFunding" id="deleteFunding" action="{!deleteFundingApex}" rerender="pb" >
+  <apex:param id="fundingId" name="fundingId" value="" assignto="{!fundingToDelete}" />
+</apex:actionFunction> 
+
+
+
+<apex:outputText value="{!taskId}" style="visibility: hidden;" />
+<apex:pageBlockSection columns="1" >
+  <apex:outputPanel rendered="{!agreement.RelatedProjectCount__c > 1}" >
+      <div class="warningHelpText" >{!$Label.AgreementRelatedToMultipleProjects}&nbsp;<b><apex:commandLink onclick="window.open('{!reportURL}');" value="{!dLabel['DL14']}" /></b>
+      </div>
+    </apex:outputPanel>
+</apex:pageBlockSection>
+<apex:pageBlockSection columns="2" >
+    <apex:outputField value="{!project.Name}" />
+    <apex:pageBlockSectionItem helptext="{!dLabel['DL15']}" >
+        <apex:outputText value="{!dLabel['DL16']}" />
+        <apex:outputField value="{!agreement.FundingCurrencyCode__c}" />
+    </apex:pageBlockSectionItem>
+
+    <apex:pageBlockSectionItem helptext="{!dLabel['DL17']}" >
+        <apex:outputText value="{!dLabel['DL18']}" />
+        <apex:outputField value="{!project.ProjectFunctionalCurrencyCode__c}" />
+    </apex:pageBlockSectionItem>
+
+    <apex:pageBlockSectionItem helptext="{!$ObjectType.Agreement__c.Fields.Amount__c.inlineHelpText}" >
+      <apex:outputText value="{!dLabel['DL19']}" />
+      <apex:outputText value="{!dLabel['DL20']}" >
+      <apex:param value="{!agreement.Amount__c}" />
+      </apex:outputText>
+    </apex:pageBlockSectionItem>
+
+    <!--<apex:outputField value="{!project.TotalApprovedRevenue__c}"/>-->
+    <apex:pageBlockSectionItem helptext="{!$ObjectType.Agreement__c.Fields.TotalApprovedRevenue__c.inlineHelpText}" >
+    <apex:outputText value="{!dLabel['DL21']}" />
+    <apex:outputText value="{!dLabel['DL22']}" >
+    <apex:param value="{!project.TotalApprovedRevenue__c}" />
+    </apex:outputText>
+    </apex:pageBlockSectionItem>
+
+    <apex:pageBlockSectionItem helptext="{!dLabel['DL23']}" >
+      <apex:outputText value="{!dLabel['DL24']}" />
+      <apex:outputText value="{!dLabel['DL25']}" >
+      <apex:param value="{!agreement.TotalApprovedRevenueLimit__c}" />
+      </apex:outputText>
+    </apex:pageBlockSectionItem>
+
+    <!--<apex:outputField value="{!project.TotalForecastRevenue__c}"/>-->
+    <apex:pageBlockSectionItem helptext="{!$ObjectType.Agreement__c.Fields.TotalForecastRevenue__c.inlineHelpText}" >
+      <apex:outputText value="{!dLabel['DL26']}" />
+      <apex:outputText value="{!dLabel['DL27']}" >
+      <apex:param value="{!project.TotalForecastRevenue__c}" />
+      </apex:outputText>
+    </apex:pageBlockSectionItem>
+
+    <apex:pageBlockSectionItem helptext="{!dLabel['DL28']}" >
+      <apex:outputText value="{!dLabel['DL29']}" />
+      <apex:outputText value="{!dLabel['DL30']}" >
+      <apex:param value="{!agreement.TotalFundingAmount__c}" />
+      </apex:outputText>
+    </apex:pageBlockSectionItem>
+
+    <apex:inputField value="{!project.ProjectLevelFundingFlag__c}" rendered="{!agreement.ChangeManagerIsNew__c && agreement.TotalFundingLines__c == 0}" />
+    <apex:outputField value="{!project.ProjectLevelFundingFlag__c}" rendered="{!NOT(agreement.ChangeManagerIsNew__c) || agreement.TotalFundingLines__c > 0}" />
+
+    <apex:pageBlockSectionItem helptext="{!dLabel['DL31']}" >
+      <apex:outputText value="{!dLabel['DL32']}" />
+      <apex:outputText value="{!dLabel['DL33']}" >
+      <apex:param value="{!agreement.UnallocatedFunding__c}" />
+      </apex:outputText>
+    </apex:pageBlockSectionItem>
+
+    <apex:inputField value="{!project.EnableTopTaskCustomerFlag__c}" rendered="{!NOT(project.ProjectLevelFundingFlag__c)}" />
+
+    <apex:pageBlockSection >
+
+    </apex:pageBlockSection>
+
+    <apex:pageBlockSectionItem >
+        <apex:outputLabel value="{!dLabel['DL34']}" rendered="{!NOT(project.ProjectLevelFundingFlag__c)}" />
+        <apex:outputField value="{!project.isSegmented__c}" rendered="{!NOT(project.ProjectLevelFundingFlag__c)}" />
+    </apex:pageBlockSectionItem>
+
+    <apex:pageBlockSectionItem >
+
+    </apex:pageBlockSectionItem>
+
+    <apex:pageBlockSectionItem >
+        <apex:outputLabel value="{!dLabel['DL35']}" rendered="{!NOT(project.ProjectLevelFundingFlag__c)}" />
+        <!--<apex:outputField value="{!project.SegmentationStatus__c}" rendered="{!NOT(project.ProjectLevelFundingFlag__c)}"/>-->
+        <apex:outputField value="{!project.clAECOMSegmentationReason__c}" rendered="{!NOT(project.ProjectLevelFundingFlag__c)}" />
+        
+    </apex:pageBlockSectionItem>
+
+</apex:pageBlockSection>
+
+<apex:pageblockSection columns="1" >
+
+<apex:outputPanel id="taskLevel" rendered="{!NOT(project.ProjectLevelFundingFlag__c)}" >
+<table class="table" >
+    <tr>
+        <apex:outputText escape="false" value="{!dLabel['DL36']}" rendered="{!project.EnableTopTaskCustomerFlag__c && agreement.FundingCurrencyCode__c == project.ProjectFunctionalCurrencyCode__c}" />
+                                               
+        <apex:outputText escape="false" value="{!dLabel['DL37']}" rendered="{!project.EnableTopTaskCustomerFlag__c && agreement.FundingCurrencyCode__c != project.ProjectFunctionalCurrencyCode__c}" />
+
+
+        <apex:outputText escape="false" value="{!dLabel['DL38']}" rendered="{!NOT(project.EnableTopTaskCustomerFlag__c) && agreement.FundingCurrencyCode__c == project.ProjectFunctionalCurrencyCode__c}" />                                    
+
+        <apex:outputText escape="false" value="{!dLabel['DL39']}" rendered="{!NOT(project.EnableTopTaskCustomerFlag__c) && agreement.FundingCurrencyCode__c != project.ProjectFunctionalCurrencyCode__c}" />
+    </tr>   
+    <apex:repeat value="{!projectTasks}" var="projectTask" id="repeat" > 
+    <!-- TASK LINE -->       
+    <tr>
+        <td>
+            <apex:commandLink value="{!dLabel['DL40']}" onclick="handleNewFunding('{!projectTask.Id}'); return false;" rendered="{!(projectTask.TopTaskOwningCustomer__r.Account_Name__c == agreement.Account__r.Name && project.EnableTopTaskCustomerFlag__c) || NOT(project.EnableTopTaskCustomerFlag__c) && hasUpdatePermission}" rerender="pageMessages" />
+        </td>
+        <apex:variable value="{!projectTasksFundedAllAgreementsMap[projectTask.Id]}" var="tasklist" />
+        <td><apex:outputField value="{!projectTask.Name}" /></td>
+        <td><apex:outputField value="{!projectTask.ProjectTaskNumber__c}" /></td>
+        <!-- <apex:outputPanel rendered="{!project.EnableTopTaskCustomerFlag__c}"> -->
+        <apex:outputText escape="false" value="{!dLabel['DL41']}" rendered="{!agreement.FundingCurrencyCode__c != project.ProjectFunctionalCurrencyCode__c && project.EnableTopTaskCustomerFlag__c}" /> 
+        <apex:outputText escape="false" value="{!dLabel['DL42']}" rendered="{!agreement.FundingCurrencyCode__c == project.ProjectFunctionalCurrencyCode__c && project.EnableTopTaskCustomerFlag__c}" /> 
+        <apex:outputText escape="false" value="{!dLabel['DL43']}" rendered="{!agreement.FundingCurrencyCode__c != project.ProjectFunctionalCurrencyCode__c && NOT(project.EnableTopTaskCustomerFlag__c)}" /> 
+        <apex:outputText escape="false" value="{!dLabel['DL44']}" rendered="{!agreement.FundingCurrencyCode__c == project.ProjectFunctionalCurrencyCode__c && NOT(project.EnableTopTaskCustomerFlag__c)}" /> 
+<!-- 			onclick="showGearModal();" oncomplete="hideGearModal();"
+ -->
+			<apex:inputField value="{!projectTask.TopTaskOwningCustomer__c}" onchange="taskChanged('{!projectTask.Id}'); return false;" rendered="{!tasklist.size == 0 && project.EnableTopTaskCustomerFlag__c}" />
+            <apex:outputField value="{!projectTask.TopTaskOwningCustomer__c}" rendered="{!tasklist.size != 0 && project.EnableTopTaskCustomerFlag__c}" />            
+        <apex:outputText escape="false" value="{!dLabel['DL45']}" /> 
+        <td><apex:outputField value="{!projectTask.TotalFunding__c}" /></td>        
+    </tr>
+        
+    <!-- FUNDING RECORD HISTORY -->
+    <apex:repeat value="{!projectTasksFundedMap[projectTask.Id]}" var="tasksFunding" >
+    <tr>        
+        <td><apex:commandLink rendered="{!tasksFunding.funding.ChangeManagerIsNew__c}" onclick="deleteFunding('{!tasksFunding.funding.Id}'); return false;" >{!dLabel['DL46']}</apex:commandLink></td>
+        <apex:outputText escape="false" value="{!dLabel['DL47']}" rendered="{!project.EnableTopTaskCustomerFlag__c}" />
+        <apex:outputText escape="false" value="{!dLabel['DL48']}" rendered="{!NOT(project.EnableTopTaskCustomerFlag__c)}" />
+            
+        <td>
+            <apex:inputField value="{!tasksFunding.funding.FundingClassification__c}" rendered="{!tasksFunding.newFunding}" required="true" />           
+            <apex:outputField value="{!tasksFunding.funding.FundingClassification__c}" rendered="{!NOT(tasksFunding.newFunding)}" />
+        </td>
+        <td>
+            <apex:inputField value="{!tasksFunding.funding.WorkAtRiskFunding__c}" rendered="{!tasksFunding.newFunding}" />           
+            <apex:outputField value="{!tasksFunding.funding.WorkAtRiskFunding__c}" rendered="{!NOT(tasksFunding.newFunding)}" />
+        </td>
+        <td>
+            <apex:inputField value="{!tasksFunding.funding.AllocatedAmount__c}" rendered="{!tasksFunding.newFunding}" required="true" style="width: 85px" />  
+            <apex:outputText value="{!dLabel['DL49']}" rendered="{!tasksFunding.funding.AllocatedAmount__c != null}" style="width: 85px" >
+            <apex:param value="{!tasksFunding.funding.AllocatedAmount__c}" />
+            </apex:outputText>
+            <apex:outputText value="{!dLabel['DL50']}" rendered="{!tasksFunding.funding.AllocatedAmount__c == null}" style="width: 85px" >
+            <apex:param value="{!tasksFunding.funding.TotalBaselinedAmount__c}" />
+            </apex:outputText>
+        </td>
+        <td>
+            <apex:inputField value="{!tasksFunding.funding.DateAllocatedDate__c}" rendered="{!tasksFunding.newFunding}" required="true" />
+            <apex:outputField value="{!tasksFunding.funding.DateAllocatedDate__c}" rendered="{!NOT(tasksFunding.newFunding)}" />    
+        </td>
+        <td>
+            <apex:inputField value="{!tasksFunding.funding.Notes__c}" rendered="{!tasksFunding.newFunding}" />
+            <apex:outputField value="{!tasksFunding.funding.Notes__c}" rendered="{!NOT(tasksFunding.newFunding)}" />    
+        </td>
+  <!--Col-->  
+         <apex:outputText escape="false" value="{!dLabel['DL51']}" rendered="{!NOT(project.EnableTopTaskCustomerFlag__c) && agreement.FundingCurrencyCode__c != project.ProjectFunctionalCurrencyCode__c}" />      
+            <apex:inputField value="{!tasksFunding.funding.ProjFuncRateType__c}" rendered="{!NOT(project.EnableTopTaskCustomerFlag__c) && (agreement.FundingCurrencyCode__c != project.ProjectFunctionalCurrencyCode__c) && NOT(tasksFunding.newFunding) && NOT(tasksFunding.rateLocked)}" onchange="functionalRateTypeChange(); return false;" />
+            <apex:outputField value="{!tasksFunding.funding.ProjFuncRateType__c}" rendered="{!NOT(project.EnableTopTaskCustomerFlag__c) && (agreement.FundingCurrencyCode__c != project.ProjectFunctionalCurrencyCode__c) && tasksFunding.rateLocked}" />
+         <apex:outputText escape="false" value="{!dLabel['DL52']}" rendered="{!NOT(project.EnableTopTaskCustomerFlag__c) && agreement.FundingCurrencyCode__c != project.ProjectFunctionalCurrencyCode__c}" />      
+   <!--Col-->     
+         <apex:outputText escape="false" value="{!dLabel['DL53']}" rendered="{!NOT(project.EnableTopTaskCustomerFlag__c) && agreement.FundingCurrencyCode__c != project.ProjectFunctionalCurrencyCode__c}" />      
+            <apex:inputField id="rateRW" value="{!tasksFunding.funding.ProjFuncRateExchangeRate__c}" rendered="{!NOT(project.EnableTopTaskCustomerFlag__c) && (tasksFunding.funding.ProjFuncRateType__c == 'User' && NOT(tasksFunding.rateLocked)) && agreement.FundingCurrencyCode__c != project.ProjectFunctionalCurrencyCode__c}" style="width: 85px" required="true" />                   
+            <apex:outputField id="rateRO" value="{!tasksFunding.funding.ProjFuncRateExchangeRate__c}" rendered="{!NOT(project.EnableTopTaskCustomerFlag__c) && (tasksFunding.funding.ProjFuncRateType__c == 'Spot' || (tasksFunding.funding.ProjFuncRateType__c == 'User' && tasksFunding.rateLocked)) && agreement.FundingCurrencyCode__c != project.ProjectFunctionalCurrencyCode__c}" />
+         <apex:outputText escape="false" value="{!dLabel['DL54']}" rendered="{!NOT(project.EnableTopTaskCustomerFlag__c) && agreement.FundingCurrencyCode__c != project.ProjectFunctionalCurrencyCode__c}" />  
+   <!--Col-->  
+         <apex:outputText escape="false" value="{!dLabel['DL55']}" rendered="{!NOT(project.EnableTopTaskCustomerFlag__c) && agreement.FundingCurrencyCode__c != project.ProjectFunctionalCurrencyCode__c}" />      
+            <apex:inputField id="rateDateRW" value="{!tasksFunding.funding.ProjFuncRateDate__c}" rendered="{!NOT(project.EnableTopTaskCustomerFlag__c) && (tasksFunding.funding.ProjFuncRateType__c == 'User' && NOT(tasksFunding.rateLocked)) && agreement.FundingCurrencyCode__c != project.ProjectFunctionalCurrencyCode__c}" required="true" />           
+            <apex:outputField id="rateDateRO" value="{!tasksFunding.funding.ProjFuncRateDate__c}" rendered="{!NOT(project.EnableTopTaskCustomerFlag__c) && (tasksFunding.funding.ProjFuncRateType__c == 'Spot' || (tasksFunding.funding.ProjFuncRateType__c == 'User' && tasksFunding.rateLocked)) && agreement.FundingCurrencyCode__c != project.ProjectFunctionalCurrencyCode__c}" />
+         <apex:outputText escape="false" value="{!dLabel['DL56']}" rendered="{!NOT(project.EnableTopTaskCustomerFlag__c) && agreement.FundingCurrencyCode__c != project.ProjectFunctionalCurrencyCode__c}" />      
+
+
+        <apex:outputText escape="false" value="{!dLabel['DL57']}" rendered="{!(project.EnableTopTaskCustomerFlag__c) && agreement.FundingCurrencyCode__c != project.ProjectFunctionalCurrencyCode__c}" />      
+            <apex:inputField value="{!tasksFunding.funding.ProjFuncRateType__c}" rendered="{!(project.EnableTopTaskCustomerFlag__c) && (agreement.FundingCurrencyCode__c != project.ProjectFunctionalCurrencyCode__c) && NOT(tasksFunding.newFunding) && NOT(tasksFunding.rateLocked)}" onchange="functionalRateTypeChange(); return false;" />
+            <apex:outputField value="{!tasksFunding.funding.ProjFuncRateType__c}" rendered="{!(project.EnableTopTaskCustomerFlag__c) && (agreement.FundingCurrencyCode__c != project.ProjectFunctionalCurrencyCode__c) && tasksFunding.rateLocked}" />
+         <apex:outputText escape="false" value="{!dLabel['DL58']}" rendered="{!(project.EnableTopTaskCustomerFlag__c) && agreement.FundingCurrencyCode__c != project.ProjectFunctionalCurrencyCode__c}" />      
+   <!--Col-->     
+         <apex:outputText escape="false" value="{!dLabel['DL59']}" rendered="{!(project.EnableTopTaskCustomerFlag__c) && agreement.FundingCurrencyCode__c != project.ProjectFunctionalCurrencyCode__c}" />      
+            <apex:inputField id="rateRW2" value="{!tasksFunding.funding.ProjFuncRateExchangeRate__c}" rendered="{!(project.EnableTopTaskCustomerFlag__c) && (tasksFunding.funding.ProjFuncRateType__c == 'User' && NOT(tasksFunding.rateLocked)) && agreement.FundingCurrencyCode__c != project.ProjectFunctionalCurrencyCode__c}" style="width: 85px" required="true" />                   
+            <apex:outputField id="rateRO2" value="{!tasksFunding.funding.ProjFuncRateExchangeRate__c}" rendered="{!(project.EnableTopTaskCustomerFlag__c) && (tasksFunding.funding.ProjFuncRateType__c == 'Spot' || (tasksFunding.funding.ProjFuncRateType__c == 'User' && tasksFunding.rateLocked)) && agreement.FundingCurrencyCode__c != project.ProjectFunctionalCurrencyCode__c}" />
+         <apex:outputText escape="false" value="{!dLabel['DL60']}" rendered="{!(project.EnableTopTaskCustomerFlag__c) && agreement.FundingCurrencyCode__c != project.ProjectFunctionalCurrencyCode__c}" />  
+   <!--Col-->  
+         <apex:outputText escape="false" value="{!dLabel['DL61']}" rendered="{!(project.EnableTopTaskCustomerFlag__c) && agreement.FundingCurrencyCode__c != project.ProjectFunctionalCurrencyCode__c}" />      
+            <apex:inputField id="rateDateRW2" value="{!tasksFunding.funding.ProjFuncRateDate__c}" rendered="{!(project.EnableTopTaskCustomerFlag__c) && (tasksFunding.funding.ProjFuncRateType__c == 'User' && NOT(tasksFunding.rateLocked)) && agreement.FundingCurrencyCode__c != project.ProjectFunctionalCurrencyCode__c}" required="true" />           
+            <apex:outputField id="rateDateRO2" value="{!tasksFunding.funding.ProjFuncRateDate__c}" rendered="{!(project.EnableTopTaskCustomerFlag__c) && (tasksFunding.funding.ProjFuncRateType__c == 'Spot' || (tasksFunding.funding.ProjFuncRateType__c == 'User' && tasksFunding.rateLocked)) && agreement.FundingCurrencyCode__c != project.ProjectFunctionalCurrencyCode__c}" />
+         <apex:outputText escape="false" value="{!dLabel['DL62']}" rendered="{!(project.EnableTopTaskCustomerFlag__c) && agreement.FundingCurrencyCode__c != project.ProjectFunctionalCurrencyCode__c}" />
+
+
+ <!--        <apex:outputText escape="false" value="<td>" rendered="{!agreement.FundingCurrencyCode__c != project.ProjectFunctionalCurrencyCode__c}" />
+            <apex:inputField value="{!tasksFunding.funding.ChangeManagerIsChanged__c}" rendered="{!agreement.FundingCurrencyCode__c != project.ProjectFunctionalCurrencyCode__c}"/>
+        <apex:outputText escape="false" value="</td>" rendered="{!agreement.FundingCurrencyCode__c != project.ProjectFunctionalCurrencyCode__c}" />  
+ -->
+         <td/>
+    </tr>
+    </apex:repeat>
+    </apex:repeat>   
+    <!-- GRAND TOTAL LINE -->   
+    <tr>
+        <apex:outputText escape="false" value="{!dLabel['DL63']}" rendered="{!NOT(project.EnableTopTaskCustomerFlag__c) && agreement.FundingCurrencyCode__c == project.ProjectFunctionalCurrencyCode__c}" />
+        <apex:outputText escape="false" value="{!dLabel['DL64']}" rendered="{!project.EnableTopTaskCustomerFlag__c && agreement.FundingCurrencyCode__c == project.ProjectFunctionalCurrencyCode__c}" />
+        <apex:outputText escape="false" value="{!dLabel['DL65']}" rendered="{!NOT(project.EnableTopTaskCustomerFlag__c) && agreement.FundingCurrencyCode__c != project.ProjectFunctionalCurrencyCode__c}" />     
+        <apex:outputText escape="false" value="{!dLabel['DL66']}" rendered="{!project.EnableTopTaskCustomerFlag__c && agreement.FundingCurrencyCode__c != project.ProjectFunctionalCurrencyCode__c}" />
+
+        <apex:outputText escape="false" value="{!dLabel['DL67']}" rendered="{!NOT(project.EnableTopTaskCustomerFlag__c) && agreement.FundingCurrencyCode__c != project.ProjectFunctionalCurrencyCode__c}" />     
+        <apex:outputText escape="false" value="{!dLabel['DL68']}" rendered="{!project.EnableTopTaskCustomerFlag__c && agreement.FundingCurrencyCode__c != project.ProjectFunctionalCurrencyCode__c}" />
+    </tr>
+
+    <!--<tr>
+        <apex:outputText escape="false" value="<td colspan=7 align=right><b>Grand Total</b></td>" rendered="{!NOT(project.EnableTopTaskCustomerFlag__c) && agreement.FundingCurrencyCode__c == project.ProjectFunctionalCurrencyCode__c}" />
+        <apex:outputText escape="false" value="<td colspan=8 align=right><b>Grand Total</b></td>" rendered="{!project.EnableTopTaskCustomerFlag__c && agreement.FundingCurrencyCode__c == project.ProjectFunctionalCurrencyCode__c}" />
+        <apex:outputText escape="false" value="<td colspan=10 align=right><b>Grand Total</b></td>" rendered="{!NOT(project.EnableTopTaskCustomerFlag__c) && agreement.FundingCurrencyCode__c != project.ProjectFunctionalCurrencyCode__c}" />
+        <apex:outputText escape="false" value="<td colspan=11 align=right><b>Grand Total</b></td>" rendered="{!project.EnableTopTaskCustomerFlag__c && agreement.FundingCurrencyCode__c != project.ProjectFunctionalCurrencyCode__c}" />
+        <td><apex:outputField value="{!agreement.TotalFundingAmount__c}"/></td>
+    </tr>-->
+
+    </table>
+</apex:outputPanel>
+
+<apex:outputPanel id="projectLevel" rendered="{!project.ProjectLevelFundingFlag__c}" >
+<table class="table" >
+    <tr>
+        <apex:outputText escape="false" value="{!dLabel['DL69']}" rendered="{!agreement.FundingCurrencyCode__c == project.ProjectFunctionalCurrencyCode__c}" />
+
+        <apex:outputText escape="false" value="{!dLabel['DL70']}" rendered="{!agreement.FundingCurrencyCode__c != project.ProjectFunctionalCurrencyCode__c}" />
+      
+    </tr>   
+    <apex:repeat value="{!projectLevelFunding}" var="fundingItem" id="projectLevelRepeat" >
+    <tr>
+        <td><apex:commandLink rendered="{!fundingItem.funding.ChangeManagerIsNew__c}" onclick="deleteFunding('{!fundingItem.funding.Id}'); return false;" >{!dLabel['DL71']}</apex:commandLink></td>
+        <td>
+        	<apex:inputField value="{!fundingItem.funding.FundingClassification__c}" rendered="{!fundingItem.newFunding}" required="true" />
+        	<apex:outputField value="{!fundingItem.funding.FundingClassification__c}" rendered="{!NOT(fundingItem.newFunding)}" />
+        </td>
+        <td>
+          <apex:inputField value="{!fundingItem.funding.WorkAtRiskFunding__c}" rendered="{!fundingItem.newFunding}" >
+            <apex:actionSupport event="onChange" rerender="projectLevelNote" immediate="false" />
+          </apex:inputField>
+          <apex:outputField value="{!fundingItem.funding.WorkAtRiskFunding__c}" rendered="{!NOT(fundingItem.newFunding)}" />
+        </td>
+        <td>
+        	<apex:inputField value="{!fundingItem.funding.AllocatedAmount__c}" rendered="{!fundingItem.newFunding}" required="true" />
+          <apex:outputText value="{!dLabel['DL72']}" rendered="{!fundingItem.funding.AllocatedAmount__c != null && NOT(fundingItem.newFunding)}" >
+          <apex:param value="{!fundingItem.funding.AllocatedAmount__c}" />
+          </apex:outputText>
+          <apex:outputText value="{!dLabel['DL73']}" rendered="{!fundingItem.funding.AllocatedAmount__c == null && NOT(fundingItem.newFunding)}" >
+          <apex:param value="{!fundingItem.funding.TotalBaselinedAmount__c}" />
+          </apex:outputText>
+        </td>
+        <td>
+        	<apex:inputField value="{!fundingItem.funding.DateAllocatedDate__c}" rendered="{!fundingItem.newFunding}" required="true" />
+        	<apex:outputField value="{!fundingItem.funding.DateAllocatedDate__c}" rendered="{!NOT(fundingItem.newFunding)}" />
+        </td>
+        <td>
+          <apex:inputField value="{!fundingItem.funding.Notes__c}" rendered="{!fundingItem.newFunding}" id="projectLevelNote" />
+          <apex:outputField value="{!fundingItem.funding.Notes__c}" rendered="{!NOT(fundingItem.newFunding)}" />
+        </td>
+<!--        <td>
+          <apex:inputField value="{!fundingItem.funding.RevenueFundingHardLimit__c}" rendered="{!fundingItem.newFunding}" />
+          <apex:outputField value="{!fundingItem.funding.RevenueFundingHardLimit__c}" rendered="{!NOT(fundingItem.newFunding)}"/>
+        </td>       -->
+        <apex:outputText escape="false" value="{!dLabel['DL74']}" rendered="{!agreement.FundingCurrencyCode__c != project.ProjectFunctionalCurrencyCode__c}" />      
+        	<apex:inputField value="{!fundingItem.funding.ProjFuncRateType__c}" rendered="{!(agreement.FundingCurrencyCode__c != project.ProjectFunctionalCurrencyCode__c) && NOT(fundingItem.newFunding) && NOT(fundingItem.rateLocked)}" onchange="functionalRateTypeChange(); return false;" />
+            <apex:outputField value="{!fundingItem.funding.ProjFuncRateType__c}" rendered="{!(agreement.FundingCurrencyCode__c != project.ProjectFunctionalCurrencyCode__c) && fundingItem.rateLocked}" /> 
+        <apex:outputText escape="false" value="{!dLabel['DL75']}" rendered="{!agreement.FundingCurrencyCode__c != project.ProjectFunctionalCurrencyCode__c}" />   
+        
+        <apex:outputText escape="false" value="{!dLabel['DL76']}" rendered="{!agreement.FundingCurrencyCode__c != project.ProjectFunctionalCurrencyCode__c}" />      
+        	<apex:inputField value="{!fundingItem.funding.ProjFuncRateExchangeRate__c}" rendered="{!(fundingItem.funding.ProjFuncRateType__c == 'User' && NOT(fundingItem.rateLocked)) && agreement.FundingCurrencyCode__c != project.ProjectFunctionalCurrencyCode__c}" style="width: 85px" required="true" />                   
+            <apex:outputField value="{!fundingItem.funding.ProjFuncRateExchangeRate__c}" rendered="{!(fundingItem.funding.ProjFuncRateType__c == 'Spot' || (fundingItem.funding.ProjFuncRateType__c == 'User' && fundingItem.rateLocked)) && agreement.FundingCurrencyCode__c != project.ProjectFunctionalCurrencyCode__c}" />
+        <apex:outputText escape="false" value="{!dLabel['DL77']}" rendered="{!agreement.FundingCurrencyCode__c != project.ProjectFunctionalCurrencyCode__c}" />   
+        
+        <apex:outputText escape="false" value="{!dLabel['DL78']}" rendered="{!agreement.FundingCurrencyCode__c != project.ProjectFunctionalCurrencyCode__c}" />      
+        	<apex:inputField value="{!fundingItem.funding.ProjFuncRateDate__c}" rendered="{!(fundingItem.funding.ProjFuncRateType__c == 'User' && NOT(fundingItem.rateLocked)) && agreement.FundingCurrencyCode__c != project.ProjectFunctionalCurrencyCode__c}" style="width: 85px" required="true" />                   
+            <apex:outputField value="{!fundingItem.funding.ProjFuncRateDate__c}" rendered="{!(fundingItem.funding.ProjFuncRateType__c == 'Spot' || (fundingItem.funding.ProjFuncRateType__c == 'User' && fundingItem.rateLocked)) && agreement.FundingCurrencyCode__c != project.ProjectFunctionalCurrencyCode__c}" />
+        <apex:outputText escape="false" value="{!dLabel['DL79']}" rendered="{!agreement.FundingCurrencyCode__c != project.ProjectFunctionalCurrencyCode__c}" />   
+    </tr>
+    </apex:repeat>
+
+   	<!--<tr>
+        <apex:outputText escape="false" value="<td colspan=4 align=right><b>Grand Total</b></td>" rendered="{!agreement.FundingCurrencyCode__c == project.ProjectFunctionalCurrencyCode__c}" />             
+        <apex:outputText escape="false" value="<td colspan=7 align=right><b>Grand Total</b></td>" rendered="{!agreement.FundingCurrencyCode__c != project.ProjectFunctionalCurrencyCode__c}" />      
+        <td><apex:outputField value="{!agreement.TotalFundingAmount__c}"/></td>
+   	</tr>-->
+    
+    <tr>
+        <apex:outputText escape="false" value="{!dLabel['DL80']}" rendered="{!agreement.FundingCurrencyCode__c == project.ProjectFunctionalCurrencyCode__c}" />             
+        <apex:outputText escape="false" value="{!dLabel['DL81']}" rendered="{!agreement.FundingCurrencyCode__c != project.ProjectFunctionalCurrencyCode__c}" />      
+        
+        <apex:outputText escape="false" value="{!dLabel['DL82']}" rendered="{!agreement.FundingCurrencyCode__c != project.ProjectFunctionalCurrencyCode__c}" />
+        <!--<td><apex:outputField value="{!agreement.TotalFundingAmount__c}"/></td> -->
+    </tr>
+
+    </table>
+
+    <apex:commandLink value="{!dLabel['DL83']}" onclick="handleNewFunding(''); return false;" rendered="{!NOT(creatingNewFunding) && hasUpdatePermission}" />            
+    </apex:outputPanel>
+            
+</apex:pageblockSection>
+</apex:pageBlock>
+
+</apex:form>
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

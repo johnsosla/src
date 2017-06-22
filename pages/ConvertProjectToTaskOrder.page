@@ -1,0 +1,57 @@
+<apex:page standardController="Opportunity" extensions="ConvertProjectToTaskOrderController" title="Master Contract Search" tabstyle="Opportunity" id="page">
+    <apex:sectionHeader title="{!Opportunity.Name}" subtitle="Converting Project to Task Order"/>
+    <apex:form id="frm">  
+      <apex:pageBlock id="pb">
+              <apex:pageMessages />
+              <apex:outputPanel rendered="{!if(currentStep=1,true,false)}">
+                <apex:pageblockSection id="optionBlockSection" title="Associate the new converted Task Order:">
+                    <apex:selectRadio id="options" layout="pageDirection"
+                        value="{!selectedOption}">
+                        <apex:selectoptions value="{!options}" />
+                    </apex:selectRadio>
+                </apex:pageblockSection>
+                <apex:pageBlockSection >
+                    <apex:commandButton value="Continue" action="{!goNext}" status="status" rerender="frm"/>&nbsp;
+                    <apex:actionstatus id="status">
+                           <apex:facet name="start">
+                             <apex:outputPanel layout="inline">
+                               <img src="/img/loading.gif" /> Processing...
+                             </apex:outputPanel>
+                           </apex:facet>
+                     </apex:actionstatus>
+                </apex:pageBlockSection>
+                
+              </apex:outputPanel>
+              <apex:outputPanel rendered="{!if(AND(currentStep=2,selectedOption <> 'sameAccount'),true,false)}">
+                  <apex:outputLabel ><h1>Account Name &nbsp;</h1></apex:outputLabel>
+                  <apex:inputText value="{!opportunityName}" title="Account Name"/>
+                  <apex:commandButton title="Search" value="Search" action="{!searchOpportunities}"/>
+             </apex:outputPanel>
+      </apex:pageBlock>
+      <apex:pageBlock title="Search Result" id="pb2" rendered="{!if(currentStep=2,true,false)}">   
+          <apex:pageblockButtons >
+              <apex:commandButton value="Save" action="{!createNewTaskOrder}" rendered="{!NOT(ISNULL(masterContracts))}"/>
+              <apex:commandButton value="Cancel" action="{!cancel}"/>
+          </apex:pageblockButtons>        
+          <apex:inputHidden value="{!masterId}"  id="taskMaster" />
+          <apex:outputPanel rendered="{!ShowMoreThen100}" style="color:red">
+              *Your Search Results contain more than 100 records. Please enter more characters in your Keyword search
+          </apex:outputPanel>
+          <apex:pageBlockTable rules="All" value="{!masterContracts}" border="2" var="opty" rendered="{!NOT(ISNULL(masterContracts))}">
+             <apex:column headerValue="Select">
+                     <input type="radio" name="masterContract" value="{!opty.id}" onclick="document.getElementById('page:frm:pb2:taskMaster').value=this.value"/>
+             </apex:column>
+             <apex:column value="{!opty.Account.Name}"/>
+             <apex:column >
+                 <apex:facet name="header">Program Opportunity Name</apex:facet>
+                 <apex:outputField value="{!opty.Name}"/>
+             </apex:column>
+             <apex:column value="{!opty.CloseDate}"/>
+             <apex:column >
+                 <apex:facet name="header">Master Contract Number</apex:facet>
+                 <apex:outputField value="{!opty.Master_Contract_Number__c}"/>
+             </apex:column>
+          </apex:pageBlockTable> 
+      </apex:pageBlock>
+      </apex:form> 
+</apex:page>

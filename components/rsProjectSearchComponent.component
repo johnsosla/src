@@ -1,0 +1,90 @@
+<apex:component >
+    <apex:attribute name="ProjectSearchController" description="" type="rsProjectSearchController" required="true" />
+    <apex:attribute name="reRender" description="" type="String" required="false" />
+
+    <apex:actionFunction name="refreshProjects" reRender="{!reRender}" action="{!ProjectSearchController.searchProjects}"/>
+    <div class="searchBar__wrapper">
+        <apex:inputText html-placeholder="{!$Label.Project_Search_Placeholder}" value="{!ProjectSearchController.Filter.SearchText}" id="projectSearchBar" styleClass="searchBar"/>
+        <button type="button" id="projectSearchButton" data-role="button" onclick="showSectionSpinner('filterHeader');refreshProjects();" class="btn btn-default searchBar__button">
+            <span class="">
+                <!-- search -->
+                <!-- <svg role="img" title="search">
+                    <use href="{!URLFOR($Resource.rs_bundle, 'icons/search.svg')}"/>
+                </svg> -->
+                <svg width="52" height="52" viewBox="0 0 52 52"><path fill="#000" d="m49.6 45.3l-13.4-13.3c2.7-3.8 4.1-8.6 3.4-13.7-1.2-8.6-8.2-15.4-16.9-16.2-11.8-1.2-21.8 8.8-20.6 20.7 0.8 8.6 7.6 15.7 16.2 16.9 5.1 0.7 9.9-0.7 13.7-3.4l13.3 13.3c0.6 0.6 1.5 0.6 2.1 0l2.1-2.1c0.6-0.6 0.6-1.6 0.1-2.2z m-41.6-24.4c0-7.1 5.8-12.9 12.9-12.9s12.9 5.8 12.9 12.9-5.8 12.9-12.9 12.9-12.9-5.7-12.9-12.9z"></path></svg>
+            </span>
+        </button>
+    </div>
+
+    <div class="filterSection">
+        <h5 class="has-spinner" id="filterHeader">{!$Label.Project_Search_Filter_Header}:&nbsp;<img height="15" width="15" class="spinner" src="{!URLFOR($Resource.rs_bundle, '/images/loading.gif')}" alt="loading" title="loading"/></h5>
+        <div class="filterTable__frame">
+        <table class="table filterTable">
+            <tr>
+                <td>
+                    <label>{!$Label.Project_Group}</label> <br/>
+                    <apex:selectList size="1" value="{!ProjectSearchController.Filter.ProjectGroup}" onchange="showSectionSpinner('filterHeader');refreshProjects();" styleClass="aecom-select aecom-select--filterSection">
+                        <apex:selectOptions value="{!ProjectSearchController.Filter.ProjectGroups}"/>
+                    </apex:selectList>
+                </td>
+                <td>
+                    <label>{!$Label.Project_Name}</label> <br/>
+                    <apex:selectList size="1" value="{!ProjectSearchController.Filter.ProjectName}" onchange="showSectionSpinner('filterHeader');refreshProjects();" styleClass="aecom-select aecom-select--filterSection">
+                        <apex:selectOptions value="{!ProjectSearchController.Filter.ProjectNames}"/>
+                    </apex:selectList>
+                </td>
+                <td>
+                    <label>{!$Label.Client_Name}</label> <br/>
+                   <apex:selectList size="1" value="{!ProjectSearchController.Filter.ClientName}" onchange="showSectionSpinner('filterHeader');refreshProjects();" styleClass="aecom-select aecom-select--filterSection">
+                       <apex:selectOptions value="{!ProjectSearchController.Filter.ClientNames}"/>
+                   </apex:selectList>
+                </td>
+            </tr>
+            <tr>
+                <td style="border-top:none;">
+                    <label>{!$Label.Location_Country}</label> <br/>
+                    <apex:selectList size="1" value="{!ProjectSearchController.Filter.LocationCountry}" onchange="showSectionSpinner('filterHeader');refreshProjects();" styleClass="aecom-select aecom-select--filterSection">
+                        <apex:selectOptions value="{!ProjectSearchController.Filter.LocationCountries}"/>
+                    </apex:selectList>
+                </td>
+                <td style="border-top:none;">
+                    <label>{!$Label.Location_City}</label> <br/>
+                    <apex:selectList size="1" value="{!ProjectSearchController.Filter.LocationCity}" onchange="showSectionSpinner('filterHeader');refreshProjects();" styleClass="aecom-select aecom-select--filterSection">
+                        <apex:selectOptions value="{!ProjectSearchController.Filter.LocationCities}"/>
+                    </apex:selectList>
+                </td>
+                <td style="border-top:none;">
+                    <label>{!$Label.Project_Type}</label> <br/>
+                    <apex:selectList size="1" value="{!ProjectSearchController.Filter.RecordTypeId}" onchange="showSectionSpinner('filterHeader');refreshProjects();" styleClass="aecom-select aecom-select--filterSection">
+                        <apex:selectOptions value="{!ProjectSearchController.Filter.RecordTypes}"/>
+                    </apex:selectList>
+                </td>
+            </tr>
+            <tr>
+                <td style="border-top:none;">
+                    <label>{!$ObjectType.PR_Team_Employee__c.Fields.Status__c.Label}</label>
+                    <apex:selectList size="1" value="{!ProjectSearchController.Filter.Status}" onchange="showSectionSpinner('filterHeader');refreshProjects();" styleClass="aecom-select aecom-select--filterSection">
+                        <apex:selectOptions value="{!ProjectSearchController.Filter.Statuses}"/>
+                    </apex:selectList>
+                </td>
+                <td style="border-top: none;"></td>
+                <td style="border-top: none;"></td>
+            </tr>
+        </table>
+        </div>
+    </div>
+    <script type="text/javascript">
+        var j$ = jQuery.noConflict();
+        j$(function() {
+            j$('.searchBar__wrapper').on("keypress", 'input[id$="projectSearchBar"]', function(e) {
+                if(window.event && window.event.keyCode == 13 || e.which == 13) {
+                    showSectionSpinner('filterHeader');
+                    refreshProjects();
+                    return false;
+                } else {
+                   return true;
+                }
+            });
+        });
+    </script>
+</apex:component>

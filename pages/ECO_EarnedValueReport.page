@@ -1,0 +1,698 @@
+<apex:page standardcontroller="pse__Proj__c" extensions="ECO_EarnedValueReportController,nttdcore.DLabelParentController" action="{!init}" sidebar="false" showheader="true" doctype="html-5.0" >
+
+    <apex:stylesheet value="{!URLFOR($Resource.ECO_jQueryUI_1_11_2_Themes, 'themes/smoothness/jquery-ui.css')}" />
+
+    <script type="text/javascript" src="https://www.google.com/jsapi" />
+    <script type="text/javascript" >
+        google.load('visualization', '1.1', {packages: ['line']});
+    </script>
+    
+    <script type="text/javascript" >
+        j$ = jQuery.noConflict();
+
+        var isAllCheck = false;
+
+        function checkUncheckAllTasks(){
+            if(isAllCheck == true){
+                j$(".taskCheckbox").prop("checked", false);
+                isAllCheck = false;
+                j$("#lnkCheckAll").html('[ Select All ]');          
+            }else{
+                j$(".taskCheckbox").prop("checked", true);
+                isAllCheck = true;
+                j$("#lnkCheckAll").html('[Unselect All]');  
+            }
+        }
+
+        var isAllCheckNotifyTaskOwner = false;
+
+        function checkUncheckAllNotifyTaskOwner(){
+            if(isAllCheckNotifyTaskOwner == true){
+                j$(".taskNotifyTaskOwner").prop("checked", false);
+                isAllCheckNotifyTaskOwner = false;
+                j$("#lnkCheckAllNotifyTaskOwner").html('Select All');           
+            }else{
+                j$(".taskNotifyTaskOwner").prop("checked", true);
+                isAllCheckNotifyTaskOwner = true;
+                j$("#lnkCheckAllNotifyTaskOwner").html('Unselect All'); 
+            }
+        }
+
+        function handleNewReportTypeSelection(reportType){
+            j$("[id*=selectedReportAction]").val(reportType);   
+            if(reportType == 'new'){
+                j$("[id*=evhReportName]").removeAttr('disabled'); 
+                j$("[id*=evhSnapshot]").removeAttr('disabled');         
+                j$("[id*=evhExistingReports]").val('');
+                j$("[id*=evhExistingReports]").attr('disabled', 'disabled'); 
+                reloadTasksForProject_JS();
+            }else{
+                j$("[id*=evhReportName]").attr('disabled', 'disabled');                 
+                j$("[id*=evhSnapshot]").attr('disabled', 'disabled');               
+                j$("[id*=evhExistingReports]").removeAttr('disabled'); 
+                clearTasks_JS();
+            }           
+        }
+
+        function handleExistingReportChange(reportId){
+            if(reportId.length > 0){
+                j$("[id*=selectedExistingReportId]").val(reportId); 
+                applySelectedReportToTasks_JS();
+            }else{
+                j$("[id*=evhExistingReports]").val(j$("[id*=selectedExistingReportId]").val());
+            }           
+        }
+        
+        // Auto-Grow-TextArea script.
+        // Script copyright (C) 2011 www.cryer.co.uk.
+        // Script is free to use provided this copyright header is included.
+        function AutoGrowTextArea(textField)
+        {
+          if (textField.clientHeight < textField.scrollHeight)
+          {
+            textField.style.height = textField.scrollHeight + "px";
+            if (textField.clientHeight < textField.scrollHeight)
+            {
+              textField.style.height = 
+                (textField.scrollHeight * 2 - textField.clientHeight) + "px";
+            }
+          }
+        }
+
+        function confirmCommit(){
+            return confirm("Are you sure you want to commit your changes? You will not be able to edit it aftwards?");
+        }
+
+        function disableSnapshotDateSelect(){
+            j$("[id*=evhSnapshot]").attr('disabled', 'disabled');       
+        }
+
+        function enableSnapshotDateSelect(){
+            j$("[id*=evhSnapshot]").removeAttr('disabled');         
+        }
+    </script>
+
+    <apex:includeScript value="{!URLFOR($Resource.ECO_jQuery_1_11_2_min_js)}" />
+    <script type="text/javascript" >
+        $b = jQuery.noConflict();
+
+        var btnsEnabled = true;
+        function saveButtonsEnabled(enable) {
+            btnsEnabled = enable;
+            var $buttons = $b('.btn'); // find all buttons in the page
+            var $saveButton = $b('.saveBtn');
+            if (enable === false) {
+                $buttons.toggleClass('btnDisabled', true);
+                $saveButton.val('Saving...');
+            } else {
+                $buttons.toggleClass('btnDisabled', false).attr('disabled', null);
+                $saveButton.val('Save');
+            }
+        }
+    
+        function disableButtons() {
+            if (!btnsEnabled) return false;
+            saveButtonsEnabled(false);
+    
+            return true;
+        }
+    
+        function actionComplete() {
+            saveButtonsEnabled(true);
+        }
+
+        function showHide(elem, elemid) {
+            console.log('in showHide, elem: ' + elem);
+            console.log('in showHide, elemId: ' + elemid);
+
+            current = $b(elem).html();
+            console.log('current: ' + current);
+
+            if (current == '-') {  // currently open, close
+                $b(elem).html('+');
+
+                $b('.' + elemid).hide(250);
+            } else if (current == '+') {  // currently closed, open
+                $b(elem).html('-');
+
+                $b('.' + elemid).show(250);
+            } else {  // ALERT - oops
+
+            }
+        }
+
+        function setTaskDirty(row) {
+            row.find('[id$=isDirty]').val('true');
+        }
+
+        function setDirty(line) {
+            var row = $b(line).closest('tr');
+            setTaskDirty(row);
+        }
+
+    </script>
+
+    <style>
+        h1 {
+            font-size:16pt;
+            display:block;
+        }
+        .standardColumnLabel {
+            background-color:#CCCCCC;
+            text-align: center;
+            width: 100px;
+            padding: 5px;
+        }
+        .longColumnLabel {
+            background-color:#CCCCCC;
+            text-align: center;
+            width: 150px;
+            padding: 5px;
+        }
+        .shortColumnLabel {
+            background-color:#CCCCCC;
+            text-align: center;
+            width: 5px;
+        }
+        .shortColumnCalcLabel {
+            background-color:#36a0fe;
+            width: 5px;
+        }
+        .editColumn {
+            background-color:#015ba7;
+            color:white;
+        }
+        .calcColumn {
+            background-color:#36a0fe;
+        }
+        .standardLabel {
+            background-color:#CCCCCC;
+            text-align: right;
+            width: 150px;
+            padding: 5px;
+        }
+        .numericCol {
+            text-align: right;
+        }
+        .touch {
+            cursor: pointer;
+        }
+        .touch:hover {
+            text-decoration: underline;
+        }
+        td.textCell {
+            background-color: #ececec;
+            padding: 5px;
+        } 
+        td.numberCell {
+            text-align: right;
+            background-color: #ececec;
+            padding: 5px;
+        }
+        .openClose {
+            background-color: #ececec;          
+        }
+        
+    </style>
+
+    <apex:outputText value="{!$Label.ECO_FinancialForce_Error}" style="font-size:12pt;font-weight:500!important;margin-left: 38px;" rendered="{!NOT(hasFinancialForceAccess)}" />        
+    <apex:form rendered="{!hasFinancialForceAccess}" >
+        <apex:actionFunction name="applySelectedSnapShotToTasks_JS" action="{!moveToSelectedSnapshotDate}" status="statusBar" />        
+        <apex:actionFunction name="initPage" action="{!refreshPage}" />
+        <apex:actionStatus id="buttonStatus" onstop="actionComplete()" />
+
+        <nttdcore:DLabel name="DL1" default="Project Start Date is in the Future" labelParent="{!this}" /><nttdcore:DLabel name="DL2" default="You cannot enter any Earned Value, only the Project Task Owner information may be edited" labelParent="{!this}" /><nttdcore:DLabel name="DL3" default="In the meantime you may enter and save EV Rules/Guidelines." labelParent="{!this}" /><apex:pageMessage rendered="{!beforeStartOfProject}" title="{!dLabel['DL1']}" detail="{!dLabel['DL2']}" summary="{!dLabel['DL3']}" severity="info" strength="1" />
+                    
+        <nttdcore:DLabel name="DL4" default="Earned Value Report" labelParent="{!this}" /><apex:sectionHeader title="{!dLabel['DL4']}" subtitle="{!project.ProjectSectionHeaderName__c}" />
+
+        <apex:pageMessages id="msg2" escape="false" />
+
+        <c:ECO_CollapsibleSection sectiontitle="General Guidance Information" uniqueid="1" ><nttdcore:DLabel name="DL5" default="Earned value is a tool used to help determine if a project is progressing as planned.  Utilize this tool to compare your project plan against actual work completed and budget spent to date.   To complete and Earned Value report:" labelParent="{!this}" /><nttdcore:DLabel name="DL6" default="1.  Select the &quot;Week Of&quot; date for the period you wish to complete the report." labelParent="{!this}" /><nttdcore:DLabel name="DL7" default="2.  Enter the &quot;Percent Complete&quot; assessment for each task.  Note that this is the physical percent (%) of work completed to date." labelParent="{!this}" /><nttdcore:DLabel name="DL8" default="3.  Enter any &quot;Cost Accruals&quot; relative to the percent complete claimed (e.g., any Subs or ODCs not yet accounted for in the project costs to date)." labelParent="{!this}" /><nttdcore:DLabel name="DL9" default="4.  Enter any &quot;Comments&quot; for future reference to substantiate the percent complete." labelParent="{!this}" /><nttdcore:DLabel name="DL10" default="5.  When complete, click on &quot;Commit Changes&quot; to submit and lock the Earned Value assessment for that week." labelParent="{!this}" /><nttdcore:DLabel name="DL11" default="Click on &quot;Save&quot; at any time to save the work done to date.  Note however the updates will not reflect on the Earned Value graphs until the assessment has been committed." labelParent="{!this}" /> 
+                {!dLabel['DL5']}
+               <br/><br/>
+                {!dLabel['DL6']}<br/>
+                {!dLabel['DL7']}<br/>
+                {!dLabel['DL8']}<br/>
+                {!dLabel['DL9']}<br/>
+                {!dLabel['DL10']}<br/>
+                <br/>
+                {!dLabel['DL11']}
+        </c:ECO_CollapsibleSection>
+        <br/> 
+
+        <apex:outputPanel rendered="{!isNotRolledOut}" >
+            <nttdcore:DLabel name="DL12" default="Queue Project for Priority Rollout" labelParent="{!this}" /><apex:commandButton action="{!queueProjectForPriorityRollout}" value="{!dLabel['DL12']}" rerender="displayQueueRequest" disabled="{!!canSubmitPriorityRollout}" /><br/>
+            <nttdcore:DLabel name="DL13" default="This project has not been fully rolled out yet &amp; you do not have permissions to submit it for Priority Rollout Status.  Get your PM or other Key team member to do this if you want to view the EVR sooner." labelParent="{!this}" /><apex:outputText value="{!dLabel['DL13']}" rendered="{!!canSubmitPriorityRollout}" /><br/>
+            <apex:outputPanel id="displayQueueRequest" >
+                <apex:outputText escape="false" value="{!queueMessage}" />
+            </apex:outputPanel>
+            <br/>
+        </apex:outputPanel>
+
+<apex:outputPanel rendered="{!isDebug}" >
+isTeamMember: {!isTeamMember}<br/>
+isReadOnly: {!isReadOnly}<br/>
+EVH.Committed: {!currentEvHeader.Committed__c}<br/>
+</apex:outputPanel>
+
+        <nttdcore:DLabel name="DL14" default="Too many tasks to show on the page" labelParent="{!this}" /><nttdcore:DLabel name="DL15" default="Please select a Task Owner or Parent Task filter item to reduce the number of tasks in the list and refresh the data" labelParent="{!this}" />
+        <nttdcore:DLabel name="DL16" default="this page is only able to display {{1}} tasks maximum at this time" labelParent="{!this}" p1="{!taskLimitDisplay}" />
+
+        <apex:pageMessage rendered="{!tooManyTasksToShow}" title="{!dLabel['DL14']}" detail="{!dLabel['DL15']}" summary="{!dLabel['DL16']}" severity="error" strength="3" />
+
+        <apex:pageBlock ><nttdcore:DLabel name="DL17" default="Report Information" labelParent="{!this}" /><nttdcore:DLabel name="DL38" default="Task Progress" labelParent="{!this}" />
+            <apex:pageBlockSection columns="1" title="{!dLabel['DL17']}" collapsible="false" />
+
+                <apex:pageBlockButtons location="top" >
+                    <nttdcore:DLabel name="DL18" default="Request Task Manager Input" labelParent="{!this}" /><apex:commandButton value="{!dLabel['DL18']}" action="{!requestTaskManagerInput}" disabled="{!isReadOnly || currentEvHeader.Committed__c}"/>
+                    <nttdcore:DLabel name="DL19" default="Commit Changes" labelParent="{!this}" /><apex:commandButton action="{!saveChangesAndCommitEvReport}" value="{!dLabel['DL19']}" onclick="return confirmCommit();" rendered="{!(isProjectManager || isSysAdmin) && !beforeStartOfProject}" disabled="{!isReadOnly || currentEvHeader.Committed__c}"/>
+                     <nttdcore:DLabel name="DL20" default="Save" labelParent="{!this}" /><apex:commandButton action="{!saveChanges}" value="{!dLabel['DL20']}" onclick="return disableButtons();" styleclass="saveBtn" status="buttonStatus" disabled="{!isReadOnly || currentEvHeader.Committed__c}"/> 
+                    <nttdcore:DLabel name="DL21" default="Return to Project" labelParent="{!this}" /><apex:commandButton action="{!returnToProject}" value="{!dLabel['DL21']}" />
+                </apex:pageBlockButtons>
+
+                <table class="tableClass" cellspacing="1" cellpadding="5" border="0" width="100%" >
+                    <tr align="left" >
+                        <td width="50%" >
+                            <table class="tableClass" cellspacing="1" cellpadding="5" width="100%" >
+                                <tr>
+                                    <td class="standardLabel" width="230px" >
+                                        <b>{!$ObjectType.EarnedValueHeader__c.Fields.Project__c.Label}</b>
+                                    </td>
+                                    <td>
+                                        {!project.ProjectSectionHeaderName__c}
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td class="standardLabel" >
+                                        <b><nttdcore:DLabel name="DL22" default="Week Ending" labelParent="{!this}" />{!dLabel['DL22']}</b>
+                                    </td>
+                                    <td width="210px" >
+                                        <nttdcore:DLabel name="DL23" default=" &lt;&lt; " labelParent="{!this}" /><apex:commandButton id="btnPrevSnapShot2" action="{!moveBackwardByAWeek}" value="{!dLabel['DL23']}" disabled="{!!hasPrevWeek}" />
+                                        <apex:selectList size="1" id="evhSnapshot2" onchange="initPage();" value="{!selectedSnapshotDate}" >
+                                            <apex:selectOptions value="{!snapshotWeekEndingDateList}" />
+                                        </apex:selectList>
+                                        <nttdcore:DLabel name="DL24" default=" &gt;&gt; " labelParent="{!this}" /><apex:commandButton id="btnNextSnapShot2" action="{!moveForwardByAWeek}" value="{!dLabel['DL24']}" disabled="{!!hasNextWeek}" />
+                                    </td>
+
+                                </tr>
+
+                                <tr>
+                                    <td class="standardLabel" >
+                                        <b><nttdcore:DLabel name="DL25" default="Filter by Project Task Owner" labelParent="{!this}" />{!dLabel['DL25']}</b> 
+                                    </td>
+                                    <td>   
+                                        <apex:selectList value="{!filterProjectTeamMember}" multiselect="false" size="1" onchange="initPage();" id="filterProjectTeamMember" >
+                                            <apex:selectOptions value="{!projectTeamMembersFilter}" />
+                                        </apex:selectList>
+                                    </td>
+
+                                </tr>
+
+                                <tr>
+                                    <td class="standardLabel" >
+                                        <b><nttdcore:DLabel name="DL26" default="Filter by Project Task" labelParent="{!this}" />{!dLabel['DL26']}</b> 
+                                    </td>
+                                    <td>   
+                                        <apex:selectList value="{!filterTaskNumber}" multiselect="false" size="1" onchange="initPage();" id="filterTaskNumber" >
+                                            <apex:selectOptions value="{!projectTaskNumberFilter}" />
+                                        </apex:selectList>
+                                    </td>
+
+                                </tr>
+                                <tr>
+                                    <td class="standardLabel" >
+                                        <b><nttdcore:DLabel name="DL27" default="Filter by Project Task Sub Range" labelParent="{!this}" />{!dLabel['DL27']}</b> 
+                                    </td>
+                                    <td>   
+                                        <apex:selectList value="{!filterTaskRange}" multiselect="false" size="1" onchange="initPage();" id="filterTaskRange" >
+                                            <apex:selectOptions value="{!projectTaskRangeFilter}" />
+                                        </apex:selectList>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td valign="top" class="standardLabel" >
+                                        <b>{!$ObjectType.pse__Proj__c.Fields.EVRulesGuidelines__c.Label}</b>
+                                        <span>
+                                            <img style="vertical-align: middle;" src="http://png-3.findicons.com/files/icons/1156/fugue/16/question_frame.png" title="{!$ObjectType.pse__Proj__c.Fields.EVRulesGuidelines__c.InlineHelpText}" />
+                                        </span>                            
+                                    </td>
+                                    <td>
+                                        <span style="width:750px;">
+                                            <apex:outputPanel rendered="{!if( (!isReadOnly && !currentEvHeader.Committed__c), true, false)}">
+                                                <apex:inputField value="{!Project.EVRulesGuidelines__c}" id="evhRules" style="width:750px;}" />
+                                            </apex:outputPanel>
+                                            <apex:outputPanel rendered="{!if( (isReadOnly || currentEvHeader.Committed__c), true, false)}">
+                                                <apex:outputField value="{!Project.EVRulesGuidelines__c}" style="width:750px;" />
+                                            </apex:outputPanel>
+                                        </span>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+
+                        <td align="left" valign="top" width="40%" >
+                            <table class="tableClass" cellspacing="1" cellpadding="5" width="70%" >
+                                <tr align="left" >
+                                    <td align="left" class="standardLabel" width="65%" >
+                                        <b><nttdcore:DLabel name="DL28" default="Total Project Prior Week Percent Complete" labelParent="{!this}" />{!dLabel['DL28']}</b>
+                                    </td>
+                                    <td class="numericCol" style="background-color: #F18C8C;" width="35%" ><nttdcore:DLabel name="DL29" default="{{1}}%" labelParent="{!this}" p1="{!project_TotalPriorComplete}" />
+                                        {!dLabel['DL29']}
+                                    </td>
+
+                                </tr>
+                                
+                                <tr>
+                                    <td class="standardLabel" width="65%" style="background-color:#015ba7;color:white;" >
+                                        <b><nttdcore:DLabel name="DL30" default="Total Project Percent Complete" labelParent="{!this}" />{!dLabel['DL30']}</b>
+                                    </td>
+                                    <td class="numericCol" style="background-color: #F18C8C;" width="35%" ><nttdcore:DLabel name="DL31" default="{{1}}%" labelParent="{!this}" p1="{!project_PercentComplete}" />
+                                        {!dLabel['DL31']}
+                                    </td>
+
+                                </tr>
+                                
+                                <tr>
+                                    <td class="standardLabel" width="65%" style="background-color:#36a0fe;" >
+                                        <b><nttdcore:DLabel name="DL32" default="Total Project Approved Cost" labelParent="{!this}" />{!dLabel['DL32']}</b>
+                                    </td>
+                                    <td class="numericCol" style="background-color: #F18C8C" width="35%" >
+                                        <apex:outputText value="{0, number, ###,###,###,###}" > 
+                                            <apex:param value="{!project_TotalApprovedCost}" /> 
+                                        </apex:outputText>
+                                    </td>
+
+                                </tr>
+                                
+                                <tr>
+                                    <td class="standardLabel" width="65%" style="background-color:#36a0fe;" >
+                                        <b><nttdcore:DLabel name="DL33" default="Total Project Earned Value" labelParent="{!this}" />{!dLabel['DL33']}</b>
+                                    </td>
+                                    <td class="numericCol" style="background-color: #F18C8C" width="35%" >
+                                        <apex:outputText value="{0, number, ###,###,###,###}" > 
+                                            <apex:param value="{!project_EarnedValue}" /> 
+                                        </apex:outputText>
+                                    </td>
+
+                                </tr>
+                                
+                                <tr align="left" >
+                                    <td class="standardLabel" width="65%" style="background-color:#015ba7;color:white;" >
+                                        <b><nttdcore:DLabel name="DL34" default="Total Project Cost Accruals" labelParent="{!this}" />{!dLabel['DL34']}</b>
+                                    </td>
+                                    <td class="numericCol" style="background-color: #F18C8C;" width="35%" >
+                                        <apex:outputText value="{0, number, ###,###,###,###}" > 
+                                            <apex:param value="{!project_TotalCostAccruals}" /> 
+                                        </apex:outputText>
+                                    </td>
+                                </tr>
+                                
+                                <tr>
+                                    <td class="standardLabel" width="65%" style="background-color:#36a0fe;" >
+                                        <b><nttdcore:DLabel name="DL35" default="Total Project Cost (To Present)" labelParent="{!this}" />{!dLabel['DL35']}</b>
+                                    </td>
+                                    <td class="numericCol" style="background-color: #F18C8C" width="35%" >
+                                        <apex:outputText value="{0, number, ###,###,###,###}" > 
+                                            <apex:param value="{!project_TotalActualCost}" /> 
+                                        </apex:outputText>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td class="standardLabel" width="65%" style="background-color:#36a0fe;" >
+                                        <b><nttdcore:DLabel name="DL36" default="Total Project Trend EAC 1" labelParent="{!this}" />{!dLabel['DL36']}</b>
+                                    </td>
+                                    <td class="numericCol" style="background-color: #F18C8C" width="35%" >
+                                        <apex:outputText value="{0, number, ###,###,###,###}" > 
+                                            <apex:param value="{!project_TotalTrendEAC1}" /> 
+                                        </apex:outputText>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td class="standardLabel" width="65%" style="background-color:#36a0fe;" >
+                                        <b><nttdcore:DLabel name="DL37" default="Total Project Trend EAC 2" labelParent="{!this}" />{!dLabel['DL37']}</b>
+                                    </td>
+                                    <td class="numericCol" style="background-color: #F18C8C" width="35%" >
+                                        <apex:outputText value="{0, number, ###,###,###,###}" > 
+                                            <apex:param value="{!project_TotalTrendEAC2}" /> 
+                                        </apex:outputText>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+
+            <apex:pageBlockSection columns="1" id="pbtSnapshotTasks" title="{!dLabel['DL38']}" collapsible="false" rendered="{!!tooManyTasksToShow}" />
+
+            <apex:outputPanel rendered="{!!tooManyTasksToShow}" >
+
+                <table class="tableClass" cellspacing="1" cellpadding="5" border="0" width="100%" >
+                    <tr>
+                        <th class="shortColumnLabel" ><nttdcore:DLabel name="DL39" default="FT" labelParent="{!this}" />{!dLabel['DL39']}</th>
+                        <th class="shortColumnLabel touch" >&nbsp;</th>
+                        <th class="shortColumnLabel touch" >&nbsp;</th> <!--issues 05199-->
+                       <!-- <th class="standardColumnLabel" >{!$ObjectType.pse__Project_Task__c.Fields.ProjectTaskNumber__c.Label}</th>  issues 05199-->
+                        <th class="longColumnLabel touch" nowrap="true" onclick="window.location='/apex/ECO_TaskDetail?id={!Project.Id}';" >
+                            {!$ObjectType.pse__Project_Task__c.Fields.Name.Label}</th>
+                        <th class="standardColumnLabel" >{!$ObjectType.pse__Project_Task__c.Fields.ProjectTaskOwner__c.Label}</th>
+                        <th class="standardColumnLabel" >{!$ObjectType.pse__Project_Task__c.Fields.pse__Start_Date__c.Label}</th>
+                        <th class="standardColumnLabel" >{!$ObjectType.pse__Project_Task__c.Fields.pse__End_Date__c.Label}</th>
+                        <th class="standardColumnLabel" ><nttdcore:DLabel name="DL40" default="Prior Week" labelParent="{!this}" /><nttdcore:DLabel name="DL41" default="% Complete" labelParent="{!this}" />
+                            {!dLabel['DL40']}<br/>{!dLabel['DL41']}<br/>
+<!--                            <span>
+                                <img style="vertical-align: middle;" 
+                                    src="http://png-3.findicons.com/files/icons/1156/fugue/16/question_frame.png" 
+                                    title="Jodi needs to provide help text" />
+                            </span> -->
+                        </th>
+                        <th class="standardColumnLabel editColumn" >
+                            {!$ObjectType.EarnedValueTask__c.Fields.PercentComplete__c.Label}<br/>
+                            <span>
+                                <img style="vertical-align: middle;" src="http://png-3.findicons.com/files/icons/1156/fugue/16/question_frame.png" title="{!$ObjectType.EarnedValueTask__c.Fields.PercentComplete__c.InlineHelpText}" />
+                            </span>
+                        </th>
+                        <th class="shortColumnCalcLabel" >&nbsp;</th>
+                        <th class="standardColumnLabel calcColumn" >
+                            {!$ObjectType.pse__Project_Task__c.Fields.TotalApprovedCost__c.Label}
+                        </th>
+                        <th class="shortColumnCalcLabel" >&nbsp;</th>
+                        <th class="standardColumnLabel calcColumn" >
+                            {!$ObjectType.EarnedValueTask__c.Fields.EarnedValue__c.Label}
+                        </th>
+                        <th class="standardColumnLabel editColumn" >
+                            {!$ObjectType.EarnedValueTask__c.Fields.CostAccruals__c.Label}<br/>                        
+                            <span>
+                                <img style="vertical-align: middle;" src="http://png-3.findicons.com/files/icons/1156/fugue/16/question_frame.png" title="{!$ObjectType.EarnedValueTask__c.Fields.CostAccruals__c.InlineHelpText}" />
+                            </span>
+                        </th>
+                        <th class="standardColumnLabel calcColumn" ><nttdcore:DLabel name="DL42" default="Total Cost" labelParent="{!this}" /><nttdcore:DLabel name="DL43" default="(To Present)" labelParent="{!this}" />{!dLabel['DL42']}<br/>{!dLabel['DL43']}
+                            <span>
+                                <img style="vertical-align: middle;" src="http://png-3.findicons.com/files/icons/1156/fugue/16/question_frame.png" title="{!$label.VF_EVR_TotalCost_HelpText}" />
+                            </span>
+                        </th>
+                        <th class="standardColumnLabel calcColumn" >
+                            {!$ObjectType.EarnedValueTask__c.Fields.TrendEAC1__c.Label}<br/>
+                            <span>
+                                <img style="vertical-align: middle;" src="http://png-3.findicons.com/files/icons/1156/fugue/16/question_frame.png" title="{!$ObjectType.EarnedValueTask__c.Fields.TrendEAC1__c.InlineHelpText}" />
+                            </span>
+                        </th>
+                        <th class="standardColumnLabel calcColumn" >
+                            {!$ObjectType.EarnedValueTask__c.Fields.TrendEAC2__c.Label}<br/>
+                            <span>
+                                <img style="vertical-align: middle;" src="http://png-3.findicons.com/files/icons/1156/fugue/16/question_frame.png" title="{!$ObjectType.EarnedValueTask__c.Fields.TrendEAC2__c.InlineHelpText}" />
+                            </span>
+                        </th>
+                        <th class="standardColumnLabel editColumn" >
+                            {!$ObjectType.EarnedValueTask__c.Fields.Comments__c.Label}
+                        </th>
+                    </tr>
+
+                    <apex:repeat value="{!availableTasks}" var="wrapper" >
+                        <apex:variable var="isTotalLine" value="{!wrapper.task_Name == 'TOTAL'}" />
+                        <apex:variable var="varTaskId" value="{!'' + wrapper.task_Id}" />
+
+                        <tr class="{!wrapper.parentTask_Id}" >
+                            
+                            <!--financial task flag-->
+                            <td class="textCell" style="text-align:center; background-color: {!if( isTotalLine, '#CC0000', '#ececec')}" >
+                                <apex:outputText rendered="{!!isTotalLine}" >
+                                    {!if(wrapper.task_isWorkPlanTask == true, 'N','Y')}
+                                </apex:outputText>
+                           </td>
+
+                           <!--show/hide task children-->
+                            <td class="openClose" style="background-color: {!if( isTotalLine, '#CC0000', '#ececec')}" >
+                                <b><apex:outputPanel rendered="{!BLANKVALUE(wrapper.children.size, 0) > 0}" onclick="showHide(this, '{!wrapper.task_id}');" >-</apex:outputPanel></b>
+                            </td>
+                            
+                           <!--task number-->
+                           <td class="textCell" style="text-align:right; background-color: {!if( isTotalLine, '#CC0000', '#ececec')}" >
+                                <div style="margin-left: {!wrapper.indentLevel * 13}px;" >
+                                    <apex:outputText style="color:white;" rendered="{!isTotalLine && filterTaskNumber != '-1'}" value="{!filterTaskNumber}" />
+                                    <apex:outputText rendered="{!!isTotalLine}" value="{!wrapper.task_ProjectTaskNumber}" />
+                                </div>
+                            </td>
+                            
+                            <!--task name-->
+                            <td class="textCell" nowrap="true" style="background-color: {!if( isTotalLine, '#CC0000', '#ececec')}" >
+                                <div style="margin-left: {!wrapper.indentLevel * 13}px;" >
+                                    {!wrapper.task_Name}
+                                </div>
+                            </td>
+                            <!--task owner, i.e. assigned to-->
+                            <td style="background-color: {!if( isTotalLine, '#CC0000', '#ececec')}" >
+                
+                                <apex:selectList value="{!wrapper.task_ProjectTaskOwner}" multiselect="false" size="1" rendered="{!!isTotalLine}" onchange="setDirty(this);" disabled="{! isTaskOwnerDisabled}">
+                                    <apex:selectOptions value="{!projectTeamMembersForAssign}" />
+                                </apex:selectList>
+                                <apex:outputText style="color:white;" rendered="{!isTotalLine}" value="{!filterTeamMemberName}" />
+
+                            </td>
+                           
+                            <!--task start date-->
+                            <td style="white-space:nowrap; text-align:center; background-color: {!if(isTotalLine, '#F18C8C', '#ececec')}" >
+                                <apex:outputField rendered="{!!isTotalLine}" value="{!wrapper.task.pse__Start_Date__c}" />
+                                <apex:outputText rendered="{!isTotalLine}" value="{!totalStartDate}" />
+                                <!-- <c:ECO_DateFormat rendered="{!!isTotalLine}" date="{!wrapper.task.pse__Start_Date__c}" /> -->
+                                <!-- <c:ECO_DateFormat rendered="{!isTotalLine}" date="{!totalStartDate}" /> -->
+                            </td>
+
+                            <!--task end date-->
+                            <td style="white-space:nowrap; text-align:center; background-color: {!if(isTotalLine, '#F18C8C', '#ececec')}" >
+                                <apex:outputField rendered="{!!isTotalLine}" value="{!wrapper.task.pse__End_Date__c}" />
+                                <apex:outputText rendered="{!isTotalLine}" value="{!totalEndDate}" />
+                                <!-- <c:ECO_DateFormat rendered="{!!isTotalLine}" date="{!wrapper.task.pse__End_Date__c}" /> -->
+                                <!-- <c:ECO_DateFormat rendered="{!isTotalLine}" date="{!totalEndDate}" /> -->
+                            </td>
+
+                            <!--prior week EV-->
+                            <td class="numericCol" style="background-color: {!if(isTotalLine, '#F18C8C', '#ececec')}" >
+                                <apex:outputPanel rendered="{! !beforeStartOfProject}" >
+                                    {!wrapper.priorComplete} &#37;
+                                </apex:outputPanel>
+                            </td> 
+
+                            <!--percent complete-->
+                            <td class="numericCol" style="background-color: {!if(isTotalLine, '#F18C8C', '#ececec')}" >
+                                <apex:outputPanel rendered="{!(wrapper.task_TotalApprovedCost != 0 || wrapper.task_IsWorkPlanTask)&& !beforeStartOfProject}" >
+                                    <apex:inputField value="{!wrapper.earnedValueTask.PercentComplete__c}" style="width:30px;text-align:right;background-color: {!if((wrapper.earnedValueTask.PercentComplete__c > 100 || wrapper.earnedValueTask.PercentComplete__c < 0), 'red', 'white')}" styleclass="{!wrapper.earnedValueTask.Id}" rendered="{! if( !wrapper.earnedValueTask.Committed__c && ((wrapper.IsEditable && !wrapper.HasChildWorkPlanTask) || wrapper.task_IsWorkPlanTask), 'true', 'false')}" onchange="setDirty(this);" />
+                                    
+                                    <apex:outputField value="{!wrapper.earnedValueTask.PercentComplete__c}" style="background-color: {!if((wrapper.earnedValueTask.PercentComplete__c > 100 || wrapper.earnedValueTask.PercentComplete__c < 0), 'red', 'white')}" rendered="{!if((wrapper.earnedValueTask.Committed__c || isTotalLine || wrapper.IsVisible || wrapper.HasChildWorkPlanTask) && !beforeStartOfProject, 'true', 'false')}" /> 
+                                    <!--% sign-->
+                                    <apex:outputText rendered="{!if(wrapper.IsEditable && !wrapper.earnedValueTask.Committed__c && !wrapper.HasChildWorkPlanTask && !beforeStartOfProject, 'true', 'false')}" >%</apex:outputText>
+
+                                </apex:outputPanel>
+<apex:outputPanel rendered="{!isDebug}" ><nttdcore:DLabel name="DL47" default="isEd: {{1}}" labelParent="{!this}" p1="{!wrapper.IsEditable}" /><nttdcore:DLabel name="DL48" default="isVis: {{1}}" labelParent="{!this}" p1="{!wrapper.IsVisible}" /><nttdcore:DLabel name="DL49" default="HWPTC: {{1}}" labelParent="{!this}" p1="{!wrapper.HasChildWorkPlanTask}" /><nttdcore:DLabel name="DL50" default="IWPT: {{1}}" labelParent="{!this}" p1="{!wrapper.task_IsWorkPlanTask}" /><nttdcore:DLabel name="DL51" default="evt.%C: {{1}}" labelParent="{!this}" p1="{!wrapper.earnedValueTask.PercentComplete__c}" />
+<br/>{!dLabel['DL47']}
+<br/>{!dLabel['DL48']}
+<br/>{!dLabel['DL49']}
+<br/>{!dLabel['DL50']}  
+<br/>{!dLabel['DL51']}                              
+</apex:outputPanel>
+                            </td>
+
+                            <!--X-->
+                            <td class="numericCol" style="background-color: {!if(isTotalLine, '#F18C8C', '#ececec')}" >
+                                <apex:outputText rendered="{!(wrapper.task_TotalApprovedCost != 0 || wrapper.task_IsWorkPlanTask)&& !beforeStartOfProject}" >X</apex:outputText>
+                            </td>
+
+                            <!--Total Approved Cost, aka Budget-->
+                            <td class="numericCol" style="background-color: {!if(isTotalLine, '#F18C8C', '#ececec')}" >
+<apex:outputPanel rendered="{!isDebug}" ><nttdcore:DLabel name="DL53" default="t.tac: {{1}}" labelParent="{!this}" p1="{!wrapper.task_TotalApprovedCost}" /><nttdcore:DLabel name="DL54" default="t.tacWpt: {{1}}" labelParent="{!this}" p1="{!wrapper.task_TotalApprovedCostForWorkPlanTask}" />
+{!dLabel['DL53']}<br/>
+{!dLabel['DL54']}<br/>
+</apex:outputPanel>
+                                <apex:outputText rendered="{!if(((isTotalLine || wrapper.IsVisible || wrapper.IsEditable) && !wrapper.task_IsWorkPlanTask && !beforeStartOfProject) || (wrapper.earnedValueTask.Committed__c && !wrapper.task_IsWorkPlanTask), 'true', 'false')}" value="{0, number, ###,###,###,##0.00}" style="background-color: {!if(!wrapper.wptSumIsValid, 'red', if(isTotalLine, '#F18C8C', '#ececec'))}" > 
+                                    <apex:param value="{!wrapper.task_TotalApprovedCost}" /> 
+                                </apex:outputText>
+
+                                <apex:outputText rendered="{!if(((isTotalLine || (wrapper.IsVisible && wrapper.IsEditable)) && wrapper.task_IsWorkPlanTask && !beforeStartOfProject) || (wrapper.earnedValueTask.Committed__c && wrapper.task_IsWorkPlanTask), 'true', 'false')}" value="{0, number, ###,###,###,##0.00}" > 
+                                    <apex:param value="{!wrapper.task_TotalApprovedCostForWorkPlanTask}" /> 
+                                </apex:outputText>
+
+                                <apex:input value="{!wrapper.task_TotalApprovedCostForWorkPlanTask}" type="number" html-min="0" html-step="any" style="width:110px;text-align:right;background-color: {!if(!wrapper.wptSumIsValid, 'orange','white')}" styleclass="{!wrapper.earnedValueTask.Id}" rendered="{!if(wrapper.task_IsWorkPlanTask && !wrapper.earnedValueTask.Committed__c && !beforeStartOfProject, 'true', 'false')}" onchange="setDirty(this);" />
+                            </td>
+
+                            <!-- = -->
+                            <td class="numericCol" style="background-color: {!if(isTotalLine, '#F18C8C', '#ececec')}" >
+                                <apex:outputText rendered="{!if((isTotalLine || wrapper.IsVisible || wrapper.IsEditable)  && !beforeStartOfProject, 'true', 'false')}" >=
+                                </apex:outputText>
+                            </td>
+
+                            <!--Earned Value-->
+                            <td class="numericCol" style="background-color: {!if(isTotalLine, '#F18C8C', '#ececec')}" >
+                                <apex:outputText rendered="{!if((isTotalLine || wrapper.IsVisible || wrapper.IsEditable || wrapper.task_IsWorkPlanTask) && !beforeStartOfProject, 'true', 'false')}" value="{0, number, ###,###,###,###}" > 
+                                    <apex:param value="{!wrapper.earnedValue}" /> 
+                                </apex:outputText>
+                            </td> 
+
+                            <!--Cost Accruals-->
+                            <td class="numericCol" style="background-color: {!if(isTotalLine, '#F18C8C', '#ececec')}" >
+                                <apex:outputPanel rendered="{!wrapper.task_TotalApprovedCost != 0 && !beforeStartOfProject}" >
+                                    <apex:inputField style="width:110px;text-align:right;" value="{!wrapper.earnedValueTask.CostAccruals__c}" styleclass="{!wrapper.earnedValueTask.Id}" rendered="{! !wrapper.earnedValueTask.Committed__c && (wrapper.IsEditable || wrapper.HasChildWorkPlanTask) && !wrapper.task_IsWorkPlanTask}" onchange="setDirty(this);" />
+
+                                    <apex:outputText value="{0, number, ###,###,###,###}" rendered="{!((wrapper.earnedValueTask.Committed__c || (!wrapper.IsEditable &&!wrapper.HasChildWorkPlanTask)) && !wrapper.task_IsWorkPlanTask)}" > 
+                                        <!--//~<apex:param value="{!wrapper.earnedValueTask.CostAccruals__c}"/> -->
+                                        <apex:param value="{!wrapper.rolledUpCostAccruals}" /> 
+                                    </apex:outputText>
+                                </apex:outputPanel>                         
+                            </td>
+
+                            <!--Total Actual Cost-->
+                            <td class="numericCol" style="background-color: {!if(isTotalLine, '#F18C8C', '#ececec')}" >
+                                <apex:outputText value="{0, number, ###,###,###,###}" rendered="{! !beforeStartOfProject && !wrapper.task_IsWorkPlanTask}" >
+                                    <!--//~<apex:param value="{!wrapper.rolledUpCostAccruals + NULLVALUE(wrapper.earnedValueTask.CostAccruals__c, 0)}"/>-->
+                                    <apex:param value="{!NULLVALUE(wrapper.rolledUpProjectFunctionalBurdenedCost,0)+NULLVALUE(wrapper.rolledUpCostAccruals,0)}" />
+                                </apex:outputText>                           
+                            </td>
+
+                            <!--TrendEAC1-->
+                            <td class="numericCol" style="background-color: {!if(isTotalLine, '#F18C8C', '#ececec')}" >
+                                <apex:outputText value="{0, number, ###,###,###,###,###}" rendered="{!(wrapper.IsEditable || isTotalLine || project.BudgetStrategy__c == 'Bottom Task') && !beforeStartOfProject && !wrapper.task_IsWorkPlanTask}" > 
+                                    <apex:param value="{!wrapper.trendEACOne}" /> 
+
+                                </apex:outputText>
+<apex:outputPanel rendered="{!isDebug}" ><nttdcore:DLabel name="DL56" default="TFBC: {{1}}" labelParent="{!this}" p1="{! if(isTotalLine, wrapper.rolledUpProjectFunctionalBurdenedCost, wrapper.task_ProjectFunctionalBurdenedCost)}" /><nttdcore:DLabel name="DL57" default="sumCA: {{1}}" labelParent="{!this}" p1="{!wrapper.rolledUpCostAccruals}" /><nttdcore:DLabel name="DL58" default="TAC: {{1}}" labelParent="{!this}" p1="{!wrapper.task_TotalApprovedCost}" />
+
+<br/>{!dLabel['DL56']} 
+<br/>{!dLabel['DL57']}
+<br/>{!dLabel['DL58']}
+
+
+</apex:outputPanel>
+
+                            </td>
+
+                            <!--TrendEAC2-->
+                            <td class="numericCol" style="background-color: {!if(isTotalLine, '#F18C8C', '#ececec')}" >
+                                <apex:outputText value="{0, number, ###,###,###,###,###}" rendered="{!(wrapper.IsEditable || isTotalLine || project.BudgetStrategy__c == 'Bottom Task') && !beforeStartOfProject && !wrapper.task_IsWorkPlanTask}" > 
+                                    <apex:param value="{!wrapper.trendEACTwo}" /> 
+                                </apex:outputText>
+                            </td>
+
+                            <!--Comments-->
+                            <td style="background-color: {!if(isTotalLine, '#F18C8C', '#ececec')}" >
+                                <apex:outputPanel rendered="{! !beforeStartOfProject}" >
+                                    <apex:inputField value="{!wrapper.earnedValueTask.Comments__c}" onkeyup="AutoGrowTextArea(this)" rendered="{!if( !wrapper.earnedValueTask.Committed__c && ((wrapper.IsEditable && !wrapper.HasChildWorkPlanTask) || wrapper.task_IsWorkPlanTask), 'true', 'false')}" onchange="setDirty(this);" style="{!if(isReadOnly, 'disabled:true', '')}" />
+
+                                    <apex:outputField value="{!wrapper.earnedValueTask.Comments__c}" rendered="{!if(wrapper.earnedValueTask.Committed__c, 'true', 'false')}" />
+                                </apex:outputPanel>                             
+                            </td> 
+                            <apex:inputHidden id="isDirty" value="{!taskIsDirty['' + wrapper.task_Id]}" html-data-uniqueid="{!varTaskId}" /> 
+                        </tr>
+                    </apex:repeat>
+
+                </table>
+            </apex:outputPanel>
+
+        </apex:pageBlock>
+    
+        <c:ECO_ProjectTeamFlyout projectid="{!pse__Proj__c.id}" tablocation="130" />
+        <c:ECO_EarnedValueFlyout projectid="{!pse__Proj__c.id}" tablocation="284" />
+    </apex:form>
+
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

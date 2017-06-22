@@ -1,0 +1,390 @@
+<apex:page standardcontroller="ProjectReview__c" extensions="ECO_ProjectReviewsControllerPdf,nttdcore.DLabelParentController" renderas="pdf" showheader="false" sidebar="false" doctype="html-5.0" standardstylesheets="false" applybodytag="false" applyhtmltag="false" >
+<head>
+
+
+	<apex:includeScript value="{!$Resource.ECO_jQuery_1_11_2_min_js}" />
+	<script type="text/javascript" >
+	function collapseSection()
+	{
+		console.log('collapseSection');
+		$("div[id$='ProjectSummary']").find("div.pbBody").find("img.hideListButton").click();
+	}
+	sfdcPage.appendToOnloadQueue(collapseSection);
+	</script>
+	<style>
+            @page{
+                size:landscape;
+            }
+            body{
+                font-family:arial, sans-serif;
+                font-size:80%;
+            }
+            .headerInfo{
+                height:65px;
+                border-bottom: 2px solid #DDDDDD;
+                padding:0 0 15px 0; 
+                margin: 0 0 25px 0;
+                background-position:top right;
+                background-repeat:no-repeat;
+                background-size:5% auto !important;
+                background-image : url({!URLFOR($Resource.ECO_CustomGraphicAssets, 'PDFLogo.jpg')});
+            }
+            .headerInfo h1{
+                margin:-2px 0 0 0;
+                font-size:16px;
+                line-height:80%;
+            }
+            .headerInfo h2{
+                font-size:16px;
+                line-height:80%;
+            }
+            .headerInfo h5{
+                line-height:80%;
+                margin:0;
+            }
+            .rightHeaderInfo{
+                float:right; 
+                border-left:2px solid #ddd; 
+                height:40px;
+                vertical-align:middle; 
+                padding-left:55px;
+                position:absolute;
+                right:0;
+                top:0;
+                padding:50px 10px 0 25px;
+                width:150px;
+                
+            }
+            table{
+                border: 1px solid #ddd;
+                width:100%; 
+            }
+            table tr th {
+                vertical-align: bottom;
+                background-color: #f8f8f8;
+                
+            }
+            table>caption+thead>tr:first-child>td, table>caption+thead>tr:first-child>th, table>colgroup+thead>tr:first-child>td, table>colgroup+thead>tr:first-child>th, table>thead:first-child>tr:first-child>td, table>thead:first-child>tr:first-child>th {
+                border-top: 0;
+            }
+            table>tbody>tr>td, table>tbody>tr>th, table>tfoot>tr>td, table>tfoot>tr>th, table>thead>tr>td, table>thead>tr>th, table tr td, table tr th {
+                padding: 5px;
+                line-height: 1.42857143;
+                vertical-align: top;
+                border-top: 1px solid #ddd;
+            }
+            table tr > td > td, table tr > td > tr > td, td > td, td > span > table tr td, td > table tr td, td > span > table, td > table {
+                border:none;
+                padding:0;
+            }
+            .notificationAndAlerts > span > div > table > tbody > tr:last-child, .notificationAndAlerts > span > div > table > tbody > tr > td:first-child, .notificationAndAlerts td:first-child, .notificationAndAlerts table tr:last-child {
+                display:none;
+                border:none;
+                padding:0;
+                width:0;
+            }
+            .notificationAndAlerts table > tbody > tr > td:first-child, .notificationAndAlerts table > tbody > tr:last-child{
+                display:none;
+            }
+
+            .pbHeader > table > tbody > tr > td, .pbHeader > table, .pbHeader table td, .pbHeader table{
+                border:none !important;
+                padding: 0;
+            }
+
+            .pbBody h3{
+                margin: 6px 0 0 0;
+                background-color:#008cb2;
+                color:#fff;
+                -moz-border-radius: 4px 4px 0 0;
+                -webkit-border-radius:  4px 4px 0 0;
+                border-radius:  4px 4px 0 0;
+                border-top: 3px solid #f8f8f8;
+                padding:4px 12px 4px 12px;
+            }
+            .footer{
+                position:absolute; 
+                width:100%; 
+                height:100px; 
+                bottom:0; 
+                border-top:1px solid #4a4a56; 
+                padding-top:15px;
+                margin-top:155px;
+            }
+            .risk{
+                background:#ebebeb;
+            }
+            .notificationAndAlerts table, .notificationAndAlerts td{
+                border:none !important;
+                width:auto;
+                padding:0;
+            }
+            .mainTitle{
+                margin:15px 0 -5px 0;
+            }
+            td >span >div >table >tbody >tr >td, td >span >div >table >tbody >tr >th{
+            	border:none;
+            	padding:0;
+            	width:auto;
+            }
+
+            table table{
+            	border:0;
+            	padding:0;
+            }
+        </style>
+    </head>
+
+	<apex:outputText value="{!$Label.ECO_FinancialForce_Error}" style="font-size:12pt;font-weight:500!important;margin-left: 38px;" />        
+	<apex:outputPanel >
+
+    	<div class="headerInfo" >
+            <h5><nttdcore:DLabel name="DL1" default="Project Review" labelParent="{!this}" />{!dLabel['DL1']}</h5>
+            <h2 style="line-height:80%;" ><nttdcore:DLabel name="DL2" default="Project: {{1}}" labelParent="{!this}" p1="{!theProject.Name}" />{!dLabel['DL2']}</h2>
+
+            <div class="rightHeaderInfo" ><nttdcore:DLabel name="DL3" default="Project ID:" labelParent="{!this}" />
+                {!dLabel['DL3']}<br/>
+                {!theProject.Id}
+            </div>
+            <!-- dont need this on this page
+            <h1 style="">
+                <apex:outputLabel for="QuestionnaireSetName" value="Version: "/>
+                <apex:outputText value="{!oQuestionnaireSet.Name}" />
+            </h1>
+			-->
+
+        </div>
+
+
+        <div class="footer" ><nttdcore:DLabel name="DL4" default="{{1}} | {{2}} |  Project Review |" labelParent="{!this}" p1="{!theProject.Id}" p2="{!theProject.Name}" />
+            {!dLabel['DL4']} <strong><nttdcore:DLabel name="DL5" default="FOR INTERNAL USE ONLY" labelParent="{!this}" />{!dLabel['DL5']}</strong>
+        </div>
+
+
+
+		<apex:pageMessages id="pgMessages" />
+		<div class="projectSummary" >
+			<nttdcore:DLabel name="DL6" default="Project Summary" labelParent="{!this}" /><apex:pageBlock title="{!dLabel['DL6']}" id="ProjectSummary" ><nttdcore:DLabel name="DL36" default="Agenda Items" labelParent="{!this}" /><nttdcore:DLabel name="DL37" default="Item Number" labelParent="{!this}" /><nttdcore:DLabel name="DL38" default="Item Name" labelParent="{!this}" /><nttdcore:DLabel name="DL39" default="Approval Conditions" labelParent="{!this}" /><nttdcore:DLabel name="DL40" default="No DOA Conditions Found" labelParent="{!this}" /><nttdcore:DLabel name="DL41" default="View" labelParent="{!this}" /><nttdcore:DLabel name="DL42" default="View" labelParent="{!this}" /><nttdcore:DLabel name="DL43" default="Meeting Minutes" labelParent="{!this}" /><nttdcore:DLabel name="DL44" default="Attendees" labelParent="{!this}" /><nttdcore:DLabel name="DL45" default="Name" labelParent="{!this}" /><nttdcore:DLabel name="DL46" default="Phone" labelParent="{!this}" /><nttdcore:DLabel name="DL47" default="Email" labelParent="{!this}" /><nttdcore:DLabel name="DL48" default="No attendees have been specified." labelParent="{!this}" /><nttdcore:DLabel name="DL49" default="Follow-up Tasks" labelParent="{!this}" /><nttdcore:DLabel name="DL50" default="No tasks have been specified." labelParent="{!this}" />
+				<h3><nttdcore:DLabel name="DL7" default="Project Information" labelParent="{!this}" />{!dLabel['DL7']}</h3>
+			    <apex:outputPanel id="ProjectInformation" >
+            		<table cellpadding="0" cellspacing="0" >
+		               <tr>
+			                <th style="font-weight:bold" ><nttdcore:DLabel name="DL8" default="Project Name" labelParent="{!this}" /><apex:outputLabel value="{!dLabel['DL8']}" /></th>
+			                <td><apex:outputField value="{!theProject.Name}" /></td>
+			                <th style="font-weight:bold" ><nttdcore:DLabel name="DL9" default="Owner" labelParent="{!this}" /><apex:outputLabel value="{!dLabel['DL9']}" /></th>
+			                <td><apex:outputField value="{!theProject.OwnerId}" /></td>
+		                </tr>
+		               <tr>
+			                <th style="font-weight:bold" ><nttdcore:DLabel name="DL10" default="Opportunity Name" labelParent="{!this}" /><apex:outputLabel value="{!dLabel['DL10']}" /></th>
+			                <td><apex:outputField value="{!theProject.pse__Opportunity__c}" /></td>
+			                <th style="font-weight:bold" ><nttdcore:DLabel name="DL11" default="Estimated AECOM Gross Fee" labelParent="{!this}" /><apex:outputLabel value="{!dLabel['DL11']}" /></th>
+			                <td><apex:outputField value="{!theProject.EstimatedContractValue__c}" /></td>
+			           </tr>
+			           <tr>
+			                <th style="font-weight:bold" ><nttdcore:DLabel name="DL12" default="Project Manager" labelParent="{!this}" /><apex:outputLabel value="{!dLabel['DL12']}" /></th>
+			                <td><apex:outputField value="{!theProject.pse__Project_Manager__c}" /></td>
+			                <th style="font-weight:bold" ><nttdcore:DLabel name="DL13" default="Net Services Revenue" labelParent="{!this}" /><apex:outputLabel value="{!dLabel['DL13']}" /></th>
+			                <td><apex:outputField value="{!theProject.NetServicesRevenue__c}" /></td>
+			           </tr>
+			           <tr>
+			                <th style="font-weight:bold" ><nttdcore:DLabel name="DL14" default="Project Owning Org" labelParent="{!this}" /><apex:outputLabel value="{!dLabel['DL14']}" /></th>
+			                <td><apex:outputField value="{!theProject.ProjectOwningOrg__c}" /></td>
+			                <th style="font-weight:bold" ><nttdcore:DLabel name="DL15" default="Total Margin" labelParent="{!this}" /><apex:outputLabel value="{!dLabel['DL15']}" /></th>
+			                <td><apex:outputField value="{!theProject.TotalMargin__c}" /></td>
+			           </tr>
+			           <tr>
+			                <th style="font-weight:bold" ><nttdcore:DLabel name="DL16" default="Primary End Client" labelParent="{!this}" /><apex:outputLabel value="{!dLabel['DL16']}" /></th>
+			                <td><apex:outputField value="{!theProject.PrimaryEndClient__c}" /></td>
+			                <th style="font-weight:bold" ><nttdcore:DLabel name="DL17" default="Total Bid Budget" labelParent="{!this}" /><apex:outputLabel value="{!dLabel['DL17']}" /></th>
+			                <td><apex:outputField value="{!theProject.TotalBidBudget__c}" /></td>
+			           </tr>
+			           <tr>
+			                <th style="font-weight:bold" ><nttdcore:DLabel name="DL18" default="Primary Billing Client" labelParent="{!this}" /><apex:outputLabel value="{!dLabel['DL18']}" /></th>
+			                <td><apex:outputField value="{!theProject.PrimaryBillingClient__c}" /></td>
+			                <th style="font-weight:bold" ><nttdcore:DLabel name="DL19" default="Estimated Start Date" labelParent="{!this}" /><apex:outputLabel value="{!dLabel['DL19']}" /></th>
+			                <td><apex:outputField value="{!theProject.EstimatedStartDate__c}" /></td>
+			           </tr>					           		               
+		        	</table>
+		        	<br/>
+            	</apex:outputPanel>
+			    
+			    <!--  
+	           	<apex:pageBlockSection title="Project Information" collapsible="true" columns="2">
+	            	<apex:outputField value="{!theProject.Name}" />
+	            	<apex:outputField value="{!theProject.OwnerId}" />
+	            	<apex:outputField value="{!theProject.pse__Opportunity__c}" />
+	            	<apex:outputField value="{!theProject.EstimatedContractValue__c}" />
+	            	<apex:outputField value="{!theProject.pse__Project_Manager__c}" />
+	            	<apex:outputField value="{!theProject.NetServicesRevenue__c}" />
+	            	<apex:outputField value="{!theProject.ProjectOwningOrg__c}" />
+	            	<apex:outputField value="{!theProject.TotalMargin__c}" />
+	            	<apex:outputField value="{!theProject.PrimaryEndClient__c}" />
+	            	<apex:outputField value="{!theProject.TotalBidBudget__c}" />
+	            	<apex:outputField value="{!theProject.PrimaryBillingClient__c}" />
+	            	<apex:outputField value="{!theProject.EstimatedStartDate__c}" />
+            	</apex:pageBlockSection>
+            	
+            	
+				<apex:pageBlockSection id="ReviewDetails_1" title="Project Review Details" columns="2" collapsible="false">
+					<apex:outputField value="{!ProjectReview__c.Name}" />
+					<apex:outputField value="{!ProjectReview__c.Status__c}" />
+					<apex:outputField label="Record Type" value="{!ProjectReview__c.RecordType.Name}" />
+					<apex:outputField value="{!ProjectReview__c.ResponsiblePerson__c}" />
+					<apex:outputField value="{!ProjectReview__c.Snapshot_Date__c}" />
+					<apex:outputField value="{!ProjectReview__c.TotalKPIs__c}" />
+					<apex:outputField value="{!ProjectReview__c.ScheduledDate__c}" />
+					<apex:outputField value="{!ProjectReview__c.PassedKPIs__c}" />
+					<apex:outputField value="{!ProjectReview__c.CompletedDate__c}" />
+					<apex:outputField value="{!ProjectReview__c.KPIPassPercentage__c}" />
+            	</apex:pageBlockSection>
+            	-->
+            	<br/>
+            	<br/>
+            	<h3><nttdcore:DLabel name="DL20" default="Project Review Details" labelParent="{!this}" />{!dLabel['DL20']}</h3>
+            	<apex:outputPanel id="ProjectReviewDetails" >
+            		<table cellpadding="0" cellspacing="0" >
+		               <tr>
+			                <th style="font-weight:bold" ><nttdcore:DLabel name="DL21" default="Title" labelParent="{!this}" /><apex:outputLabel value="{!dLabel['DL21']}" /></th>
+			                <td><apex:outputField value="{!ProjectReview__c.Name}" /></td>
+			                <th style="font-weight:bold" ><nttdcore:DLabel name="DL22" default="Status" labelParent="{!this}" /><apex:outputLabel value="{!dLabel['DL22']}" /></th>
+			                <td><apex:outputField value="{!ProjectReview__c.Status__c}" /></td>
+		                </tr>
+		               <tr>
+			                <th style="font-weight:bold" ><nttdcore:DLabel name="DL23" default="Record Type" labelParent="{!this}" /><apex:outputLabel value="{!dLabel['DL23']}" /></th>
+			                <td><apex:outputField value="{!ProjectReview__c.RecordType.Name}" /></td>
+			                <th style="font-weight:bold" ><nttdcore:DLabel name="DL24" default="Responsible Person" labelParent="{!this}" /><apex:outputLabel value="{!dLabel['DL24']}" /></th>
+			                <td><apex:outputField value="{!ProjectReview__c.ResponsiblePerson__c}" /></td>
+			           </tr>
+			           <tr>
+			                <th style="font-weight:bold" ><nttdcore:DLabel name="DL25" default="Snapshot Date" labelParent="{!this}" /><apex:outputLabel value="{!dLabel['DL25']}" /></th>
+			                <td><apex:outputField value="{!ProjectReview__c.Snapshot_Date__c}" /></td>
+			                <th style="font-weight:bold" ><nttdcore:DLabel name="DL26" default="Total KPIs" labelParent="{!this}" /><apex:outputLabel value="{!dLabel['DL26']}" rendered="{!showKPIs}" /></th>
+			                <td><apex:outputField value="{!ProjectReview__c.TotalKPIs__c}" rendered="{!showKPIs}" /></td>
+			           </tr>
+			           <tr>
+			                <th style="font-weight:bold" ><nttdcore:DLabel name="DL27" default="Scheduled Date" labelParent="{!this}" /><apex:outputLabel value="{!dLabel['DL27']}" /></th>
+			                <td><apex:outputField value="{!ProjectReview__c.ScheduledDate__c}" /></td>
+			                <th style="font-weight:bold" ><nttdcore:DLabel name="DL28" default="Passed KPIs" labelParent="{!this}" /><apex:outputLabel value="{!dLabel['DL28']}" rendered="{!showKPIs}" /></th>
+			                <td><apex:outputField value="{!ProjectReview__c.PassedKPIs__c}" rendered="{!showKPIs}" /></td>
+			           </tr>
+			           <tr>
+			                <th style="font-weight:bold" ><nttdcore:DLabel name="DL29" default="Completed Date" labelParent="{!this}" /><apex:outputLabel value="{!dLabel['DL29']}" /></th>
+			                <td><apex:outputField value="{!ProjectReview__c.CompletedDate__c}" /></td>
+			                <th style="font-weight:bold" ><nttdcore:DLabel name="DL30" default="KPI Pass (%)" labelParent="{!this}" /><apex:outputLabel value="{!dLabel['DL30']}" rendered="{!showKPIs}" /></th>
+			                <td><apex:outputField value="{!ProjectReview__c.KPIPassPercentage__c}" rendered="{!showKPIs}" /></td>
+			           </tr>
+			           <tr>
+			           <td>
+			           	<apex:outputField value="  {!ProjectReview__c.ProjectReviewTemplate__r.Purpose__c}" rendered="{!NOT(ISBLANK(ProjectReview__c.ProjectReviewTemplate__c))}" />
+			           </td>
+			           </tr>		               
+		        	</table>
+            	</apex:outputPanel>
+
+            	            	
+				<apex:outputPanel id="KPIResults" ><nttdcore:DLabel name="DL31" default="KPI Results" labelParent="{!this}" /><nttdcore:DLabel name="DL32" default="Trigger Name" labelParent="{!this}" /><nttdcore:DLabel name="DL33" default="Has Triggered" labelParent="{!this}" /><nttdcore:DLabel name="DL34" default="Alert Message" labelParent="{!this}" /><nttdcore:DLabel name="DL35" default="Explanation" labelParent="{!this}" />
+				<apex:pageBlockSection title="{!dLabel['DL31']}" columns="1" collapsible="false" rendered="{!isPerfReview}" >
+					<apex:pageBlockTable value="{!lKPI_Results}" var="item" width="100%" id="KPITable" >
+						<apex:column >
+							<apex:facet name="header" >{!dLabel['DL32']}</apex:facet>
+							<apex:outputField value="{!item.Trigger_Name__c}" />
+						</apex:column>
+						<apex:column ><!-- styleClass="{!item.Evaluation_Result__c}"-->
+							<apex:facet name="header" >{!dLabel['DL33']}</apex:facet>
+							<apex:image height="30px" width="30px" value="{!IF(item.Evaluation_Result__c, $Resource.redTriangle, $Resource.greenStar)}" />
+						</apex:column> 
+						<apex:column >
+							<apex:facet name="header" >{!dLabel['DL34']}</apex:facet>
+							<apex:outputField value="{!item.Alert_Message__c}" />
+						</apex:column>
+						<apex:column rendered="{!perfActiveStatus}" >
+							<apex:facet name="header" >{!dLabel['DL35']}</apex:facet>
+							<apex:outputField value="{!item.Explanation__c}" style="width:80%" />
+						</apex:column>
+					</apex:pageBlockTable>
+				</apex:pageBlockSection>
+				</apex:outputPanel>
+
+				<apex:pageBlockSection title="{!dLabel['DL36']}" columns="1" collapsible="false" rendered="{!showOtherSections}" >
+					<apex:pageBlockTable value="{!lAgendaItems}" var="item" width="100%" columnswidth="120px" id="AgendaTable" >
+						<apex:column >
+							<apex:facet name="header" >{!dLabel['DL37']}</apex:facet>
+							<apex:outputField value="{!item.Agenda_Num__c}" style="width: 24px" />
+						</apex:column>
+						<apex:column >
+							<apex:facet name="header" >{!dLabel['DL38']}</apex:facet>
+							<apex:outputField value="{!item.Name}" style="width: 500px" />
+						</apex:column>
+					</apex:pageBlockTable>
+				</apex:pageBlockSection>
+
+				<apex:pageBlockSection title="{!dLabel['DL39']}" columns="1" collapsible="false" >
+				<apex:pageMessage severity="INFO" rendered="{!if(lstDOAConditions.size > 0, false, true)}" summary="{!dLabel['DL40']}" /> 
+				<apex:pageBlockTable value="{!lstDOAConditions}" var="Condition" rendered="{!if(lstDOAConditions.size > 0, true, false)}" >
+					<apex:column headervalue="{!dLabel['DL41']}" width="40" >
+						<apex:outputLink value="/{!Condition.id}" >{!dLabel['DL42']}</apex:outputLink>
+					</apex:column>				
+					<apex:repeat value="{!$ObjectType.DOAConditions__c.FieldSets.DOA_ApprovalView}" var="SearchField" >
+						<apex:column value="{!Condition[SearchField]}" />
+					</apex:repeat>
+				</apex:pageBlockTable>
+				</apex:pageBlockSection>
+				
+				<!--  <p style="page-break-after:always;"></p>  -->
+
+				<apex:pageBlockSection title="{!dLabel['DL43']}" columns="1" collapsible="false" rendered="{!showOtherSections}" >
+					<apex:outputText label="" value="{!ProjectReview__c.MeetingMinutes__c}" escape="false" />
+				</apex:pageBlockSection>
+
+				<apex:pageBlockSection title="{!dLabel['DL44']}" columns="1" collapsible="false" rendered="{!showOtherSections}" >
+					<apex:pageBlockTable value="{!lAttendees}" var="item" width="100%" id="AttendeesTable" rendered="{!IF(lAttendees.size > 0, true, false)}" ><!--  columnsWidth="120px" -->
+						<apex:column >
+							<apex:facet name="header" >{!dLabel['DL45']}</apex:facet>
+							<apex:outputLabel value="{!item.Name}" />
+						</apex:column>
+						<apex:column >
+							<apex:facet name="header" >{!dLabel['DL46']}</apex:facet>
+							<apex:outputLabel value="{!item.Phone}" />
+						</apex:column>
+						<apex:column >
+							<apex:facet name="header" >{!dLabel['DL47']}</apex:facet>
+							<apex:outputLabel value="{!item.Email}" />
+						</apex:column>
+					</apex:pageBlockTable>
+					<apex:pageMessage severity="info" rendered="{!if(lAttendees.size = 0, true, false)}" summary="{!dLabel['DL48']}" />
+				</apex:pageBlockSection>
+				<apex:pageBlockSection title="{!dLabel['DL49']}" columns="1" collapsible="false" rendered="{!showOtherSections}" >
+					<apex:pageBlockTable value="{!ProjectReview__c.OpenActivities}" var="item" width="100%" id="TasksTable" rendered="{!IF(oProjectReview.OpenActivities.size > 0, true, false)}" >
+						<apex:column >
+							<apex:outputField value="{!item.ActivityDate}" />
+						</apex:column>
+						<apex:column >
+							<apex:outputField value="{!item.Subject}" />
+						</apex:column>
+						<apex:column >
+							<apex:outputField value="{!item.OwnerId}" />
+						</apex:column>
+					</apex:pageBlockTable>
+					<apex:pageMessage severity="info" rendered="{!IF(oProjectReview.OpenActivities.size = 0, true, false)}" summary="{!dLabel['DL50']}" />
+				</apex:pageBlockSection>
+			</apex:pageBlock>
+
+			
+		</div>
+
+
+
+			<br/>
+			<br/>
+			<br/>
+			<br/>
+			<br/>
+			<br/>
+			<br/>
+			<br/>
+			<br/>
+		
+		<apex:outputText escape="false" value="{!projectSnapshotRecord}" />
+	
+	</apex:outputPanel>
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

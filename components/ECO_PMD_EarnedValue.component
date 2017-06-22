@@ -1,0 +1,88 @@
+<apex:component controller="ECO_PMD_ProjectWrapper_Controller" extensions="nttdcore.DLabelChildController" >
+    <apex:attribute name="proj" assignto="{!wrapper}" description="Project Wrapper" type="ECO_PMD_ProjectWrapper" required="true" /> 
+<script>
+  app.controller("chartEV", function ($scope) {
+});
+ 
+</script>
+    <div class="panel panel-default dashbox" >
+        <div class="panel-heading" ><nttdcore:DLabel name="DL1" default="Earned Value" labelParent="{!this}" componentContext="ECO_PMD_EarnedValue" />
+            {!dlRoot.dLabel['DL1']}
+        </div>
+        <div class="panel-body" ng-controller="chartEV" >
+            <apex:outputPanel id="chartEV" >
+               <div id="chartJSONEV" style="width: 350px; height: 350px" />
+            </apex:outputPanel>
+        </div>
+    </div>
+ 
+    <apex:includeScript value="{!URLFOR($Resource.ECO_jQuery_1_11_2_min_js)}" />
+    <script type="text/javascript" src="https://www.google.com/jsapi" />
+    <script type="text/javascript" >
+        google.load('visualization', '1.1', {packages: ['line']});
+    </script>
+    <script type="text/javascript" >
+    
+        function reRenderCharts(){
+            drawChartEV(chartDataEV);
+       }
+        
+        $(document).ready(function(){
+            reRenderCharts();
+        });
+
+        function drawChartEV(rows) {          
+            //var rows = JSON.parse(chartJSONEV);
+			  var data = new google.visualization.DataTable();
+              data.addColumn('string', 'Period Date');
+              data.addColumn('number', 'Approved Cost');
+              data.addColumn('number', 'Actual Cost');
+              data.addColumn('number', 'Earned Value');
+              data.addColumn('number', 'Trend EAC 1');
+              data.addColumn('number', 'Trend EAC 2');
+
+              rows.forEach(function(entry) {
+                 entry[1] = parseInt(entry[1]);
+                 entry[2] = parseInt(entry[2]);
+                 entry[3] = parseInt(entry[3]);
+                 if(entry[3] == 0) entry[3] = null;
+                 entry[4] = parseInt(entry[4]);
+                 entry[5] = parseInt(entry[5]);
+              });
+
+              var row1Total = 0;
+              var row2Total = 0;
+
+              for(key in rows){
+                 row1Total += rows[key][1];
+                 row2Total += rows[key][2];
+
+                 rows[key][1] = row1Total;
+                 rows[key][2] = row2Total;
+              }
+
+              data.addRows(rows);
+
+               var options = {
+                chart: { 
+                subtitle: ''},
+                legend: {position: 'none'},
+                width: 320,
+                height: 320,
+                fontSize: 8
+              };
+             var chart = new google.charts.Line(document.getElementById('chartJSONEV'));
+              chart.draw(data, options);
+        }
+
+      
+    </script>
+
+    <apex:outputPanel id="setChartJsonJS" >
+        <script type="text/javascript" >
+            var chartDataEV = {!wrapper.chartJSONEV};
+
+        </script>
+    </apex:outputPanel>
+
+</apex:component>

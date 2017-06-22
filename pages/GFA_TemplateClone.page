@@ -1,0 +1,96 @@
+<apex:page showHeader="true" sidebar="true" standardController="GFA_Template__c" extensions="GFA_TemplateCloneController">
+<!-- <apex:stylesheet value="{!URLFOR($Resource.GFA, 'bootstrap/css/bootstrap.min.css')}"/> -->
+<apex:stylesheet value="{!URLFOR($Resource.GFA, 'bootstrap/css/bootstrap.css')}"/>
+<apex:stylesheet value="{!URLFOR($Resource.GFA, 'custom/css/GFA_app.css')}"/>
+<apex:stylesheet value="{!URLFOR($Resource.GFA, 'font-awesome/css/font-awesome.min.css')}"/>
+<apex:stylesheet value="{!URLFOR($Resource.GFA, 'custom/css/GFA_app2.css')}"/>
+
+<script src="{!URLFOR($Resource.GFA, 'jQuery/jquery-1.12.1.min.js')}" type="text/javascript" charset="utf-8"></script>
+<script src="{!URLFOR($Resource.GFA, 'bootstrap/js/bootstrap.min.js')}" type="text/javascript" charset="utf-8"></script>
+<div class="GFA">
+
+<div class="bPageTitle">
+    <div class="ptBody">
+        <div class="content">
+            <img src="/s.gif" alt="Template Tree View" class="pageTitleIcon" title="Template Tree View"/>
+            <h1 class="pageType"> Template Edit<span class="titleSeparatingColon">:</span></h1>
+            <h2 class="pageDescription">New Template</h2>
+            <div class="blank">&nbsp;</div>
+        </div>
+    </div>
+</div>
+
+<div class="pageContainer">
+    <apex:form id="form">
+        <div class="centerButtonsGroup p10">
+            <apex:actionStatus id="actionButtonsStatus">
+                <apex:facet name="stop">
+                    <apex:outputPanel id="btnPanel">
+                        <apex:commandButton value="Save" action="{!saveTemplate}" styleClass="mainButton" status="actionButtonsStatus" reRender="form" style="width:70px;left:0px;position:relative;"/>
+                        <apex:commandButton value="Cancel" action="{!cancel}" style="width:80px;left:10px;position:relative;" styleClass="mainButton" reRender="form"/>
+                    </apex:outputPanel>
+                </apex:facet>
+                <apex:facet name="start">
+                    <apex:image styleClass="actionButtonSpinner" value="/img/loading.gif"/>
+                </apex:facet>
+            </apex:actionStatus>
+        </div>
+
+        <apex:outputPanel id="templateClone">
+            <div class="blank">&nbsp;</div>
+            <div class="panel panel-default">
+                <div class="panel-body">
+                    <table class="table">
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <label>Template Name:</label>
+                                </td>
+                                <td>
+                                    <apex:inputText value="{!template.TemplateName}" />
+                                </td>
+                                <td>
+                                    <label>Group:</label>
+                                </td>
+                                <td>
+                                    <apex:inputField value="{!template.obj.Group__c}" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <label>GFA Type:</label>
+                                </td>
+                                <td>
+                                    <apex:inputField value="{!template.obj.Project_Sponsor__c}" />
+                                </td>
+                                <td>
+                                    <label>Operating Group:</label>
+                                </td>
+                                <td>
+                                    <apex:inputField value="{!template.obj.Operating_Group__c}" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <label>Template Status:</label>
+                                </td>
+                                <td>
+                                    <apex:outputField value="{!template.obj.Status__c}" />
+                                </td>
+                                <td>
+                                    <label>Business Line:</label>
+                                </td>
+                                <td >
+                                    <apex:inputField value="{!template.obj.Business_Line__c}" />
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </apex:outputPanel>
+    </apex:form>
+</div>
+
+</div>
+</apex:page>

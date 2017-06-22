@@ -1,0 +1,261 @@
+<apex:component controller="ECO_PMD_RunRateETCChart_Controller">
+    <apex:attribute name="projectId" description="Project Number" type="String" required="true" /> 
+    
+    <div ng-controller="dashRunRateController" class="panel panel-default dashbox">
+        <div class="panel-heading">
+              {!$Label.ECO_PMD_RUNRATEETC_TITLE}<span ng-Show="SFDCDATA.nodata"><b>{!$Label.ECO_PMD_NO_DATA}</b></span>
+        </div>
+        <div class="text-center" ng-hide="isLoaded">
+            <span class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span>
+        </div>
+        <div ng-show="isLoaded">
+          <table class="pmd-kpi" width="100%">
+            <tr>
+              <td>
+                <div class="pmd-value"
+                     ng-class="{'negative': SFDCDATA.AvgCost < 0}"
+                     ng-bind="(SFDCDATA.AvgCost/1000 | number:0) + 'k'"/>
+                <div class="pmd-label">{!$Label.ECO_PMD_RUNRATEETC_AVCOST}</div>
+              </td>
+              <td>
+                <div class="pmd-value"
+                     ng-class="{'negative': SFDCDATA.CostEAC < 0}"
+                     ng-bind="(SFDCDATA.CostEAC/1000 | number:0) + 'k'"/>
+                <div class="pmd-label">{!$Label.ECO_PMD_RUNRATEETC_EAC}</div>
+              </td>
+              <td>
+                <div class="pmd-value"
+                     ng-class="{'negative': SFDCDATA.CostETC < 0}" 
+                     ng-bind="(SFDCDATA.CostETC/1000 | number:0) + 'k'"/>
+                <div class="pmd-label">{!$Label.ECO_PMD_RUNRATEETC_ETC}</div>
+              </td>
+              <td>
+                <div class="pmd-value"
+                     ng-class="{'negative': SFDCDATA.Var < 0}" 
+                     ng-bind="(SFDCDATA.Var/1000 | number:0) + 'k'"/>
+                <div class="pmd-label">{!$Label.ECO_PMD_RUNRATEETC_VAR}</div>
+              </td>
+            </tr>
+          </table>
+        </div>
+        <div class="panel-body" >
+          <div class="k-content">
+                  <div id="chartRR" width='100%'></div>
+          </div>
+        </div>
+        <c:ECO_PMD_PanelFooter panelID="RR">
+           {!$Label.ECO_PMD_RUNRATEETC_MOREINFO_DETAILS}
+        </c:ECO_PMD_PanelFooter>
+    </div>
+
+<script>
+    (function() {
+        angular
+        .module("ecopmd")
+        .controller("dashRunRateController",dashRunRateController);
+
+        function dashRunRateController($scope,$locale){
+          
+          $scope.isCollapsed = true;
+          $scope.isLoaded = false;
+          loadData($scope);
+          
+          function createChart(elSpec) {
+            return $(elSpec).kendoChart({
+                    
+                resizable: true,
+                chartArea: {
+                    height: 250
+                },
+                dataSource: {
+                    data:$scope.SFDCDATA.runRateData // _NEW//.runRateData
+                },
+                legend: {
+                    position: "bottom"
+                },
+                seriesDefaults: {
+                    type: "line",
+                    stack: false
+                },
+                series: [{
+                    type: "line",
+                    field: "CostITD__c",
+                    name: "{!$Label.ECO_PMD_RUNRATEETC_TTL_COST_ITD}",
+                    color: "#FF9933"
+                }, {                        
+                    type: "line",
+                    field: "CostITDProjectedAtRunRate",
+                    name: "{!$Label.ECO_PMD_RUNRATEETC_RR_ITD}",
+                    color: "#808080"
+                }, {
+                    type: "line",
+                    field: "CostITDApproved__c", //"CostITDApproved__c",
+                    name: "{!$Label.ECO_PMD_RUNRATEETC_TTL_COST_ITD_PLAN}",
+                    color: "#99CCFF"
+                }, {                        
+                    type: "line",
+                    field: "CostPlanToApproved",
+                    name: "{!$Label.ECO_PMD_RUNRATEETC_RR_PLAN}",
+                    color: "#99CCFF"
+                } ],
+                valueAxes: [{
+                    name: "USD",
+                    title: { text: "" },
+                    labels: {template : "#=kendo.formatK(value)#"},
+                    //max: ($scope.SFDCDATA.CostEAC>$scope.SFDCDATA.CostBudget?$scope.SFDCDATA.CostEAC:$scope.SFDCDATA.CostBudget),
+                    min: ($scope.SFDCDATA.scales.axis1Min),
+                    max: ($scope.SFDCDATA.scales.axis1Max),
+                    notes: {
+                        data: [{
+                            value: $scope.SFDCDATA.CostEAC,
+                            label: {
+                              position: "outside",
+                              template: "Forecast Cost Budget: #= kendo.formatNum(value)#"
+                              }
+                            },{
+                            value: $scope.SFDCDATA.CostBudget,
+                            label: {
+                              position: "outside",
+                              background:'White',
+                              template: "Approved Cost Budget: #= kendo.formatNum(value)#"
+                              }
+                            }
+                          ]
+                    }
+                }],
+                categoryAxis: {
+                    field: "kendoCategory",
+                    axisCrossingValues: [0,999999],
+                    labels: {
+                        rotation: 300//270
+                        ,template: '#= kendo.formatSnapshotDate(value).month #'
+                    }
+                },
+                tooltip: {
+                    visible: true,
+                    template: "#= series.name #: #= kendo.formatNum(value) # [#= kendo.formatSnapshotDate(category).date #]"
+                }
+            }).data("kendoChart");
+          }
+
+          function loadData($scope){
+             ECO_PMD_RunRateETCChart_Controller.ProjectSnapshot(
+                '{!projectId}',
+                function(result, event){
+                  if(event.status) {
+                    $scope.$apply(function(){
+                      try{
+                        result.runRateData = appendRunRateData(result.runRateData);
+                        result.runRateData = mapSFDCResults(result.runRateData);
+                      } catch (e) {
+                         console.log(e); // pass exception object to error handler
+                      } finally {
+                        $scope.SFDCDATA = result;
+                        $scope.isLoaded = true;
+                        var rng = [ {v:result.CostEAC}
+                                  , {v:result.CostBudget}
+                                  , {v:range(result.runRateData,'CostITD__c').max} ];
+                        var scales = getScales( 0, range(rng,'v').max*1.1);
+                        $scope.SFDCDATA.scales = scales;
+                        var chart = createChart("#chartRR");
+                        if (!$scope.nodata){
+                          chart.options.valueAxis.title.text = $scope.SFDCDATA.currencyCode;
+                          chart.options.categoryAxis.labels.step = (1 + Math.floor(result.runRateData.length/24));
+                        }
+                        chart.refresh();
+                        $(window).resize(function(){chart.refresh()});
+                      }
+                    });
+                  }
+                });
+          }
+          function mapSFDCResults(result) {
+              // assumes result is an array of objects
+              var data =[];
+              angular.forEach(result, function (val, key) {                
+                val['kendoCategory'] = val.SnapshotFiscalMonth__c + '|' + val['SnapshotDate__c'];
+                this.push(val);
+              },data);
+              return data;
+          }
+
+          function appendRunRateData( rrdIn ) {
+              var rrd = rrdIn;
+              var rrBasis = rrd.slice(-4); // last up-to-4 snapshots -- last one is MTD
+              var rrCount = rrBasis.length;
+              var rrUbound = rrCount -1;
+              var rrCost = rrBasis[rrUbound].CostITD__c - rrBasis[0].CostITD__c;
+              var rrPerCount = rrCost/rrCount;
+              var rrDays = (rrBasis[rrUbound].SnapshotDate__c - rrBasis[0].SnapshotDate__c)/(60*60*24);
+              var rrPerDays = rrCost/rrDays;
+              
+              // last actual data
+              var str = rrBasis[rrUbound].SnapshotFiscalMonth__c;
+              var fy = parseInt(str.substring(2,6)),
+                  fm = parseInt(str.substring(7,9)),
+                  cy = fy + ((fm < 4 ) ? -1 : 0 ),
+                  cm = fm + ((fm < 4 ) ? 9 : -3 );
+
+              var dateEnd = new Date(rrBasis[rrUbound].ProjectEndDate__c);
+              var runOutMonths = ((12*dateEnd.getFullYear()) + dateEnd.getMonth()) - 
+                                 ((12*cy) + (cm-1));
+              
+              var planLast  = rrBasis[rrUbound].CostITDApproved__c,
+                  planTotal = remainingBudget = rrBasis[rrUbound].CostBudget__c,
+                  planRun   = (planTotal-planLast) / runOutMonths;
+
+              for( i=1; i<=runOutMonths; i++ ){
+                fm +=1;if(fm==13) {fy+=1; fm=1;}
+                cm +=1;if(cm==13) {cy+=1; cm=1;}
+                var dateCal = new Date(cy,cm-1); // 0 based month
+                rrd.push( { SnapshotFiscalMonth__c: "FY"+fy+"-"+ ("00"+fm.toString()).slice(-2)
+                          , SnapshotDate__c: (new Date()).getTime() // today
+                          , CostPlanToApproved: planLast + (i*planRun)
+                          , CostETC__c: rrBasis[rrUbound].CostETC__c
+                          , CostITDProjectedAtRunRate: rrBasis[rrUbound].CostITD__c + (i * rrPerCount)
+                          , CostForecast__c: rrBasis[rrUbound].CostForecast__c
+                          });
+              }
+
+              return rrd;
+          }
+          
+          function range(objArray,property){
+            var min=max=0;
+            angular.forEach(objArray, function (val, key) {                
+                if (val[property]!=null){
+                  if (val[property]<min) min = val[property];
+                  if (val[property]>max) max = val[property];
+                }
+              });
+            return {min:min,max:max};
+          }
+
+          function getScales(axis1Min, axis1Max, axis2Min, axis2Max){
+            function roundTo(val) {
+              var a = Math.floor(Math.abs(val)).toString().length;
+              return Math.pow(10,(a>5?a-3:3));
+            }
+            function rounded(val, roundTo) {
+              var sign = (val<0)?-1:1;
+              return sign*Math.ceil(Math.abs(val)/roundTo)*roundTo;
+            } 
+            //function xx(axis1Min,axis1Max,axis2Min,axis2Max){
+              var res1Min, res1Max, res2Min, res2Max;
+              if (typeof(axis2Min)=='undefined'){
+                // single axis calculation
+                var rt = roundTo(axis1Max-axis1Min);
+                res1Min = rounded(axis1Min,rt);
+                res1Max = rounded(axis1Max,rt);
+                return {axis1Min:res1Min, axis1Max:res1Max};
+              } else{
+                // two axis zero sync
+                return {axis1Min:res1Min, axis1Max:res1Max, axis2Min:res2Min, axis2Max:res2Max};
+              }
+            //}
+          }
+        }
+    })();
+</script>
+
+</apex:component>

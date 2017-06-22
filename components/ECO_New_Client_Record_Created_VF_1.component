@@ -1,0 +1,5 @@
+<apex:component language="{!theLanguage}" controller="nttdcore.DLabelChildController" access="global" ><nttdcore:DLabel name="DL1" default="A customer record for {{1}} has been created and is now available for use.  Record details can be reviewed at the following:" labelParent="{!this}" componentContext="ECO_New_Client_Record_Created_VF_1" p1="{!theRelatedTo.Name}" /><apex:attribute name="theLanguage" type="String" required="true" description="language" access="global" /><apex:attribute name="theRecipient" type="Contact" required="true" description="recipient" access="global" /><apex:attribute name="theRelatedTo" type="Account" required="true" description="related to" access="global" />
+        {!dlRoot.dLabel['DL1']} <a href="{!LEFT($Api.Partner_Server_URL_290,FIND('services',$Api.Partner_Server_URL_290)-1)}{!theRelatedTo.Id}" >
+         {!LEFT($Api.Partner_Server_URL_290,FIND('services',$Api.Partner_Server_URL_290)-1)}{!theRelatedTo.Id}
+         </a>
+    <nttdcore:DLabelInit language="{!theLanguage}" labelParentInit="{!this}" /></apex:component>

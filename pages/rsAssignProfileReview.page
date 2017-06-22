@@ -1,0 +1,41 @@
+<apex:page showHeader="true" sidebar="true" controller="rsAssignProfileReviewController"  docType="html-5.0">
+    <script type="text/javascript">
+        function openLookup(baseURL, width, modified, searchParam)
+        {
+            var originalbaseURL = baseURL;
+            var originalwidth = width;
+            var originalmodified = modified;
+            var originalsearchParam = searchParam;
+            var lookupType = baseURL.substr(baseURL.length-3, 3);
+            if (modified == '1') baseURL += searchParam;
+
+            var urlArr = baseURL.split("&");
+            var txtId = '';
+            if(urlArr.length > 2) {
+                urlArr = urlArr[1].split('=');
+                txtId = urlArr[1];
+            }
+
+            if(txtId.indexOf('setOwner') > -1) {
+                baseURL = "/apex/rsProfileReviewLookup?txt=" + txtId;
+                baseURL += "&frm=" + escapeUTF("assignForm");
+                if (modified == '1') {
+                    baseURL += "&lksearch=" + searchParam;
+                }
+            }
+            console.log(baseURL);
+            openPopup(baseURL, "lookup", 350, 480, "width="+width+",height=480,toolbar=no,status=no,directories=no,menubar=no,resizable=yes,scrollbars=yes", true);
+        }
+    </script>
+    <apex:form id="assignForm">
+        <apex:pageMessages id="messages"/>
+        <apex:pageBlock title="{!IF(isReassign,$Label.Reassign_Profile,$Label.Assign_Profile)}">
+            <apex:pageBlockButtons location="top">
+                <apex:commandButton value="{!IF(isReassign,$Label.Reassign,$Label.Assign)}" action="{!save}" />
+            </apex:pageBlockButtons>
+
+            <apex:outputLabel for="setOwner" value="{!IF(isReassign,$Label.Reassign_To,$Label.Assign_To)}" />
+            <apex:inputField id="setOwner" value="{!Reviewee.Profile_Reviewer__c}" />
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

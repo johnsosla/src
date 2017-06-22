@@ -1,0 +1,13 @@
+<apex:component language="{!theLanguage}" controller="nttdcore.DLabelChildController" access="global" ><nttdcore:DLabel name="DL1" default="You have been named as a/an {{1}} on the project below.   Please click on the link below to review the project plan or contact the Project Manager for further details.
+
+    
+    Project Number:  {{2}}
+    Project Name:  {{3}}
+    Project Manager:  {{4}} 
+    
+    Link to Deliverables: {{5}}apex/ECO_DeliverableList?id={{6}}
+    
+    Link to Project: {{7}}{{8}}" labelParent="{!this}" componentContext="EcoNotifyTechQltyTeamMemberOfNewRo675_3" p1="{!theRelatedTo.Role__c}" p2="{!theRelatedTo.ProjectNumer__c}" p3="{!theRelatedTo.ProjectName__c}" p4="{!theRelatedTo.ProjectManager__c}" p5="{!LEFT($Api.Partner_Server_URL_290,FIND('services',$Api.Partner_Server_URL_290)-1)}" p6="{!theRelatedTo.Deliverable__r.Project__c}" p7="{!LEFT($Api.Partner_Server_URL_290,FIND('services',$Api.Partner_Server_URL_290)-1)}" p8="{!theRelatedTo.Deliverable__r.Project__c}" /><apex:attribute name="theLanguage" type="String" required="true" description="language" access="global" /><apex:attribute name="theRecipient" type="User" required="true" description="recipient" access="global" /><apex:attribute name="theRelatedTo" type="TechnicalQualityTeam__c" required="true" description="related to" access="global" />
+    {!dlRoot.dLabel['DL1']}
+    
+<nttdcore:DLabelInit language="{!theLanguage}" labelParentInit="{!this}" /></apex:component>

@@ -1,0 +1,19 @@
+<apex:component language="{!theLanguage}" controller="nttdcore.DLabelChildController" access="global" ><apex:attribute name="theLanguage" type="String" required="true" description="language" access="global" /><apex:attribute name="theRecipient" type="Contact" required="true" description="recipient" access="global" /><apex:attribute name="theRelatedTo" type="ChangeManager__c" required="true" description="related to" access="global" />
+    <apex:outputpanel >
+        <p><nttdcore:DLabel name="DL1" default="{{1}} you have been nominated as the new PM for {{2}}." labelParent="{!this}" componentContext="EcoCMPMHandoverIncomingPMNotifyVF_1" p1="{!theRelatedTo.IncomingPM__c}" p2="{!theRelatedTo.ProjectName__c}" />
+        {!dlRoot.dLabel['DL1']}
+        </p><p>
+        <b><nttdcore:DLabel name="DL2" default="Outgoing PM:" labelParent="{!this}" componentContext="EcoCMPMHandoverIncomingPMNotifyVF_1" />{!dlRoot.dLabel['DL2']}</b> {!theRelatedTo.OutgoingPM__c}
+        <br/>
+        <b><nttdcore:DLabel name="DL3" default="Incoming PM:" labelParent="{!this}" componentContext="EcoCMPMHandoverIncomingPMNotifyVF_1" />{!dlRoot.dLabel['DL3']}</b> {!theRelatedTo.IncomingPM__c}
+        </p><p>
+        <b><nttdcore:DLabel name="DL4" default="Project Name:" labelParent="{!this}" componentContext="EcoCMPMHandoverIncomingPMNotifyVF_1" />{!dlRoot.dLabel['DL4']}</b> {!theRelatedTo.ProjectName__c}
+        <br/>
+        <b><nttdcore:DLabel name="DL5" default="Project Number:" labelParent="{!this}" componentContext="EcoCMPMHandoverIncomingPMNotifyVF_1" />{!dlRoot.dLabel['DL5']}</b> {!theRelatedTo.ProjectNumber__c}
+        <br/>
+        <b><nttdcore:DLabel name="DL6" default="Client:" labelParent="{!this}" componentContext="EcoCMPMHandoverIncomingPMNotifyVF_1" />{!dlRoot.dLabel['DL6']}</b> {!theRelatedTo.Client__c}
+        </p><p>
+        <a href="{!theRelatedTo.ProjectLink__c}" ><nttdcore:DLabel name="DL7" default="Project Link" labelParent="{!this}" componentContext="EcoCMPMHandoverIncomingPMNotifyVF_1" /> {!dlRoot.dLabel['DL7']} </a>
+        </p>
+    </apex:outputpanel>
+<nttdcore:DLabelInit language="{!theLanguage}" labelParentInit="{!this}" /></apex:component>

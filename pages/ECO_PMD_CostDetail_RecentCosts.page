@@ -1,0 +1,112 @@
+<apex:page controller="ECO_PMD_CostDetail_Controller" extensions="nttdcore.DLabelParentController" >
+
+  <div ng-app="ecopmd" >
+    <apex:composition template="ECO_PMD_Chrome2" >
+
+        <apex:define name="head" >
+          <c:ECO_PMD_ag_grid_js />
+        </apex:define>
+
+        <apex:define name="mainContent" >
+            <div class="ecopmd-ag-wrap" >
+                <cost-detail-report project-id="" project-name="" layout="RecentCosts" data="ctrl.costDetailData" labels="ctrl.labels" />
+             </div>
+        </apex:define>
+
+        <apex:define name="belowFooter" >
+            <!-- <c:ECO_PMD_NavigationBar_ng projectID="{!Id}" pageTitle="Cost Detail (Recent Costs)"/> -->
+            <!-- mobile collapse not correct in SFDC, try https://plnkr.co/edit/lWcsyqGpAXvM9UrCLPUX?p=preview -->
+            <script type="text/ng-template" id="navigation-bar-directive.html" >
+
+                <nav id="pmd-nav" class="navbar navbar-default">
+                    <div class="container-fluid">
+                        <!-- Brand and toggle get grouped for better mobile display -->
+                        <div class="navbar-header">
+                          <button type="button" class="navbar-toggle collapsed"
+                               data-toggle="collapse" data-target="#pmd-navbar-1"
+                               aria-expanded="false">
+                                <span class="sr-only">Toggle navigation</span>
+                                <span class="icon-bar"></span>
+                                <span class="icon-bar"></span>
+                                <span class="icon-bar"></span>
+                          </button>
+                           <p class="navbar-brand">
+                               <span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span>
+                               <div class="navbar-page-info">
+                                  <div class="navbar-page-title">Costs for current and previous 5 fiscal weeks where user is Project Manager</div>
+                                  <div class="navbar-project-title">Cost Detail (Recent Costs)</div>
+                              </div>
+                           </p>
+                        </div>
+                        <!-- Collect the nav links, forms, and other content for toggling -->
+                        <div class="collapse navbar-collapse" id="pmd-navbar-1">
+                            <ul class="nav navbar-nav navbar-right">
+                                <li>
+                                    <div class="btn-group" uib-dropdown uib-keyboard-nav>
+                                      <a id="simple-btn-keyboard-nav" type="button" class="btn btn-default" uib-dropdown-toggle aria-haspopup="true" aria-expanded="false">
+                                          Navigate to...<span class="caret"></span>
+                                      </a>
+                                      <ul class="uib-dropdown-menu" role="menu" aria-labelledby="simple-btn-keyboard-nav">
+                                        <li role="menuItem"><a href="/apex/ePM_Landing">ePM Landing Page</a></li>
+                                      </ul>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>                        <!-- /.navbar-collapse -->
+                        <div class="clearfix"></div>
+                    </div>
+                  <!-- /.container-fluid -->
+                </nav>
+
+                <div class="clearfix"></div>
+             </script>
+
+            <script id="components/NavigationBar/navigation-bar.directive.js" >
+                (function() {
+                    'use strict';
+
+                    angular
+                    .module('components')
+                    .directive('navigationBar', navigationBar);
+
+                    navigationBar.$inject = [];
+
+                    function navigationBar() {
+                        var directive =  {
+                            restrict            : 'EA',
+                            controller          : NavigationBarController,
+                            controllerAs        : 'ctrl',
+                            bindToController    : true,
+                            templateUrl         : 'navigation-bar-directive.html',
+                            scope               : {
+                                pageTitle    : '@',
+                                projectName  : '@',
+                                projectNumber: '@',
+                                projectId    : '@',
+                                showDetails  : '='
+                            }
+                        };
+
+                        return directive;
+                    }
+
+                    angular
+                    .module('components')
+                    .controller('NavigationBarController', NavigationBarController);
+
+                    NavigationBarController.$inject = [];
+
+                    function NavigationBarController() {
+                        var vm = this;
+                        //vm.pageTitle = vm.pageTitle || "{ !pageTitle}";
+                        //vm.showDetails = vm.showDetails || ("{ !showDetails}"==="true");
+                    }
+                })();
+            </script>
+
+        </apex:define>
+
+    </apex:composition>
+  </div>
+
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

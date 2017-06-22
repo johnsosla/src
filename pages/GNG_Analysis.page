@@ -1,0 +1,691 @@
+<apex:page sidebar="false" standardController="Go_No_Go_Conversation__c" extensions="GNG_CommercialAnalysisController"  >
+<apex:form >
+
+<!--<apex:commandButton action="{!EditIt}" value="Edit Commercial Analysis"  rendered="{!editMode}"/>-->
+<apex:commandButton action="{!SaveIt}" value="Save"   rendered="{!saveMode}"/>
+<apex:commandButton value="Cancel" action="{!cancel}" rendered="{!saveMode}"/>
+<apex:pageMessages />
+<style> 
+table {
+                border-collapse: collapse;
+            }
+
+table, td, th {
+    border: 1px solid lightgrey;
+    
+    
+}
+table{ width: 100%;}
+   
+thead th 
+{
+    text-align:center;
+    background-color: #FC9F1A;
+}
+tbody th {text-align:left; padding-right: 10px;width: 120px;}
+td {
+    /*text-align:right;*/
+    width: 100px;}
+table#ca td {
+    text-align:right;
+}
+tfoot td {font-weight:bold;}
+td.total {background-color: #FED9A3;}  
+th.bidtotal {background-color: rgb(23, 151, 192)} 
+td.bidtotal {background-color: rgb(207, 238, 248)} 
+.inputField{text-align:right;width: 92px;}
+.inputComment{text-align:left;width: 95%; height: 40px;}
+.standout{color: red} 
+.qNo {text-align:center; width: 10px;}
+.qestion {text-align:left; width: 250px;}
+.truefalse{text-align:center; width: 50px;}
+.risklevel{text-align:center; width: 70px;}
+.CommercialViability {text-align:left}
+.High{background-color: red;text-align:center;}
+.Medium{background-color: yellow;text-align:center;}    
+.Low{background-color: lightgreen;text-align:center;} 
+.Poor{background-color: red;text-align:center;}
+.Neutral{background-color: yellow;text-align:center;}    
+.Good{background-color: lightgreen;text-align:center;}    
+</style>
+    <apex:pageBlock title="Commercial Analysis">
+    <table id='ca'>
+      <thead>
+        <tr>
+          <th></th>
+          <th>Cost</th>
+          <th>Contingency</th>
+          <th>Total Cost</th>
+          <th>Fee</th>
+          <th>% Markup</th>
+          <th>% Contingency</th>
+          <th class='bidtotal'>Estimated Bid Cost</th>
+          <th class='bidtotal'>% of NSR</th>  
+        </tr>
+      </thead>
+      <tfoot>
+        <tr>
+          <th>Total</th>
+            <td class='total'>
+                
+                <apex:outputText value="{0, number, ###,##0}"><apex:param value="{!Go_No_Go_Conversation__c.Total_Cost__c}"/></apex:outputText>
+                
+            </td>
+            <td class='total'><apex:outputText value="{0, number, ###,##0}"><apex:param value="{!Go_No_Go_Conversation__c.Total_Contingency__c}" /></apex:outputText></td>
+            <td class='total'><apex:outputText value="{0, number, ###,##0}"><apex:param value="{!Go_No_Go_Conversation__c.Total_Total_Cost__c}"/></apex:outputText></td>
+            <td class='total'><apex:outputText value="{0, number, ###,##0}"><apex:param value="{!Go_No_Go_Conversation__c.Total_Fee__c}"/></apex:outputText></td>
+            <td class='total'><apex:outputText value="{0, number, ###,##0.0}%"><apex:param value="{!Go_No_Go_Conversation__c.Total_Markup__c}"/></apex:outputText></td>
+            <td class='total'><apex:outputText value="{0, number, ###,##0.0}%"><apex:param value="{!Go_No_Go_Conversation__c.Total_Perc_Contingency__c}"/></apex:outputText></td>
+            <td class='bidtotal'><apex:outputText value="{0, number, ###,##0}"><apex:param value="{!Go_No_Go_Conversation__c.Total_Bid_Cost__c}"/></apex:outputText></td>
+            
+          <td  class='bidtotal'>
+            <apex:outputText value="{0, number, ###,##0.0}%"><apex:param value="{!Go_No_Go_Conversation__c.Perc_of_NSR__c}"/></apex:outputText>
+          </td>
+        </tr>
+        <tr><td  colspan="9"><br/></td></tr>
+        <tr>
+            <td  colspan="1"></td>
+            <th>Net Margin</th>
+            <td class='total'><apex:outputText value="{0, number, ###,##0}"><apex:param value="{!Go_No_Go_Conversation__c.Net_Margin__c}"/></apex:outputText></td>
+            <th>NM/NSR (%)</th>
+            <td class='total'>
+                <apex:outputText value="{0, number, ###,##0.0}%"><apex:param value="{!Go_No_Go_Conversation__c.NM_NSR_Perc__c}"/></apex:outputText>
+            </td>
+            <td  colspan="4"><apex:outputText styleClass="standout" value="{!Go_No_Go_Conversation__c.NM_NSR_Comment__c}"/></td>
+        </tr>
+      </tfoot>
+      <tbody>
+        <tr>
+          <th>Staff Time at FBLR</th>
+            <td>
+                <apex:outputText value="{0, number, ###,##0}" rendered="{!editMode}"><apex:param value="{!Go_No_Go_Conversation__c.Staff_Time_FBLR_Cost__c}"/></apex:outputText>
+                <apex:inputField styleClass="inputField" value="{!Go_No_Go_Conversation__c.Staff_Time_FBLR_Cost__c}"  rendered="{!saveMode}" required="true"></apex:inputField>
+            </td>
+            <td>
+                <apex:outputText value="{0, number, ###,##0}" rendered="{!editMode}"><apex:param value="{!Go_No_Go_Conversation__c.Staff_Time_FBLR_Contingency__c}"/></apex:outputText>
+                <apex:inputField styleClass="inputField"  value="{!Go_No_Go_Conversation__c.Staff_Time_FBLR_Contingency__c}"  rendered="{!saveMode}" ></apex:inputField>
+            </td>
+            <td class='total'>
+                <apex:outputText value="{0, number, ###,##0}"><apex:param value="{!Go_No_Go_Conversation__c.Staff_Time_FBLR_Total_Cost__c}"/></apex:outputText>
+            </td>
+            <td>
+                <apex:outputText value="{0, number, ###,##0}" rendered="{!editMode}"><apex:param value="{!Go_No_Go_Conversation__c.Staff_Time_FBLR_Fee__c}"/></apex:outputText>
+               <apex:inputField styleClass="inputField" value="{!Go_No_Go_Conversation__c.Staff_Time_FBLR_Fee__c}"  rendered="{!saveMode}" ></apex:inputField>
+            </td>
+            <td class='total'><apex:outputText value="{0, number, ###,##0.0}%"><apex:param value="{!Go_No_Go_Conversation__c.Staff_Time_FBLR_Markup__c}"/></apex:outputText></td>
+            <td class='total'><apex:outputText value="{0, number, ###,##0.0}%"><apex:param value="{!Go_No_Go_Conversation__c.Staff_Time_FBLR_Perc_Contingency__c}"/></apex:outputText></td>
+            <td>
+                <apex:outputText value="{0, number, ###,##0}" rendered="{!editMode}"><apex:param value="{!Go_No_Go_Conversation__c.Staff_Time_FBLR_Bid_Cost__c}"/></apex:outputText>
+                <apex:inputField styleClass="inputField" value="{!Go_No_Go_Conversation__c.Staff_Time_FBLR_Bid_Cost__c}"  rendered="{!saveMode}" required="true"></apex:inputField>
+            </td>
+            
+          <td class='bidtotal'></td>
+        </tr>
+         <tr>
+          <th>Subs</th>
+          <td>
+              <apex:outputText value="{0, number, ###,##0}" rendered="{!editMode}"><apex:param value="{!Go_No_Go_Conversation__c.Subs_Cost__c}"/></apex:outputText>
+             <apex:inputField styleClass="inputField" value="{!Go_No_Go_Conversation__c.Subs_Cost__c}"  rendered="{!saveMode}"></apex:inputField>
+             </td>
+            <td>
+                <apex:outputText value="{0, number, ###,##0}" rendered="{!editMode}"><apex:param value="{!Go_No_Go_Conversation__c.Subs_Contingency__c}"/></apex:outputText>
+             <apex:inputField styleClass="inputField" value="{!Go_No_Go_Conversation__c.Subs_Contingency__c}"  rendered="{!saveMode}"></apex:inputField>
+             </td>
+            <td class='total'><apex:outputText value="{0, number, ###,##0}"><apex:param value="{!Go_No_Go_Conversation__c.Subs_Total_Cost__c}"/></apex:outputText></td>
+            <td>
+                <apex:outputText value="{0, number, ###,##0}" rendered="{!editMode}"><apex:param value="{!Go_No_Go_Conversation__c.Subs_Fee__c}"/></apex:outputText>
+                <apex:inputField styleClass="inputField" value="{!Go_No_Go_Conversation__c.Subs_Fee__c}"  rendered="{!saveMode}"></apex:inputField>
+             </td>
+            <td class='total'><apex:outputText value="{0, number, ###,##0.0}%"><apex:param value="{!Go_No_Go_Conversation__c.Subs_Markup__c}"/></apex:outputText></td>
+            <td class='total'><apex:outputText value="{0, number, ###,##0.0}%"><apex:param value="{!Go_No_Go_Conversation__c.Subs_Perc_Contingency__c}"/></apex:outputText></td>
+            <td>
+                <apex:outputText value="{0, number, ###,##0}" rendered="{!editMode}"><apex:param value="{!Go_No_Go_Conversation__c.Subs_Bid_Cost__c}"/></apex:outputText>
+                <apex:inputField styleClass="inputField" value="{!Go_No_Go_Conversation__c.Subs_Bid_Cost__c}"  rendered="{!saveMode}"></apex:inputField>
+             </td>   
+          <td class='bidtotal'></td> 
+        </tr>
+         <tr>
+          <th>Expenses</th>
+            <td>
+                <apex:outputText value="{0, number, ###,##0}" rendered="{!editMode}"><apex:param value="{!Go_No_Go_Conversation__c.Expenses_Cost__c}"/></apex:outputText>
+                <apex:inputField styleClass="inputField" value="{!Go_No_Go_Conversation__c.Expenses_Cost__c}"  rendered="{!saveMode}"></apex:inputField>
+             </td>
+            <td>
+                <apex:outputText value="{0, number, ###,##0}" rendered="{!editMode}"><apex:param value="{!Go_No_Go_Conversation__c.Expenses_Contingency__c}"/></apex:outputText>
+                <apex:inputField styleClass="inputField" value="{!Go_No_Go_Conversation__c.Expenses_Contingency__c}"  rendered="{!saveMode}"></apex:inputField>
+             </td>
+            <td class='total'><apex:outputText value="{0, number, ###,##0}"><apex:param value="{!Go_No_Go_Conversation__c.Expenses_Total_Cost__c}"/></apex:outputText></td>
+            <td>
+                <apex:outputText value="{0, number, ###,##0}" rendered="{!editMode}"><apex:param value="{!Go_No_Go_Conversation__c.Expenses_Fee__c}"/></apex:outputText>
+                <apex:inputField styleClass="inputField" value="{!Go_No_Go_Conversation__c.Expenses_Fee__c}"  rendered="{!saveMode}"></apex:inputField>
+             </td>
+            <td class='total'><apex:outputText value="{0, number, ###,##0.0}%"><apex:param value="{!Go_No_Go_Conversation__c.Expenses_Markup__c}"/></apex:outputText></td>
+            <td class='total'><apex:outputText value="{0, number, ###,##0.0}%"><apex:param value="{!Go_No_Go_Conversation__c.Expenses_Contingency__c}"/></apex:outputText></td>
+            <td >
+                <apex:outputText value="{0, number, ###,##0}" rendered="{!editMode}"><apex:param value="{!Go_No_Go_Conversation__c.Expenses_Bid_Cost__c}"/></apex:outputText>
+                <apex:inputField styleClass="inputField" value="{!Go_No_Go_Conversation__c.Expenses_Bid_Cost__c}"  rendered="{!saveMode}"></apex:inputField>
+             </td>   
+            <td class='bidtotal'></td>  
+        </tr>
+     
+      </tbody>
+    </table>
+    <br/>
+      <table>
+      <thead>
+        <tr>
+          <th colspan="1">Commercial Viability </th>
+          <th>Guidance</th>
+          <th>Capture Manager Comments</th>
+     
+        </tr>
+       
+      </thead>
+      <tbody>
+          <tr>
+          <td class='CommercialViability'>Is the potential profit greater than the cost of bidding?</td>
+          <td class='CommercialViability'>
+              <apex:outputText value="{!Go_No_Go_Conversation__c.Commercial_Viability__c}"/>
+             
+          </td>
+          <td class='CommercialViability'>
+             <apex:outputText rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.Bid_Manager_Comments__c}"/>
+             <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.Bid_Manager_Comments__c}"  rendered="{!saveMode}"></apex:inputField>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+           
+    </apex:pageBlock>
+     <apex:pageBlock title="Market Position Analysis">
+      <table>
+      <thead>
+        <tr>
+          <th colspan="2">Market Position/Strategy</th>
+          <th>True/False</th>
+          <th>Comments</th>
+          <th>Position Analysis</th>
+    
+        </tr>
+       
+      </thead>
+      <tbody>
+          <tr>
+              <th class='qNo'>1.</th>
+              <td class='qestion'>
+                  <apex:outputText value="{!$ObjectType.Go_No_Go_Conversation__c.fields.Market_Position_Q1__c.inlineHelpText}"/>   
+              </td>
+              <td class='truefalse'>
+                 <apex:outputText rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.Market_Position_Q1__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.Market_Position_Q1__c}"  rendered="{!saveMode}" required="true"></apex:inputField>
+              </td>
+              <td>
+                 <apex:outputText rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.Market_Position_Q1_Comments__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.Market_Position_Q1_Comments__c}"  rendered="{!saveMode}"></apex:inputField>    
+              </td>
+              <td class="{!Go_No_Go_Conversation__c.MPQ1Ana__c}" >
+                 
+                 <apex:outputField rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.MPQ1Ana__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.MPQ1Ana__c}"  rendered="{!saveMode}" required="true"></apex:inputField>    
+              </td>
+        </tr>
+         <tr>
+              <th class='qNo'>2.</th>
+              <td class='qestion'>
+                  <apex:outputText value="{!$ObjectType.Go_No_Go_Conversation__c.fields.Market_Position_Q2__c.inlineHelpText}"/>   
+              </td>
+              <td class='truefalse'>
+                 <apex:outputText rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.Market_Position_Q2__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.Market_Position_Q2__c}"  rendered="{!saveMode}" required="true"></apex:inputField>
+              </td>
+              <td>
+                 <apex:outputText rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.Market_Position_Q2_Comments__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.Market_Position_Q2_Comments__c}"  rendered="{!saveMode}"></apex:inputField>    
+              </td>
+              <td class="{!Go_No_Go_Conversation__c.MPQ2Ana__c}" >
+                 
+                 <apex:outputField rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.MPQ2Ana__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.MPQ2Ana__c}"  rendered="{!saveMode}" required="true"></apex:inputField>    
+              </td>
+            </tr>
+            <tr>
+              <th class='qNo'>3.</th>
+              <td class='qestion'>
+                  <apex:outputText value="{!$ObjectType.Go_No_Go_Conversation__c.fields.Market_Position_Q3__c.inlineHelpText}"/>   
+              </td>
+              <td class='truefalse'>
+                 <apex:outputText rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.Market_Position_Q3__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.Market_Position_Q3__c}"  rendered="{!saveMode}" required="true"></apex:inputField>
+              </td>
+              <td>
+                 <apex:outputText rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.Market_Position_Q3_Comments__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.Market_Position_Q3_Comments__c}"  rendered="{!saveMode}"></apex:inputField>    
+              </td>
+              <td class="{!Go_No_Go_Conversation__c.MPQ3Ana__c}" >
+                 
+                 <apex:outputField rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.MPQ3Ana__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.MPQ3Ana__c}"  rendered="{!saveMode}" required="true"></apex:inputField>    
+              </td>
+        </tr>
+                  <tr>
+              <th class='qNo'>4.</th>
+              <td class='qestion'>
+                  <apex:outputText value="{!$ObjectType.Go_No_Go_Conversation__c.fields.Market_Position_Q4__c.inlineHelpText}"/>   
+              </td>
+              <td class='truefalse'>
+                 <apex:outputText rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.Market_Position_Q4__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.Market_Position_Q4__c}"  rendered="{!saveMode}" required="true"></apex:inputField>
+              </td>
+              <td>
+                 <apex:outputText rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.Market_Position_Q4_Comments__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.Market_Position_Q4_Comments__c}"  rendered="{!saveMode}"></apex:inputField>    
+              </td>
+              <td class="{!Go_No_Go_Conversation__c.MPQ4Ana__c}" >
+                 
+                 <apex:outputField rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.MPQ4Ana__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.MPQ4Ana__c}"  rendered="{!saveMode}" required="true"></apex:inputField>    
+              </td>
+        </tr>
+                  <tr>
+              <th class='qNo'>5.</th>
+              <td class='qestion'>
+                  <apex:outputText value="{!$ObjectType.Go_No_Go_Conversation__c.fields.Market_Position_Q5__c.inlineHelpText}"/>   
+              </td>
+              <td class='truefalse'>
+                 <apex:outputText rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.Market_Position_Q5__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.Market_Position_Q5__c}"  rendered="{!saveMode}" required="true"></apex:inputField>
+              </td>
+              <td>
+                 <apex:outputText rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.Market_Position_Q5_Comments__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.Market_Position_Q5_Comments__c}"  rendered="{!saveMode}"></apex:inputField>    
+              </td>
+              <td class="{!Go_No_Go_Conversation__c.MPQ5Ana__c}" >
+                 <apex:outputField rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.MPQ5Ana__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.MPQ5Ana__c}"  rendered="{!saveMode}" required="true"></apex:inputField>    
+              </td>
+        </tr>
+                  <tr>
+              <th class='qNo'>6.</th>
+              <td class='qestion'>
+                  <apex:outputText value="{!$ObjectType.Go_No_Go_Conversation__c.fields.Market_Position_Q6__c.inlineHelpText}"/>   
+              </td>
+              <td class='truefalse'>
+                 <apex:outputText rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.Market_Position_Q6__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.Market_Position_Q6__c}"  rendered="{!saveMode}" required="true"></apex:inputField>
+              </td>
+              <td>
+                 <apex:outputText rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.Market_Position_Q6_Comments__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.Market_Position_Q6_Comments__c}"  rendered="{!saveMode}"></apex:inputField>    
+              </td>
+              <td class="{!Go_No_Go_Conversation__c.MPQ6Ana__c}" >
+                 
+                 <apex:outputField rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.MPQ6Ana__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.MPQ6Ana__c}"  rendered="{!saveMode}" required="true"></apex:inputField>    
+              </td>
+        </tr>
+                  <tr>
+              <th class='qNo'>7.</th>
+              <td class='qestion'>
+                  <apex:outputText value="{!$ObjectType.Go_No_Go_Conversation__c.fields.Market_Position_Q7__c.inlineHelpText}"/>   
+              </td>
+              <td class='truefalse'>
+                 <apex:outputText rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.Market_Position_Q7__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.Market_Position_Q7__c}"  rendered="{!saveMode}" required="true"></apex:inputField>
+              </td>
+              <td>
+                 <apex:outputText rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.Market_Position_Q7_Comments__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.Market_Position_Q7_Comments__c}"  rendered="{!saveMode}" ></apex:inputField>    
+              </td>
+              <td class="{!Go_No_Go_Conversation__c.MPQ7Ana__c}" >
+                 
+                 <apex:outputField rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.MPQ7Ana__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.MPQ7Ana__c}"  rendered="{!saveMode}" required="true"></apex:inputField>    
+              </td>
+        </tr>
+                  <tr>
+              <th class='qNo'>8.</th>
+              <td class='qestion'>
+                  <apex:outputText value="{!$ObjectType.Go_No_Go_Conversation__c.fields.Market_Position_Q8__c.inlineHelpText}"/>   
+              </td>
+              <td class='truefalse'>
+                 <apex:outputText rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.Market_Position_Q8__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.Market_Position_Q8__c}"  rendered="{!saveMode}" required="true"></apex:inputField>
+              </td>
+              <td>
+                 <apex:outputText rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.Market_Position_Q8_Comments__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.Market_Position_Q8_Comments__c}"  rendered="{!saveMode}" ></apex:inputField>    
+              </td>
+              <td class="{!Go_No_Go_Conversation__c.MPQ8Ana__c}" >
+                 
+                 <apex:outputField rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.MPQ8Ana__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.MPQ8Ana__c}"  rendered="{!saveMode}" required="true"></apex:inputField>    
+              </td>
+        </tr>
+                 <!--  <tr>
+              <th class='qNo'>9.</th>
+              <td class='qestion'>
+                  <apex:outputText value="{!$ObjectType.Go_No_Go_Conversation__c.fields.Market_Position_Q9__c.inlineHelpText}"/>   
+              </td>
+              <td class='truefalse'>
+                 <apex:outputText rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.Market_Position_Q9__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.Market_Position_Q9__c}"  rendered="{!saveMode}" required="true"></apex:inputField>
+              </td>
+              <td>
+                 <apex:outputText rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.Market_Position_Q9_Comments__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.Market_Position_Q9_Comments__c}"  rendered="{!saveMode}" ></apex:inputField>    
+              </td>
+              <td class="{!Go_No_Go_Conversation__c.MPQ9Ana__c}" >
+                 
+                 <apex:outputField rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.MPQ9Ana__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.MPQ9Ana__c}"  rendered="{!saveMode}" required="true"></apex:inputField>    
+              </td>
+        </tr>
+                  <tr>
+              <th class='qNo'>10.</th>
+              <td class='qestion'>
+                  <apex:outputText value="{!$ObjectType.Go_No_Go_Conversation__c.fields.Market_Position_Q10__c.inlineHelpText}"/>   
+              </td>
+              <td class='truefalse'>
+                 <apex:outputText rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.Market_Position_Q10__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.Market_Position_Q10__c}"  rendered="{!saveMode}" required="true"></apex:inputField>
+              </td>
+              <td>
+                 <apex:outputText rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.Market_Position_Q10_Comments__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.Market_Position_Q10_Comments__c}"  rendered="{!saveMode}" ></apex:inputField>    
+              </td>
+              <td class="{!Go_No_Go_Conversation__c.MPQ10Ana__c}" >
+                 
+                 <apex:outputField rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.MPQ10Ana__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.MPQ10Ana__c}"  rendered="{!saveMode}" required="true"></apex:inputField>    
+              </td> 
+        </tr> -->
+         <tr>
+              <th class='qNo'></th>
+              <td class='qestion'>
+                  <apex:outputText value="{!$ObjectType.Go_No_Go_Conversation__c.fields.Market_Position_Q11__c.inlineHelpText}"/>   
+              </td>
+              <td class='truefalse'>
+                 <apex:outputField rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.Market_Position_Q11__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.Market_Position_Q11__c}"  rendered="{!saveMode}" required="true"></apex:inputField>
+              </td>
+              <td>
+                 <apex:outputText rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.Market_Position_Q11_Comments__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.Market_Position_Q11_Comments__c}"  rendered="{!saveMode}" ></apex:inputField>    
+              </td>
+              <td class="{!Go_No_Go_Conversation__c.MPQ11Ana__c}" >
+                 
+                 <apex:outputField rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.MPQ11Ana__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.MPQ11Ana__c}"  rendered="{!saveMode}" required="true"></apex:inputField>    
+              </td>
+        </tr>
+         <tr>
+              <th class='qNo'></th>
+              <td class='qestion'>
+                  <apex:outputText value="{!$ObjectType.Go_No_Go_Conversation__c.fields.Market_Position_Q12__c.inlineHelpText}"/>   
+              </td>
+              <td class='truefalse'>
+                 <apex:outputField rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.Market_Position_Q12__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.Market_Position_Q12__c}"  rendered="{!saveMode}" required="true"></apex:inputField>
+              </td>
+              <td>
+                 <apex:outputText rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.Market_Position_Q12_Comments__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.Market_Position_Q12_Comments__c}"  rendered="{!saveMode}" ></apex:inputField>    
+              </td>
+              <td class="{!Go_No_Go_Conversation__c.MPQ12Ana__c}" >
+                 
+                 <apex:outputField rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.MPQ12Ana__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.MPQ12Ana__c}"  rendered="{!saveMode}" required="true"></apex:inputField>    
+              </td>
+            </tr>
+           <tr>
+              <th class='qNo'></th>
+              <td class='qestion'>
+                  <apex:outputText rendered="{!editMode}" value="{!$ObjectType.Go_No_Go_Conversation__c.fields.Weighted_Net_Fee__c.label}"/>   
+              </td>
+              <td class='truefalse'>
+                 <apex:outputField rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.Weighted_Net_Fee__c}"/>
+                
+              </td>
+              <td>
+                
+              </td>
+              <td  >
+                 
+               
+              </td>
+            </tr>
+      </tbody>
+    </table>
+    
+	<br/>
+    <b><apex:outputLabel value="{!$ObjectType.Go_No_Go_Conversation__c.Fields.Market_Position_Analysis_Notes__c.Label}"></apex:outputLabel></b>
+    <br/>
+    <apex:outputField rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.Market_Position_Analysis_Notes__c}"/>
+    <apex:inputField styleClass="inputComment" rendered="{!saveMode}" value="{!Go_No_Go_Conversation__c.Market_Position_Analysis_Notes__c}"></apex:inputField>
+    <br/>
+    <b><apex:outputLabel value="{!$ObjectType.Go_No_Go_Conversation__c.Fields.Strategic_Reasons_to_Go__c.inlineHelpText}"></apex:outputLabel></b>
+    <br/>
+    <apex:outputField rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.Strategic_Reasons_to_Go__c}"/>
+    <apex:inputField styleClass="inputComment" rendered="{!saveMode}" value="{!Go_No_Go_Conversation__c.Strategic_Reasons_to_Go__c}" required="true" ></apex:inputField>
+   
+    </apex:pageBlock>
+    <apex:pageBlock title="Risk Analysis">
+    <table>
+      <thead>
+        <tr>
+          <th colspan="2">Risk Analysis</th>
+          <th>True/False</th>
+          <th>Comments and Planned Mitigations</th>
+          <th>Risk Level</th>
+    
+        </tr>
+       
+      </thead>
+      <tbody>
+          <tr>
+              <th class='qNo'>1.</th>
+              <td class='qestion'>
+                  <apex:outputText value="{!$ObjectType.Go_No_Go_Conversation__c.fields.Risk_Analysis_Q1__c.inlineHelpText}"/>   
+              </td>
+              <td class='truefalse'>
+                 <apex:outputText rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.Risk_Analysis_Q1__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.Risk_Analysis_Q1__c}"  rendered="{!saveMode}" required="true"></apex:inputField>
+              </td>
+              <td>
+                 <apex:outputText rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.Risk_Analysis_Q1_Comment__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.Risk_Analysis_Q1_Comment__c}"  rendered="{!saveMode}"></apex:inputField>    
+              </td>
+              <td class="{!Go_No_Go_Conversation__c.RAQ1L__c}" >
+                 
+                 <apex:outputField rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.RAQ1L__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.RAQ1L__c}"  rendered="{!saveMode}" required="true"></apex:inputField>    
+              </td>
+        </tr>
+         <tr>
+              <th class='qNo'>2.</th>
+              <td class='qestion'>
+                  <apex:outputText value="{!$ObjectType.Go_No_Go_Conversation__c.fields.Risk_Analysis_Q2__c.inlineHelpText}"/>   
+              </td>
+              <td class='truefalse'>
+                 <apex:outputText rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.Risk_Analysis_Q2__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.Risk_Analysis_Q2__c}"  rendered="{!saveMode}" required="true"></apex:inputField>
+              </td>
+              <td>
+                 <apex:outputText rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.Risk_Analysis_Q2_Comment__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.Risk_Analysis_Q2_Comment__c}"  rendered="{!saveMode}" ></apex:inputField>    
+              </td>
+              <td class="{!Go_No_Go_Conversation__c.RAnQ2L__c}" >
+                 
+                 <apex:outputField rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.RAnQ2L__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.RAnQ2L__c}"  rendered="{!saveMode}" required="true"></apex:inputField>    
+              </td>
+            </tr>
+            <tr>
+              <th class='qNo'>3.</th>
+              <td class='qestion'>
+                  <apex:outputText value="{!$ObjectType.Go_No_Go_Conversation__c.fields.Risk_Analysis_Q3__c.inlineHelpText}"/>   
+              </td>
+              <td class='truefalse'>
+                 <apex:outputText rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.Risk_Analysis_Q3__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.Risk_Analysis_Q3__c}"  rendered="{!saveMode}" required="true"></apex:inputField>
+              </td>
+              <td>
+                 <apex:outputText rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.Risk_Analysis_Q3_Comment__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.Risk_Analysis_Q3_Comment__c}"  rendered="{!saveMode}"></apex:inputField>    
+              </td>
+              <td class="{!Go_No_Go_Conversation__c.RAQ3L__c}" >
+                 
+                 <apex:outputField rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.RAQ3L__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.RAQ3L__c}"  rendered="{!saveMode}" required="true"></apex:inputField>    
+              </td>
+        </tr>
+                  <tr>
+              <th class='qNo'>4.</th>
+              <td class='qestion'>
+                  <apex:outputText value="{!$ObjectType.Go_No_Go_Conversation__c.fields.Risk_Analysis_Q4__c.inlineHelpText}"/>   
+              </td>
+              <td class='truefalse'>
+                 <apex:outputText rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.Risk_Analysis_Q4__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.Risk_Analysis_Q4__c}"  rendered="{!saveMode}" required="true"></apex:inputField>
+              </td>
+              <td>
+                 <apex:outputText rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.Risk_Analysis_Q4_Comment__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.Risk_Analysis_Q4_Comment__c}"  rendered="{!saveMode}"></apex:inputField>    
+              </td>
+              <td class="{!Go_No_Go_Conversation__c.RAQ4L__c}" >
+                 
+                 <apex:outputField rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.RAQ4L__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.RAQ4L__c}"  rendered="{!saveMode}" required="true"></apex:inputField>    
+              </td>
+        </tr>
+                  <tr>
+              <th class='qNo'>5.</th>
+              <td class='qestion'>
+                  <apex:outputText value="{!$ObjectType.Go_No_Go_Conversation__c.fields.Risk_Analysis_Q5__c.inlineHelpText}"/>   
+              </td>
+              <td class='truefalse'>
+                 <apex:outputText rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.Risk_Analysis_Q5__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.Risk_Analysis_Q5__c}"  rendered="{!saveMode}" required="true"></apex:inputField>
+              </td>
+              <td>
+                 <apex:outputText rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.Risk_Analysis_Q5_Comment__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.Risk_Analysis_Q5_Comment__c}"  rendered="{!saveMode}"></apex:inputField>    
+              </td>
+              <td class="{!Go_No_Go_Conversation__c.RAQ5L__c}" >
+                 <apex:outputField rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.RAQ5L__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.RAQ5L__c}"  rendered="{!saveMode}" required="true"></apex:inputField>    
+              </td>
+        </tr>
+                  <tr>
+              <th class='qNo'>6.</th>
+              <td class='qestion'>
+                  <apex:outputText value="{!$ObjectType.Go_No_Go_Conversation__c.fields.Risk_Analysis_Q6__c.inlineHelpText}"/>   
+              </td>
+              <td class='truefalse'>
+                 <apex:outputText rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.Risk_Analysis_Q6__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.Risk_Analysis_Q6__c}"  rendered="{!saveMode}" required="true"></apex:inputField>
+              </td>
+              <td>
+                 <apex:outputText rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.Risk_Analysis_Q6_Comment__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.Risk_Analysis_Q6_Comment__c}"  rendered="{!saveMode}"></apex:inputField>    
+              </td>
+              <td class="{!Go_No_Go_Conversation__c.RAQ6L__c}" >
+                 
+                 <apex:outputField rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.RAQ6L__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.RAQ6L__c}"  rendered="{!saveMode}" required="true"></apex:inputField>    
+              </td>
+        </tr>
+                  <tr>
+              <th class='qNo'>7.</th>
+              <td class='qestion'>
+                  <apex:outputText value="{!$ObjectType.Go_No_Go_Conversation__c.fields.Risk_Analysis_Q7__c.inlineHelpText}"/>   
+              </td>
+              <td class='truefalse'>
+                 <apex:outputText rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.Risk_Analysis_Q7__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.Risk_Analysis_Q7__c}"  rendered="{!saveMode}" required="true"></apex:inputField>
+              </td>
+              <td>
+                 <apex:outputText rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.Risk_Analysis_Q7_Comment__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.Risk_Analysis_Q7_Comment__c}"  rendered="{!saveMode}"></apex:inputField>    
+              </td>
+              <td class="{!Go_No_Go_Conversation__c.RAQ7L__c}" >
+                 
+                 <apex:outputField rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.RAQ7L__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.RAQ7L__c}"  rendered="{!saveMode}" required="true"></apex:inputField>    
+              </td>
+        </tr>
+                  <tr>
+              <th class='qNo'>8.</th>
+              <td class='qestion'>
+                  <apex:outputText value="{!$ObjectType.Go_No_Go_Conversation__c.fields.Risk_Analysis_Q8__c.inlineHelpText}"/>   
+              </td>
+              <td class='truefalse'>
+                 <apex:outputText rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.Risk_Analysis_Q8__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.Risk_Analysis_Q8__c}"  rendered="{!saveMode}" required="true"></apex:inputField>
+              </td>
+              <td>
+                 <apex:outputText rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.Risk_Analysis_Q8_Comment__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.Risk_Analysis_Q8_Comment__c}"  rendered="{!saveMode}" ></apex:inputField>    
+              </td>
+              <td class="{!Go_No_Go_Conversation__c.RAQ8L__c}" >
+                 
+                 <apex:outputField rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.RAQ8L__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.RAQ8L__c}"  rendered="{!saveMode}" required="true"></apex:inputField>    
+              </td>
+        </tr>
+                  <tr>
+              <th class='qNo'>9.</th>
+              <td class='qestion'>
+                  <apex:outputText value="{!$ObjectType.Go_No_Go_Conversation__c.fields.Risk_Analysis_Q9__c.inlineHelpText}"/>   
+              </td>
+              <td class='truefalse'>
+                 <apex:outputText rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.Risk_Analysis_Q9__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.Risk_Analysis_Q9__c}"  rendered="{!saveMode}" required="true"></apex:inputField>
+              </td>
+              <td>
+                 <apex:outputText rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.Risk_Analysis_Q9_Comment__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.Risk_Analysis_Q9_Comment__c}"  rendered="{!saveMode}"></apex:inputField>    
+              </td>
+              <td class="{!Go_No_Go_Conversation__c.RAQ9L__c}" >
+                 
+                 <apex:outputField rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.RAQ9L__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.RAQ9L__c}"  rendered="{!saveMode}" required="true"></apex:inputField>    
+              </td>
+        </tr>
+                  <tr>
+              <th class='qNo'>10.</th>
+              <td class='qestion'>
+                  <apex:outputText value="{!$ObjectType.Go_No_Go_Conversation__c.fields.Risk_Analysis_Q10__c.inlineHelpText}"/>   
+              </td>
+              <td class='truefalse'>
+                 <apex:outputText rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.Risk_Analysis_Q10__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.Risk_Analysis_Q10__c}"  rendered="{!saveMode}" required="true"></apex:inputField>
+              </td>
+              <td>
+                 <apex:outputText rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.Risk_Analysis_Q10_Comment__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.Risk_Analysis_Q10_Comment__c}"  rendered="{!saveMode}" ></apex:inputField>    
+              </td>
+              <td class="{!Go_No_Go_Conversation__c.RAQ10L__c}" >
+                 
+                 <apex:outputField rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.RAQ10L__c}"/>
+                 <apex:inputField styleClass="inputComment" value="{!Go_No_Go_Conversation__c.RAQ10L__c}"  rendered="{!saveMode}" required="true"></apex:inputField>    
+              </td>
+        </tr>
+         
+      </tbody>
+    </table>
+ 
+
+        <b><apex:outputLabel value="{!$ObjectType.Go_No_Go_Conversation__c.Fields.Risk_Analysis_Notes__c.Label}"></apex:outputLabel></b>
+        <br/>
+        <apex:outputField rendered="{!editMode}" value="{!Go_No_Go_Conversation__c.Risk_Analysis_Notes__c}"/>
+        <apex:inputField styleClass="inputComment" rendered="{!saveMode}" value="{!Go_No_Go_Conversation__c.Risk_Analysis_Notes__c}"></apex:inputField>
+ 
+  
+    </apex:pageBlock>
+   
+
+    <apex:commandButton action="{!SaveIt}" value="Save"   rendered="{!saveMode}"/>
+	<apex:commandButton value="Cancel" action="{!cancel}" rendered="{!saveMode}"/>
+</apex:form>
+</apex:page>

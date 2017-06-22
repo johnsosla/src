@@ -1,0 +1,15 @@
+<apex:component language="{!theLanguage}" controller="nttdcore.DLabelChildController" access="global" ><nttdcore:DLabel name="DL1" default="The Project Manager role on the subject project is proposed to change as follows:
+    
+    Outgoing PM: {{1}}
+    Incoming PM: {{2}}
+    
+    A PM Handover has been completed. Click on the link below to review the completed PM Handover form.
+    
+    Project Name: {{3}}
+    Project Number: {{4}}
+    Client: {{5}}
+    
+    Change Link: {{6}}{{7}}
+    Project Link: {{8}}" labelParent="{!this}" componentContext="EcoCMPMHandoverApprovalRequestVF_3" p1="{!theRelatedTo.OutgoingPM__c}" p2="{!theRelatedTo.IncomingPM__c}" p3="{!theRelatedTo.ProjectName__c}" p4="{!theRelatedTo.ProjectNumber__c}" p5="{!theRelatedTo.Client__c}" p6="{!LEFT($Api.Partner_Server_URL_290,FIND('services',$Api.Partner_Server_URL_290)-1)}" p7="{!theRelatedTo.Id}" p8="{!theRelatedTo.ProjectLink__c}" /><apex:attribute name="theLanguage" type="String" required="true" description="language" access="global" /><apex:attribute name="theRecipient" type="Contact" required="true" description="recipient" access="global" /><apex:attribute name="theRelatedTo" type="ChangeManager__c" required="true" description="related to" access="global" />
+    {!dlRoot.dLabel['DL1']}
+<nttdcore:DLabelInit language="{!theLanguage}" labelParentInit="{!this}" /></apex:component>

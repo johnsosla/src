@@ -1,0 +1,7 @@
+<apex:page standardController="ChangeManager__c" extensions="ECO_ChangeManagerDetailController" action="{!initEdit}">
+
+	<apex:form >
+		<apex:inputHidden value="{!ChangeManager__c.OracleApprovalSyncStatus__c}"/>
+	</apex:form>
+	
+</apex:page>

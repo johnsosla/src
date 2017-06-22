@@ -1,0 +1,361 @@
+<apex:page standardcontroller="pse__Proj__c" standardstylesheets="false" recordsetvar="results" extensions="ECO_CloneProjectController,nttdcore.DLabelParentController" tabstyle="pse__Proj__c" >
+	<!--<apex:includeScript value="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js" />-->
+    <apex:includeScript value="{!$Resource.ECO_jQuery_1_11_2_min_js}" />
+    <apex:includeScript value="{!URLFOR($Resource.ECO_jQueryUI_1_11_2, 'jquery-ui.min.js')}" />
+	<!--<link rel="stylesheet" href="http://code.jquery.com/ui/1.10.4/themes/redmond/jquery-ui.css"/>-->
+    <apex:stylesheet value="{!URLFOR($Resource.ECO_jQueryUI_1_11_2_Themes, 'themes/smoothness/jquery-ui.css')}" />
+
+
+	<!--
+  	<script src="{!URLFOR($Resource.ECO_jQuery_1_11_2_min_js, '/js/jquery-1.11.2.min.js')}" type="text/javascript"></script>
+  	-->
+	<script type="text/javascript" >
+	
+	j$ = jQuery.noConflict();
+
+	//handle manual entry in search form, trigger search when enter key hit
+    function handlerKeyPress(e) {    	
+        if(e.keyCode == 13){            
+           doSearchProjects();
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    j$(document).ready(function(){
+		j$("[id*=txtSearchProjectName]").focus();  
+    });
+
+    function confirmClone(){
+	    j$("#dialog").dialog({
+	      modal: true,
+	      width: 400,
+	    });
+    }
+
+    function continueClone(){
+    	callCloneProject();
+		j$("#dialog").dialog("close");
+		return false;
+    }
+
+    function cancelClone(){
+		j$("#dialog").dialog("close");
+		return false;
+    }
+
+	</script>
+
+	<style>
+		.pbButton label{
+			margin-right:5px;
+		}
+		.apexp .detailList .list td, .apexp .detailList .list th, .apexp .editPage .bPageBlock .detailList .list tr td, .apexp .editPage .bPageBlock .detailList .list tr th{
+			border-bottom: 1px solid #ededed !important;
+			color: #000 !important;
+			font-size:1em !important;
+		}
+
+	    .styledButton  {
+	        padding: 5px 20px;
+	        font-size: 12px;
+	        border-radius: 6px;
+	        font-weight: normal;
+	        margin-top: 10px;
+	        display: inline-block;
+	    }
+
+	    .styledButton:hover {
+	      background: #b0c4de;
+	    }
+		
+	</style>
+
+	
+
+	<div id="dialog" class="confirmDialog" title="Copy Project" style="display: none" >
+	    <p><nttdcore:DLabel name="DL1" default="Please ensure that the Copy Project process is not completed or clicked on more than once as duplicate entries will occur." labelParent="{!this}" />
+	      {!dLabel['DL1']} 
+	    </p>
+	      <br/>
+	      <button type="button" onclick="continueClone();" class="styledButton" ><nttdcore:DLabel name="DL2" default="Continue" labelParent="{!this}" />{!dLabel['DL2']}</button>
+	      <button type="button" onclick="cancelClone();" class="styledButton" ><nttdcore:DLabel name="DL3" default="Return" labelParent="{!this}" />{!dLabel['DL3']}</button>
+	</div>
+
+	<apex:form styleclass="cloneProjectPage" ><nttdcore:DLabel name="DL6" default="Processing..." labelParent="{!this}" />
+
+		<apex:actionFunction name="callCloneProject" action="{!cloneProject}" rerender="msg" status="statusBar" />
+     	<apex:actionFunction name="doSearchProjects" action="{!SearchProjects}" rerender="msg,opProjects,pbPagingButtons,opGlobalTemplates,pbGTPagingButtons,opMyTemplates,pbMTPagingButtons" status="statusBar" />
+
+<nttdcore:DLabel name="DL4" default="Project Clone" labelParent="{!this}" /><nttdcore:DLabel name="DL5" default="Copy Project {{1}}" labelParent="{!this}" p1="{!cloningActionStr}" /><apex:sectionHeader subtitle="{!dLabel['DL4']}" title="{!dLabel['DL5']}" >
+</apex:sectionHeader>
+
+		<apex:actionStatus id="statusBar" >
+			<apex:facet name="start" >
+				<p style="padding-bottom:20px;" class="searchText" ><img style="position:relative;top:12px;" src="/img/loading32.gif" /> {!dLabel['DL6']}</p>
+			</apex:facet>
+			<apex:facet name="stop" >
+			</apex:facet>
+		</apex:actionStatus>
+
+<apex:pageMessages id="msg" />
+
+            <c:ECO_CollapsibleSection sectiontitle="{!$Label.Project_Clone_Guidance_Section_Title}" >
+				{!$Label.Project_Clone_Guidance_Main}
+				<br/><br/> 
+				<b><nttdcore:DLabel name="DL7" default="{{1}}:" labelParent="{!this}" p1="{!$Label.Project_Clone_Guidance_Title1}" />{!dLabel['DL7']}</b> {!$Label.Project_Clone_Guidance_Title1_details}
+				<br/><br/>
+				<b><nttdcore:DLabel name="DL8" default="{{1}}:" labelParent="{!this}" p1="{!$Label.Project_Clone_Guidance_Title2}" />{!dLabel['DL8']}</b> {!$Label.Project_Clone_Guidance_Title2_details}
+				<br/><br/>
+				<b><nttdcore:DLabel name="DL9" default="{{1}}:" labelParent="{!this}" p1="{!$Label.Project_Clone_Guidance_Title3}" />{!dLabel['DL9']}</b> {!$Label.Project_Clone_Guidance_Title3_details}						
+            </c:ECO_CollapsibleSection>
+
+		<nttdcore:DLabel name="DL10" default="Project Search" labelParent="{!this}" /><apex:pageBlock title="{!dLabel['DL10']}" ><nttdcore:DLabel name="DL13" default="Available to Copy" labelParent="{!this}" /><nttdcore:DLabel name="DL14" default="Source Project" labelParent="{!this}" /><nttdcore:DLabel name="DL15" default="Select" labelParent="{!this}" /><nttdcore:DLabel name="DL16" default="Target Project" labelParent="{!this}" /><nttdcore:DLabel name="DL17" default="Select" labelParent="{!this}" /><nttdcore:DLabel name="DL18" default="Record Owner" labelParent="{!this}" /><nttdcore:DLabel name="DL19" default="No projects matched the search criteria." labelParent="{!this}" /><nttdcore:DLabel name="DL20" default="|&lt; First" labelParent="{!this}" /><nttdcore:DLabel name="DL21" default="&lt; Prev" labelParent="{!this}" /><nttdcore:DLabel name="DL22" default="Page {{1}} of {{2}}" labelParent="{!this}" p1="{!projectsCurrentPage}" p2="{!projectsTotalPages}" /><nttdcore:DLabel name="DL23" default="Next &gt;" labelParent="{!this}" /><nttdcore:DLabel name="DL24" default="Last &gt;|" labelParent="{!this}" /><nttdcore:DLabel name="DL25" default="Global Templates" labelParent="{!this}" /><nttdcore:DLabel name="DL26" default="Action" labelParent="{!this}" /><nttdcore:DLabel name="DL27" default="Select" labelParent="{!this}" /><nttdcore:DLabel name="DL28" default="Record Owner" labelParent="{!this}" /><nttdcore:DLabel name="DL29" default="No global templates matched the search criteria." labelParent="{!this}" /><nttdcore:DLabel name="DL30" default="|&lt; First" labelParent="{!this}" /><nttdcore:DLabel name="DL31" default="&lt; Prev" labelParent="{!this}" /><nttdcore:DLabel name="DL32" default="Page {{1}} of {{2}}" labelParent="{!this}" p1="{!gtCurrentPage}" p2="{!gtTotalPages}" /><nttdcore:DLabel name="DL33" default="Next &gt;" labelParent="{!this}" /><nttdcore:DLabel name="DL34" default="Last &gt;|" labelParent="{!this}" /><nttdcore:DLabel name="DL35" default="My Templates" labelParent="{!this}" /><nttdcore:DLabel name="DL36" default="Action" labelParent="{!this}" /><nttdcore:DLabel name="DL37" default="Select" labelParent="{!this}" /><nttdcore:DLabel name="DL38" default="Record Owner" labelParent="{!this}" /><nttdcore:DLabel name="DL39" default="No available templates matched the search criteria." labelParent="{!this}" /><nttdcore:DLabel name="DL40" default="|&lt; First" labelParent="{!this}" /><nttdcore:DLabel name="DL41" default="&lt; Prev" labelParent="{!this}" /><nttdcore:DLabel name="DL42" default="Page {{1}} of {{2}}" labelParent="{!this}" p1="{!mtCurrentPage}" p2="{!mtTotalPages}" /><nttdcore:DLabel name="DL43" default="Next &gt;" labelParent="{!this}" /><nttdcore:DLabel name="DL44" default="Last &gt;|" labelParent="{!this}" />
+			<apex:pageBlockButtons location="top" >
+				<apex:outputLabel for="txtSearchProjectName" value="{!$ObjectType.pse__Proj__c.Fields.Name.Label}" /> 	<apex:inputText id="txtSearchProjectName" value="{!searchProjectName}" onkeypress="return handlerKeyPress(event);" />  <nttdcore:DLabel name="DL11" default="Search" labelParent="{!this}" /><apex:commandButton action="{!SearchProjects}" value="{!dLabel['DL11']}" rerender="msg,opProjects,pbPagingButtons,opGlobalTemplates,pbGTPagingButtons,opMyTemplates,pbMTPagingButtons" status="statusBar" /> <nttdcore:DLabel name="DL12" default="Cancel" labelParent="{!this}" /><apex:commandButton action="{!doCancel}" value="{!dLabel['DL12']}" immediate="true" />
+			</apex:pageBlockButtons>
+			<apex:pageBlockSection columns="1" >
+
+
+
+
+					<apex:pageBlockSectionItem >
+
+						<apex:outputPanel >
+
+							<apex:tabPanel switchtype="client" selectedtab="tabProjects" >
+								<apex:tab label="{!dLabel['DL13']}" id="tabProjects" >
+									<apex:outputPanel id="opProjects" >
+
+									<div style="display:{!if(noSearchResults==true,'none','block')};" >
+										<apex:pageBlockTable value="{!projects}" var="proj" id="pbProjects" styleclass="list" >
+											<apex:column rendered="{!!hideSourceLink}" width="30" >
+												<apex:facet name="header" >{!dLabel['DL14']}</apex:facet>
+										        <apex:commandLink action="{!setSelectedProject}" value="{!dLabel['DL15']}" rerender="msg,pbsProjectFields" status="statusBar" immediate="true" >
+							            			<apex:param assignto="{!selectedProjectId}" name="selProjectId" value="{!proj.Id}" />
+							            		</apex:commandLink>
+							            		
+										    </apex:column>
+										    <apex:column rendered="{!!hideTargetLink}" width="30" >
+												<apex:facet name="header" >{!dLabel['DL16']}</apex:facet>
+										        <apex:commandLink action="{!setMergeProject}" value="{!dLabel['DL17']}" rerender="msg,pbsProjectFields" status="statusBar" immediate="true" >
+							            			<apex:param assignto="{!mergeProjectId}" name="mergeProjectId" value="{!proj.Id}" />
+							            		</apex:commandLink>
+										    </apex:column>
+											<apex:column width="100" >
+												<apex:facet name="header" >{!$ObjectType.pse__Proj__c.Fields.Name.Label}</apex:facet>
+												<!--
+												<a target="_blank" href="/{!proj.Id}" id="{!proj.Id}" onblur="LookupHoverDetail.getHover('{!proj.Id}').hide();" onfocus="LookupHoverDetail.getHover('{!proj.Id}', '/{!proj.Id}/m?retURL=%2F{!proj.Id}&isAjaxRequest=1').show();" onmouseout="LookupHoverDetail.getHover('{!proj.Id}').hide();" onmouseover="LookupHoverDetail.getHover('{!proj.Id}', '/{!proj.Id}/m?retURL=%2F{!proj.Id}&isAjaxRequest=1').show();">{!proj.Name}</a>
+												-->
+												<span title="Open project in new window" ><a target="_blank" href="/{!proj.Id}" >{!proj.Name}</a></span>
+											</apex:column>
+											<apex:column width="100" >
+												<apex:facet name="header" >{!$ObjectType.pse__Proj__c.Fields.pse__Account__c.Label}</apex:facet>
+												{!proj.pse__Account__r.Name}
+											</apex:column>
+											<apex:column width="100" >
+												<apex:facet name="header" >{!$ObjectType.pse__Proj__c.Fields.pse__Opportunity__c.Label}</apex:facet>
+												{!proj.pse__Opportunity__r.Name}
+											</apex:column>
+											<apex:column width="100" >
+												<apex:facet name="header" >{!$ObjectType.pse__Proj__c.Fields.pse__Project_Manager__c.Label}</apex:facet>
+												{!proj.pse__Project_Manager__r.Name}
+											</apex:column>
+											<apex:column width="100" >
+												<apex:facet name="header" >{!dLabel['DL18']}</apex:facet>
+												{!proj.Owner.Name}
+											</apex:column>
+											
+										</apex:pageBlockTable>
+									</div>
+									<div style="display:{!if(noSearchResults==true,'block','none')};" >
+										<apex:pageMessage severity="INFO" title="{!dLabel['DL19']}" strength="3" />
+									</div>
+									</apex:outputPanel>
+									<apex:outputPanel id="pbPagingButtons" >
+										<br/>
+										<div align="center" >
+										<apex:commandButton disabled="{!!hasFirstProject}" action="{!moveFirstProjects}" value="{!dLabel['DL20']}" rerender="pbProjects,pbPagingButtons,msg" status="statusBar" />
+										<apex:commandButton disabled="{!!hasPrevProjects}" action="{!movePrevProjects}" value="{!dLabel['DL21']}" rerender="pbProjects,pbPagingButtons,msg" status="statusBar" />
+										<apex:outputText >
+										&nbsp;{!dLabel['DL22']}&nbsp;
+										</apex:outputText>
+										<apex:commandButton disabled="{!!hasNextProjects}" action="{!moveNextProjects}" value="{!dLabel['DL23']}" rerender="pbProjects,pbPagingButtons,msg" status="statusBar" />
+										<apex:commandButton disabled="{!!hasLastProject}" action="{!moveLastProjects}" value="{!dLabel['DL24']}" rerender="pbProjects,pbPagingButtons,msg" status="statusBar" />
+										</div>
+									</apex:outputPanel>
+
+								</apex:tab>
+								<apex:tab label="{!dLabel['DL25']}" id="tabGlobalTemplates" >
+									<apex:outputPanel id="opGlobalTemplates" >
+									<div style="display:{!if(noGTSearchResults==true,'none','block')};" >
+										<apex:pageBlockTable value="{!globalTemplates}" var="gt" id="pbGlobalTemplates" >
+											<apex:column width="30" >
+												<apex:facet name="header" >{!dLabel['DL26']}</apex:facet>
+										        <apex:commandLink action="{!setSelectedProject}" value="{!dLabel['DL27']}" rerender="msg,pbsProjectFields" status="statusBar" immediate="true" >
+							            			<apex:param assignto="{!selectedProjectId}" name="selProjectId" value="{!gt.Id}" />
+							            		</apex:commandLink>
+							            		
+										    </apex:column>
+										   
+											<apex:column width="100" >
+												<apex:facet name="header" >{!$ObjectType.pse__Proj__c.Fields.Name.Label}</apex:facet>
+												<span title="Open template in new window" ><a target="_blank" href="/{!gt.Id}" >{!gt.Name}</a></span>
+											</apex:column>
+											<apex:column width="100" >
+												<apex:facet name="header" >{!$ObjectType.pse__Proj__c.Fields.pse__Account__c.Label}</apex:facet>
+												{!gt.pse__Account__r.Name}
+											</apex:column>
+											<apex:column width="100" >
+												<apex:facet name="header" >{!$ObjectType.pse__Proj__c.Fields.pse__Opportunity__c.Label}</apex:facet>
+												{!gt.pse__Opportunity__r.Name}
+											</apex:column>
+											<apex:column width="100" >
+												<apex:facet name="header" >{!dLabel['DL28']}</apex:facet>
+												{!gt.Owner.Name}
+											</apex:column>
+											
+										</apex:pageBlockTable>
+									</div>
+									<div style="display:{!if(noGTSearchResults==true,'block','none')};" >
+										<apex:pageMessage severity="INFO" title="{!dLabel['DL29']}" strength="3" />
+									</div>
+									</apex:outputPanel>
+									<apex:outputPanel id="pbGTPagingButtons" >
+										<br/>
+										<div align="center" >
+										<apex:commandButton disabled="{!!hasFirstGT}" action="{!moveFirstGTs}" value="{!dLabel['DL30']}" rerender="pbGlobalTemplates,pbGTPagingButtons,msg" status="statusBar" />
+										<apex:commandButton disabled="{!!hasPrevGTs}" action="{!movePrevGTs}" value="{!dLabel['DL31']}" rerender="pbGlobalTemplates,pbGTPagingButtons,msg" status="statusBar" />
+										<apex:outputText >
+										&nbsp;{!dLabel['DL32']}&nbsp;
+										</apex:outputText>
+										<apex:commandButton disabled="{!!hasNextGTs}" action="{!moveNextGTs}" value="{!dLabel['DL33']}" rerender="pbGlobalTemplates,pbGTPagingButtons,msg" status="statusBar" />
+										<apex:commandButton disabled="{!!hasLastGT}" action="{!moveLastGTs}" value="{!dLabel['DL34']}" rerender="pbGlobalTemplates,pbGTPagingButtons,msg" status="statusBar" />
+										</div>
+									</apex:outputPanel>
+								</apex:tab>
+								<apex:tab label="{!dLabel['DL35']}" id="tabMyTemplates" >
+									<apex:outputPanel id="opMyTemplates" >
+									<div style="display:{!if(noMTSearchResults==true,'none','block')};" >
+										<apex:pageBlockTable value="{!myTemplates}" var="mt" id="pbMyTemplates" >
+											<apex:column width="30" >
+												<apex:facet name="header" >{!dLabel['DL36']}</apex:facet>
+										        <apex:commandLink action="{!setSelectedProject}" value="{!dLabel['DL37']}" rerender="msg,pbsProjectFields" status="statusBar" immediate="true" >
+							            			<apex:param assignto="{!selectedProjectId}" name="selProjectId" value="{!mt.Id}" />
+							            		</apex:commandLink>
+							            		
+										    </apex:column>
+										   
+											<apex:column width="100" >
+												<apex:facet name="header" >{!$ObjectType.pse__Proj__c.Fields.Name.Label}</apex:facet>
+												<span title="Open template in new window" ><a target="_blank" href="/{!mt.Id}" >{!mt.Name}</a></span>
+											</apex:column>
+											<apex:column width="100" >
+												<apex:facet name="header" >{!$ObjectType.pse__Proj__c.Fields.pse__Account__c.Label}</apex:facet>
+												{!mt.pse__Account__r.Name}
+											</apex:column>
+											<apex:column width="100" >
+												<apex:facet name="header" >{!$ObjectType.pse__Proj__c.Fields.pse__Opportunity__c.Label}</apex:facet>
+												{!mt.pse__Opportunity__r.Name}
+											</apex:column>
+											<apex:column width="100" >
+												<apex:facet name="header" >{!dLabel['DL38']}</apex:facet>
+												{!mt.Owner.Name}
+											</apex:column>
+											
+										</apex:pageBlockTable>
+									</div>
+									<div style="display:{!if(noMTSearchResults==true,'block','none')};" >
+										<apex:pageMessage severity="INFO" title="{!dLabel['DL39']}" strength="3" />
+									</div>
+									</apex:outputPanel>
+									<apex:outputPanel id="pbMTPagingButtons" >
+										<br/>
+										<div align="center" >
+										<apex:commandButton disabled="{!!hasFirstMT}" action="{!moveFirstMTs}" value="{!dLabel['DL40']}" rerender="pbMyTemplates,pbMTPagingButtons,msg" status="statusBar" styleclass="searchProjectsBtn" />
+										<apex:commandButton disabled="{!!hasPrevMTs}" action="{!movePrevMTs}" value="{!dLabel['DL41']}" rerender="pbMyTemplates,pbMTPagingButtons,msg" status="statusBar" />
+										<apex:outputText >
+										&nbsp;{!dLabel['DL42']}&nbsp;
+										</apex:outputText>
+										<apex:commandButton disabled="{!!hasNextMTs}" action="{!moveNextMTs}" value="{!dLabel['DL43']}" rerender="pbMyTemplates,pbMTPagingButtons,msg" status="statusBar" />
+										<apex:commandButton disabled="{!!hasLastMT}" action="{!moveLastMTs}" value="{!dLabel['DL44']}" rerender="pbMyTemplates,pbMTPagingButtons,msg" status="statusBar" />
+										</div>
+									</apex:outputPanel>
+
+								</apex:tab>
+							</apex:tabPanel>
+
+						
+						
+						</apex:outputPanel>
+					</apex:pageBlockSectionItem>
+			</apex:pageBlockSection>
+
+			<apex:pageBlockSection columns="1" >
+	
+			<apex:pageBlockSectionItem >
+			</apex:pageBlockSectionItem>
+
+		</apex:pageBlockSection>
+	</apex:pageBlock>
+
+	<nttdcore:DLabel name="DL45" default="Copy Project {{1}}" labelParent="{!this}" p1="{!cloningActionStr}" /><apex:pageBlock title="{!dLabel['DL45']}" mode="edit" ><nttdcore:DLabel name="DL49" default="General Project Information" labelParent="{!this}" /><nttdcore:DLabel name="DL50" default="Selected Source Project" labelParent="{!this}" /><nttdcore:DLabel name="DL51" default="Record Owner" labelParent="{!this}" /><nttdcore:DLabel name="DL52" default="Target Project{{1}}" labelParent="{!this}" p1="{!IF(hideTargetLink,'',' (Empty if New Project)')}" /><nttdcore:DLabel name="DL53" default="New Project Name (Empty if Merging Projects)" labelParent="{!this}" />	
+		<apex:pageBlockButtons location="top" >
+			<nttdcore:DLabel name="DL46" default="Save" labelParent="{!this}" /><apex:commandButton value="{!dLabel['DL46']}" onclick="confirmClone();" rerender="msg" immediate="false" />			
+			<nttdcore:DLabel name="DL47" default="Clear" labelParent="{!this}" /><apex:commandButton action="{!clear}" value="{!dLabel['DL47']}" rerender="msg,pbsProjectFields" immediate="true" status="statusBar" />
+			<nttdcore:DLabel name="DL48" default="Cancel" labelParent="{!this}" /><apex:commandButton action="{!doCancel}" value="{!dLabel['DL48']}" immediate="true" />
+		</apex:pageBlockButtons>
+		
+		<apex:pageBlockSection columns="2" id="pbsProjectFields" title="{!dLabel['DL49']}" collapsible="false" >
+			<apex:pageBlockSectionItem >
+				<apex:outputLabel value="{!dLabel['DL50']}" />
+				<!--
+				<apex:outputLabel value="{!selectedProjectName}"></apex:outputLabel>
+				-->
+				<apex:outputField id="txtSelectedProjName" value="{!project.Name}" />
+			</apex:pageBlockSectionItem>
+
+			<apex:pageBlockSectionItem rendered="{!showNewProjectFields}" >
+				<apex:outputLabel for="txtProjOwner" value="{!dLabel['DL51']}" />
+				<apex:outputPanel >
+				<div class="requiredInput" >
+	                <div class="requiredBlock" />
+	                <apex:inputField id="txtProjOwner" value="{!project.OwnerId}" required="false" />
+	            </div>
+	            </apex:outputPanel>
+			</apex:pageBlockSectionItem>
+
+			<apex:pageBlockSectionItem >
+				<apex:outputLabel for="txtMergeProjName" value="{!dLabel['DL52']}" />
+				<!--<apex:inputField id="txtMergeProjName" value="{!mergeProject.pse__Parent_Project__c}" />-->
+				<apex:outputField id="txtMergeProjName" value="{!mergeProject.Name}" />		            
+			</apex:pageBlockSectionItem>
+
+			<apex:pageBlockSectionItem rendered="{!showNewProjectFields}" >
+				<apex:outputLabel for="txtProjOpp" value="{!$ObjectType.pse__Proj__c.Fields.pse__Opportunity__c.Label}" />
+				<apex:inputField id="txtProjOpp" value="{!project.pse__Opportunity__c}" />	
+			</apex:pageBlockSectionItem>
+
+			<apex:pageBlockSectionItem rendered="{!showNewProjectFields}" >
+				<apex:outputLabel for="txtProjName" value="{!dLabel['DL53']}" />
+				<apex:outputPanel >
+				<!--<div class="requiredInput">
+	                <div class="requiredBlock"></div>-->
+	                <apex:inputText id="txtProjName" value="{!newProjectName}" />	
+	            <!--</div>-->
+	            </apex:outputPanel>
+			</apex:pageBlockSectionItem>	
+
+			
+			<apex:pageBlockSectionItem />
+
+		</apex:pageBlockSection>
+		
+	</apex:pageBlock>
+
+	</apex:form>
+
+
+
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

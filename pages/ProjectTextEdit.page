@@ -1,0 +1,58 @@
+<apex:page standardController="Project__c" title="Edit Project Description">
+<script language="Javascript">
+editorNo=0;
+noOfEditorsOnAPage=1;
+
+
+        CKEDITOR.on('instanceReady', function(e) {
+           
+           if(editorNo>=noOfEditorsOnAPage){
+    return;
+}else{
+    editorNo++;
+}
+
+            var target = e.editor.config.bodyId;
+            var name = e.editor.name;
+            e.editor.destroy();
+
+            CKEDITOR.editorConfig = function( config ) { 
+                config.magic = true; 
+                config.fontSize_sizes = '9/9pt';
+                config.font_names = 'Arial';
+                config.toolbar_AECustom =
+                    [
+                        { name: 'clipboard',   items : [ 'Cut','Copy','Paste','PasteText','PasteFromWord','-','Undo','Redo' ] },
+                        { name: 'editing',     items : [ 'Find','Replace','-','SelectAll','-','SpellChecker', 'Scayt' ] },
+                        { name: 'insert',      items : [ 'Table','HorizontalRule','SpecialChar' ] },
+                        '/',
+                        { name: 'styles',      items : [ 'Font','FontSize' ] },
+                        { name: 'basicstyles', items : [ 'Bold','Italic','Underline','Strike','Subscript','Superscript','-','RemoveFormat' ] },
+                        { name: 'paragraph',   items : [ 'NumberedList','BulletedList','-','Outdent','Indent','-','Blockquote','-','JustifyLeft','JustifyCenter','JustifyRight' ] },
+                        { name: 'colors',      items : [ 'TextColor','BGColor' ] },
+                        { name: 'document',    items : [ 'Source'] }
+                        
+                    ];
+                
+            }
+
+            CKEDITOR.replace(name, {
+                        height : 500, 
+                        bodyId : target,
+                        toolbar : 'AECustom'
+            });
+        });
+
+
+</script>
+<apex:form >
+
+<apex:pageBlock mode="MainDetail" title="{!Project__c.Name}: Edit Project Description">
+    <apex:pageBlockButtons >
+        <apex:commandButton action="{!save}" value="Save"/>
+        <apex:commandLink immediate="true" action="{!cancel}" value="Cancel"/>
+    </apex:pageBlockButtons>
+    <apex:inputField value="{!Project__c.Project_Description__c}"/>
+</apex:pageBlock>
+</apex:form>
+</apex:page>

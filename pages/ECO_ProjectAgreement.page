@@ -1,0 +1,222 @@
+<apex:page standardcontroller="ProjectAgreement__c" tabstyle="Agreement__c" extensions="ECO_ProjectAgreementController2,nttdcore.DLabelParentController" action="{!init}" >
+
+<apex:messages />
+	<style>
+
+		.table{
+			border-collapse:collapse;
+		}
+
+		.table th, .table td {
+		  padding: 8px 2px 8px 5px;
+		  border: 1px solid #dbdbdb;;
+		  border-collapse: collapse;
+		}
+		
+		.table tr {
+		  border: 1px solid #dbdbdb;;
+		  border-collapse: collapse;
+		}
+		
+		.table td {
+			background-color: white;
+		}
+		
+		td:nth-child(1){
+		}
+
+		.customHelpIcon
+		{
+			display:inline-block;
+			margin:0 5px 0 0;
+			width:24px;
+			height:24px;
+			vertical-align:top !important;
+		}
+        /* CUSTOM HELP / GUIDANCE TEXT BOX */
+        .customHelpText{
+            padding: 7px;
+            border: 1px solid #85B3CE;
+            min-height: 30px;
+            display: block;
+            width: auto;
+            margin: 0 0 5px 0;
+            background-repeat: no-repeat;
+            border-radius: 4px;
+            background-color: #A2D3F1;
+            
+        }
+        .customHelpBody{
+            display:inline-block;
+            color:#;
+            max-width:95%;
+        } 	
+
+        .message{
+			background-color: #A2D3F1;
+		}	
+		
+		.warningHelpText{
+			padding: 7px;
+			border: 1px solid #85B3CE;
+			min-height: 30px;
+			display: block;
+			width: auto;
+			margin: 0 0 5px 0;
+			background-repeat: no-repeat;
+			border-radius: 4px;
+			background-color: yellow;            
+		}
+
+		.spinnerBg{
+	        width: 25%;
+	        height: 25%;
+	        position: absolute;
+	        background-color: #000;
+	        opacity: 0.2;
+	        z-index: 999999;
+	    }
+	    .spinner{
+	        width: 25%;
+	        height: 25%;
+	        position: absolute;
+	        background-image: url("/img/loading32.gif");
+	        background-size: 16px;
+	        background-repeat: no-repeat;
+	        background-attachment: fixed;
+	        background-position: center;
+	        z-index: 9999999;
+	        opacity: 1;
+	    }
+	</style>
+	<script type="text/javascript" >
+		function recordTypeSelected(recordTypeId)
+		{
+			recordTypeSelected2(recordTypeId);
+		}
+
+	    function disableAfterSubmit(btn) {
+	        //alert(id);
+	    	//var toDisable = document.getElementById( id );
+	        btn.disabled = 'disabled';
+	        // Use the Salesforce CSS style to make the button appear disabled
+	        btn.className = 'btnDisabled';
+	        //toDisable.value = "Saving..."
+	    }	
+	</script>
+
+
+
+<apex:form ><nttdcore:DLabel name="DL20" default="Creating Agreement" labelParent="{!this}" /><nttdcore:DLabel name="DL21" default="Creating Agreement..." labelParent="{!this}" /><nttdcore:DLabel name="DL22" default="Creating Agreement..." labelParent="{!this}" />
+
+<apex:actionStatus id="spinnerStatus" starttext="{!dLabel['DL20']}" >
+    <apex:facet name="start" >
+        <div class="spinnerBg" />
+        <div class="spinner" />
+        <span style="display: inline-block; padding: 10px 0px;" >{!dLabel['DL21']}</span>
+    </apex:facet>
+</apex:actionStatus>	
+
+<apex:actionStatus id="spinnerStatus2" >
+    <apex:facet name="start" >
+    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; opacity: 0.25; z-index: 1000; background-color: black;" >
+        &nbsp;
+    </div>
+    <div style="position: fixed; left: 0; top: 0; bottom: 0; right: 0; z-index: 1001; margin: 15% 50%" >
+        <div style="display: inline-block; padding: 2px; background-color: #fff; width: 200px;" >
+            <img src="/img/loading32.gif" style="float: left; margin: 8px;" />
+            <span style="display: inline-block; padding: 10px 10px;" ><b>{!dLabel['DL22']}</b></span>
+        </div>
+    </div>
+    </apex:facet>
+</apex:actionStatus>
+
+<nttdcore:DLabel name="DL23" default="New Agreement" labelParent="{!this}" /><apex:sectionHeader title="{!dLabel['DL23']}" subtitle="{!theProject.ProjectSectionHeaderName__c}" />
+<apex:pagemessages id="messages" />
+
+<div class="warningHelpText" ><nttdcore:DLabel name="DL24" default="As a licensed Salesforce user, you have access to information related to project agreements and master service agreements (e.g., panels, frameworks, ID/IQs) with clients and sub-consultants that may contain commercially sensitive data. Unauthorized disclosure or use of the information contained in this database is strictly prohibited." labelParent="{!this}" />
+  {!dLabel['DL24']}</div>
+<nttdcore:DLabel name="DL25" default="Project Agreements" labelParent="{!this}" /><apex:pageBlock title="{!dLabel['DL25']}" ><nttdcore:DLabel name="DL27" default="Existing Agreements" labelParent="{!this}" /><nttdcore:DLabel name="DL28" default="ePM Agreement Number" labelParent="{!this}" /><nttdcore:DLabel name="DL29" default="Record Type" labelParent="{!this}" /><nttdcore:DLabel name="DL30" default="Client/Sub/Vendor Name" labelParent="{!this}" /><nttdcore:DLabel name="DL31" default="Agreement Status" labelParent="{!this}" /><nttdcore:DLabel name="DL32" default="Agreement Amount(estimated)" labelParent="{!this}" /><nttdcore:DLabel name="DL33" default="Agreement Amount(confirmed)" labelParent="{!this}" /><nttdcore:DLabel name="DL34" default="Total Approved Revenue Limit" labelParent="{!this}" /><nttdcore:DLabel name="DL35" default="No records to display" labelParent="{!this}" /><nttdcore:DLabel name="DL36" default="Create New Agreement" labelParent="{!this}" /><nttdcore:DLabel name="DL37" default="Select a record type to add a new agreement to the project. Agreements can be directly with a client, teaming partner, subcontractor/ sub-consultant or another AECOM legal entity. They can also include non-monetary agreements such as confidentiality or non-disclosure statements. It is best practice to document and manage contractual constraints or obligations associated with all agreement types used on a project, not just the funding agreement." labelParent="{!this}" /><nttdcore:DLabel name="DL38" default="The record type &ldquo;Prime&rdquo; or &ldquo;Prime Task Order&rdquo; will be sent to Oracle as the primary funding agreement so these record types should be used when selecting an agreement type between AECOM and the billing or invoice client with whom we have (or will) execute a contract for the project." labelParent="{!this}" />
+	<nttdcore:DLabel name="DL39" default="Record Type Name" labelParent="{!this}" />
+	<nttdcore:DLabel name="DL40" default="Record Type Description" labelParent="{!this}" />
+	<nttdcore:DLabel name="DL41" default="Create New" labelParent="{!this}" />
+
+	<apex:pageBlockButtons location="top" >
+		<nttdcore:DLabel name="DL26" default="Return to Project" labelParent="{!this}" /><apex:commandButton action="{!cancel}" value="{!dLabel['DL26']}" />
+	</apex:pageBlockButtons>
+	
+    <apex:pageBlockSection title="{!dLabel['DL27']}" columns="1" collapsible="false" >
+        <apex:pageBlockTable value="{!Agreements}" var="agreement" rendered="{!agreements.size > 0}" >
+            <apex:column headervalue="{!dLabel['DL28']}" >
+                <apex:commandLink action="{!URLFOR($Action.Agreement__c.view, agreement.Id, ['ProjectId'=projectAgreement.Project__c, 'retURL'='/apex/ECO_ProjectAgreement?Id='&ProjectAgreement__c.Id])}" immediate="true" >
+                    <apex:outputField value="{!agreement.Name}" />
+                </apex:commandLink>
+            </apex:column>
+            <apex:column headervalue="{!dLabel['DL29']}" ><apex:outputField value="{!agreement.RecordType.Name}" /></apex:column>
+             <apex:column headervalue="{!dLabel['DL30']}" >
+             	<!--<apex:outputField value="{!agreement.VendorSite__r.AccountName__c}" rendered="{!agreement.RecordType.Name == 'Sub'}" />
+             	<apex:outputField value="{!agreement.Account__c}" rendered="{!agreement.RecordType.Name != 'Sub'}" />
+             	-->
+             	<apex:outputField value="{!agreement.VendorSite__r.AccountName__c}" rendered="{!agreement.RecordType.DeveloperName == 'Sub'}" />
+             	<apex:outputField value="{!agreement.Account__c}" rendered="{!agreement.RecordType.DeveloperName != 'Sub'}" />                          	
+             </apex:column>
+            <apex:column headervalue="{!dLabel['DL31']}" ><apex:outputField value="{!agreement.AgreementStatus__c}" /></apex:column>
+            <apex:column headervalue="{!dLabel['DL32']}" ><apex:outputField value="{!agreement.AgreementAmountEstimated__c}" /></apex:column> 
+            <apex:column headervalue="{!dLabel['DL33']}" ><apex:outputField value="{!agreement.Amount__c}" /></apex:column> 
+            <!--<apex:column headerValue="Total Approved Revenue Limit"><apex:outputField value="{!agreement.TotalApprovedRevenueLimit__c}"/></apex:column> -->
+			<!--US-04000-->
+			<apex:column headervalue="{!dLabel['DL34']}" ><apex:outputField value="{!agreement.TotalApprovedRevenueLimit__c}" /></apex:column>
+
+        </apex:pageBlockTable>  
+        <apex:outputPanel rendered="{!agreements.size == 0}" >
+            <apex:outputText value="{!dLabel['DL35']}" />
+        </apex:outputPanel> 
+        
+            
+    </apex:pageBlockSection>	
+
+<apex:actionFunction name="recordTypeSelected2" action="{!recordTypeSelected}" rerender="rtypeid" status="spinnerStatus2" immediate="true" >
+	<apex:param id="test" assignto="{!selectedRecordType}" name="selectedRecordType" value="" />
+</apex:actionFunction>
+<apex:pageBlockSection columns="1" title="{!dLabel['DL36']}" collapsible="false" rendered="{!hasUpdateAccess}" >
+	<c:ECO_CollapsibleSection sectiontitle="{!$Label.ProjectAgreement_GeneralGuidanceSectionHeader}" uniqueid="1" >  
+		{!dLabel['DL37']}
+		<br/><br/>
+		{!dLabel['DL38']}
+	</c:ECO_CollapsibleSection>
+		
+	<apex:outputPanel >
+	<apex:inputHidden value="{!projectId}" />
+	<apex:inputHidden value="{!selectedRecordType}" id="rtypeid" />
+	<table class="table" style="width:100%;" >
+		<tr>
+			<th>{!dLabel['DL39']}</th>
+			<th>{!dLabel['DL40']}</th>
+			<th/>
+		</tr>
+		<apex:repeat value="{!AgreementRecordTypes}" var="agreementRecordType" >
+			<tr>	
+				<td><apex:outputField value="{!agreementRecordType.Name}" /></td>
+				<!--<td><apex:outputField value="{!agreementRecordType.Description}" /></td>-->
+				<td><apex:outputText value="{!$label['Agreement_c_' + agreementRecordType.DeveloperName + '_Desc']}" /></td>
+				<!--<td><apex:commandButton value="Create New" onclick="disableAfterSubmit(this); recordTypeSelected('{!agreementRecordType.Id}'); return false;" immediate="true" status="spinnerStatus"/></td>-->
+				<td><apex:commandButton value="{!dLabel['DL41']}" onclick="recordTypeSelected('{!agreementRecordType.Id}'); return false;" immediate="true" /></td>
+			</tr>		
+		</apex:repeat>
+	</table>
+	
+	</apex:outputPanel>
+</apex:pageBlockSection>
+</apex:pageBlock>
+
+<apex:inputHidden value="{!ProjectAgreement__c.Project__r.PrimaryBillingClient__r.Account__c}" />
+<apex:inputHidden value="{!ProjectAgreement__c.Project__c}" />
+<apex:inputHidden value="{!ProjectAgreement__c.Id}" />
+
+<c:ECO_RiskFlyout projectid="{!theProject.Id}" rendered="{!theProject != null}" planelement="" />
+<c:ECO_AssumptionFlyout projectid="{!theProject.Id}" rendered="{!theProject != null}" planelement="Agreements" />
+<c:ECO_ProjectTeamFlyout projectid="{!theProject.Id}" rendered="{!theProject != null}" />
+
+</apex:form>
+
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

@@ -1,0 +1,33 @@
+<apex:page contentType="text/cache-manifest" applyHtmlTag="false" 
+     standardStylesheets="false" showHeader="false">CACHE MANIFEST
+
+# 2015-12-18:v1.0.14
+# updated by Tom Smalara
+
+# All other resources (e.g. sites) require the user to be online. 
+
+NETWORK:
+*
+
+CACHE:
+{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/css/ECO_PortalSpecificCSS.css')}
+{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/css/bootstrap.min.css')}
+{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/css/font-awesome.min.css')}
+{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/css/gallery.prefixed.css')}
+{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/css/nifty.css')}
+{!URLFOR($Resource.ECO_SmartSearchStyles)}
+{!$Resource.ECO_jQuery_1_11_2_min_js}
+{!URLFOR($Resource.ECO_jQueryUI_1_11_2, 'jquery-ui.min.js')}
+{!$Resource.ECO_jQueryUI_TouchPunch}
+{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/js/jquery.lazyload.min.js')}  
+{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/js/jquery.sparkline.min.js')}
+{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/js/bootstrap.min.js')}
+{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/js/nifty.min.js')}
+{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/js/raphael.min.js')}
+{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/js/gauge.min.js')}
+{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/js/ECO_PortalSpecificJS.min.js')}
+{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/js/readmore.min.js')}
+{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/js/jquery.tablesorter.min.js')}
+
+
+ </apex:page>

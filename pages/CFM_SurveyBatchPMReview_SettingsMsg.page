@@ -1,0 +1,154 @@
+<apex:page showHeader="true" sidebar="false">
+	<style>
+	    .pageTitle {
+	        padding: 10px; 
+	        display: block;
+	        font-size: 15px;
+	    }
+	    .pmReviewPage .styledButton, .rejectionDialog .styledButton  {
+	        padding: 5px 20px;
+	        font-size: 12px;
+	        color: white;
+	        background: #1E9EAF;
+	        border-radius: 6px;
+	        font-weight: normal;
+	        margin-top: 10px;
+	        margin-left: auto; /*Center the button*/
+	        margin-right: auto;
+	        display: block;
+	    }
+
+	    .styledButton:hover {
+	      background: #3FCFBF;
+	    }
+
+	    .projectTable {
+	        border: 1px #1E9EAF solid !important;
+	        border-top-left-radius: 4px;
+	        border-top-right-radius: 4px;
+	    }
+	    .projectTable th {
+	        background: #1E9EAF !important;
+	    }
+	    .projectTable th div {
+	        color: white;
+	    }
+	    .projectTable tr:first-child {
+	        border-top-left-radius: 4px;
+	    }
+	    .projectTable tr:last-child {
+	        border-top-right-radius: 4px;
+	    }
+	    .projectTable tr:nth-child(even) {
+	        background-color: #F0F0F0;
+	    }
+	    .actionStepText {
+	        padding-left: 5px;
+	        padding-bottom: 10px;
+	    }
+	    .actionStepText b {
+	    	font-size: 1.3em;
+	    }
+
+	    .centeredIcon {
+	      margin-left: auto;
+	      margin-right: auto;
+	      display: block;
+	    }
+
+	    /*Salesforce Overrides*/
+	    .pbHeader {
+	        background-color: #1E9EAF !important;
+	    }
+	    .mainTitle {
+	        color: white !important;
+	    }
+	    .secondaryPalette {
+	        border-color: #1E9EAF !important;
+	    }
+
+	    .hiddenPageBlock .bPageBlock {
+	        visibility: hidden;
+	    }
+	    .hiddenPageBlock .pbBody {
+	        visibility: visible;
+	        margin: 0 !important;
+	    }
+	    .pageTitleIcon {
+	      background-image: none !important;
+	    }
+
+	    .ui-dialog-titlebar {
+	      color: white;
+	      background: #1E9EAF;
+	      background-image: none;
+	    }
+
+	    .brandSecondaryBrd {
+	      border-color: #1E9EAF !important;
+	    }
+
+	    .ui-widget-header {
+	        border: 0 !important;
+	    }
+
+	</style>
+
+	<div class="bPageTitle">
+        <div class="ptBody">
+            <div class="content">
+                <apex:image url="{!URLFOR($Resource.CFM_Images, 'Survey_Icon.png')}" styleClass="pageTitleIcon" />
+                <h1 class="pageType">{!$Label.CFM_Browser_Settings}<span class="titleSeparatingColon">:</span></h1>
+                <h2 class="pageDescription"> {!$Label.CFM_Browser_Settings_Change}:</h2>
+                <div class="blank">&nbsp;</div>
+            </div>
+        </div>
+    </div>
+
+    <apex:pageBlock >
+    	<div style="padding: 30px">
+    		<p style="font-size: 1.3em">
+    			{!$Label.CFM_Browser_Settings_Javascript}:
+    		</p>
+    	</div>
+<!--     	<p>
+            <b>Instructions to add Salesforce to the Trusted Sites settings within your Browser:</b>
+        </p> -->
+        <hr/>
+    	<p>
+          <div class="actionStepText">
+              <b>{!$Label.CFM_Step_1}:</b> {!$Label.CFM_Browser_Settings_Step_1}
+          </div>
+          <div class="actionStepText">
+          	<apex:image url="{!URLFOR($Resource.CFM_Images, 'BrowserSettings-1.jpg')}" />
+          </div>
+          <hr/>
+          <div class="actionStepText">
+                <b>{!$Label.CFM_Step_2}:</b> {!$Label.CFM_Browser_Settings_Step_2}
+          </div>
+          <div class="actionStepText">
+          	<apex:image url="{!URLFOR($Resource.CFM_Images, 'BrowserSettings-2.png')}" />
+          </div>
+          <hr/>
+          <div class="actionStepText">
+                <b>{!$Label.CFM_Step_3}:</b> {!$Label.CFM_Browser_Settings_Step_3}
+          </div>
+          <div class="actionStepText">
+          	<apex:image url="{!URLFOR($Resource.CFM_Images, 'BrowserSettings-3.png')}" />
+          </div>
+          <hr/>
+          <div class="actionStepText">
+                <b>{!$Label.CFM_Step_4}:</b> {!$Label.CFM_Browser_Settings_Step_4}
+          </div>
+          <hr/>
+          <div class="actionStepText">
+                <b>{!$Label.CFM_Step_5}:</b> {!$Label.CFM_Browser_Settings_Step_5}
+          </div>
+        </p>
+        <p>
+        	{!$Label.CFM_Browser_Settings_Resolve} <a href="http://my.aecomnet.com/Intranet/Support/Technology/IT+Support/Service+desk">{!$Label.CFM_Browser_Settings_IT_Service_Desk}</a>.
+        </p>
+	</apex:pageBlock>
+
+
+</apex:page>

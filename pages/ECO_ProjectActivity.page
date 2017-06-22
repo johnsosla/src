@@ -1,0 +1,35 @@
+<apex:page controller="ECO_ProjectActivityController" showheader="true" sidebar="true" extensions="nttdcore.DLabelParentController" >
+	<nttdcore:DLabel name="DL1" default="Project Activity Edit" labelParent="{!this}" /><nttdcore:DLabel name="DL2" default="New Project Activity" labelParent="{!this}" /><apex:sectionHeader title="{!dLabel['DL1']}" subtitle="{!dLabel['DL2']}" />
+
+	<apex:form >
+		<nttdcore:DLabel name="DL3" default="Project Activity Edit" labelParent="{!this}" /><apex:pageBlock title="{!dLabel['DL3']}" mode="edit" ><nttdcore:DLabel name="DL7" default="Activity and Impact" labelParent="{!this}" /><nttdcore:DLabel name="DL8" default="Proposed Action" labelParent="{!this}" /><nttdcore:DLabel name="DL9" default="Action Taken" labelParent="{!this}" />
+
+			<apex:pageBlockButtons >
+				<nttdcore:DLabel name="DL4" default="Save" labelParent="{!this}" /><apex:commandButton value="{!dLabel['DL4']}" action="{!save}" />
+				<nttdcore:DLabel name="DL5" default="Save and New" labelParent="{!this}" /><apex:commandButton value="{!dLabel['DL5']}" action="{!saveandnew}" />
+				<nttdcore:DLabel name="DL6" default="Cancel" labelParent="{!this}" /><apex:commandButton value="{!dLabel['DL6']}" action="{!cancel}" immediate="true" />
+			</apex:pageBlockButtons>
+
+			<apex:pageBlockSection title="{!dLabel['DL7']}" columns="2" >
+				<apex:inputField value="{!oPA.name}" required="true" />
+				<apex:outputField value="{!oPA.Project__c}" />
+				<apex:inputField value="{!oPA.ImpactonEnv__c}" />
+				<apex:outputtext value="" />
+				<apex:inputField value="{!oPA.Significance__c}" />
+				<apex:outputtext value="" />
+				<apex:inputField value="{!oPA.Control__c}" />
+				<apex:outputtext value="" />
+			</apex:pageBlockSection>
+
+			<apex:pageBlockSection title="{!dLabel['DL8']}" columns="1" >
+				<apex:inputField value="{!oPA.ProposedAction__c}" style="width: 400px;" />
+			</apex:pageBlockSection>
+
+			<apex:pageBlockSection title="{!dLabel['DL9']}" columns="1" >
+				<apex:inputField value="{!oPA.ActionTaken__c}" style="width: 400px;" />
+			</apex:pageBlockSection>
+		</apex:pageBlock>
+
+
+	</apex:form>
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

@@ -1,0 +1,29 @@
+<apex:page id="p" showHeader="false" sidebar="false" controller="rsSysInfoController">
+    <script src="{!URLFOR($Resource.rs_libs, 'jquery/jquery.js')}" type="text/javascript" charset="utf-8"></script>
+    <script type="text/javascript">
+        var j$ = jQuery.noConflict();
+        j$(function() {
+
+            rsSysInfoController.getStatus(function(result, event){
+                if(event.status) {
+                    document.getElementById("p:pb:endpointStatus").innerHTML = result;
+                }
+            });
+        });
+    </script>
+
+
+    <apex:pageBlock id="pb" title="AECOM Resumes System Info">
+
+        <apex:outputLabel style="font-weight: bold" for="version" value="Version: "/>
+        <apex:outputText id="version" value="0.0.0.0"/>
+        <br/>
+        <apex:outputLabel style="font-weight: bold" for="endpoint" value="ResGen Engine: "/>
+        <apex:outputText id="endpoint" value="{!Endpoint}"/>
+
+        <br/>
+        <apex:outputLabel style="font-weight: bold" for="endpointStatus" value="ResGen Engine Status: "/>
+        <apex:outputText id="endpointStatus" value="Checking..."/>
+
+    </apex:pageBlock>
+</apex:page>

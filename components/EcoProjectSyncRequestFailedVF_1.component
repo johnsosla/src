@@ -1,0 +1,15 @@
+<apex:component language="{!theLanguage}" controller="nttdcore.DLabelChildController" access="global" ><apex:attribute name="theLanguage" type="String" required="true" description="language" access="global" /><apex:attribute name="theRecipient" type="Contact" required="true" description="recipient" access="global" /><apex:attribute name="theRelatedTo" type="ChangeManager__c" required="true" description="related to" access="global" />
+    <apex:outputpanel >
+        <p><nttdcore:DLabel name="DL1" default="The Oracle project sync request for the subject project was not successful due to one or more errors.   Re-enter ePM to address the error(s)." labelParent="{!this}" componentContext="EcoProjectSyncRequestFailedVF_1" />
+        {!dlRoot.dLabel['DL1']}   
+        </p><p>
+        <b><nttdcore:DLabel name="DL2" default="Project Name:" labelParent="{!this}" componentContext="EcoProjectSyncRequestFailedVF_1" />{!dlRoot.dLabel['DL2']}</b> {!theRelatedTo.ProjectLongName__c}
+        <br/>
+        <b><nttdcore:DLabel name="DL3" default="ePM Record Number:" labelParent="{!this}" componentContext="EcoProjectSyncRequestFailedVF_1" />{!dlRoot.dLabel['DL3']}</b> {!theRelatedTo.ProjectNumber__c}
+        </p><p>
+        <a href="{!LEFT($Api.Partner_Server_URL_290,FIND('services',$Api.Partner_Server_URL_290)-1)}{!theRelatedTo.Id}" ><nttdcore:DLabel name="DL4" default="Link to Change Manager" labelParent="{!this}" componentContext="EcoProjectSyncRequestFailedVF_1" />
+         {!dlRoot.dLabel['DL4']}
+         </a>
+        </p>
+    </apex:outputpanel>
+<nttdcore:DLabelInit language="{!theLanguage}" labelParentInit="{!this}" /></apex:component>

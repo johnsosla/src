@@ -1,0 +1,1102 @@
+<apex:page standardcontroller="pse__Proj__c" extensions="ECO_CloseoutApprovalPhaseController,nttdcore.DLabelParentController" tabstyle="pse__Proj__c" showheader="true" sidebar="true" >
+
+    <style>
+
+        .colA {
+            font-weight: bold;
+            text-align:right;
+            vertical-align:middle !important;
+        }
+
+        .colB {
+            padding:0 10px !important;
+        }
+
+        .colC {
+            vertical-align:middle !important;
+        }
+
+
+        .colD {
+            text-align:left;
+            vertical-align:middle !important;
+        }       
+
+        .questions{
+            vertical-align:middle !important;
+            margin-left:3px;
+        }
+
+        /* CUSTOM HELP / GUIDANCE TEXT BOX */
+        .customHelpText{
+            padding: 7px;
+            border: 1px solid #85B3CE;
+            min-height: 30px;
+            display: block;
+            width: auto;
+            margin: 0 0 5px 0;
+            background-repeat: no-repeat;
+            border-radius: 4px;
+            background-color: #A2D3F1;
+            
+        }
+        .customHelpBody{
+            display:inline-block;
+            color:#;
+            max-width:95%;
+        }
+        .dmeOutput{  
+            font-size: 1.0em;
+            font-weight: bold; 
+            color: #4a4a56;  /*Standrd Salesforce Color*/
+        }
+        
+        .attachNewFile{
+            visibility: hidden;
+        }
+        
+        .pbtOutputPanel
+        {
+            padding: 100;
+            color: red;
+        }   
+        
+        .textBox
+        {
+            padding-bottom: 5px;
+        }
+        
+        .fileList
+        {
+            padding:0 12px;
+            margin-top:7px;
+        }
+        
+        .bPageBlock .detailList tr td.dataCol, 
+        .bPageBlock .detailList tr td.labelCol
+        {
+            border-bottom:1px solid #dbdbdb;
+        }
+
+        .bPageBlock .detailList tr td.dataCol.last, 
+        .bPageBlock .detailList tr td.labelCol.last
+        {
+            border-bottom:0px solid #dbdbdb;
+        }
+         
+        .questionCol {
+            padding-top: 10px;  
+        }
+        .mouseOverInfo {
+            text-align:left !important;
+        }
+        .halfWidthWrapper {
+            width:70%;
+            display:inline-block;
+            float:left;
+        }
+        
+        #notifications{
+            margin-left:70%;
+            padding-left:20px;
+        }
+    </style>
+
+
+    <head>
+        <apex:stylesheet value="https://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css" />
+        <apex:includescript value="https://code.jquery.com/jquery-1.9.1.js" />
+        <apex:includescript value="https://code.jquery.com/ui/1.10.3/jquery-ui.js" />
+    </head>
+
+    <script>
+
+        function openPopup(id)
+        {
+            var newWin=window.open('/' + id, 'PopUp',
+                   'height=450,width=650,left=300,top=100,resizable=no,scrollbars=yes,toolbar=no,status=no,channelmode=no');
+            if (window.focus) 
+            {
+                newWin.focus();
+            }
+                 
+            return false;       
+        }   
+        
+        function fileChosen(attachButton,documentField,overrideField)
+        {
+            if(documentField.value != '')
+            {
+                document.getElementById(attachButton).style.visibility = 'visible';         
+                document.getElementById(overrideField).value = '';
+                document.getElementById(overrideField).style.visibility = 'visible';
+                            
+            }
+            else
+            {
+                document.getElementById(attachButton).style.visibility= 'hidden';
+                document.getElementById(overrideField).style.visibility= 'hidden';          
+            }       
+        }
+
+        function documentTypeChosen(value, outputTextField, outputTextFieldAECOM, outputTextFieldOther) {
+            //alert('test');
+    //      refreshInputNames();
+    /*      if(value == 'AECOM')
+            {
+                //alert('test');
+                document.getElementById(outputTextField).style.visibility= 'hidden';
+                document.getElementById(outputTextFieldOther).style.visibility= 'hidden';
+                document.getElementById(outputTextFieldAECOM).style.visibility= 'visible';                                          
+            }
+            else
+            {
+                alert('test');
+                document.getElementById(outputTextField).style.visibility= 'hidden';
+                document.getElementById(outputTextFieldOther).style.visibility= 'visible';
+                document.getElementById(outputTextFieldAECOM).style.visibility= 'hidden';                                           
+            }       */
+        }    
+        
+    </script>
+
+    <nttdcore:DLabel name="DL376" default="Change Status" labelParent="{!this}" /><apex:sectionheader title="{!dLabel['DL376']}" subtitle="{!pse__Proj__c.ProjectSectionHeaderName__c}" />
+
+    <div class="customHelpText" >
+        <div class="customHelpBody" ><nttdcore:DLabel name="DL377" default="Project closeout is the process to assess the project and team as a whole, to ensure that all project and performance goals and requirements have been successfully achieved, ensures mandatory project delivery requirements have been properly addressed/completed, and the project records have been archived.  A closed project no longer accepts labor and expense charges or transactions.  Complete the project closure checklist to aid in the closure process." labelParent="{!this}" /><nttdcore:DLabel name="DL378" default="A project may be placed on hold due to various circumstances, for example preliminary (pre-design) work has been performed on a project but the project is not ready to kick off, client funding is not available for the project to continue for an extended period of time, or changes to the project scope require re-evaluation of the project or the design.  A project placed on hold will be closed to charges and transactions pending restart." labelParent="{!this}" /><nttdcore:DLabel name="DL379" default="Projects with current or pending claims must be placed on hold." labelParent="{!this}" />
+            {!dLabel['DL377']}  <br/><br/>
+
+            {!dLabel['DL378']}  <br/><br/> 
+
+            {!dLabel['DL379']}
+        </div>
+    </div>  
+
+    <apex:form >
+
+    
+        <apex:pagemessages id="messages" />     
+
+        <apex:outputpanel id="all" >
+            <apex:pageblock >
+
+                <apex:pageblockbuttons >
+                    <nttdcore:DLabel name="DL380" default="Submit" labelParent="{!this}" /><apex:commandbutton value="{!dLabel['DL380']}" action="{!createChangeManagement}" rendered="{!oProject.RequestedProjectStatus__c !=null}" />
+                    <nttdcore:DLabel name="DL381" default="Save" labelParent="{!this}" /><apex:commandbutton value="{!dLabel['DL381']}" action="{!closesave}" rendered="{!oProject.RequestedProjectStatus__c !=null}" />
+                    <nttdcore:DLabel name="DL382" default="Return to Project" labelParent="{!this}" /><apex:commandbutton value="{!dLabel['DL382']}" action="{!back}" immediate="true" />
+                    <nttdcore:DLabel name="DL383" default="Re-open Project" labelParent="{!this}" /><apex:commandbutton value="{!dLabel['DL383']}" rendered="{!(oProject.RequestedProjectStatus__c == 'Closed' && oProject.pse__Stage__c == 'Closed') || oProject.pse__Stage__c == 'Closure In Process' || oProject.pse__Stage__c == 'Closed In Current Year'}" action="{!createChangeManagementReopen}" />
+                </apex:pageblockbuttons>
+
+                <apex:outputpanel id="projectFields" ><nttdcore:DLabel name="DL385" default="Change Status" labelParent="{!this}" />
+
+                    <apex:outputpanel rendered="{!oProject.RequestedProjectStatus__c == 'On Hold'}" ><nttdcore:DLabel name="DL384" default="Financial Details" labelParent="{!this}" />
+                        <apex:pageblocksection title="{!dLabel['DL384']}" collapsible="false" >
+                            <apex:outputfield value="{!oProject.CurrentApprovedCostBudget__c}" />
+                            <apex:outputfield value="{!oProject.CurrentApprovedRevenueBudget__c}" />
+                            <apex:outputfield value="{!oProject.CurrentForecastCostBudget__c}" />
+                            <apex:outputfield value="{!oProject.CurrentForecastRevenueBudget__c}" />
+                            <apex:outputfield value="{!oProject.UnbilledValue__c}" />
+                            <apex:outputfield value="{!oProject.AR_Value__c}" />
+                        </apex:pageblocksection>
+                    </apex:outputpanel> 
+
+                    <apex:pageblocksection title="{!dLabel['DL385']}" collapsible="false" />
+
+
+
+                    <div style="padding:0 100px;margin-top:7px" >
+<nttdcore:DLabel name="DL386" default="Requested Project Status" labelParent="{!this}" />
+<nttdcore:DLabel name="DL387" default="Restart Project" labelParent="{!this}" />
+<nttdcore:DLabel name="DL388" default="Scheduled Closure Date" labelParent="{!this}" />
+<nttdcore:DLabel name="DL389" default="Notes" labelParent="{!this}" />
+<nttdcore:DLabel name="DL390" default="Scheduled On Hold Date" labelParent="{!this}" />
+<nttdcore:DLabel name="DL391" default="Scheduled Restart Date" labelParent="{!this}" />
+<nttdcore:DLabel name="DL392" default="On Hold Reason" labelParent="{!this}" />
+
+
+                        <apex:panelgrid columns="5" columnclasses="colA, colA, colB, colC, colD" >
+
+                            
+                            <apex:outputlabel value="{!dLabel['DL386']}" />
+                            <c:ECO_HelpIcon helptext="{!$ObjectType.pse__Proj__c.fields.RequestedProjectStatus__c.InlineHelpText}" />
+                            
+                            <apex:outputtext value="  " />  
+                            <apex:actionregion >
+                            <apex:inputfield value="{!oProject.RequestedProjectStatus__c}" required="{!oProject.pse__Stage__c != 'Closure In Process' && oProject.pse__Stage__c != 'Closed In Current Year'}" >
+                                    <apex:actionsupport event="onchange" action="{!stub}" rerender="all, messages" />
+                            </apex:inputfield>  
+                            </apex:actionregion>                            
+                            <apex:commandbutton value="{!dLabel['DL387']}" rendered="{!oProject.RequestedProjectStatus__c == 'On Hold' && oProject.pse__Stage__c = 'On Hold'}" action="{!createChangeManagementRestart}" /> 
+                            <apex:outputtext value="" rendered="{!oProject.RequestedProjectStatus__c != 'On Hold' || oProject.pse__Stage__c != 'On Hold'}" />   
+                            
+
+                            <apex:outputlabel value="{!dLabel['DL388']}" rendered="{!oProject.RequestedProjectStatus__c == 'Closed'}" />
+                            <c:ECO_HelpIcon helptext="{!$ObjectType.pse__Proj__c.fields.ClosureDate__c.InlineHelpText}" rendered="{!oProject.RequestedProjectStatus__c == 'Closed'}" />
+                            <apex:outputtext value="   " rendered="{!oProject.RequestedProjectStatus__c == 'Closed'}" />    
+                            <apex:inputfield value="{!oProject.ClosureDate__c}" rendered="{!oProject.RequestedProjectStatus__c == 'Closed'}" required="true" />
+                            <apex:outputtext value="" rendered="{!oProject.RequestedProjectStatus__c == 'Closed'}" />       
+
+                            <apex:outputlabel value="{!dLabel['DL389']}" rendered="{!oProject.RequestedProjectStatus__c == 'Closed'}" />
+                            <apex:outputtext value="   " rendered="{!oProject.RequestedProjectStatus__c == 'Closed'}" />
+                            <apex:outputtext value="   " rendered="{!oProject.RequestedProjectStatus__c == 'Closed'}" />    
+                            <apex:inputfield value="{!oProject.ProjectClosureNotes__c}" style="width: 400px;" rendered="{!oProject.RequestedProjectStatus__c == 'Closed'}" required="true" />
+                            <apex:outputtext value="" rendered="{!oProject.RequestedProjectStatus__c == 'Closed'}" />
+
+
+                            <apex:outputlabel value="{!dLabel['DL390']}" rendered="{!oProject.RequestedProjectStatus__c == 'On Hold'}" />
+                            <c:ECO_HelpIcon helptext="{!$ObjectType.pse__Proj__c.fields.ScheduledOnHoldDate__c.InlineHelpText}" rendered="{!oProject.RequestedProjectStatus__c == 'On Hold'}" />
+                            <apex:outputtext value="   " rendered="{!oProject.RequestedProjectStatus__c == 'On Hold'}" />   
+                            <apex:inputfield value="{!oProject.ScheduledOnHoldDate__c}" rendered="{!oProject.RequestedProjectStatus__c == 'On Hold'}" required="true" />
+                            <apex:outputtext value="" rendered="{!oProject.RequestedProjectStatus__c == 'On Hold'}" />
+
+                            <apex:outputlabel value="{!dLabel['DL391']}" rendered="{!oProject.RequestedProjectStatus__c == 'On Hold'}" />
+                            <c:ECO_HelpIcon helptext="{!$ObjectType.pse__Proj__c.fields.ScheduledRestartDate__c.InlineHelpText}" rendered="{!oProject.RequestedProjectStatus__c == 'On Hold'}" />
+                            <apex:outputtext value="   " rendered="{!oProject.RequestedProjectStatus__c == 'On Hold'}" />   
+                            <apex:inputfield value="{!oProject.ScheduledRestartDate__c}" rendered="{!oProject.RequestedProjectStatus__c == 'On Hold'}" required="true" />
+                            <apex:outputtext value="" rendered="{!oProject.RequestedProjectStatus__c == 'On Hold'}" />
+
+                            <apex:outputlabel value="{!dLabel['DL392']}" rendered="{!oProject.RequestedProjectStatus__c == 'On Hold'}" />
+                            <c:ECO_HelpIcon helptext="{!$ObjectType.pse__Proj__c.fields.OnHoldReason__c.InlineHelpText}" rendered="{!oProject.RequestedProjectStatus__c == 'On Hold'}" />
+                            <apex:outputtext value="   " rendered="{!oProject.RequestedProjectStatus__c == 'On Hold'}" />   
+                            <apex:inputfield value="{!oProject.OnHoldReason__c}" style="width: 400px;" rendered="{!oProject.RequestedProjectStatus__c == 'On Hold'}" required="true" />
+                            <apex:outputtext value="" rendered="{!oProject.RequestedProjectStatus__c == 'On Hold'}" />
+                                    
+                        </apex:panelgrid>
+                        <br/>
+                        
+
+                    <br/><br/>
+
+                        <nttdcore:DLabel name="DL393" default="Warning" labelParent="{!this}" /><apex:pagemessage title="{!dLabel['DL393']}" severity="WARNING" strength="3" rendered="{!AND(oProject.RequestedProjectStatus__c == 'On Hold', oProject.UnbilledValue__c > 0)}" >
+                            <nttdcore:DLabel name="DL394" default="The project has a current Unbilled balance of {0,number,currency}, please ensure that all invoices have been raised and this balance is correct prior to putting the project on hold" labelParent="{!this}" /><apex:outputtext value="{!dLabel['DL394']}" >
+                                <apex:param value="{!oProject.UnbilledValue__c}" />
+                            </apex:outputtext>  
+                        </apex:pagemessage>                 
+                    </div>
+
+                    <!-- US-07227 This section should not be rendered if RequestedProjectStatus__c is On Hold -->
+
+                    <!--<apex:outputpanel id="sections" rendered="{!oProject.RequestedProjectStatus__c == 'Closed' || oProject.RequestedProjectStatus__c == 'On Hold'}" ><nttdcore:DLabel name="DL395" default="Current Financial Summary" labelParent="{!this}" />-->
+                    <apex:outputpanel id="sections" rendered="{!oProject.RequestedProjectStatus__c == 'Closed'}" ><nttdcore:DLabel name="DL395" default="Current Financial Summary" labelParent="{!this}" />
+                        <apex:pageblocksection showheader="true" title="{!dLabel['DL395']}" collapsible="false" >
+
+                        </apex:pageblocksection>
+                        <div class="halfWidthWrapper" ><nttdcore:DLabel name="DL396" default="Actual Cost" labelParent="{!this}" /><nttdcore:DLabel name="DL397" default="Actual Revenue" labelParent="{!this}" /><nttdcore:DLabel name="DL398" default="Approved Cost" labelParent="{!this}" /><nttdcore:DLabel name="DL399" default="Approved Revenue" labelParent="{!this}" /><nttdcore:DLabel name="DL400" default="Forecast Cost" labelParent="{!this}" /><nttdcore:DLabel name="DL401" default="Forecast Revenue" labelParent="{!this}" /><nttdcore:DLabel name="DL402" default="AR Value" labelParent="{!this}" /><nttdcore:DLabel name="DL403" default="Pre Tax Billed Amount" labelParent="{!this}" /><nttdcore:DLabel name="DL404" default="ePM Agreement Number" labelParent="{!this}" /><nttdcore:DLabel name="DL405" default="Record Type" labelParent="{!this}" /><nttdcore:DLabel name="DL406" default="Client/Sub/Vendor Name" labelParent="{!this}" /><nttdcore:DLabel name="DL407" default="Agreement Status" labelParent="{!this}" /><nttdcore:DLabel name="DL408" default="Agreement Amount(confirmed)" labelParent="{!this}" /><nttdcore:DLabel name="DL409" default="Total Approved Revenue Limit" labelParent="{!this}" /><nttdcore:DLabel name="DL410" default="Total Funding Amount" labelParent="{!this}" />
+
+                                <apex:pageblocksection collapsible="false" columns="1" >
+                                    <apex:pageblocktable value="{!ProjectCloseoutDetails}" var="projectCloseoutDetail" width="70%" >
+                                        <apex:column headervalue="" ><apex:outputtext value="{!projectCloseoutDetail.TaskName}" /></apex:column>     
+                                        <apex:column headervalue="{!dLabel['DL396']}" >
+                                            <apex:outputtext value="{0, number, ###,###,###,##0.00}" >
+                                                <apex:param value="{!projectCloseoutDetail.ActualCost}" />
+                                            </apex:outputtext>
+                                        </apex:column>          
+                                        <apex:column headervalue="{!dLabel['DL397']}" >
+                                            <apex:outputtext value="{0, number, ###,###,###,##0.00}" >
+                                                <apex:param value="{!projectCloseoutDetail.ActualRevenue}" />
+                                            </apex:outputtext>
+                                        </apex:column>                          
+                                        <apex:column headervalue="{!dLabel['DL398']}" >
+                                            <apex:outputtext value="{0, number, ###,###,###,##0.00}" >
+                                                <apex:param value="{!projectCloseoutDetail.ApprovedCost}" />
+                                            </apex:outputtext>
+                                        </apex:column>
+                                        <apex:column headervalue="{!dLabel['DL399']}" >
+                                            <apex:outputtext value="{0, number, ###,###,###,##0.00}" >
+                                                <apex:param value="{!projectCloseoutDetail.ApprovedRevenue}" />
+                                            </apex:outputtext>
+                                        </apex:column>
+                                        <apex:column headervalue="{!dLabel['DL400']}" >
+                                            <apex:outputtext value="{0, number, ###,###,###,##0.00}" >
+                                                <apex:param value="{!projectCloseoutDetail.ForecastCost}" />
+                                            </apex:outputtext>
+                                        </apex:column>
+                                        <apex:column headervalue="{!dLabel['DL401']}" >
+                                            <apex:outputtext value="{0, number, ###,###,###,##0.00}" >
+                                                <apex:param value="{!projectCloseoutDetail.ForecastRevenue}" />
+                                            </apex:outputtext>
+                                        </apex:column>
+
+                                    </apex:pageblocktable>
+                            </apex:pageblocksection>
+                            <apex:pageblocksection columns="2" collapsible="false" >
+                                    <!--<apex:outputField value="{!oProject.UnbilledValue__c}" />-->
+                                    <apex:pageblocksectionitem >
+                                        <apex:outputlabel value="{!dLabel['DL402']}" />
+                                        <apex:outputtext value="{0, number, ###,###,###,##0.00}" >
+                                            <apex:param value="{!ARValue}" />
+                                        </apex:outputtext>
+                                    </apex:pageblocksectionitem>
+                                    <apex:pageblocksectionitem >
+                                        <apex:outputlabel value="{!dLabel['DL403']}" />
+                                        <apex:outputtext value="{0, number, ###,###,###,##0.00}" >
+                                            <apex:param value="{!BilledAmount}" />
+                                        </apex:outputtext>
+                                    </apex:pageblocksectionitem>
+                            </apex:pageblocksection>
+                            <apex:pageblocksection columns="1" collapsible="false" >
+                                <apex:pageblocktable value="{!Agreements}" var="agreement" width="70%" >
+                                    <apex:column headervalue="{!dLabel['DL404']}" >
+                                        <apex:commandlink action="{!URLFOR($Action.Agreement__c.view, agreement.Id, ['retURL'='/apex/ECO_CloseoutProjectApprovalPhase?Id='&oProject.Id])}" >
+                                            <apex:outputfield value="{!agreement.Name}" />
+                                        </apex:commandlink>
+                                    </apex:column>
+                                    <apex:column headervalue="{!dLabel['DL405']}" ><apex:outputfield value="{!agreement.RecordType.Name}" /></apex:column>
+                                    <apex:column headervalue="{!dLabel['DL406']}" >
+                                        <apex:outputfield value="{!agreement.VendorSite__r.AccountName__c}" rendered="{!agreement.RecordType.Name == 'Sub'}" />
+                                        <apex:outputfield value="{!agreement.Account__c}" rendered="{!agreement.RecordType.Name != 'Sub'}" />
+                                    </apex:column>
+                                    <apex:column headervalue="{!dLabel['DL407']}" ><apex:outputfield value="{!agreement.AgreementStatus__c}" /></apex:column>
+                                    <!--<apex:column headerValue="Agreement Amount(estimated)"><apex:outputField value="{!agreement.AgreementAmountEstimated__c}"/></apex:column> -->
+                                    <apex:column headervalue="{!dLabel['DL408']}" ><apex:outputfield value="{!agreement.Amount__c}" /></apex:column> 
+                                    <apex:column headervalue="{!dLabel['DL409']}" ><apex:outputfield value="{!agreement.TotalApprovedRevenueLimit__c}" /></apex:column>
+                                    <apex:column headervalue="{!dLabel['DL410']}" ><apex:outputfield value="{!agreement.TotalFundingAmount__c}" /></apex:column>
+                                </apex:pageblocktable>
+                            <!--<apex:pageblockSectionItem>
+                                <apex:outputLabel value="Total Forecast Cost" />
+                                <apex:outputText value="{0, number, ###,###,###,##0.00}">
+                                    <apex:param value="{!oProject.TotalForecastCost__c}" />
+                                </apex:outputText> 
+                            </apex:pageblockSectionItem>-->
+                            <!--<apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Pre Tax Billed Amount" />
+                                <apex:outputText value="{0, number, ###,###,###,##0.00}">
+                                    <apex:param value="{!BilledAmount}" />
+                                </apex:outputText>
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Total Approved Revenue"/>
+                                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                                    <apex:param value="{!oProject.TotalApprovedRevenue__c}"/>
+                                </apex:outputText>
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Total Forecast Revenue"/> 
+                                <apex:outputText value="{0, number, ###,###,###,##0.00}">
+                                    <apex:param value="{!oProject.TotalForecastRevenue__c}"/>
+                                </apex:outputText>
+                            </apex:pageBlockSectionItem>
+
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Total Approved Cost"/>
+                                <apex:outputText value="{0, number, ###,###,###,##0.00}">
+                                    <apex:param value="{!oProject.TotalApprovedCost__c}" />
+                                </apex:outputText> 
+                            </apex:pageBlockSectionItem>
+                            <apex:pageblockSectionItem>
+                                <apex:outputLabel value="Total Cost" />
+                                <apex:outputText value="{0, number, ###,###,###,##0.00}">
+                                    <apex:param value="{!TotalCostAmount}" />
+                                </apex:outputText> 
+                            </apex:pageblockSectionItem>-->
+                            <!--<apex:pageBlockSectionItem>
+                                <apex:outputLabel value="Total Agreement Amount" />
+                                <apex:outputText value="{0, number, ###,###,###,##0.00}">
+                                    <apex:param value="{!agreementFundingWrapper.agreementAmount}"/>
+                                </apex:outputText>
+                            </apex:pageBlockSectionItem>-->
+                            
+                            <!--<apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Total Funding Amount" />
+                                <apex:outputText value="{0, number, ###,###,###,##0.00}">
+                                    <apex:param value="{!agreementFundingWrapper.fundingAmount}"/>
+                                </apex:outputText>
+                            </apex:pageBlockSectionItem>-->
+                                            
+                        </apex:pageblocksection>
+                        </div>
+                        <div id="notifications" >
+                            <apex:outputpanel rendered="{!(actualCostProjectTotal != forecastCostProjectTotal) || (actualRevenueProjectTotal != forecastRevenueProjectTotal || forecastRevenueProjectTotal != billedAmount) && oProject.RequestedProjectStatus__c == 'Closed' }" >
+                                <div class="customHelpText" >
+                                    <div class="customHelpBody" ><nttdcore:DLabel name="DL411" default="In order to close a project, you must have your financial status such that:" labelParent="{!this}" /><nttdcore:DLabel name="DL414" default="Click the button below to Generate a Final EAC to balance the project." labelParent="{!this}" />
+                                        {!dLabel['DL411']}
+                                                <li><nttdcore:DLabel name="DL412" default="Forecast Cost Budget = Actual Cost ITD (i.e. ETC = 0)" labelParent="{!this}" />{!dLabel['DL412']}</li>
+                                                <li><nttdcore:DLabel name="DL413" default="Forecast Revenue Budget = ITD Billed = Actual Revenue ITD" labelParent="{!this}" />{!dLabel['DL413']}</li><br/><br/>
+
+                                        {!dLabel['DL414']}
+                                        <br/><br/><br/>
+                                        <div align="center" ><nttdcore:DLabel name="DL415" default="Submit Closout Budget Change" labelParent="{!this}" /><apex:commandbutton value="{!dLabel['DL415']}" action="{!createProjectCloseoutBudgetChangeManager}" rendered="{!oProject.RequestedProjectStatus__c == 'Closed' && closeOutBudgetChange == null}" />
+                                        <apex:commandlink action="{!URLFOR($Action.ChangeManager__c.view, closeOutBudgetChange.Id, ['retURL'='/apex/ECO_CloseoutProjectApprovalPhase?Id='&oProject.Id])}" rendered="{!closeOutBudgetChange != null}" >
+                                            <nttdcore:DLabel name="DL416" default="Closeout Budget Change" labelParent="{!this}" /><apex:outputtext value="{!dLabel['DL416']}" />
+                                        </apex:commandlink> </div>
+                                    </div>
+                                </div>
+                            </apex:outputpanel>
+                        </div><br/>
+                        <!--<apex:pageBlockSection collapsible="false" columns="2">
+                            <apex:pageBlockTable value="{!ExistingAgreements}" var="agreement" width="70%">
+                                <apex:column headerValue="ePM Agreement Number">
+                                    <apex:commandLink action="{!URLFOR($Action.Agreement__c.view, agreement.Id, ['retURL'='/apex/ECO_CloseoutProjectApprovalPhase?Id='&oProject.Id])}">
+                                        <apex:outputField value="{!agreement.Name}"/>
+                                    </apex:commandLink>
+                                </apex:column>
+                                <apex:column headerValue="Record Type"><apex:outputField value="{!agreement.RecordType.Name}"/></apex:column>
+                                <apex:column headerValue="Client/Sub/Vendor Name">
+                                    <apex:outputField value="{!agreement.VendorSite__r.AccountName__c}" rendered="{!agreement.RecordType.Name == 'Sub'}"/>
+                                    <apex:outputField value="{!agreement.Account__c}" rendered="{!agreement.RecordType.Name != 'Sub'}"/>
+                                </apex:column>
+                                <apex:column headerValue="Agreement Status"><apex:outputField value="{!agreement.AgreementStatus__c}"/></apex:column>
+                                <apex:column headerValue="Agreement Amount(estimated)"><apex:outputField value="{!agreement.AgreementAmountEstimated__c}"/></apex:column> 
+                                <apex:column headerValue="Agreement Amount(confirmed)"><apex:outputField value="{!agreement.Amount__c}"/></apex:column> 
+                                <apex:column headerValue="Total Approved Revenue Limit"><apex:outputField value="{!agreement.TotalApprovedRevenueLimit__c}"/></apex:column>
+                            </apex:pageBlockTable>
+                            <br/>
+                        </apex:pageBlockSection>-->
+                        <br/>
+                        <div style="width:100%;float:left;" ><nttdcore:DLabel name="DL417" default="Schedule/WBS" labelParent="{!this}" /><nttdcore:DLabel name="DL419" default="Project Team" labelParent="{!this}" /><nttdcore:DLabel name="DL425" default="Clients" labelParent="{!this}" /><nttdcore:DLabel name="DL435" default="Safety, Health &amp; Environment" labelParent="{!this}" /><nttdcore:DLabel name="DL437" default="Agreements and Funding" labelParent="{!this}" /><nttdcore:DLabel name="DL443" default="Scope and Packages" labelParent="{!this}" /><nttdcore:DLabel name="DL445" default="Subs and Vendors" labelParent="{!this}" /><nttdcore:DLabel name="DL452" default="Deliverables" labelParent="{!this}" /><nttdcore:DLabel name="DL456" default="Document Management" labelParent="{!this}" /><nttdcore:DLabel name="DL457" default="If AECOM intercompany or multi-offices are part of the project team, determine if all critical files have been compiled and provided or saved to the owning project office files to ensure project information can be found after archiving." labelParent="{!this}" /><nttdcore:DLabel name="DL458" default="Confirm local regulatory/statutory requirements for document retention, especially for projects including construction documents, as they may take priority over AECOM&rsquo;s policies&quot;" labelParent="{!this}" /><nttdcore:DLabel name="DL459" default="View Document Management" labelParent="{!this}" /><nttdcore:DLabel name="DL460" default="Stakeholder &amp; Communications" labelParent="{!this}" /><nttdcore:DLabel name="DL472" default="Risk Management" labelParent="{!this}" /><nttdcore:DLabel name="DL474" default="Resilience" labelParent="{!this}" /><nttdcore:DLabel name="DL476" default="DOA" labelParent="{!this}" /><nttdcore:DLabel name="DL480" default="Budget" labelParent="{!this}" /><nttdcore:DLabel name="DL485" default="Project Description &amp; Marketing Collateral" labelParent="{!this}" /><nttdcore:DLabel name="DL495" default="Outstanding Activities" labelParent="{!this}" /><nttdcore:DLabel name="DL498" default="Claims" labelParent="{!this}" />
+                        <apex:pageblocksection title="{!dLabel['DL417']}" columns="1" collapsible="false" />
+                        <div style="padding:0 12px;margin-top:7px" >
+
+                            <c:ECO_ClosureQuestion yesno="false" pagecontroller="{!PageCont}" questionfield="projcloseScheduleMilestoneCompletion__c" nofield="projcloseScheduleMilestoneCompletionText__c" questiontext="Were all scheduled dates for milestones and overall completion met?" questiontype="2" notext="If no, explain why:" yestext="If yes, explain why:" />
+
+                            <apex:outputlink value="/apex/pse__ProjectTaskGantt?id={!oProject.id}" target="_blank" ><nttdcore:DLabel name="DL418" default="View Schedule/WBS" labelParent="{!this}" />{!dLabel['DL418']}</apex:outputlink>
+                        </div>
+
+                        <apex:pageblocksection title="{!dLabel['DL419']}" columns="1" collapsible="false" />
+
+                            <div style="padding:0 12px;margin-top:7px" >
+
+
+                                <c:ECO_ClosureQuestion yesno="false" pagecontroller="{!PageCont}" questionfield="projcloseProjectTeamPerformanceReview__c" nofield="projcloseProjTeamPerformanceReviewText__c" questiontext="If the PM or Project Approver determined a project team performance review is required, has this been completed and placed on file?" notext="If no, explain why:" yestext="If yes, explain why:" />
+
+
+                                <apex:actionregion >
+                                    <table width="100%" cellpadding="0" cellspacing="0" >
+
+                                        <tr>
+                                            <td class="questions" >
+                                                <nttdcore:DLabel name="DL420" default="Was a lessons learned meeting conducted with the project team?" labelParent="{!this}" /><apex:outputlabel value="{!dLabel['DL420']}" />
+                                            </td>
+                                            <td class="questions" width="255px" >
+                                                <apex:selectradio value="{!oProject.projcloseProjectTeamLessonsLearned__c}" layout="lineDirection" >
+                                                    <apex:selectoptions value="{!types2}" />
+                                                    <apex:actionsupport event="onchange" rerender="projcloseProjectTeamLessonsLearned" />
+                                                </apex:selectradio>         
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </apex:actionregion>
+                                <apex:outputpanel id="projcloseProjectTeamLessonsLearned" >
+                                    <apex:outputpanel rendered="{!if(oProject.projcloseProjectTeamLessonsLearned__c == 'Yes', true, false)}" >
+                                        
+                                        <nttdcore:DLabel name="DL421" default="If yes, attach lessons learned." labelParent="{!this}" /><apex:outputtext value="{!dLabel['DL421']}" />
+                                        <div class="fileList" ><nttdcore:DLabel name="DL422" default="File Name" labelParent="{!this}" />
+                                            <apex:pageblocktable value="{!AttachedDocumentLesson}" var="file" style="width: 825px;" rendered="{!oProject.ClosureLessonAttachment__c != null}" >
+                                                <apex:column headervalue="{!dLabel['DL422']}" >
+
+                                                    <apex:outputlink value="{!URLFOR($Action.Attachment.Download, file.Id)}" target="_blank" >
+                                                        <apex:outputtext value="{!file.Name}" />
+                                                    </apex:outputlink>
+                                                </apex:column>
+                                                <apex:column value="{!file.ContentType}" /> 
+                                                <apex:column value="{!file.LastModifiedDate}" />    
+                                                <apex:column value="{!file.LastModifiedById}" />
+                                            </apex:pageblocktable>
+                                                        
+                                            <apex:inputfile id="docLessonAttachment" value="{!docLessonAttachment.Body}" contenttype="{!docLessonAttachment.ContentType}" filename="{!docLessonAttachment.Name}" onchange="fileChosen('{!$Component.saveLessonAndProject}', this, '{!$Component.overrideLessons}'); return false;" />
+                                            <apex:inputtext id="overrideLessons" value="{!overrideLessons}" maxlength="80" html-placeholder="Override File Name" styleclass="attachNewFile" />
+                                            <nttdcore:DLabel name="DL423" default="Attach" labelParent="{!this}" /><apex:commandbutton id="saveLessonAndProject" value="{!dLabel['DL423']}" action="{!saveLessonAndProject}" styleclass="attachNewFile" /><br/>
+                                        </div>
+
+                                    </apex:outputpanel>
+                                    <br/><br/>
+                                </apex:outputpanel>
+
+
+                                <apex:outputlink value="/apex/ECO_Stakeholders?id={!oProject.id}" target="_blank" ><nttdcore:DLabel name="DL424" default="View Project Team" labelParent="{!this}" />{!dLabel['DL424']}</apex:outputlink>
+                            </div>
+
+
+                        <apex:pageblocksection title="{!dLabel['DL425']}" columns="1" collapsible="false" />
+
+                            <div style="padding:0 12px;margin-top:7px" ><nttdcore:DLabel name="DL434" default="View" labelParent="{!this}" />
+
+                                <apex:actionregion >
+                                    <table width="100%" cellpadding="0" cellspacing="0" >
+
+                                        <tr>
+                                            <td class="questions" >
+                                                <nttdcore:DLabel name="DL426" default="Is a formal completion certificate or letter from the client required?" labelParent="{!this}" /><apex:outputlabel value="{!dLabel['DL426']}" />
+                                            </td>
+                                            <td class="questions" width="255px" >
+                                                <apex:selectradio value="{!oProject.projcloseClientsFormalCompletionCert__c}" layout="lineDirection" >
+                                                    <apex:selectoptions value="{!types2}" />
+                                                    <apex:actionsupport event="onchange" rerender="projcloseClientsFormalCompletionCert" />
+                                                </apex:selectradio>         
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </apex:actionregion>
+
+                                <apex:outputpanel id="projcloseClientsFormalCompletionCert" >
+                                    <apex:outputpanel rendered="{!if(oProject.projcloseClientsFormalCompletionCert__c == 'Yes', true, false)}" >
+                                        
+                                        <nttdcore:DLabel name="DL427" default="If yes, attach the document." labelParent="{!this}" /><apex:outputtext value="{!dLabel['DL427']}" />
+                                        <div class="fileList" ><nttdcore:DLabel name="DL428" default="File Name" labelParent="{!this}" />
+                                            <apex:pageblocktable value="{!AttachedDocumentCertificate}" var="file" style="width: 825px;" rendered="{!oProject.ClosureCertificateAttachment__c != null}" >
+                                                <apex:column headervalue="{!dLabel['DL428']}" >
+
+                                                    <apex:outputlink value="{!URLFOR($Action.Attachment.Download, file.Id)}" target="_blank" >
+                                                        <apex:outputtext value="{!file.Name}" />
+                                                    </apex:outputlink>
+                                                </apex:column>
+                                                <apex:column value="{!file.ContentType}" /> 
+                                                <apex:column value="{!file.LastModifiedDate}" />    
+                                                <apex:column value="{!file.LastModifiedById}" />
+                                            </apex:pageblocktable>
+                                                        
+                                            <apex:inputfile id="docCertificateAttachment" value="{!docCertificateAttachment.Body}" contenttype="{!docCertificateAttachment.ContentType}" filename="{!docCertificateAttachment.Name}" onchange="fileChosen('{!$Component.saveCertificateAndProject}', this, '{!$Component.overrideCertificate}'); return false;" />
+                                            <apex:inputtext id="overrideCertificate" value="{!overrideCertificate}" maxlength="80" html-placeholder="Override File Name" styleclass="attachNewFile" />
+                                            <nttdcore:DLabel name="DL429" default="Attach" labelParent="{!this}" /><apex:commandbutton id="saveCertificateAndProject" value="{!dLabel['DL429']}" action="{!saveCertificateAndProject}" styleclass="attachNewFile" /><br/>
+                                        </div>
+
+                                    </apex:outputpanel>
+                                    <br/><br/>
+                                </apex:outputpanel>
+
+                                <c:ECO_ClosureQuestion yesno="false" pagecontroller="{!PageCont}" questionfield="projcloseClientsClientsContacted__c" nofield="projcloseClientsContactedText__c" questiontext="Has the client been contacted for confirmation that we have completed our contract obligations?" notext="If no, explain why:" yestext="If yes, explain why:" />
+
+
+
+
+
+                                <apex:actionregion >
+                                    <table width="100%" cellpadding="0" cellspacing="0" >
+
+                                        <tr>
+                                            <td class="questions" >
+                                                <nttdcore:DLabel name="DL430" default="If there is potential for follow on work, has the opportunity been entered in Salesforce?" labelParent="{!this}" /><apex:outputlabel value="{!dLabel['DL430']}" />
+                                            </td>
+                                            <td class="questions" width="255px" >
+                                                <apex:selectradio value="{!oProject.projcloseClientsFollowonWork__c}" layout="lineDirection" >
+                                                    <apex:selectoptions value="{!types}" />
+                                                    <apex:actionsupport event="onchange" rerender="projcloseClientsFollowonWork" />
+                                                </apex:selectradio>         
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </apex:actionregion>
+                                <apex:outputpanel id="projcloseClientsFollowonWork" >
+                                    <apex:outputpanel rendered="{!if(oProject.projcloseClientsFollowonWork__c == 'No', true, false)}" >
+                                        <nttdcore:DLabel name="DL431" default="If no, enter the opportunity or contact your local Salesforce CRM contact for support." labelParent="{!this}" /><apex:outputlabel value="{!dLabel['DL431']}" />
+                                    </apex:outputpanel>
+                                    <br/><br/>
+                                </apex:outputpanel>
+
+
+                                <b><nttdcore:DLabel name="DL432" default="Project Clients" labelParent="{!this}" />{!dLabel['DL432']}</b>
+                                <nttdcore:DLabel name="DL433" default="No Results Found." labelParent="{!this}" /><apex:pagemessage severity="INFO" summary="{!dLabel['DL433']}" rendered="{!IF(ProjectSitesFound.size > 0, false, true)}" />
+                                <apex:pageblocktable value="{!pse__Proj__c.ProjectSites__r}" var="o" rendered="{!IF(ProjectSitesFound.size > 0, true, false)}" >    
+                                    <apex:column ><apex:outputlink value="/{!o.Site__c}" target="_blank" >{!dLabel['DL434']}</apex:outputlink></apex:column>
+                                    <apex:column value="{!o.Account_Name__c}" />
+                                    <apex:column value="{!o.Address1__c}" />
+                                    <apex:column value="{!o.City__c}" />
+                                    <apex:column value="{!o.State__c}" />
+                                    <apex:column value="{!o.Country__c}" />
+
+                                </apex:pageblocktable>
+                            </div>
+
+
+                        <apex:pageblocksection title="{!dLabel['DL435']}" columns="1" collapsible="false" />
+
+                        <div style="padding:0 12px;margin-top:7px" >
+
+                            <c:ECO_ClosureQuestion yesno="false" pagecontroller="{!PageCont}" questionfield="projcloseSafetyincidents__c" nofield="projcloseSafetyincidentsText__c" questiontext="If any safety, health or environment incidents or accidents occurred during the project, have all reports been completed and resultant corrective actions been addressed?" notext="If no, explain why:" yestext="If yes, explain why:" />
+
+
+                            <apex:outputlink value="/apex/ECO_SafetyHealthEnvironment?id={!oProject.id}" target="_blank" ><nttdcore:DLabel name="DL436" default="View Safety, Health &amp; Environment" labelParent="{!this}" />{!dLabel['DL436']}</apex:outputlink>
+                        </div>
+
+
+
+                        <apex:pageblocksection title="{!dLabel['DL437']}" columns="1" collapsible="false" />
+
+                            <div style="padding:0 12px;margin-top:7px" ><nttdcore:DLabel name="DL442" default="View" labelParent="{!this}" />
+
+
+                                <c:ECO_ClosureQuestion yesno="false" pagecontroller="{!PageCont}" questionfield="projcloseBudgetContractDocuments__c" nofield="projcloseBudgetContractDocumentsText__c" questiontext="Have all the contractual documents, including scope changes/variations, been signed by the PM, Project Approver and the client, and are they on file?" questiontype="2" notext="If no, explain why:" yestext="If yes, explain why:" />
+
+                                <c:ECO_ClosureQuestion yesno="false" pagecontroller="{!PageCont}" questionfield="projcloseAgreementsCloseoutActions__c" nofield="projcloseAgreementsCloseoutActionsText__c" questiontext="If the contract calls out specific closeout actions or requirements, have those been met?" notext="If no, explain why:" yestext="If yes, explain why:" />
+
+                                <c:ECO_ClosureQuestion yesno="true" pagecontroller="{!PageCont}" questionfield="projcloseAgreementsCancelled__c" nofield="projcloseAgreementsCancelledText__c" questiontext="Do we need to cancel and/or extend any guarantee/warranty/insurance/bond?" notext="If no, explain why:" yestext="If yes, explain why:" />
+
+                                <apex:actionregion >
+                                    <table width="100%" cellpadding="0" cellspacing="0" >
+                                        <tr>
+                                            <td class="questions" >
+                                                <nttdcore:DLabel name="DL438" default="Does the project have an active contract-required warranty period?" labelParent="{!this}" /><apex:outputlabel value="{!dLabel['DL438']}" />
+                                            </td>
+                                            <td class="questions" width="255px" >
+                                                <apex:selectradio value="{!oProject.projcloseAgreementsWarrantyRequired__c}" layout="lineDirection" >
+                                                    <apex:selectoptions value="{!types}" />
+                                                    <apex:actionsupport event="onchange" rerender="projcloseAgreementsWarrantyRequired" />
+                                                </apex:selectradio>         
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </apex:actionregion>
+                                <apex:outputpanel id="projcloseAgreementsWarrantyRequired" >
+                                    <apex:outputpanel rendered="{!if(oProject.projcloseAgreementsWarrantyRequired__c == 'Yes', true, false)}" >
+                                        <nttdcore:DLabel name="DL439" default="If yes, place the project on hold until the warranty period has expired." labelParent="{!this}" /><apex:outputtext value="{!dLabel['DL439']}" />
+                                        <br/>
+                                    </apex:outputpanel>
+                                    <br/><br/>
+                                </apex:outputpanel>
+
+                                <b><nttdcore:DLabel name="DL440" default="Project Agreements" labelParent="{!this}" />{!dLabel['DL440']}</b>
+                                <nttdcore:DLabel name="DL441" default="No Results Found." labelParent="{!this}" /><apex:pagemessage severity="INFO" summary="{!dLabel['DL441']}" rendered="{!IF(AgreementsProjectFound.size > 0, false, true)}" />
+                                <apex:pageblocktable value="{!pse__Proj__c.AgreementsProject__r}" var="o" rendered="{!IF(AgreementsProjectFound.size > 0, true, false)}" >  
+                                    <apex:column ><apex:outputlink value="/{!o.id}" target="_blank" >{!dLabel['DL442']}</apex:outputlink></apex:column>
+                                    <apex:column value="{!o.Name}" />
+                                    <apex:column value="{!o.RecordTypeid}" />
+                                    <apex:column value="{!o.Client_Supplier__c}" />
+
+                                    <!--<apex:column headerValue="Client/Supplier" value="{!o.VendorName__c}"/>-->
+                                    
+                                    <apex:column value="{!o.Amount__c}" />
+                                    
+                                </apex:pageblocktable>
+                            </div>
+
+
+
+
+                        <apex:pageblocksection title="{!dLabel['DL443']}" columns="1" collapsible="false" />
+
+                            <div style="padding:0 12px;margin-top:7px" >
+                                <c:ECO_ClosureQuestion yesno="false" pagecontroller="{!PageCont}" questionfield="projectcloseScopeServicesIncluded__c" nofield="projectcloseScopeServicesIncludedText__c" questiontext="Have all scope of services 'as sold' to the client and included as part of our contract been completed?" questiontype="2" notext="If no, explain why:" yestext="If yes, explain why:" />
+
+                                <apex:outputlink value="/apex/ECO_ProjectScope?projectId={!oProject.id}" target="_blank" ><nttdcore:DLabel name="DL444" default="View Scope and Packages" labelParent="{!this}" />{!dLabel['DL444']}</apex:outputlink>
+                            </div>
+
+
+                        <apex:pageblocksection title="{!dLabel['DL445']}" columns="1" collapsible="false" />
+
+                            <div style="padding:0 12px;margin-top:7px" ><nttdcore:DLabel name="DL448" default="View" labelParent="{!this}" /><nttdcore:DLabel name="DL451" default="View" labelParent="{!this}" />
+                                <c:ECO_ClosureQuestion yesno="false" pagecontroller="{!PageCont}" questionfield="projcloseSubsContractObligations__c" nofield="projcloseSubsContractObligationsText__c" questiontext="Have all vendors or subs (including AECOM intercompany subs) contractual obligations been met?" notext="If no, explain why:" yestext="If yes, explain why:" />
+
+                                <c:ECO_ClosureQuestion yesno="false" pagecontroller="{!PageCont}" questionfield="projcloseSubsContractDeliverableDue__c" nofield="projcloseSubsContractDeliverableDueText__c" questiontext="Have all deliverables, materials or services due from vendors or subs been received and accepted?" notext="If no, explain why:" yestext="If yes, explain why:" />
+
+                                <c:ECO_ClosureQuestion yesno="false" pagecontroller="{!PageCont}" questionfield="projcloseSubsPartnerReviews__c" nofield="projcloseSubsPartnerReviewsText__c" questiontext="Have all required vendor/subconsultant/subcontractor or partner reviews been completed?" notext="If no, explain why:" yestext="If yes, explain why:" />
+
+                                <c:ECO_ClosureQuestion yesno="false" pagecontroller="{!PageCont}" questionfield="projcloseSubsInvoices__c" nofield="projcloseSubsInvoicesText__c" questiontext="Have all subs or vendor invoices been received and paid, including retention payments?" notext="If no, explain why:" yestext="If yes, explain why:" />
+
+                                <b><nttdcore:DLabel name="DL446" default="Project Subs &amp; Vendors" labelParent="{!this}" />{!dLabel['DL446']}</b>
+                                <nttdcore:DLabel name="DL447" default="No Results Found." labelParent="{!this}" /><apex:pagemessage severity="INFO" summary="{!dLabel['DL447']}" rendered="{!IF(VendorSitesProjectFound.size > 0, false, true)}" />
+                                <apex:pageblocktable value="{!pse__Proj__c.VendorSitesProject__r}" var="o" rendered="{!IF(VendorSitesProjectFound.size > 0, true, false)}" >    
+                                    <apex:column ><apex:outputlink value="/{!o.id}" target="_blank" >{!dLabel['DL448']}</apex:outputlink></apex:column>
+                                    <apex:column value="{!o.name}" />
+                                    <apex:column value="{!o.AccountName__c}" />
+                                    <apex:column value="{!o.AccountManager__c}" />
+                                    <apex:column value="{!o.State__c}" />
+                                    <apex:column value="{!o.Country__c}" />
+                                </apex:pageblocktable>
+
+                                <c:ECO_ClosureQuestion yesno="false" pagecontroller="{!PageCont}" questionfield="projclosePOPaid__c" nofield="projclosePOPaidText__c" questiontext="Have all purchase orders related to the project been closed?" notext="If no, explain why:" yestext="If yes, explain why:" />
+
+                                <b><nttdcore:DLabel name="DL449" default="Purchase Orders" labelParent="{!this}" />{!dLabel['DL449']}</b>
+                                <nttdcore:DLabel name="DL450" default="No Results Found." labelParent="{!this}" /><apex:pagemessage severity="INFO" summary="{!dLabel['DL450']}" rendered="{!IF(POFound.size > 0, false, true)}" />
+                                <apex:pageblocktable value="{!pse__Proj__c.POHeadersProject__r}" var="o" rendered="{!IF(POFound.size > 0, true, false)}" >  
+                                    <apex:column ><apex:outputlink value="/{!o.id}" target="_blank" >{!dLabel['DL451']}</apex:outputlink></apex:column>
+                                    <apex:column value="{!o.OraclePurchaseOrderNumber__c}" />
+                                    <apex:column value="{!o.Agreement__c}" />
+                                    <apex:column value="{!o.VendorName__c}" />
+                                    <apex:column value="{!o.Status__c}" />
+                                    <apex:column value="{!o.Total__c}" />
+                                </apex:pageblocktable>
+
+                            </div>
+
+
+
+
+                        <apex:pageblocksection title="{!dLabel['DL452']}" columns="1" collapsible="false" />
+
+                            <div style="padding:0 12px;margin-top:7px" ><nttdcore:DLabel name="DL455" default="View" labelParent="{!this}" />
+                                <c:ECO_ClosureQuestion yesno="false" pagecontroller="{!PageCont}" questionfield="projcloseDeliverablesAccepted__c" nofield="projcloseDeliverablesAcceptedText__c" questiontext="Have all deliverables been submitted and accepted by the client?" questiontype="2" notext="If no, explain why:" yestext="If yes, explain why:" />
+
+                                <b><nttdcore:DLabel name="DL453" default="Project Deliverables" labelParent="{!this}" />{!dLabel['DL453']}</b>
+                                <nttdcore:DLabel name="DL454" default="No Results Found." labelParent="{!this}" /><apex:pagemessage severity="INFO" summary="{!dLabel['DL454']}" rendered="{!IF(DeliverablesFound.size > 0, false, true)}" />
+                                <apex:pageblocktable value="{!pse__Proj__c.Deliverables__r}" var="o" rendered="{!IF(DeliverablesFound.size > 0, true, false)}" >    
+                                    <apex:column ><apex:outputlink value="/{!o.id}" target="_blank" >{!dLabel['DL455']}</apex:outputlink></apex:column>
+                                    <apex:column value="{!o.name}" />
+                                    <apex:column value="{!o.DeliverablesOwner__c}" />
+                                    <apex:column value="{!o.DeliverableType__c}" />
+                                    <apex:column value="{!o.Status__c}" />
+                                    <apex:column value="{!o.DueDate__c}" />
+                                    <apex:column value="{!o.DateSubmitted__c}" />
+                                </apex:pageblocktable>
+                            </div>
+
+
+                        <apex:pageblocksection title="{!dLabel['DL456']}" columns="1" collapsible="false" >
+                            <apex:outputpanel >
+                            <div style="padding:0 12px;margin-top:7px" >
+                            
+                                    <div class="customHelpText" >
+                                        <div class="customHelpBody" >
+                                            {!dLabel['DL457']} <br/><br/> {!dLabel['DL458']}
+                                        </div>
+                                    </div>
+
+                                <c:ECO_ClosureQuestion yesno="false" pagecontroller="{!PageCont}" questionfield="projcloseDocproperlySaved__c" nofield="projcloseDocproperlySavedText__c" questiontext="Are the project documents properly saved to the project file or any critical documents that may be needed if there was a problem on the project or are required to maintain our ISO certification?" questiontype="2" notext="If no, explain why:" yestext="If yes, explain why:" />
+
+                                <c:ECO_ClosureQuestion yesno="false" pagecontroller="{!PageCont}" questionfield="projcloseDocHardCopy__c" nofield="projcloseDocHardCopyText__c" questiontext="Are the hard copy project files prepared for archiving in accordance with archiving procedures?" questiontype="2" notext="If no, explain why:" yestext="If yes, explain why:" />                              
+                                                        
+                                <c:ECO_ClosureQuestion yesno="false" pagecontroller="{!PageCont}" questionfield="projcloseDocFilesCleaned__c" nofield="projcloseDocFilesCleanedText__c" questiontext="Have the digital/electronic project files been prepared and files “cleaned up” by the PM for archiving?" questiontype="2" notext="If no, explain why:" yestext="If yes, explain why:" />                                                                                  
+
+                                <apex:outputlink value="/apex/ECO_DocumentManagement?id={!oProject.id}" target="_blank" >{!dLabel['DL459']}</apex:outputlink>
+                            
+                            </div>
+                            </apex:outputpanel>
+
+                        </apex:pageblocksection>
+
+
+                        <apex:pageblocksection title="{!dLabel['DL460']}" columns="1" collapsible="false" />
+
+                            <div style="padding:0 12px;margin-top:7px" >
+
+                                <apex:actionregion >
+                                    <table width="100%" cellpadding="0" cellspacing="0" >
+
+                                        <tr>
+                                            <td class="questions" >
+                                                <nttdcore:DLabel name="DL461" default="Has the client been contacted to complete a project survey?" labelParent="{!this}" /><apex:outputlabel value="{!dLabel['DL461']}" />
+                                            </td>
+                                            <td class="questions" width="255px" >
+                                                <apex:selectradio value="{!oProject.projcloseStakeholderContactToSurvey__c}" layout="lineDirection" >
+                                                    <apex:selectoptions value="{!types2}" />
+                                                    <apex:actionsupport event="onchange" rerender="projcloseStakeholderContactToSurvey" />
+                                                </apex:selectradio>         
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </apex:actionregion>
+                                <apex:actionregion >
+                                <apex:outputpanel id="projcloseStakeholderContactToSurvey" >
+                                    <apex:outputpanel rendered="{!if(oProject.projcloseStakeholderContactToSurvey__c == 'Yes', true, false)}" >
+                                        <table width="100%" cellpadding="0" cellspacing="0" >
+
+                                            <tr>
+                                                <td class="questions" >
+                                                    <nttdcore:DLabel name="DL462" default="If yes, did the client complete the survey?" labelParent="{!this}" /><apex:outputlabel value="{!dLabel['DL462']}" />
+                                                </td>
+                                                <td class="questions" width="255px" >
+                                                    <apex:selectradio value="{!oProject.projcloseStakeholderCompleteSurvey__c}" layout="lineDirection" >
+                                                        <apex:selectoptions value="{!types2}" />
+                                                        <apex:actionsupport event="onchange" rerender="projcloseStakeholderCompleteSurvey" />
+                                                    </apex:selectradio>         
+                                                </td>
+                                            </tr>
+                                        </table>
+                                        <br/><br/>
+                                    </apex:outputpanel>
+                                </apex:outputpanel>
+                                </apex:actionregion>
+                                
+                                <apex:outputpanel id="projcloseStakeholderCompleteSurvey" >
+                                    <apex:outputpanel rendered="{!if(oProject.projcloseStakeholderCompleteSurvey__c == 'No', true, false)}" >
+                                        <nttdcore:DLabel name="DL463" default="If no, follow up with the client or the AECOM client care team." labelParent="{!this}" /><apex:outputlabel value="{!dLabel['DL463']}" />
+                                    </apex:outputpanel>
+                                    <apex:outputpanel rendered="{!if(oProject.projcloseStakeholderCompleteSurvey__c == 'Yes', true, false)}" >
+                                        
+                                        <nttdcore:DLabel name="DL464" default="If yes, attach survey if available." labelParent="{!this}" /><apex:outputtext value="{!dLabel['DL464']}" />
+                                        <div class="fileList" ><nttdcore:DLabel name="DL465" default="File Name" labelParent="{!this}" />
+                                            <apex:pageblocktable value="{!SurveyAttachment}" var="file" style="width: 825px;" rendered="{!oProject.SurveyAttachment__c != null}" >
+                                                <apex:column headervalue="{!dLabel['DL465']}" >
+
+                                                    <apex:outputlink value="{!URLFOR($Action.Attachment.Download, file.Id)}" target="_blank" >
+                                                        <apex:outputtext value="{!file.Name}" />
+                                                    </apex:outputlink>
+                                                </apex:column>
+                                                <apex:column value="{!file.ContentType}" /> 
+                                                <apex:column value="{!file.LastModifiedDate}" />    
+                                                <apex:column value="{!file.LastModifiedById}" />
+                                            </apex:pageblocktable>
+                                            <apex:inputfile id="docSurveyAttachment" value="{!docSurveyAttachment.Body}" contenttype="{!docSurveyAttachment.ContentType}" filename="{!docSurveyAttachment.Name}" onchange="fileChosen('{!$Component.saveSurveyAndProject}', this, '{!$Component.overrideSurveys}'); return false;" />
+                                            <apex:inputtext id="overrideSurveys" value="{!overrideSurveys}" maxlength="80" html-placeholder="Override File Name" styleclass="attachNewFile" />
+                                            <nttdcore:DLabel name="DL466" default="Attach" labelParent="{!this}" /><apex:commandbutton id="saveSurveyAndProject" value="{!dLabel['DL466']}" action="{!saveSurveyAndProject}" styleclass="attachNewFile" /><br/>
+                                        </div>
+                                    </apex:outputpanel>
+                                    <br/><br/>
+                                </apex:outputpanel>
+                                
+
+                                <c:ECO_ClosureQuestion yesno="false" pagecontroller="{!PageCont}" questionfield="projcloseStakeholderCloseoutMeeting__c" nofield="projcloseStakeholderCloseoutMeetingText__c" questiontext="Have you completed a closeout meeting with the client?" questiontype="2" notext="If no, explain why:" yestext="If yes, explain why:" />
+
+
+
+                                <apex:actionregion >
+                                    <table width="100%" cellpadding="0" cellspacing="0" >
+
+                                        <tr>
+                                            <td class="questions" >
+                                                <nttdcore:DLabel name="DL467" default="Have you requested a commendation letter?" labelParent="{!this}" /><apex:outputlabel value="{!dLabel['DL467']}" />
+                                            </td>
+                                            <td class="questions" width="255px" >
+                                                <apex:selectradio value="{!oProject.projcloseStakeholderCommendation__c}" layout="lineDirection" >
+                                                    <apex:selectoptions value="{!types2}" />
+                                                    <apex:actionsupport event="onchange" rerender="projcloseStakeholderCommendation" />
+                                                </apex:selectradio>         
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </apex:actionregion>
+                                <apex:outputpanel id="projcloseStakeholderCommendation" >
+                                    <apex:outputpanel rendered="{!if(oProject.projcloseStakeholderCommendation__c == 'Yes', true, false)}" >
+                                        
+                                        <nttdcore:DLabel name="DL468" default="If yes, attach the document." labelParent="{!this}" /><apex:outputtext value="{!dLabel['DL468']}" />
+                                        <div class="fileList" ><nttdcore:DLabel name="DL469" default="File Name" labelParent="{!this}" />
+                                            <apex:pageblocktable value="{!AttachedDocumentRecommended}" var="file" style="width: 825px;" rendered="{!oProject.ClosureRecommendationAttachment__c != null}" >
+                                                <apex:column headervalue="{!dLabel['DL469']}" >
+
+                                                    <apex:outputlink value="{!URLFOR($Action.Attachment.Download, file.Id)}" target="_blank" >
+                                                        <apex:outputtext value="{!file.Name}" />
+                                                    </apex:outputlink>
+                                                </apex:column>
+                                                <apex:column value="{!file.ContentType}" /> 
+                                                <apex:column value="{!file.LastModifiedDate}" />    
+                                                <apex:column value="{!file.LastModifiedById}" />
+                                            </apex:pageblocktable>
+                                                        
+                                            <apex:inputfile id="doRecommendationAttachment" value="{!doRecommendationAttachment.Body}" contenttype="{!doRecommendationAttachment.ContentType}" filename="{!doRecommendationAttachment.Name}" onchange="fileChosen('{!$Component.saveRecommendationAndProject}', this, '{!$Component.overrideRecommedation}'); return false;" />
+                                            <apex:inputtext id="overrideRecommedation" value="{!overrideRecommedation}" maxlength="80" html-placeholder="Override File Name" styleclass="attachNewFile" />
+                                            <nttdcore:DLabel name="DL470" default="Attach" labelParent="{!this}" /><apex:commandbutton id="saveRecommendationAndProject" value="{!dLabel['DL470']}" action="{!saveRecommendationAndProject}" styleclass="attachNewFile" /><br/>
+                                        </div>
+
+                                    </apex:outputpanel>
+                                    <br/><br/>
+                                </apex:outputpanel>
+
+
+
+
+
+                                <apex:outputlink value="/apex/ECO_Stakeholders?id={!oProject.id}" target="_blank" ><nttdcore:DLabel name="DL471" default="View Stakeholder &amp; Communications" labelParent="{!this}" />{!dLabel['DL471']}</apex:outputlink>
+                            </div>
+
+                            
+
+                        <apex:pageblocksection title="{!dLabel['DL472']}" columns="1" collapsible="false" />
+                            <div style="padding:0 12px;margin-top:7px" >
+                                <c:ECO_ClosureQuestion yesno="false" pagecontroller="{!PageCont}" questionfield="projcloseRiskManMitigation__c" nofield="projcloseRiskManMitigationText__c" questiontext="Was the risk mitigation strategy evaluated for effectiveness and comments documented?" notext="If no, explain why:" yestext="If yes, explain why:" />
+
+                                <apex:outputlink value="/apex/ECO_RiskRegisterList?id={!oProject.id}" target="_blank" ><nttdcore:DLabel name="DL473" default="View Risk Register" labelParent="{!this}" />{!dLabel['DL473']}</apex:outputlink>
+                            </div>
+
+
+                        <apex:pageblocksection title="{!dLabel['DL474']}" columns="1" collapsible="false" />    
+
+                            <div style="padding:0 12px;margin-top:7px" >
+                                <c:ECO_ClosureQuestion yesno="false" pagecontroller="{!PageCont}" questionfield="projcloseResilienceComplete__c" nofield="projclosResilienceCompleteExplantation__c" questiontext="Have all actions related to resilience planning for the project been completed, per the Operational Security Plan?" notext="If no, explain why:" yestext="If yes, explain why:" />   
+
+                                <apex:outputlink value="/apex/ECO_Resilience?id={!oProject.id}" target="_blank" ><nttdcore:DLabel name="DL475" default="View Resilience" labelParent="{!this}" />{!dLabel['DL475']}</apex:outputlink>
+
+                            </div>
+                        <apex:pageblocksection title="{!dLabel['DL476']}" columns="1" collapsible="false" />
+                            <div style="padding:0 12px;margin-top:7px" ><nttdcore:DLabel name="DL479" default="View" labelParent="{!this}" />
+                                <c:ECO_ClosureQuestion yesno="false" pagecontroller="{!PageCont}" questionfield="projcloseDoAConditionsCompleted__c" nofield="projcloseDoAConditionsCompletedText__c" questiontext="Were all DoA conditions of approval completed or met?" notext="If no, explain why:" yestext="If yes, explain why:" />
+
+
+                                <b><nttdcore:DLabel name="DL477" default="Project Conditions of Approval" labelParent="{!this}" />{!dLabel['DL477']}</b>
+                                <nttdcore:DLabel name="DL478" default="No Results Found." labelParent="{!this}" /><apex:pagemessage severity="INFO" summary="{!dLabel['DL478']}" rendered="{!IF(DOAConditionsFound.size > 0, false, true)}" />
+                                <apex:pageblocktable value="{!pse__Proj__c.DOAConditions__r}" var="o" rendered="{!IF(DOAConditionsFound.size > 0, true, false)}" >  
+                                    <apex:column ><apex:outputlink value="/{!o.id}" target="_blank" >{!dLabel['DL479']}</apex:outputlink></apex:column>
+                                    <apex:column value="{!o.name}" />
+                                    <apex:column value="{!o.Completed__c}" />
+                                    <apex:column value="{!o.Level__c}" />
+                                    <apex:column value="{!o.Mitigation_Plan__c}" />
+                                </apex:pageblocktable>                              
+
+                            </div>
+                            
+
+                        <apex:pageblocksection title="{!dLabel['DL480']}" columns="1" collapsible="false" />
+
+                            <div style="padding:0 12px;margin-top:7px" ><nttdcore:DLabel name="DL483" default="View" labelParent="{!this}" /><nttdcore:DLabel name="DL484" default="Customer Number" labelParent="{!this}" />
+
+                                <c:ECO_ClosureQuestion yesno="false" pagecontroller="{!PageCont}" questionfield="projcloseBudgetFeesBilled__c" nofield="projcloseBudgetFeesBilledText__c" questiontext="Have all AECOMs fees and expenses been charged to the project?" questiontype="2" notext="If no, explain why:" yestext="If yes, explain why:" />                                                     
+
+                                <c:ECO_ClosureQuestion yesno="false" pagecontroller="{!PageCont}" questionfield="projcloseBudgetFinalinvoice__c" nofield="projcloseBudgetFinalinvoiceText__c" questiontext="Has the final invoice been sent and paid, including retention payments?" questiontype="2" notext="If no, explain why:" yestext="If yes, explain why:" />        
+
+                                <c:ECO_ClosureQuestion yesno="false" pagecontroller="{!PageCont}" questionfield="projcloseBudgetWithholdingTaxCert__c" nofield="projcloseBudgetWithholdingTaxCertText__c" questiontext="Were all the with-holding tax certificates received from the client for deductions made (non-US only)?" notext="If no, explain why:" yestext="If yes, explain why:" />      
+
+                                <!--<c:ECO_ClosureQuestion yesno="false" pageController="{!PageCont}" questionField="projcloseBudgetAcctsReceivable__c" fnoField="projcloseBudgetAcctsReceivableText__c" 
+                                                        questionText="Has Accounting confirmed receipt of all outstanding Accounts Receivable (ARs)?"/> --> 
+
+                                <b><nttdcore:DLabel name="DL481" default="Unpaid Invoices" labelParent="{!this}" />{!dLabel['DL481']}</b>
+                                <nttdcore:DLabel name="DL482" default="No Results Found." labelParent="{!this}" /><apex:pagemessage severity="INFO" summary="{!dLabel['DL482']}" rendered="{!IF(BillingWrapperFound.size > 0, false, true)}" />
+                                <apex:pageblocktable value="{!BillingWrapperFound}" var="o" rendered="{!IF(BillingWrapperFound.size > 0, true, false)}" >   
+                                    <apex:column ><apex:outputlink value="/{!o.oB.id}" target="_blank" >{!dLabel['DL483']}</apex:outputlink></apex:column>
+                                    <apex:column value="{!o.oB.RAInvoiceNumber__c}" />
+                                    <apex:column value="{!o.oB.InvoiceDate__c}" />
+                                    <apex:column headervalue="{!dLabel['DL484']}" >
+                                        <apex:outputtext value="{!o.oB.CustomerNumber__c}" rendered="{!o.os==null}" />
+                                        <apex:outputlink value="/{!o.oS.id}" target="_blank" rendered="{!o.os!=null}" >{!o.oB.CustomerNumber__c}</apex:outputlink>
+                                    </apex:column>
+                                    
+                                    <apex:column value="{!o.oB.InvoiceAmountNumber__c}" />
+                                    <apex:column value="{!o.oB.BalanceDueNumber__c}" />
+                                </apex:pageblocktable>
+                            </div>
+
+
+
+
+                        <apex:pageblocksection title="{!dLabel['DL485']}" columns="1" collapsible="false" />
+
+                            <div style="padding:0 12px;margin-top:7px" >
+
+                                <apex:actionregion >
+                                    <table width="100%" cellpadding="0" cellspacing="0" >
+
+                                        <tr>
+                                            <td class="questions" >
+                                                <nttdcore:DLabel name="DL486" default="Has the project description been reviewed and updated to reflect the final project scope of work and outcomes?" labelParent="{!this}" /><apex:outputlabel value="{!dLabel['DL486']}" />
+                                            </td>
+                                            <td class="questions" width="255px" >
+                                                <apex:selectradio value="{!oProject.projcloseProjDescFinalOutcomes__c}" layout="lineDirection" >
+                                                    <apex:selectoptions value="{!types}" />
+                                                    <apex:actionsupport event="onchange" rerender="projcloseProjDescFinalOutcomes" />
+                                                </apex:selectradio>         
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </apex:actionregion>
+                                <apex:outputpanel id="projcloseProjDescFinalOutcomes" >
+                                    <apex:outputpanel rendered="{!if(oProject.projcloseProjDescFinalOutcomes__c == 'No', true, false)}" >
+                                        <nttdcore:DLabel name="DL487" default="If no, complete the project description prior to finalizing closeout activities." labelParent="{!this}" /><apex:outputlabel value="{!dLabel['DL487']}" />
+                                    </apex:outputpanel>
+                                    <br/><br/>
+                                </apex:outputpanel>
+
+
+                                <c:ECO_ClosureQuestion yesno="false" pagecontroller="{!PageCont}" questionfield="projcloseProjDescFutureMarketing__c" nofield="projcloseProjDescFutureMarketingText__c" questiontext="Can this project be used for future marketing efforts?" notext="If no, explain why:" yestext="If yes, explain why:" />
+
+
+                                <apex:actionregion >
+                                    <table width="100%" cellpadding="0" cellspacing="0" >
+
+                                        <tr>
+                                            <td class="questions" >
+                                                <nttdcore:DLabel name="DL488" default="Do we need permission from Client to publish or use this project material for marketing/promotion?" labelParent="{!this}" /><apex:outputlabel value="{!dLabel['DL488']}" />
+                                            </td>
+                                            <td class="questions" width="255px" >
+                                                <apex:selectradio value="{!oProject.projcloseDescPublishPermission__c}" layout="lineDirection" >
+                                                    <apex:selectoptions value="{!types}" />
+                                                    <apex:actionsupport event="onchange" rerender="projcloseDescPublishPermission" />
+                                                </apex:selectradio>         
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </apex:actionregion>
+                                <apex:outputpanel id="projcloseDescPublishPermission" >
+                                    <apex:outputpanel rendered="{!if(oProject.projcloseDescPublishPermission__c == 'Yes', true, false)}" >
+                                        
+                                        <nttdcore:DLabel name="DL489" default="If yes, attach the permission document." labelParent="{!this}" /><apex:outputtext value="{!dLabel['DL489']}" />
+                                        <div class="fileList" ><nttdcore:DLabel name="DL490" default="File Name" labelParent="{!this}" />
+                                            <apex:pageblocktable value="{!AttachedDocumentPermission}" var="file" style="width: 825px;" rendered="{!oProject.ClosurePermissionAttachment__c != null}" >
+                                                <apex:column headervalue="{!dLabel['DL490']}" >
+
+                                                    <apex:outputlink value="{!URLFOR($Action.Attachment.Download, file.Id)}" target="_blank" >
+                                                        <apex:outputtext value="{!file.Name}" />
+                                                    </apex:outputlink>
+                                                </apex:column>
+                                                <apex:column value="{!file.ContentType}" /> 
+                                                <apex:column value="{!file.LastModifiedDate}" />    
+                                                <apex:column value="{!file.LastModifiedById}" />
+                                            </apex:pageblocktable>
+                                                        
+                                            <apex:inputfile id="docPermissionAttachment" value="{!docPermissionAttachment.Body}" contenttype="{!docPermissionAttachment.ContentType}" filename="{!docPermissionAttachment.Name}" onchange="fileChosen('{!$Component.savePermissionAndProject}', this, '{!$Component.overridePermission}'); return false;" />
+                                            <apex:inputtext id="overridePermission" value="{!overridePermission}" maxlength="80" html-placeholder="Override File Name" styleclass="attachNewFile" />
+                                            <nttdcore:DLabel name="DL491" default="Attach" labelParent="{!this}" /><apex:commandbutton id="savePermissionAndProject" value="{!dLabel['DL491']}" action="{!savePermissionAndProject}" styleclass="attachNewFile" /><br/>
+                                        </div>
+                                        <br/><br/>
+
+                                        <nttdcore:DLabel name="DL492" default="If available, upload any project images." labelParent="{!this}" /><apex:outputtext value="{!dLabel['DL492']}" />
+                                        <div class="fileList" ><nttdcore:DLabel name="DL493" default="File Name" labelParent="{!this}" />
+                                            <apex:pageblocktable value="{!AttachedDocumentImage}" var="file" style="width: 825px;" rendered="{!oProject.ClosureImageAttachment__c != null}" >
+                                                <apex:column headervalue="{!dLabel['DL493']}" >
+
+                                                    <apex:outputlink value="{!URLFOR($Action.Attachment.Download, file.Id)}" target="_blank" >
+                                                        <apex:outputtext value="{!file.Name}" />
+                                                    </apex:outputlink>
+                                                </apex:column>
+                                                <apex:column value="{!file.ContentType}" /> 
+                                                <apex:column value="{!file.LastModifiedDate}" />    
+                                                <apex:column value="{!file.LastModifiedById}" />
+                                            </apex:pageblocktable>
+                                                        
+                                            <apex:inputfile id="docImageAttachment" value="{!docImageAttachment.Body}" contenttype="{!docImageAttachment.ContentType}" filename="{!docImageAttachment.Name}" onchange="fileChosen('{!$Component.saveImageAndProject}', this, '{!$Component.overrideImage}'); return false;" />
+                                            <apex:inputtext id="overrideImage" value="{!overrideImage}" maxlength="80" html-placeholder="Override File Name" styleclass="attachNewFile" />
+                                            <nttdcore:DLabel name="DL494" default="Attach" labelParent="{!this}" /><apex:commandbutton id="saveImageAndProject" value="{!dLabel['DL494']}" action="{!saveImageAndProject}" styleclass="attachNewFile" /><br/>
+                                        </div>
+
+                                    </apex:outputpanel>
+                                    <br/><br/>
+                                </apex:outputpanel>
+
+
+                                            
+                            </div>
+
+    
+                        <apex:pageblocksection title="{!dLabel['DL495']}" columns="1" collapsible="false" />
+                            <div style="padding:0 12px;margin-top:7px" ><nttdcore:DLabel name="DL497" default="View" labelParent="{!this}" />
+                                <nttdcore:DLabel name="DL496" default="No Results Found." labelParent="{!this}" /><apex:pagemessage severity="INFO" summary="{!dLabel['DL496']}" rendered="{!IF(listTask.size > 0, false, true)}" />
+                                <apex:pageblocktable value="{!listTask}" var="o" rendered="{!IF(listTask.size > 0, true, false)}" > 
+                                    <apex:column ><apex:outputlink value="/{!o.id}" target="_blank" >{!dLabel['DL497']}</apex:outputlink></apex:column>
+                                    <apex:column value="{!o.subject}" />
+                                    <apex:column value="{!o.Description}" />
+                                    <apex:column value="{!o.Ownerid}" />
+                                    <apex:column value="{!o.ActivityDate}" />
+                                    <apex:column value="{!o.Status}" />
+                                </apex:pageblocktable>
+                            </div>
+
+
+                        <apex:pageblocksection title="{!dLabel['DL498']}" columns="1" collapsible="false" />
+                            <div style="padding:0 12px;margin-top:7px" >
+
+                                <apex:actionregion >
+                                    <table width="100%" cellpadding="0" cellspacing="0" >
+
+                                        <tr>
+                                            <td class="questions" >
+                                                <nttdcore:DLabel name="DL499" default="Is there a current or pending claim on the project?" labelParent="{!this}" /><apex:outputlabel value="{!dLabel['DL499']}" />
+                                            </td>
+                                            <td class="questions" width="255px" >
+                                                <apex:selectradio value="{!oProject.projcloseClaimsPending__c}" layout="lineDirection" >
+                                                    <apex:selectoptions value="{!types}" />
+                                                    <apex:actionsupport event="onchange" rerender="projcloseClaimsPending" />
+                                                </apex:selectradio>         
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </apex:actionregion>
+                                <apex:outputpanel id="projcloseClaimsPending" >
+                                    <apex:outputpanel rendered="{!if(oProject.projcloseClaimsPending__c == 'Yes', true, false)}" >
+                                        <nttdcore:DLabel name="DL500" default="Place the project on hold and seek guidance from your local legal counsel." labelParent="{!this}" /><apex:outputtext value="{!dLabel['DL500']}" />
+                                    </apex:outputpanel>
+                                    <br/><br/>
+                                </apex:outputpanel>
+
+                            </div>
+
+                        </div>
+                    </apex:outputpanel> 
+                    
+                </apex:outputpanel> 
+
+            </apex:pageblock>
+        </apex:outputpanel>
+    </apex:form>
+
+    <script>
+
+        function setFocusOnLoad() {}
+
+    </script>   
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

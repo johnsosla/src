@@ -1,0 +1,17 @@
+<apex:page showheader="false"  standardstylesheets="false" Sidebar="false" cache="true" > 
+<Table>
+<th><b> Notes (all scoring 1-10)</b></th><br/>    
+<tr><td>Relationship</td>  
+<td>1 being ‘limited exposure’, 10 being’ close working contribution to business issues’</td></tr><br/>
+<tr><td>Client Knowledge</td> 
+<td>1 being ‘limited, just completed the project at hand’, 10 being ‘well informed; client openly shares concerns and business drivers’</td></tr><br/>
+<tr><td>Fit</td>
+ <td>1 being ‘fits somewhere’, 10 being ‘viewed as critical to future plans; a partner’</td></tr><br/>
+<tr><td>Positioning</td>
+<td> 1 being ‘limited points of contact’, 10 being ‘all bases well covered, have relationships at all levels’</td></tr><br/>
+<tr><td>Perception</td>
+<td>  1 being ‘a big headache’. 10 being ‘working with them is easy’  </td></tr><br/>
+<tr><td>Share of wallet</td>
+<td> 1 being ‘declining’, 10 being ‘significant and increasing’  </td></tr><br/>
+</Table>
+</apex:page>

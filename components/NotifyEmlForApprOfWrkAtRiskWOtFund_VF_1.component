@@ -1,0 +1,59 @@
+<apex:component language="{!theLanguage}" controller="nttdcore.DLabelChildController" access="global" >
+    <apex:attribute name="theLanguage" type="String" required="true" description="language" access="global" />
+    <apex:attribute name="theRecipient" type="User" required="true" description="recipient" access="global" />
+    <apex:attribute name="theRelatedTo" type="ChangeManager__c" required="true" description="related to" access="global" />
+
+    <nttdcore:DLabel name="DL1" default="{{1}} has submitted a change request for {{2}}." labelParent="{!this}" componentContext="NotifyEmlForApprOfWrkAtRiskWOtFund_VF_1" p1="{!theRelatedTo.LastModifiedBy.Name}" p2="{!theRelatedTo.ProjectLongName__c}" />{!dlRoot.dLabel['DL1']} 
+    <br/><br/>
+    <nttdcore:DLabel name="DL2" default="Please note this change request relates to approval to start Work at Risk, though will update the Forecast Budgets Only.  There is no update to the Approved Revenue Limit included in this change request and as such the project will not earn revenue in excess of the contracted value." labelParent="{!this}" componentContext="NotifyEmlForApprOfWrkAtRiskWOtFund_VF_1" />{!dlRoot.dLabel['DL2']}
+    <br/><br/>
+    <b><nttdcore:DLabel name="DL3" default="Project Name:" labelParent="{!this}" componentContext="NotifyEmlForApprOfWrkAtRiskWOtFund_VF_1" />{!dlRoot.dLabel['DL3']}</b> {!theRelatedTo.ProjectName__c}
+    <br/>
+    <b><nttdcore:DLabel name="DL4" default="Project Number:" labelParent="{!this}" componentContext="NotifyEmlForApprOfWrkAtRiskWOtFund_VF_1" />{!dlRoot.dLabel['DL4']}</b> {!theRelatedTo.ProjectNumber__c}
+    <br/>
+    <b><nttdcore:DLabel name="DL5" default="Change Request Number:" labelParent="{!this}" componentContext="NotifyEmlForApprOfWrkAtRiskWOtFund_VF_1" />{!dlRoot.dLabel['DL5']}</b> {!theRelatedTo.Name}
+    <br/><br/>
+    <b><nttdcore:DLabel name="DL6" default="Budget Change order being submitted:" labelParent="{!this}" componentContext="NotifyEmlForApprOfWrkAtRiskWOtFund_VF_1" />{!dlRoot.dLabel['DL6']}</b>
+    <br/>
+    <b><nttdcore:DLabel name="DL7" default="Budget Name:" labelParent="{!this}" componentContext="NotifyEmlForApprOfWrkAtRiskWOtFund_VF_1" />{!dlRoot.dLabel['DL7']}</b> {!theRelatedTo.BudgetName__c}
+    <br/>
+    <b><nttdcore:DLabel name="DL8" default="Total Budget Cost:" labelParent="{!this}" componentContext="NotifyEmlForApprOfWrkAtRiskWOtFund_VF_1" />{!dlRoot.dLabel['DL8']}</b> <apex:outputField value="{!theRelatedTo.TotalBudgetCost__c}" />
+    <br/>
+    <b><nttdcore:DLabel name="DL9" default="Total Budget Revenue (from original change order):" labelParent="{!this}" componentContext="NotifyEmlForApprOfWrkAtRiskWOtFund_VF_1" />{!dlRoot.dLabel['DL9']}</b> <apex:outputField value="{!theRelatedTo.TotalBudgetRevenue__c}" />
+    <br/>
+    <b><nttdcore:DLabel name="DL10" default="Revenue value being added to Forecast Revenue Budget for W@R:" labelParent="{!this}" componentContext="NotifyEmlForApprOfWrkAtRiskWOtFund_VF_1" />{!dlRoot.dLabel['DL10']}</b> <apex:outputField value="{!theRelatedTo.RevenueAddedforWAR__c}" />
+    <br/><br/>
+    <b><nttdcore:DLabel name="DL11" default="Other Impacted Changes:" labelParent="{!this}" componentContext="NotifyEmlForApprOfWrkAtRiskWOtFund_VF_1" />{!dlRoot.dLabel['DL11']}</b>
+    <br/><br/>
+    <b><nttdcore:DLabel name="DL12" default="Task:" labelParent="{!this}" componentContext="NotifyEmlForApprOfWrkAtRiskWOtFund_VF_1" />{!dlRoot.dLabel['DL12']}</b> {!theRelatedTo.StringInt_Ext_Schedule__c}
+    <br/>
+    <b><nttdcore:DLabel name="DL13" default="Task Comments:" labelParent="{!this}" componentContext="NotifyEmlForApprOfWrkAtRiskWOtFund_VF_1" />{!dlRoot.dLabel['DL13']}</b> {!theRelatedTo.IntExtProjectTasksComments__c}
+    <br/><br/>
+    <b><nttdcore:DLabel name="DL14" default="Budget:" labelParent="{!this}" componentContext="NotifyEmlForApprOfWrkAtRiskWOtFund_VF_1" />{!dlRoot.dLabel['DL14']}</b> {!theRelatedTo.StringInt_Ext_Budget_Change__c}
+    <br/>
+    <b><nttdcore:DLabel name="DL15" default="Budget Comments:" labelParent="{!this}" componentContext="NotifyEmlForApprOfWrkAtRiskWOtFund_VF_1" />{!dlRoot.dLabel['DL15']}</b> {!theRelatedTo.IntExtBudgetComments__c}
+    <br/><br/>
+    <b><nttdcore:DLabel name="DL16" default="Customers:" labelParent="{!this}" componentContext="NotifyEmlForApprOfWrkAtRiskWOtFund_VF_1" />{!dlRoot.dLabel['DL16']}</b> {!theRelatedTo.StringInt_Ext_Customers__c}
+    <br/>
+    <b><nttdcore:DLabel name="DL17" default="Customer Comments:" labelParent="{!this}" componentContext="NotifyEmlForApprOfWrkAtRiskWOtFund_VF_1" />{!dlRoot.dLabel['DL17']}</b> {!theRelatedTo.IntExtCustomersComments__c}
+    <br/><br/>
+    <b><nttdcore:DLabel name="DL18" default="Agreements:" labelParent="{!this}" componentContext="NotifyEmlForApprOfWrkAtRiskWOtFund_VF_1" />{!dlRoot.dLabel['DL18']}</b> {!theRelatedTo.StringInt_Ext_Contract_Management__c}
+    <br/>
+    <b><nttdcore:DLabel name="DL19" default="Agreement Comments:" labelParent="{!this}" componentContext="NotifyEmlForApprOfWrkAtRiskWOtFund_VF_1" />{!dlRoot.dLabel['DL19']}</b> {!theRelatedTo.IntExtContractManagementComments__c}
+    <br/><br/>
+    <b><nttdcore:DLabel name="DL20" default="Classifications:" labelParent="{!this}" componentContext="NotifyEmlForApprOfWrkAtRiskWOtFund_VF_1" />{!dlRoot.dLabel['DL20']}</b> {!theRelatedTo.StringIntExtClassifications__c}
+    <br/>
+    <b><nttdcore:DLabel name="DL21" default="Classification Comments:" labelParent="{!this}" componentContext="NotifyEmlForApprOfWrkAtRiskWOtFund_VF_1" />{!dlRoot.dLabel['DL21']}</b> {!theRelatedTo.IntExtClassificationsComments__c}
+    <br/><br/>
+    <b><nttdcore:DLabel name="DL22" default="Key Members:" labelParent="{!this}" componentContext="NotifyEmlForApprOfWrkAtRiskWOtFund_VF_1" />{!dlRoot.dLabel['DL22']}</b> {!theRelatedTo.StringInt_Ext_Key_Members__c}
+    <br/>
+    <b><nttdcore:DLabel name="DL23" default="Key Member Comments:" labelParent="{!this}" componentContext="NotifyEmlForApprOfWrkAtRiskWOtFund_VF_1" />{!dlRoot.dLabel['DL23']}</b> {!theRelatedTo.IntExtKeyMembersComments__c}
+    <br/><br/>
+    <nttdcore:DLabel name="DL24" default="Please approve or reject this item via clicking on the link below or replying to this email with the words 'approve • approved • yes • reject • rejected • no'. Any additional comments to be recorded can be added in a second line of the email reply." labelParent="{!this}" componentContext="NotifyEmlForApprOfWrkAtRiskWOtFund_VF_1" />{!dlRoot.dLabel['DL24']}
+    <br/><br/>
+    <nttdcore:DLabel name="DL25" default="Click here to access the Change Request:" labelParent="{!this}" componentContext="NotifyEmlForApprOfWrkAtRiskWOtFund_VF_1" />{!dlRoot.dLabel['DL25']} <c:ECO_ApprovalRequestURL relatedtoid="{!theRelatedTo.Id}" />
+    <br/>
+    <nttdcore:DLabel name="DL26" default="Click here to access the Project:" labelParent="{!this}" componentContext="NotifyEmlForApprOfWrkAtRiskWOtFund_VF_1" />{!dlRoot.dLabel['DL26']} <a href="{!theRelatedTo.ProjectLink__c}" ><nttdcore:DLabel name="DL27" default="Project Link" labelParent="{!this}" componentContext="NotifyEmlForApprOfWrkAtRiskWOtFund_VF_1" />{!dlRoot.dLabel['DL27']} </a>
+
+    <nttdcore:DLabelInit language="{!theLanguage}" labelParentInit="{!this}" />
+</apex:component>

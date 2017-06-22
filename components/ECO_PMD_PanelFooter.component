@@ -1,0 +1,24 @@
+<apex:component layout="none">
+  <apex:attribute name="panelID" description="Panel ID" type="String" required="true" />
+  <apex:attribute name="refresh" description="Refresh Routine" type="String" />
+
+  <div class="panel-footer ng-cloak" ng-show="isLoaded==null || isLoaded">
+    <apex:outputPanel rendered="{!IF(refresh!='',TRUE,FALSE)}">
+      <div style="float:right;">
+          <label ng-click="{!refresh}()" class="btn btn-xs btn-link">
+            <span class="glyphicon glyphicon-refresh" aria-hidden="true"/>
+          </label>
+	    </div>
+    </apex:outputPanel>
+    <div>
+      <label class="btn btn-xs btn-link" id="dashpanel-info" ng-click="isCollapsed{!panelID} = !isCollapsed{!panelID}" ng-init="isCollapsed{!panelID} = true" >
+        <span class="caret"></span>{!$Label.ECO_PMD_MORE_INFO}
+      </label>
+      <div uib-collapse="isCollapsed{!panelID}">
+        <div style="padding: 0px 10px 5px 10px; font-size: smaller;">
+          <apex:componentBody />
+        </div>
+      </div>
+    </div> 
+  </div>
+</apex:component>

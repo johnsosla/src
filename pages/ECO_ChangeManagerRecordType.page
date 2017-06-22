@@ -1,0 +1,154 @@
+<apex:page showheader="true" sidebar="true" standardcontroller="pse__Proj__c" extensions="ECO_ChangeManagerRecordTypeController,nttdcore.DLabelParentController" action="{!init}" >
+	
+   <style>
+
+        .recordTypeTable{
+            border-collapse:collapse;
+        }
+
+        .recordTypeTable th, .recordTypeTable td {
+          padding: 8px 2px 8px 5px;
+          border: 1px solid #dbdbdb;;
+          border-collapse: collapse;
+        }
+        
+        .recordTypeTable tr {
+          border: 1px solid #dbdbdb;;
+          border-collapse: collapse;
+        }
+        
+        .recordTypeTable td {
+            background-color: white;
+        }
+         /* CUSTOM HELP / GUIDANCE TEXT BOX */
+        .customHelpText{
+            padding: 7px;
+            border: 1px solid #85B3CE;
+            min-height: 30px;
+            display: block;
+            width: auto;
+            margin: 0 0 5px 0;
+            background-repeat: no-repeat;
+            border-radius: 4px;
+            background-color: #A2D3F1;
+            
+        }
+        .customHelpBody{
+            display:inline-block;
+            color:#;
+            max-width:95%;
+        }       
+    </style>
+
+    <script type="text/javascript" >
+	    function recordTypeSelected(recordType)
+	    {
+	        createNewExecutionApprovalChangeManager(recordType);
+	    }
+
+	    function internalExternalSelected(recordType)
+	    {
+
+	    }
+
+	    function disableAfterSubmit(id) {
+	        //alert(id);
+	        var toDisable = document.getElementById( id );
+	        toDisable.disabled = 'disabled';
+	        // Use the Salesforce CSS style to make the button appear disabled
+	        toDisable.className = 'btnDisabled';
+	        //toDisable.value = "Saving..."
+	    }
+
+    </script>
+
+	<apex:form >
+		<apex:pagemessages />
+
+		<nttdcore:DLabel name="DL20" default="Execution Approval" labelParent="{!this}" /><apex:sectionheader title="{!dLabel['DL20']}" subtitle="{!pse__Proj__c.Name + "(" + pse__Proj__c.EcoSystemReferenceNumber__c + ")"}" />
+
+		<apex:outputpanel style="display:none" >
+        	<apex:outputfield value="{!pse__Proj__c.pse__Stage__c}" />
+        </apex:outputpanel>
+
+    	<apex:outputpanel style="display:none;visibility:hidden" >
+        	<apex:outputfield value="{!pse__Proj__c.OUID__c}" />
+    	</apex:outputpanel>
+
+		<nttdcore:DLabel name="DL21" default="Execution Approval Selection" labelParent="{!this}" /><apex:pageblock title="{!dLabel['DL21']}" ><nttdcore:DLabel name="DL23" default="Execution Approval Record Type Selection" labelParent="{!this}" /><nttdcore:DLabel name="DL24" default="Creating Agreement..." labelParent="{!this}" /><nttdcore:DLabel name="DL25" default="Record Type Name" labelParent="{!this}" /><nttdcore:DLabel name="DL26" default="Record Type Description" labelParent="{!this}" /><nttdcore:DLabel name="DL27" default="Approval to Execute" labelParent="{!this}" /><nttdcore:DLabel name="DL28" default="Approval to proceed with creating an approved/chargeable project in Oracle to capture costs and earn revenue." labelParent="{!this}" /><nttdcore:DLabel name="DL29" default="Select" labelParent="{!this}" /><nttdcore:DLabel name="DL30" default="{{1}} ({{2}})" labelParent="{!this}" p1="{!executionApproval.Name}" p2="{!executionApproval.ApprovalStatus__c}" /><nttdcore:DLabel name="DL31" default="Commence Work Pre-Contract" labelParent="{!this}" /><nttdcore:DLabel name="DL32" default="Approval to proceed with creating an approved/chargeable project in Oracle, WITHOUT a contract or customer.  This will not sync customer, agreement, funding or budget details with Oracle.  Projects in this status cannot earn Revenue until a full Approval to Execute with Contract and Customer details is completed." labelParent="{!this}" /><nttdcore:DLabel name="DL33" default="This functionality is currently applicable only to Hong Kong and UK projects." labelParent="{!this}" /><nttdcore:DLabel name="DL34" default="Select" labelParent="{!this}" /><nttdcore:DLabel name="DL35" default="{{1}} ({{2}})" labelParent="{!this}" p1="{!preContractExecutionApproval.Name}" p2="{!preContractExecutionApproval.ApprovalStatus__c}" /><nttdcore:DLabel name="DL36" default="Internal/External Changes" labelParent="{!this}" /><nttdcore:DLabel name="DL37" default="Standard Internal/External changes." labelParent="{!this}" /><nttdcore:DLabel name="DL38" default="Select" labelParent="{!this}" />
+			<apex:pageblockbuttons >
+				<nttdcore:DLabel name="DL22" default="Return to Project" labelParent="{!this}" /><apex:commandbutton value="{!dLabel['DL22']}" action="{!returnToProject}" />
+			</apex:pageblockbuttons>
+			<apex:pageblocksection title="{!dLabel['DL23']}" columns="1" collapsible="false" >  
+
+	    		<apex:actionstatus id="spinnerStatus2" >
+			    <apex:facet name="start" >
+					    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; opacity: 0.25; z-index: 1000; background-color: black;" >
+					        &nbsp;
+					    </div>
+					    <div style="position: fixed; left: 0; top: 0; bottom: 0; right: 0; z-index: 1001; margin: 15% 50%" >
+					        <div style="display: inline-block; padding: 2px; background-color: #fff; width: 200px;" >
+					            <img src="/img/loading32.gif" style="float: left; margin: 8px;" />
+					            <span style="display: inline-block; padding: 10px 10px;" ><b>{!dLabel['DL24']}</b></span>
+					        </div>
+					    </div>
+			    </apex:facet></apex:actionstatus>
+
+			    <apex:actionfunction action="{!createNewExecutionApprovalChangeManager}" name="createNewExecutionApprovalChangeManager" status="spinnerStatus2" rerender="none" >
+			    	<apex:param name="RecordType" value="" />
+			    </apex:actionfunction>
+		   
+			    <apex:outputpanel >
+				    <table class="recordTypeTable" width="100%" >
+				        <tr>
+				            <th>{!dLabel['DL25']}</th>
+				            <th>{!dLabel['DL26']}</th>
+				            <th/>
+				        </tr>
+				        <tr>
+				            <td><apex:outputtext value="{!dLabel['DL27']}" /></td>
+				            <td><apex:outputtext >
+				                {!dLabel['DL28']}
+				            </apex:outputtext>
+				            </td>
+				            <td>
+				            	<apex:commandbutton value="{!dLabel['DL29']}" rendered="{!executionApproval == null}" onclick="disableAfterSubmit(this.id); recordTypeSelected('ExecutionApproval'); return false;" id="btn1" />
+				            	<apex:outputlink value="/{!executionApproval.Id}" rendered="{!executionApproval != null}" ><apex:outputtext value="{!dLabel['DL30']}" /></apex:outputlink>
+				            </td>
+				        </tr>
+
+				       	<apex:outputpanel rendered="{!(executionApproval == null || preContractExecutionApproval != null) && allowPreContractApproval}" > 
+				        <tr>
+				            <td><apex:outputtext value="{!dLabel['DL31']}" /></td>
+				            <td><apex:outputtext >
+				                {!dLabel['DL32']}<br/><br/>{!dLabel['DL33']}
+				            </apex:outputtext>
+				            </td>
+				            <td>
+				            	<apex:commandbutton value="{!dLabel['DL34']}" rendered="{!preContractExecutionApproval == null}" onclick="disableAfterSubmit(this.id); recordTypeSelected('ExecutionApprovalPreContract'); return false;" id="btn2" />
+				            	<apex:outputlink value="/{!preContractExecutionApproval.Id}" rendered="{!preContractExecutionApproval != null}" ><apex:outputtext value="{!dLabel['DL35']}" /></apex:outputlink>
+				            </td>
+				        </tr>
+				        </apex:outputpanel>
+
+				        <apex:outputpanel rendered="{!pse__Proj__c.pse__Stage__c == 'Pre-Contract' && executionApproval.ApprovalStatus__c != 'Submitted' && executionApproval.ApprovalStatus__c != 'Approved'}" >
+				        <tr>
+				            <td><apex:outputtext value="{!dLabel['DL36']}" /></td>
+				            <td><apex:outputtext >
+				                {!dLabel['DL37']}
+				            </apex:outputtext>
+				            </td>
+				            	<td><apex:commandbutton value="{!dLabel['DL38']}" action="{!redirectToProjectChanges}" />
+				            </td>
+				        </tr>
+				        </apex:outputpanel>
+				    </table>
+			    </apex:outputpanel>
+
+		    </apex:pageblocksection>
+
+		</apex:pageblock>
+
+	</apex:form>
+
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

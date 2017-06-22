@@ -1,0 +1,12 @@
+<apex:component language="{!theLanguage}" controller="nttdcore.DLabelChildController" access="global" ><nttdcore:DLabel name="DL1" default="The Project Plan for the subject project has been {{1}} for execution.
+    
+    Note that approval of project execution also includes approval of the baseline Project Plan, including the project budget, margin, team and schedule.
+    
+    Project Name: {{2}}
+    Client: {{3}}
+    Project Manager: {{4}}
+    
+    Project Link: {{5}}" labelParent="{!this}" componentContext="EcoCMExecutionApprovalApprovedReje395_3" p1="{!theRelatedTo.ApprovalStatus__c}" p2="{!theRelatedTo.ProjectName__c}" p3="{!theRelatedTo.Client__c}" p4="{!theRelatedTo.ProjectManager__c}" p5="{!theRelatedTo.ProjectLink__c}" /><apex:attribute name="theLanguage" type="String" required="true" description="language" access="global" /><apex:attribute name="theRecipient" type="User" required="true" description="recipient" access="global" /><apex:attribute name="theRelatedTo" type="ChangeManager__c" required="true" description="related to" access="global" />
+    {!dlRoot.dLabel['DL1']}
+    
+<nttdcore:DLabelInit language="{!theLanguage}" labelParentInit="{!this}" /></apex:component>

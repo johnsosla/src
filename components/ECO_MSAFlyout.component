@@ -1,0 +1,543 @@
+<apex:component layout="none" controller="ECO_MSAFlyoutController" extensions="nttdcore.DLabelChildController" >
+
+	<apex:attribute name="MSAId" description="MSA Agreement Id" type="Id" assignto="{!AgreementId}" />
+
+	<apex:stylesheet value="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/css/font-awesome.min.css')}" />
+
+	<apex:includeScript value="{!$Resource.ECO_jQuery_1_11_2_min_js}" />
+	<apex:includeScript value="{!URLFOR($Resource.ECO_jQueryUI_1_11_2, 'jquery-ui.min.js')}" />
+	
+	<script>
+		$q = jQuery.noConflict();
+	
+		var MSAFlyout = {
+			init : function(){
+				$q('body').on('click', MSAFlyout.hideContentFlyout);
+	       		
+	       		$q('#msaPane').on('click', function(event) { 
+  					event.stopPropagation();
+	       		});
+	       		
+	       		$q('#msaPane .tab').on('click', MSAFlyout.showContentFlyout);
+	       		
+	       		$q('#msaPane .close').click(function(){
+	       			MSAFlyout.hideContentFlyout();
+	       		});
+			},
+
+			hideContentFlyout : function(){
+	       		var width = $q('#msaPane').outerWidth() * -1 + 'px';
+	       		
+	       		$q('#msaPane').animate({
+		       		right : width
+				  }, 550, 'easeInCubic');
+	        },
+	       
+	        showContentFlyout : function(event){
+	       		event.stopPropagation();
+	       		
+	       		if($q('#msaPane').css('right') == '0px'){
+	       			MSAFlyout.hideContentFlyout();
+	       		}else{
+	       			$q('#msaPane').animate({
+			       		right : 0
+					  }, 550, 'easeOutCubic');
+	       		}
+	        }
+	    }
+
+	    $q(document).ready(function (){
+	    	MSAFlyout.init();
+	    });
+    </script>	
+    
+    <style>
+    	/*
+				FLYOUT STYLES
+		*/
+
+		#msaPane.msaFlyout {
+			background-color:#f3f3f3;
+			position: fixed;
+			width: 725px;
+			right: -724px;
+			top: 275px;
+			padding: 10px 0 20px 20px;
+			border-right: none;
+			-webkit-border-top-left-radius: 20px;
+			-webkit-border-bottom-left-radius: 20px;
+			-moz-border-radius-topleft: 20px;
+			-moz-border-radius-bottomleft: 20px;
+			border-top-left-radius: 20px;
+			border-bottom-left-radius: 20px;
+			z-index: 5000;
+			margin-left: 42px;
+			min-height: 400px;
+			box-shadow: 0 0 10px #787878;
+			border: 1px solid #DEDEDE;
+		}
+
+		#msaPane.msaFlyout .tab {
+			position: absolute;
+			border-right: none;
+			background-color: #f3f3f3;
+			
+			-webkit-border-top-left-radius: 10px;
+			-webkit-border-top-right-radius: 10px;
+			-moz-border-radius-topleft: 10px;
+			border-top-left-radius: 10px;
+			cursor: pointer;
+			padding:7px 8px;
+			box-shadow:0 -3px 4px #959595;
+
+			top:100px;
+			left: -37px;
+
+			-webkit-transform: rotate(-90deg); 
+			-moz-transform: rotate(-90deg);	
+		}
+
+		#msaPane.msaFlyout .close {
+			color: #D6D6D6;
+			cursor: pointer;
+			display: block;
+			float: right;
+			font-family: 'Platform-Font', Helvetica, Arial, sans-serif;
+			padding-left: 25px;
+			padding-right: 20px;
+			text-align: right;
+			text-transform: uppercase;
+		}
+
+		#msaPane.msaFlyout .delete{
+			position: absolute;
+			top: 12px;
+			right: 7px;
+			padding: 6px 8px;
+		}
+
+		#msaPane.msaFlyout .delete:hover{
+			text-decoration:underline;
+		}
+
+		#msaPane.msaFlyout .header {
+			color: #333;
+			font-size: 25px;
+			padding-bottom: 15px;
+			padding-top: 10px;
+		}
+		
+		#msaPane.msaFlyout .body {
+			padding-right: 20px;
+		}
+
+		#msaPane.msaFlyout select{
+			margin:2px 0 5px 0;
+		}
+
+		#msaPane.msaFlyout .table{
+			width: 100%;
+			max-width: 100%;
+			margin-bottom: 20px;
+			margin-top:15px;
+		}
+
+		#msaPane.msaFlyout .table th{
+			font-size: 1.05em;
+			font-weight: 600;
+			border-bottom: 2px solid rgba(0, 0, 0, 0.14);
+		}
+
+		#msaPane.msaFlyout .table-striped > tbody > tr:nth-child(4n), #riskPane.riskFlyout .table-striped > tbody > tr:nth-child(4n-1){
+			background-color: #f6f8fa;
+		}
+
+		#msaPane.msaFlyout .table td{
+			border-top: 1px solid rgba(0, 0, 0, 0.05);
+		}
+
+		#msaPane.msaFlyout .table>tbody>tr>td, .flyout .table>tbody>tr>th, .flyout .table>tfoot>tr>td, .flyout .table>tfoot>tr>th, .flyout .table>thead>tr>td, .flyout .table>thead>tr>th{
+			padding: 8px;
+			line-height: 1.42857143;
+			vertical-align: top;
+		}
+
+		#msaPane.msaFlyout .label-table{
+			display: inline-block;
+			width: 80%;
+			min-width: 8ex;
+			font-size: 1em;
+			max-width: 100px;
+			padding: 5px;
+			text-overflow: ellipsis;
+			overflow: hidden;
+		}
+
+		/* tables */
+		#msaPane.msaFlyout table.tablesorter {
+			font-family:arial;
+			background-color: #CDCDCD;
+			margin:10px 0pt 15px;
+			font-size: 8pt;
+			width: 100%;
+			text-align: left;
+		}
+
+		#msaPane.msaFlyout table.tablesorter thead tr th, table.tablesorter tfoot tr th {
+			background-color: #aebdee;
+			border: 1px solid #FFF;
+			font-size: 8pt;
+			padding: 4px;
+		}
+
+		#msaPane.msaFlyout table.tablesorter thead tr .header {
+			background-image: url(bg.gif);
+			background-repeat: no-repeat;
+			background-position: center right;
+			cursor: pointer;
+		}
+
+		#msaPane.msaFlyout table.tablesorter tbody td {
+			color: #3D3D3D;
+			padding: 4px;
+			background-color: #FFF;
+			vertical-align: top;
+			height: 20px;
+		}
+
+		#msaPane.msaFlyout table.tablesorter tbody tr.odd td {
+			background-color:#F0F0F6;
+		}
+
+		#msaPane.msaFlyout table.tablesorter thead tr .headerSortUp {
+			background-image: url(asc.gif);
+		}
+
+		#msaPane.msaFlyout table.tablesorter thead tr .headerSortDown {
+			background-image: url(desc.gif);
+		}
+
+		#msaPane.msaFlyout table.tablesorter thead tr .headerSortDown, table.tablesorter thead tr .headerSortUp {
+		background-color: #8dbdd8;
+		}
+
+		.noteText{
+			color:#818181;
+			font-style: italic;
+		}
+
+    </style>    
+    <div id="msaPane" class="msaFlyout flyout" >
+		<div class="close" >
+			<i class="fa fa-arrow-right" style="color:#333;" />
+		</div>
+		<div class="tab" ><nttdcore:DLabel name="DL1" default="MSA" labelParent="{!this}" componentContext="ECO_MSAFlyout" />
+			{!dlRoot.dLabel['DL1']}
+		</div>
+		<div class="header" ><nttdcore:DLabel name="DL2" default="MSA" labelParent="{!this}" componentContext="ECO_MSAFlyout" />
+			{!dlRoot.dLabel['DL2']}
+		</div>
+		<apex:outputPanel id="msaPanel" >
+
+			<apex:outputPanel >
+				<apex:sectionHeader title="{!'Master Services Agreement ' + mode}" subtitle="{!msaAgreement.Name}" />
+				<apex:pageBlock mode="{!pageBlockMode}" title="{!'Master Service Agreement ' + mode}" >
+	<!--  		    <apex:pageBlockButtons>
+		 		    	<apex:commandButton value="Save" action="{!save}" rendered="{!mode !=''}"/>
+		 		    	<apex:commandButton value="Edit" action="{!editAgreement}" rendered="{!mode ==''}"/>
+		 		    	<apex:commandButton value="Initiate Contract Review" rendered="{!mode ==''}"/>
+		 		    </apex:pageBlockButtons> -->	
+					<apex:panelGrid columns="2" styleclass="tableStyle" border="0" columnclasses="colStyle1,colStyle2" rowclasses="rowstyle" width="100%" >
+						<apex:outputPanel ><nttdcore:DLabel name="DL3" default="Contract Details" labelParent="{!this}" componentContext="ECO_MSAFlyout" /><br/>
+							<apex:pageBlockSection columns="1" title="{!dlRoot.dLabel['DL3']}" collapsible="false" >
+								<apex:outputField value="{!msaAgreement.Account__c}" />
+								<apex:inputField value="{!msaAgreement.InvoicingClient__c}" rendered="{!mode!=''}" />
+								<apex:inputField value="{!msaAgreement.ContractTitle__c}" rendered="{!mode!=''}" />
+								<apex:inputField value="{!msaAgreement.Description__c}" rendered="{!mode!=''}" />
+								<apex:inputField value="{!msaAgreement.AgreementNumber__c}" rendered="{!mode!=''}" />
+								<apex:inputField value="{!msaAgreement.OrderingPeriod__c}" rendered="{!mode!=''}" />
+								<apex:inputField value="{!msaAgreement.ContractingAgency__c}" rendered="{!mode!=''}" />
+								<apex:inputField value="{!msaAgreement.AgreementType__c}" rendered="{!mode!=''}" />
+								<apex:inputField value="{!msaAgreement.TotalContractValue__c}" rendered="{!mode!=''}" />
+								<apex:inputTextArea value="{!msaAgreement.ScopeOfServices__c}" style="width: 400px; height: 40px" rendered="{!mode!=''}" />	
+								
+								<apex:outputField value="{!msaAgreement.InvoicingClient__c}" rendered="{!mode==''}" />
+								<apex:outputField value="{!msaAgreement.ContractTitle__c}" rendered="{!mode==''}" />
+								<apex:outputField value="{!msaAgreement.Description__c}" rendered="{!mode==''}" />
+								<apex:outputField value="{!msaAgreement.AgreementNumber__c}" rendered="{!mode==''}" />
+								<apex:outputField value="{!msaAgreement.OrderingPeriod__c}" rendered="{!mode==''}" />
+								<apex:outputField value="{!msaAgreement.ContractingAgency__c}" rendered="{!mode==''}" />
+								<apex:outputField value="{!msaAgreement.AgreementType__c}" rendered="{!mode==''}" />
+								<apex:outputField value="{!msaAgreement.TotalContractValue__c}" rendered="{!mode==''}" />
+								<apex:outputField value="{!msaAgreement.ScopeOfServices__c}" style="width: 400px; height: 40px" rendered="{!mode==''}" />							
+							</apex:pageBlockSection>
+						</apex:outputPanel>
+ 	<!--					<apex:outputPanel rendered="{!mode == ''}" >
+ 	 						<apex:pageBlockSection columns="1" title="Management Team Members" collapsible="false">
+								<apex:commandButton value="New Team Member" action="{!URLFOR($Action.ManagementTeam__c.New, null, ['saveURL'='/apex/ECO_AgreementView?Id='+msaAgreement.Id,'retURL'='/apex/ECO_AgreementView?Id='+msaAgreement.Id, 'CF00Ne0000001HrDz'=msaAgreement.Name, 'sfdc.override'=1])}"/>
+								<apex:outputPanel rendered="{!managementTeamMembers.size > 0}">
+								<apex:pageBlockTable value="{!managementTeamMembers}" var="managementTeamMember">
+									<apex:column style="width:80px" headervalue="Action">
+									<apex:commandLink style="color:#015ba7;" action="{!URLFOR($Action.ManagementTeam__c.edit, managementTeamMember.Id, ['retURL'='/apex/ECO_AgreementView?Id='&msaAgreement.Id])}">Edit</apex:commandLink><apex:outputText value=" | "/>
+									<apex:commandLink style="color:#015ba7;" action="{!URLFOR($Action.ManagementTeam__c.delete, managementTeamMember.Id, ['retURL'='/apex/ECO_AgreementView?Id='&msaAgreement.Id])}" onclick="return window.confirm('Are you sure?');">Del</apex:commandLink></apex:column>
+									<apex:column headervalue="Title"><apex:outputField value="{!managementTeamMember.TeamMember__r.Title}"/></apex:column>					
+									<apex:column headervalue="Name"><apex:outputField value="{!managementTeamMember.TeamMember__r.Name}"/></apex:column>
+									<apex:column headervalue="Phone"><apex:outputField value="{!managementTeamMember.TeamMember__r.Phone}"/></apex:column>					
+									<apex:column headervalue="Email"><apex:outputField value="{!managementTeamMember.TeamMember__r.Email}"/></apex:column>
+								</apex:pageBlockTable>
+								</apex:outputPanel>
+								<apex:outputPanel rendered="{!managementTeamMembers.size == 0}">
+									<apex:outputText value="No records to display"/>
+								</apex:outputPanel>		
+							</apex:pageBlockSection>
+						</apex:outputPanel>-->
+					</apex:panelGrid>
+					</apex:pageBlock> 
+						
+	<!-- 			<apex:pageBlock title="List of Projects/Task Orders" rendered="{!mode == ''}" >
+					<apex:outputPanel rendered="{!relatedAgreements.size > 0}">
+					<apex:pageBlockTable value="{!relatedAgreements}" var="relatedAgreement">
+						<apex:column headervalue="Project Name"><apex:outputField value="{!relatedAgreement.Project__r.Name}"/></apex:column>					
+						<apex:column headervalue="Project Number"><apex:outputField value="{!relatedAgreement.Project__r.ProjectNumber__c}"/></apex:column>
+						<apex:column headervalue="Task Order"><apex:outputField value="{!relatedAgreement.Project__r.Task_number__c}"/></apex:column>					
+						<apex:column headervalue="Project Manager"><apex:outputField value="{!relatedAgreement.Project__r.pse__Project_Manager__c}"/></apex:column>
+						<apex:column headervalue="Value"><apex:outputField value="{!relatedAgreement.Project__r.EstimatedContractValue__c}"/></apex:column>					
+						<apex:column headervalue="Billed To Date"><apex:outputField value="{!relatedAgreement.Project__r.pse__Billing_Eligible_Last_Updated__c}"/></apex:column>
+						<apex:column headervalue="Status"><apex:outputField value="{!relatedAgreement.Project__r.pse__Project_Status__c}"/></apex:column>				
+				</apex:pageBlockTable>		
+				</apex:outputPanel>
+				
+				<apex:outputPanel rendered="{!relatedAgreements.size == 0}">
+					<apex:outputText value="No records to display"/>
+				</apex:outputPanel>	
+				</apex:pageBlock>
+				
+				<apex:pageBlock title="Project Portfolio Performance" rendered="{!mode == ''}">
+				    <apex:chart height="400" width="1000" data="{!data}">
+				    	  <apex:axis type="Numeric" position="left" fields="data1" 
+				            title="Y Axis" grid="true"/>
+				    	  <apex:axis type="Category" position="bottom" fields="name" 
+				            title="X Axis">
+				    	</apex:axis>
+				    	<apex:lineSeries axis="left" fill="true" xField="name" yField="data1"
+				          markerType="cross" markerSize="4" markerFill="#FF0000"/>
+				   </apex:chart>
+				</apex:pageBlock>		
+				
+				<apex:pageBlock title="Contract Documents" rendered="{!mode == ''}">
+						<apex:outputPanel rendered="{!AttachedContractFiles.size > 0}">
+							<div class="fileList">
+							<apex:pageBlockTable value="{!AttachedContractFiles}" var="attachedContractFile" style="width: 825px;" rendered="{!msaAgreement.ContractAttachment__c != null}">
+								<apex:column headerValue="File Name">
+									<apex:outputLink value="{!URLFOR($Action.Attachment.Download, attachedContractFile.Id)}" target="_blank">
+										<apex:outputText value="{!attachedContractFile.Name}" />
+									</apex:outputLink>
+								</apex:column>
+								<apex:column value="{!attachedContractFile.ContentType}" />	
+								<apex:column value="{!attachedContractFile.LastModifiedDate}" />	
+								<apex:column value="{!attachedContractFile.LastModifiedById}" />
+							</apex:pageBlockTable>
+							</div>		
+						</apex:outputPanel>
+						<apex:outputPanel rendered="{!AttachedContractFiles.size == 0}">
+							<apex:outputText value="No records to display"/><br/><br/>
+						</apex:outputPanel>				
+						<apex:outputText value="Attachment"/><apex:inputFile id="contractAttachment" value="{!contractAttach.Body}" contentType="{!contractAttach.ContentType}" fileName="{!contractAttach.Name}" onchange="fileChosen('{!$Component.cmdContractAttachment}', this, '{!$Component.overrideContractName}'); return false;"/>
+						<apex:inputText id="overrideContractName" value="{!overrideContractAttachmentName}"  maxlength="80" html-placeholder="Override File Name" styleclass="attachNewFile"/>
+						<apex:commandButton id="cmdContractAttachment" value="Attach" action="{!saveContractAttachment}" styleclass="attachNewFile"/>				
+				</apex:pageBlock>				
+		
+				<apex:pageBlock title="DOA Conditions of Approval" rendered="{!mode == ''}">
+					<div class="tempAlert">
+		            DOA Conditions of Approval is currently a work in progress.
+		        	</div>
+				</apex:pageBlock>				
+		
+				<apex:pageBlock title="Program Plans" rendered="{!mode == ''}">
+					<apex:outputPanel rendered="{!AttachedProgramPlanFiles.size > 0}">
+						<div class="fileList">
+						<apex:pageBlockTable value="{!AttachedProgramPlanFiles}" var="attachedProgramPlanFile" style="width: 825px;" rendered="{!msaAgreement.ProgramPlanAttachment__c != null}">
+							<apex:column headerValue="File Name">
+								<apex:outputLink value="{!URLFOR($Action.Attachment.Download, attachedProgramPlanFile.Id)}" target="_blank">
+									<apex:outputText value="{!attachedProgramPlanFile.Name}" />
+								</apex:outputLink>
+							</apex:column>
+							<apex:column value="{!attachedProgramPlanFile.ContentType}" />	
+							<apex:column value="{!attachedProgramPlanFile.LastModifiedDate}" />	
+							<apex:column value="{!attachedProgramPlanFile.LastModifiedById}" />
+						</apex:pageBlockTable>
+						</div>
+					</apex:outputPanel>	
+					<apex:outputPanel rendered="{!AttachedProgramPlanFiles.size == 0}">
+						<apex:outputText value="No records to display"/><br/><br/>
+					</apex:outputPanel>	
+					<apex:outputText value="Attachment"/><apex:inputFile id="programPlanAttachment" value="{!programPlanAttach.Body}" contentType="{!programPlanAttach.ContentType}" fileName="{!programPlanAttach.Name}" onchange="fileChosen('{!$Component.cmdProgramPlanAttachment}', this, '{!$Component.overrideProgramPlanName}'); return false;"/>
+					<apex:inputText id="overrideProgramPlanName" value="{!overrideProgramPlanAttachmentName}"  maxlength="80" html-placeholder="Override File Name" styleclass="attachNewFile"/>
+					<apex:commandButton id="cmdProgramPlanAttachment" value="Attach" action="{!saveProgramPlanAttachment}" styleclass="attachNewFile"/>
+				</apex:pageBlock>
+				
+				<apex:pageBlock title="Guidance Documents" rendered="{!mode == ''}">
+					<apex:outputPanel rendered="{!AttachedGuidanceFiles.size > 0}">
+						<div class="fileList">
+						<apex:pageBlockTable value="{!AttachedGuidanceFiles}" var="attachedGuidanceFile" style="width: 825px;" rendered="{!msaAgreement.GuidanceAttachment__c != null}">
+							<apex:column headerValue="File Name">
+								<apex:outputLink value="{!URLFOR($Action.Attachment.Download, attachedGuidanceFile.Id)}" target="_blank">
+									<apex:outputText value="{!attachedGuidanceFile.Name}" />
+								</apex:outputLink>
+							</apex:column>
+							<apex:column value="{!attachedGuidanceFile.ContentType}" />	
+							<apex:column value="{!attachedGuidanceFile.LastModifiedDate}" />	
+							<apex:column value="{!attachedGuidanceFile.LastModifiedById}" />
+						</apex:pageBlockTable>
+						</div>
+					</apex:outputPanel>			
+					<apex:outputPanel rendered="{!AttachedGuidanceFiles.size == 0}">
+						<apex:outputText value="No records to display"/><br/><br/>
+					</apex:outputPanel>	
+					<apex:outputText value="Attachment"/><apex:inputFile id="guidanceAttachment" value="{!guidanceAttach.Body}" contentType="{!guidanceAttach.ContentType}" fileName="{!guidanceAttach.Name}" onchange="fileChosen('{!$Component.cmdGuidanceAttachment}', this, '{!$Component.overrideGuidanceName}'); return false;"/>
+					<apex:inputText id="overrideGuidanceName" value="{!overrideGuidanceAttachmentName}"  maxlength="80" html-placeholder="Override File Name" styleclass="attachNewFile"/>
+					<apex:commandButton id="cmdGuidanceAttachment" value="Attach" action="{!saveGuidanceAttachment}" styleclass="attachNewFile"/>				
+				</apex:pageBlock>	
+				
+				<apex:pageBlock title="Business Development" rendered="{!mode == ''}">
+					<apex:outputPanel rendered="{!AttachedBusinessDevelopmentFiles.size > 0}">
+					<div class="fileList">
+					<apex:pageBlockTable value="{!AttachedBusinessDevelopmentFiles}" var="attachedBusinessDevelopmentFile" style="width: 825px;" rendered="{!msaAgreement.BusinessDevelopmentAttachment__c != null}">
+						<apex:column headerValue="File Name">
+							<apex:outputLink value="{!URLFOR($Action.Attachment.Download, attachedBusinessDevelopmentFile.Id)}" target="_blank">
+								<apex:outputText value="{!attachedBusinessDevelopmentFile.Name}" />
+							</apex:outputLink>
+						</apex:column>
+						<apex:column value="{!attachedBusinessDevelopmentFile.ContentType}" />	
+						<apex:column value="{!attachedBusinessDevelopmentFile.LastModifiedDate}" />	
+						<apex:column value="{!attachedBusinessDevelopmentFile.LastModifiedById}" />
+					</apex:pageBlockTable>
+					</div>			
+					</apex:outputPanel>
+					<apex:outputPanel rendered="{!AttachedBusinessDevelopmentFiles.size == 0}">
+						<apex:outputText value="No records to display"/><br/><br/>
+					</apex:outputPanel>	
+					<apex:outputText value="Attachment"/><apex:inputFile id="businessDevelopmentAttachment" value="{!businessDevelopmentAttach.Body}" contentType="{!businessDevelopmentAttach.ContentType}" fileName="{!businessDevelopmentAttach.Name}" onchange="fileChosen('{!$Component.cmdBusinessDevelopmentAttachment}', this, '{!$Component.overrideBusinessDevelopmentName}'); return false;"/>
+					<apex:inputText id="overrideBusinessDevelopmentName" value="{!overrideBusinessDevelopmentAttachmentName}"  maxlength="80" html-placeholder="Override File Name" styleclass="attachNewFile"/>
+					<apex:commandButton id="cmdBusinessDevelopmentAttachment" value="Attach" action="{!saveBusinessDevelopmentAttachment}" styleclass="attachNewFile"/><br/>						
+				</apex:pageBlock>	
+		
+				<apex:pageBlock title="Approved Subs" rendered="{!mode == ''}">
+					<apex:pageBlockButtons location="top"><apex:commandButton value="New Approved Sub" action="{!createNewApprovedSub}"/></apex:pageBlockButtons>
+					<apex:outputPanel rendered="{!approvedSubs.size > 0}">
+					<apex:pageBlockTable value="{!approvedSubs}" var="approvedSub">
+						<apex:column style="width:80px" headervalue="Action">
+						<apex:commandLink style="color:#015ba7;" action="{!URLFOR($Action.Approved_Sub__c.edit, approvedSub.Id, ['retURL'='/apex/ECO_AgreementView?Id='&msaAgreement.Id])}">Edit</apex:commandLink><apex:outputText value=" | "/>
+						<apex:commandLink style="color:#015ba7;" action="{!URLFOR($Action.Approved_Sub__c.delete, approvedSub.Id, ['retURL'='/apex/ECO_AgreementView?Id='&msaAgreement.Id])}" onclick="return window.confirm('Are you sure?');">Del</apex:commandLink></apex:column>
+						<apex:column headervalue="Name"><apex:outputField value="{!approvedSub.Account__r.Name}"/></apex:column>					
+ 						<apex:column headervalue="Role"><apex:outputField value="{!approvedSub.Role__c}"/></apex:column> 
+						<apex:column headervalue="Contact Name"><apex:outputField value="{!approvedSub.Contact_Name__c}"/></apex:column>					
+						<apex:column headervalue="Phone"><apex:outputField value="{!approvedSub.Phone__c}"/></apex:column>
+						<apex:column headervalue="Email"><apex:outputField value="{!approvedSub.Email__c}"/></apex:column>
+					</apex:pageBlockTable>		
+					</apex:outputPanel>
+					<apex:outputPanel rendered="{!approvedSubs.size == 0}">
+						<apex:outputText value="No records to display"/>
+					</apex:outputPanel>			
+				</apex:pageBlock>
+				
+				<apex:pageBlock title="MSA Teaming Partners" rendered="{!mode == ''}">
+					<apex:pageBlockButtons location="top"><apex:commandButton value="New MSA Team Partner" action="{!createNewMSATeamingPartner}"/></apex:pageBlockButtons>
+					<apex:outputPanel rendered="{!msaTeamingPartners.size > 0}">
+					<apex:pageBlockTable value="{!msaTeamingPartners}" var="msaTeamingPartner">
+						<apex:column style="width:80px" headervalue="Action">
+						<apex:commandLink style="color:#015ba7;" action="{!URLFOR($Action.MSA_Teaming_Partner__c.edit, msaTeamingPartner.Id, ['retURL'='/apex/ECO_AgreementView?Id='&msaAgreement.Id])}">Edit</apex:commandLink><apex:outputText value=" | "/>
+						<apex:commandLink style="color:#015ba7;" action="{!URLFOR($Action.MSA_Teaming_Partner__c.delete, msaTeamingPartner.Id, ['retURL'='/apex/ECO_AgreementView?Id='&msaAgreement.Id])}" onclick="return window.confirm('Are you sure?');">Del</apex:commandLink></apex:column>
+						<apex:column headervalue="Name"><apex:outputField value="{!msaTeamingPartner.Account__r.Name}"/></apex:column>					
+						<apex:column headervalue="Role"><apex:outputField value="{!msaTeamingPartner.Role__c}"/></apex:column>
+						<apex:column headervalue="Contact Name"><apex:outputField value="{!msaTeamingPartner.Contact_Name__c}"/></apex:column>					
+						<apex:column headervalue="Phone"><apex:outputField value="{!msaTeamingPartner.Phone__c}"/></apex:column>
+						<apex:column headervalue="Email"><apex:outputField value="{!msaTeamingPartner.Email__c}"/></apex:column>
+				</apex:pageBlockTable>		
+				</apex:outputPanel>
+				
+				<apex:outputPanel rendered="{!msaTeamingPartners.size == 0}">
+					<apex:outputText value="No records to display"/>
+				</apex:outputPanel>	
+				</apex:pageBlock>	
+				
+				<apex:pageBlock title="Contract Billing Rates" rendered="{!mode == ''}">
+					<apex:pageBlockButtons location="top"><apex:commandButton value="Edit Bill Rates" action="{!editBillingRates}"/></apex:pageBlockButtons>
+					<apex:outputPanel rendered="{!billingRates.size > 0}">
+					<apex:pageBlockTable value="{!billingRates}" var="billingRate">
+						<apex:column headervalue="Year">
+						<apex:outputText value="{0, number, 0000}"><apex:param value="{!billingRate.Year__c}"/></apex:outputText></apex:column>					
+						<apex:column headervalue="Labor Category"><apex:outputField value="{!billingRate.LaborCategory__c}"/></apex:column>
+						<apex:column headervalue="Bill Rate"><apex:outputField value="{!billingRate.BillRate__c}"/></apex:column>
+				</apex:pageBlockTable>		
+				</apex:outputPanel>
+				
+				<apex:outputPanel rendered="{!billingRates.size == 0}">
+					<apex:outputText value="No records to display"/>
+				</apex:outputPanel>	
+				</apex:pageBlock>			
+						
+				<apex:pageBlock title="Other Direct Costs" rendered="{!mode == ''}">
+					<apex:pageBlockButtons location="top"><apex:commandButton value="New Other Direct Cost" action="{!createNewOtherDirectCosts}"/></apex:pageBlockButtons>
+					<apex:outputPanel rendered="{!otherDirectCosts.size > 0}">
+						<apex:pageBlockTable value="{!otherDirectCosts}" var="otherDirectCost">
+							<apex:column style="width:80px" headervalue="Action">
+							<apex:commandLink style="color:#015ba7;" action="{!URLFOR($Action.OtherDirectCost__c.edit, otherDirectCost.Id, ['retURL'='/apex/ECO_AgreementView?Id='&msaAgreement.Id])}">Edit</apex:commandLink><apex:outputText value=" | "/>
+							<apex:commandLink style="color:#015ba7;" action="{!URLFOR($Action.OtherDirectCost__c.delete, otherDirectCost.Id, ['retURL'='/apex/ECO_AgreementView?Id='&msaAgreement.Id])}" onclick="return window.confirm('Are you sure?');">Del</apex:commandLink></apex:column>
+							<apex:column headervalue="Type"><apex:outputField value="{!otherDirectCost.Type__c}"/></apex:column>					
+ 							<apex:column headervalue="Markup"><apex:outputField value="{!otherDirectCost.Markup__c}"/></apex:column> 
+							<apex:column headervalue="Allowable"><apex:outputField value="{!otherDirectCost.Allowable__c}"/></apex:column>
+						</apex:pageBlockTable>
+					</apex:outputPanel>
+				<apex:outputPanel rendered="{!otherDirectCosts.size == 0}">
+						<apex:outputText value="No records to display"/>
+				</apex:outputPanel>		
+				</apex:pageBlock>
+				
+				<apex:pageBlock title="Meeting Minutes" rendered="{!mode == ''}">
+					<apex:outputPanel rendered="{!AttachedMeetingMinutesFiles.size > 0}">
+						<apex:inputHidden value="{!msaAgreement.MeetingMinutesAttachment__c}"/>
+						<div class="fileList">
+						<apex:pageBlockTable value="{!AttachedMeetingMinutesFiles}" var="attachedMeetingMinutesFile" style="width: 825px;">
+							<apex:column headerValue="File Name">
+								<apex:outputLink value="{!URLFOR($Action.Attachment.Download, attachedMeetingMinutesFile.Id)}" target="_blank">
+									<apex:outputText value="{!attachedMeetingMinutesFile.Name}" />
+								</apex:outputLink>
+							</apex:column>
+							<apex:column value="{!attachedMeetingMinutesFile.ContentType}" headervalue="Content Type"/>	
+							<apex:column value="{!attachedMeetingMinutesFile.LastModifiedDate}" headervalue="Last Modified Date"/>	
+							<apex:column value="{!attachedMeetingMinutesFile.LastModifiedById}" headervalue="Last Modified By"/>
+						</apex:pageBlockTable>
+						</div>			
+					</apex:outputPanel>
+					<apex:outputPanel rendered="{!AttachedMeetingMinutesFiles.size == 0}">
+						<apex:outputText value="No records to display"/><br/><br/>
+					</apex:outputPanel>	
+					<apex:outputText value="Attachment"/><apex:inputFile id="meetingMinutesAttachment" value="{!meetingMinutesAttach.Body}" contentType="{!meetingMinutesAttach.ContentType}" fileName="{!meetingMinutesAttach.Name}" onchange="fileChosen('{!$Component.cmdMeetingMinutesAttachment}', this, '{!$Component.overrideMeetingMinutesName}'); return false;"/>
+					<apex:inputText id="overrideMeetingMinutesName" value="{!overrideMeetingMinutesAttachmentName}"  maxlength="80" html-placeholder="Override File Name" styleclass="attachNewFile"/>
+					<apex:commandButton id="cmdMeetingMinutesAttachment" value="Attach" action="{!saveMeetingMinutesAttachment}" styleclass="attachNewFile"/><br/>								
+				
+				</apex:pageBlock>
+				
+		
+				<apex:pageBlock title="Program Notes" rendered="{!mode == ''}">
+					<apex:pageBlockButtons location="top"><apex:commandButton value="New Note" action="{!createNewNote}"/></apex:pageBlockButtons>
+					<apex:outputPanel rendered="{!notes.size > 0}">			
+						<apex:pageBlockTable value="{!notes}" var="note">
+							<apex:column headervalue="Title" value="{!note.Title}"/>
+							<apex:column headervalue="Body" value="{!note.Body}"/>		
+						</apex:pageBlockTable>
+					</apex:outputPanel>
+					<apex:outputPanel rendered="{!notes.size == 0}">
+						<apex:outputText value="No records to display"/><br/><br/>
+					</apex:outputPanel>	
+				</apex:pageBlock>		-->
+				
+			</apex:outputPanel>			
+		
+		
+		</apex:outputPanel>
+
+	</div>
+
+</apex:component>

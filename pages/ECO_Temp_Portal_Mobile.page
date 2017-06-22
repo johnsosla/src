@@ -1,0 +1,870 @@
+<apex:page docType="html-5.0" manifest="/apex/ECO_Temp_Portal_Mobile_CacheManifest" applyBodyTag="false" controller="ECO_Temp_Portal_MobileController" showheader="false" sidebar="false" standardStylesheets="false" action="{!redirect}" id="portalMobileTemplate">
+    
+    <!-- <CoveoSolutions:CoveoJsSearch stylesheet="CoveoFullSearch.css" debug="true" /> -->
+   
+    
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+    
+    <!-- css3-mediaqueries.js for IE less than 9 -->
+    <!--[if lt IE 9]>
+    <script src="https://css3-mediaqueries-js.googlecode.com/svn/trunk/css3-mediaqueries.js"></script>
+    <![endif]-->
+
+    <apex:stylesheet value="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/css/ECO_PortalSpecificCSS.css')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/css/bootstrap.min.css')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/css/font-awesome.min.css')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/css/gallery.prefixed.css')}" />
+    <!-- <apex:stylesheet value="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/css/morris.min.css')}" /> -->
+    <apex:stylesheet value="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/css/nifty.css')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.ECO_SmartSearchStyles)}" /> 
+
+    <style>
+        @media (max-width:768px), handheld and (orientation: portrait){
+        body .aside .boxed .hidden-xs{
+        display:none !important;
+        }
+        }
+        body ul li, body ol li{
+        margin-left:0;
+        }
+        /* NEWSFEED AND TICKER FIX 
+        .h1, .h2, .h3, .h4, .h5, .h6, h1, h2, h3, h4, h5, h6 {
+            margin: 0;          
+            display: inline;
+        }*/
+       
+    </style>
+
+    
+    <style>
+        /* TO BE MERGED INTO NIFTY.CSS */
+        .searchResultGutter{
+            width:4.3333333%;
+        }
+      
+        @media screen and (max-width:767px){
+            /*.resultTotal{
+                margin-left:-50px;
+            }
+            .resultsModules{
+                margin-left:0;
+            }
+            .facetCol{
+                margin-left:-50px;
+            }
+            .resultsCol{
+                width:100%;
+                margin-left:-50px;
+            }*/
+        }
+
+
+        /* NEW ADDITIONS FOR STANDARD SCROLL BAR - ANDREW SMITH - 7/16/2015 */
+      .myProjectsPortfolio {
+        height:0;
+      }
+      #mainnav-container{
+        overflow-y:scroll;
+        overflow-x:hidden;
+        direction:rtl;
+        margin-top:50px;
+        padding-top:0;
+        margin-bottom:0 !important;
+        height:auto !important;
+        min-height: 100px !important;
+        background-color:#00729d;
+      }
+      #mainnav{
+        direction:ltr;
+        height:auto !important;
+      }
+      #mainnav .brand-text{
+        width:195px !important;
+      }
+      #mainnav-menu-wrap{
+        margin: 0 !important;
+        padding:0 !important;
+      }
+      .brand-text{
+        font-size: 14px;
+        font-weight: 600;
+        text-transform: uppercase;
+      }
+      .editReports .fa-cog{
+        color:#adb3b8;
+      }
+      .myProjectsPortfolio{
+        height:125px;
+      }
+
+      /* NEWSFEED SIZE FIX  - TOM SMALARA - 12/4/2015 */
+      div#newsFeed h2{
+        font-size: 11.5px !important;         
+            display: inline;
+            margin: 0;      
+      }
+      h4#tickerHeader{                 
+            /*display: inline;*/
+            margin: 0;      
+      }
+
+    </style>
+                        
+    <apex:insert name="head" />
+
+    <!-- This is where I am storing all of the modals -->
+            <div class="modal fade" id="modalAlerts" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                            <h4 class="modal-title" id="myModalLabel">{!$Label.ECOPortalAlerts}</h4>
+                        </div>
+                        
+                        <div class="modal-body">
+                            <table class="table table-striped table-hover">
+                                <thead> 
+                                    <tr>
+                                    <th>{!$Label.ECOPortalProjectNo}</th>
+                                    <th>{!$Label.ECOPortalProjectName}</th>
+                                    <th>{!$Label.ECOPortalAlert}</th>
+                                    <th>{!$Label.ECOPortalResponse}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <apex:repeat value="{!alerts}" var="alert" >
+                                    
+                                        <tr>
+                                            <td><a href="{!alert.LinkToRecord__c}"><apex:outputText value="{!alert.Project_Number__c}" /></a></td>
+                                            <td><a href="{!alert.LinkToRecord__c}"><apex:outputField value="{!alert.Subject__c}" /></a></td>
+                                            <td><apex:outputField value="{!alert.LongDescriptionMaxLength__c}" /></td>
+                                            <td><apex:outputText value="Comment" /></td>
+                                        </tr>                                       
+
+                                    </apex:repeat>
+                                    <apex:outputPanel rendered="{!alerts.size = 0}" layout="none">
+                                        <tr>
+                                            <td colspan="5" style="text-align:center;"><h3>{!$Label.ECOPortalNoAlerts}</h3></td>
+                                        </tr>
+                                    </apex:outputPanel>
+                                </tbody>
+                            </table>
+                            
+                            <div class="tempAlert">
+                                {!$Label.ECOPortalApprovalMessage}
+                            </div>
+
+                        </div>
+                        
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-primary" data-dismiss="modal">{!$Label.ECOOK}</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal fade" id="modalTasks" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                            <h4 class="modal-title" id="myModalLabel">{!$Label.ECOPortalTasks}</h4>
+                        </div>
+                        
+                        <div class="modal-body">
+
+                            <table class="table table-striped table-hover">
+                                <thead>
+                                    <tr>
+                                    <th>{!$Label.ECOPortalProjectNo}</th>
+                                    <th>{!$Label.ECOPortalRelatedto}</th>
+                                    <th>{!$Label.ECOPortalSubject}</th>
+                                    <th>{!$Label.ECOPortalDueDate}</th>
+                                    <th>{!$Label.ECOPortalPriority}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <apex:repeat value="{!tasks}" var="task" >
+                                    
+                                        <tr>
+                                            <td><a href="/{!task.id}"><apex:outputField value="{!task.Subject}" /></a></td>
+                                            <td><a href="/{!task.id}"><apex:outputField value="{!task.What.Name}" /></a></td>
+                                            <td><apex:outputField value="{!task.Subject}" /></td>
+                                            <td><apex:outputField value="{!task.ActivityDate}" /></td>
+                                            <td><apex:outputField value="{!task.Priority}" /></td>
+                                        </tr>
+
+                                    </apex:repeat>
+
+                                    <apex:outputPanel rendered="{!tasks.size = 0}" layout="none">
+                                        <tr>
+                                            <td colspan="5" style="text-align:center;"><h3>{!$Label.ECOPortalNoTasks}</h3></td>
+                                        </tr>
+                                    </apex:outputPanel>
+
+                                </tbody>
+                            </table>
+
+                        </div>
+                        
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-primary" data-dismiss="modal">{!$Label.ECOOK}</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal fade" id="modalApprovals" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                            <h4 class="modal-title" id="myModalLabel">{!$Label.ECOPortalApprovals}</h4>
+                        </div>
+                        
+                        <div class="modal-body">
+
+                            <table class="table table-striped table-hover displayNone">
+                                <thead>
+                                    <tr>
+                                    <th>{!$Label.ECOPortalProjectNo}</th>
+                                    <th>{!$Label.ECOPortalProjectName}</th>
+                                    <th>{!$Label.ECOPortalType}</th>
+                                    <th>{!$Label.ECOPortalAlert}</th>
+                                    <th>{!$Label.ECOPortalRequestInfo}</th>
+                                    <th>{!$Label.ECOPortalApprove}</th>
+                                    <th>{!$Label.ECOPortalReject}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <apex:repeat value="{!approvals}" var="approval" >
+                                    
+                                        <tr>
+                                            <td></td>
+                                            <td><a href="#"><apex:outputField value="{!approval.ProcessInstance.TargetObject.Name}" /></a></td>
+                                            <td></td>
+                                            <td><apex:outputField value="{!approval.ProcessInstance.Status}" /></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                        </tr>
+
+                                    </apex:repeat>
+
+                                    <apex:outputPanel rendered="{!approvals.size = 0}" layout="none">
+                                        <tr>
+                                            <td colspan="7" style="text-align:center;"><h3>{!$Label.ECOPortalNoApprovals}</h3></td>
+                                        </tr>
+                                    </apex:outputPanel>
+
+                                </tbody>
+                            </table>
+
+                            <div class="tempAlert">
+                                {!$Label.ECOPortalApprovalMessage}
+                            </div>
+
+                        </div>
+                        
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-primary" data-dismiss="modal">{!$Label.ECOOK}</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- End Modal Storage -->
+        
+        
+            <apex:pageMessages id="pageMessages" />
+            
+            <apex:form id="theForm" >   
+                <apex:actionFunction name="goToReportsBuilder" action="{!goToReportBuilder}" />
+                <apex:actionFunction name="goToApplicationConfiguration" action="{!goToApplicationConfiguration}" />
+                <apex:actionFunction name="goToNewProject" action="{!goToNewProject}" />
+                <apex:actionFunction name="goToNewOpportunity" action="{!goToNewOpportunity}" />
+
+            </apex:form>
+
+
+    <div id="container" class="aside effect mainnav-lg">
+        
+        <!-- 
+           TOP NAVBAR: EcoSystemAllCaps, links for modal windows, outlook, new project, 
+                      new opportunity, icons for portal home, smart search, dropdown for sso and logout
+        -->
+        <!--===================================================-->
+        <header id="navbar">
+            <div id="navbar-container" class="boxed">
+
+                <!--Brand logo & name-->
+                <!--================================-->
+                <div class="navbar-header">
+                   <!-- <a style="cursor:default;" class="navbar-brand">
+                        <img src="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/img/loader.gif')}" data-original="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/img/my-aecom-apps.jpg')}" class="brand-icon lazy" />
+                        <div class="brand-title" style="padding:0; margin:0; width:100%;">
+                            <span class="brand-text">SELECTED APPS</span>
+                        </div>
+                    </a> -->
+                </div>
+                <!--================================-->
+                <!--End brand logo & name-->
+
+                <!--Navbar Dropdown-->
+                <!--================================-->
+                <div class="navbar-content clearfix">
+                    <ul class="nav navbar-top-links pull-left">
+
+                        <!--Navigation toogle button  ALL OUT EXCEPT MOBILE
+                        <li class="btn-hover-info add-tooltip hidden-xs" data-placement="bottom" data-toggle="tooltip" data-original-title="{!$Label.ECOPortalExpandApp}">
+                            <a class="mainnav-toggle" href="#">
+                                <i class="fa fa-th fa-lg"></i>
+                            </a>
+                        </li>
+                        -->
+                        <li class="toggleMainNav visible-xs">
+                            <a class="mainnav-toggle" href="#">
+                                <i class="fa fa-th fa-lg"></i>
+                                <!-- <img src="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/img/icn_apps.png')}" /><br /> -->
+                            </a>
+                        </li>
+                        <!--End Navigation toogle button-->
+
+
+                        <!--Alerts Modal-->
+                        <!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+                        <li class="btn-hover-info hidden-xs" data-placement="bottom" data-original-title="{!$Label.ECOPortalAlerts}">
+                            <a onclick="$('#modalAlerts').modal('show')" style="cursor:pointer;">
+                                <i class="fa fa-warning fa-lg"></i><br />
+                                <!-- <img src="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/img/icn_alert.png')}" /><br /> -->
+                                <div class="menuText">{!$Label.ECOPortalAlerts}</div>
+                                <apex:outputPanel layout="block" styleClass="badge badge-header badge-danger" rendered="{!alerts.size > 0}">
+                                    <apex:outputText value="{!alerts.size}" />
+                                </apex:outputPanel>
+                            </a>
+                        </li>
+
+                        <!--Task Modal -->
+                        <!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+                        <li class="btn-hover-info hidden-xs" data-placement="bottom" data-original-title="{!$Label.ECOPortalTasks}">
+                            <a onclick="$('#modalTasks').modal('show')" style="cursor:pointer;">
+                                <i class="fa fa-tasks fa-lg"></i><br />
+                                <!-- <img src="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/img/icn_task.png')}" /><br /> -->
+                                <div class="menuText">{!$Label.ECOPortalTasks}</div>
+                                <apex:outputPanel layout="block" styleClass="badge badge-header badge-danger" rendered="{!tasks.size > 0}">
+                                    <apex:outputText value="{!tasks.size}" />
+                                </apex:outputPanel>
+                            </a>
+                        </li>
+
+                        <!--Approval Modal -->
+                        <!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+                        <li class="btn-hover-info hidden-xs" data-placement="bottom" data-original-title="{!$Label.ECOPortalApprovals}">
+                            <a onclick="$('#modalApprovals').modal('show')" style="cursor:pointer;">
+                                <i class="fa fa-check-square fa-lg"></i><br />
+                                <!-- <img src="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/img/icn_approval.png')}" /><br /> -->
+                                <div class="menuText">{!$Label.ECOPortalApprovals}</div>
+                                <apex:outputPanel layout="block" styleClass="badge badge-header badge-danger" rendered="{!approvals.size > 0}">
+                                    <apex:outputText value="{!approvals.size}" />
+                                </apex:outputPanel>
+                            </a>
+                        </li>
+
+
+                        <li class="btn-hover-info hidden-xs" data-placement="bottom" data-original-title="{!$Label.ECOPortalOutlook}">
+                            <a href="outlook:Inbox" style="cursor:pointer; padding:0 37px;">
+                                <i class="fa fa-envelope fa-lg"></i><br />
+                                <!-- <img src="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/img/icn_outlook.png')}" /><br /> -->
+                                <div class="menuText">{!$Label.ECOPortalOutlook}</div>
+                            </a>
+                        </li>
+
+                        <li class="dropdown hidden-xs" style="margin:0 5px;">
+                            
+                            <button type="button" data-target="#newProjectModal" data-toggle="modal" class="btn btn-primary" style="margin:12px 0 0 0;">{!$Label.ECOPortalProject}</button>
+
+
+                            <div class="modal fade" id="newProjectModal" tabindex="0" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        {!$Label.ECOPortalProjectMessage}
+                                    </div>
+                                </div>
+                            </div>
+
+                        </li>
+
+                        <li class="dropdown hidden-xs">
+                            <button type="button" class="btn btn-success" onclick="goToNewOpportunityWithPermCheck();" style="margin:12px 0 0 0;" >{!$Label.ECOPortalOpportunity}</button>
+                        </li>
+
+                    </ul>
+
+                    
+
+                    <ul class="nav navbar-top-links pull-right">
+                        <!--User dropdown-->
+                        <!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+
+                        <!-- SmartSearch Search Bar -->
+                        <!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+                        <li class="hidden-xs">
+                           <script type="text/javascript">  
+                                function doSmartSearch() {
+                                    var fullurl = "/apex/ECO_SmartSearch#q=";
+                                    var query= document.getElementById("smartsearch").value;
+                                    var newurl = fullurl + query + "&t=All&sort=relevancy";
+                                    var win = window.open(newurl, '_self');
+                                    win.focus();
+                                }                        
+
+                            </script>
+                            <div class="coveo-search-section hidden-sm hidden-xs ecoFrameSearch">
+                                <div class="coveo-searchBox-column">
+                                    <div class="coveo-search-section-wrapper">
+                                        <div id="headerSearchBox">
+                                            <div id="searchBox">
+                                                <input type="search" id="smartsearch" placeholder="SmartSearch" class="CoveoQueryBox" data-placeholder-submit="false" data-placeholder-bound="false" onkeypress="if(event.keyCode==13){doSmartSearch();return false;}"/><span type="button" class="CoveoSearchButton" id='CoveoSearchButton' data-placeholder-submit="false" data-placeholder-bound="false" onclick='doSmartSearch();'>Go</span> 
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                           
+                        </li>
+                        
+                        <li class="hidden-xs" data-placement="bottom" data-original-title="{!$Label.ECOPortalHome}">
+                            <a href="/apex/ECO_Portal">
+                                <img src="{!URLFOR($Resource.ECO_SmartSearchAssets, 'ss_homeIcon.png')}" /><br />
+                                <div class="menuText">Home</div>
+                            </a>
+                        </li>
+                        <!-- out entirely for now 7/15/2015 - ANDREW SMITH
+                        <li class="hidden-xs" data-placement="bottom" data-original-title="{!$Label.ECOPortalSmartSearch}">
+                            <a href="/apex/ECO_SmartSearch">
+                                <img src="{!URLFOR($Resource.ECO_SmartSearchAssets, 'ss_searchIcon.png')}" /><br />
+                                <div class="menuText">Smart Search</div>
+                            </a>
+                        </li>-->
+                        
+
+                        <li class="add-tooltip visible-xs" data-placement="bottom" data-toggle="tooltip" data-original-title="{!$Label.ECOPortalHome}">
+                            <a href="/apex/ECO_Portal">
+                                <img src="{!URLFOR($Resource.ECO_SmartSearchAssets, 'ss_homeIcon.png')}" />
+                            </a>
+                        </li>
+                        <li class="add-tooltip" data-placement="bottom" data-toggle="tooltip" data-original-title="{!$Label.ECOPortalSmartSearch}">
+                            <a href="/apex/ECO_SmartSearch">
+                                <img src="{!URLFOR($Resource.ECO_SmartSearchAssets, 'ss_searchIcon.png')}" />
+                                <div class="menuText">Search</div>
+                            </a>
+                        </li>
+
+                        <li class="hidden-xs AWAN" data-placement="bottom" data-original-title="{!$Label.ECOPortalHelp}" >
+                            <a href="http://my.aecomnet.com/Intranet/About/Delivery%20Excellence/Ecosystem/Training" target="_blank">
+                                <i class="fa fa-question-circle"></i><br />
+                                <!-- <img src="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/img/icn_help.png')}" /><br /> -->
+                                <div class="menuText">{!$Label.ECOPortalHelp}</div>
+                            </a>
+                        </li>
+
+                        <li id="dropdown-user" class="dropdown">
+                            <a href="#" data-toggle="dropdown" class="dropdown-toggle text-right">
+                                <span class="pull-right">
+                                    <apex:image value="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/img/loader.gif')}" html-data-original="{!photoUrl}" styleClass="img-circle img-user media-object lazy"/>
+                                    
+                                </span>
+                               <div class="username visible-lg"><strong>
+                               <apex:outputText value="{!theHeaderUser.Name}'s" />
+                               </strong> {!$Label.Ecosystem}</div>
+                            </a>
+
+                            <div class="dropdown-menu dropdown-menu-md dropdown-menu-right with-arrow panel-default">
+
+                                <!-- Dropdown heading  -->
+                                <div class="pad-all bord-btm">
+                                    You are logged in as: <strong>
+                                    Username
+                                    <!-- NEEDS TO BE IN CONTROLLER
+                                    <apex:outputText value="{!theUser.Name}" />
+                                    -->
+                                    </strong>
+                                </div>
+
+
+                                <!-- User dropdown menu -->
+                                <ul class="head-list">
+                                    <li>
+                                        <a href="/_ui/core/userprofile/UserProfilePage?tab=sfdc.ProfilePlatformFeed" target="_profilePage">
+                                            <i class="fa fa-user fa-fw fa-lg"></i> Profile
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="/ui/setup/Setup?setupid=PersonalSetup" target="_settingsPage">
+                                            <i class="fa fa-gear fa-fw fa-lg"></i> Settings
+                                            <!-- <img src="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/img/icn_gear.png')}" /> Settings -->
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="https://aecom.okta.com/" target="_ssoPage">
+                                            <i class="fa fa-gear fa-fw fa-lg"></i> {!$Label.ECOSSO}
+                                        </a>
+                                    </li>
+                                </ul>
+
+                                <!-- Dropdown footer -->
+                                <div class="pad-all text-right">
+                                    <a href="https://aecom--ecosysdev.cs15.my.salesforce.com/secur/logout.jsp" class="btn btn-primary">
+                                        <i class="fa fa-sign-out fa-fw"></i> Logout
+                                    </a>
+                                </div>
+                            </div>
+                        </li>
+                        <!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+                        <!--End user dropdown-->
+
+                        <li class="logo" style="padding:12px 15px 0 8px;">
+                            <img src="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/img/loader.gif')}" data-original="{!URLFOR($Resource.ECO_CustomGraphicAssets, 'AECOMLogo.jpg')}" height="25px" class="hidden-xs lazy" />
+                            <img src="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/img/loader.gif')}" data-original="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/img/EcosystemMark.jpg')}" class="visible-xs lazy" height="25px" />
+                        </li>
+
+                    </ul>
+                </div>
+                <!--================================-->
+                <!--End Navbar Dropdown-->
+
+            </div>
+        </header>
+        <!--===================================================-->
+        <!--END NAVBAR-->
+
+        <div class="boxed">
+
+            <!--CONTENT CONTAINER-->
+            <!-- 
+               Contains the following:
+                 1) show/hide reports button and ticker messages
+                 2) followed by news feed and chatter
+                 3) followed by projects portfolio 
+                 4) followed by graphs 
+            -->
+            <apex:insert name="mainContent" />
+            <!--===================================================-->
+            
+            <apex:outputPanel rendered="{!IF(OR($CurrentPage.Name == 'ECO_Portal_Mobile',$CurrentPage.Name == 'eco_portal_mobile',$CurrentPage.Name == 'ECO_SmartSearch'),true,false)}">
+                <!--AECOM APPS: Edit and List all apps-->
+                <!--===================================================-->
+                <nav id="mainnav-container">
+                    <div id="mainnav" >
+
+                        <!--Menu-->
+                        <!--================================-->
+                        <div id="mainnav-menu-wrap">
+
+                                <div class="mainnav-height"> <!-- took out classes:  ui-widget-content hoverscroll vertical" style="height:85vh !important;" -->
+                                    <!-- THIS OUT FOR NOW 3/20/2015, FOR APP SCROLLING <div class="fixed-listcontainer"> -->
+                                        <ul id="mainnav-menu" class="list-group">
+
+                                            <li class="visible-xs showAllApps">
+                                                <a href="#">
+                                                    <div class="media-left">
+                                                        <i class="fa fa-eye" style="font-size:33px; padding-left:1px;"></i>
+                                                        <!-- <img src="{!URLFOR($Resource.ECO_SmartSearchAssets, 'icn_reports.png')}" /><br /> -->
+                                                    </div>
+                                                    <div class="media-body menu-title showHideSwap visible-xs" style="height:35px;">
+                                                        Show Non-Mobile Applications
+                                                    </div>
+                                                    <div class="media-body menu-title showHideSwap hidden-xs" style="height:35px;">
+                                                        Hide Non-Mobile Applications
+                                                    </div>
+                                                </a>
+                                            </li>
+
+
+                                            <li class="visible-lg">
+                                                <div class="navbar-header">
+                                                   <a style="cursor:default;" class="navbar-brand">
+                                                        <div class="brand-title" style="padding:0; margin:0; width:100%;">
+                                                            <span class="brand-text">{!$Label.ECOAppCusSelectedApplications}</span>
+                                                        </div>
+                                                    </a>
+                                                </div>
+                                            </li>
+
+
+                                            <li class="editApps">
+                                                <a href="#" onclick="goToApplicationConfiguration();">
+                                                    <div class="media-left">
+                                                        <i class="fa fa-cog" style="font-size:33px; padding-left:1px;"></i>
+                                                        <!-- <img src="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/img/icn_gear.png')}" /> -->
+                                                    </div>
+                                                    <div class="media-body menu-title" style="height:35px;">
+                                                        {!$Label.ECOEditAecomApps} 
+                                                    </div>
+                                                </a>
+                                            </li>
+
+                                            <apex:repeat value="{!applications}" var="app" >
+                                                <apex:outputPanel rendered="{!!app.IsHidden__c}" layout="none">
+                                                    <li class="{!app.Application__r.NetworkRequirement__c} {!IF(app.Application__r.MobileEnabled__c, '', 'hiddenOnMobile')} anApplication">
+                                                        <a target="_blank" href="{!app.Application__r.ApplicationURL__c}">
+                                                            <div class="media-left">
+                                                                <apex:image value="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/img/loader.gif')}" html-data-original="{!URLFOR($Resource.ECO_CustomGraphicAssets, app.Application__r.ImageName__c)}" styleClass="lazy" width="33px" height="33px" />
+                                                            </div>
+                                                            <div class="media-body menu-title" style="height:35px;">
+                                                                <apex:outputText value="{!$Label[app.Application__r.ApplicationName__c]}" />
+                                                            </div>
+                                                        </a>
+                                                        
+                                                    </li>
+                                                </apex:outputPanel>
+                                            </apex:repeat>
+
+                                        </ul>
+                                </div>
+
+                        </div>
+                        <!--================================-->
+                        <!--End menu-->
+
+                    </div>
+                </nav>
+                <!--===================================================-->
+                <!--END MAIN NAVIGATION-->
+            </apex:outputPanel>
+
+            <apex:insert name="rightNav" />
+
+        
+
+
+        <!-- FOOTER -->
+        <!--===================================================-->
+        <footer id="footer">
+            <div class="hide-fixed pull-right pad-rgt"></div>
+
+
+            <p class="pad-lft">&#0169; 2015 AECOM</p>
+
+
+        </footer>
+        <!--===================================================-->
+        <!-- END FOOTER -->
+
+
+        </div>
+        <!--===================================================-->
+        <!-- END OF BOXED -->
+
+
+        
+    </div>
+    <!--===================================================-->
+    <!-- END OF CONTAINER -->
+
+    <script>var AWAN_online = false;</script>
+    <script src="{!awanJSPath}"></script>
+    <apex:includeScript value="{!$Resource.ECO_jQuery_1_11_2_min_js}"/>
+    <apex:includeScript value="{!URLFOR($Resource.ECO_jQueryUI_1_11_2, 'jquery-ui.min.js')}" />
+    <apex:includeScript value="{!$Resource.ECO_jQueryUI_TouchPunch}"/>
+    
+    <script src="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/js/jquery.lazyload.min.js')}"></script>
+
+    <script>
+
+        // FOR WHEN PAGE IS LOADED IN AN IFRAME...
+        function isPageInframe(){
+            try {
+                return window.self !== window.top;
+            } catch(e) {
+            return true;
+
+            }
+        }
+        $( document ).ready(function() {
+
+            // IF PAGE IS IN AN IFRAME AND AN IE BROWSER...
+            if(isPageInframe () && (navigator.appName == 'Microsoft Internet Explorer')) { 
+              
+              document.getElementById('navbar-container').style.display="none";
+              document.getElementById('mainnav-container').style.display="none";
+              document.getElementById('SearchBlock').style.padding="0 0 0 10px";
+              document.getElementById('searchResults').style.padding="0 0 0 10px";
+              document.getElementById('blueBlock').style.minHeight="75px";
+              document.getElementById('scopeselector').style.height="30px";
+              document.getElementById('scopeselector').style.backgroundImage="none";
+              document.getElementById('CoveoQueryBox').style.height="30px";
+              document.getElementById('CoveoQueryBox').style.width="100%";
+              document.getElementById('CoveoSearchButton').style.height="30px";
+              document.getElementById('CoveoSearchButton').style.padding="0";
+              document.getElementById('facetColumn').style.margin="0";
+                //There are a few more styles using a Coveo function on ECO_SmartSearch on line 70 that couldn't be reached here.             
+            } 
+            // IF PAGE IS IN AN IFRAME AND NOT AN IE BROWSER AND NOT MOBILE PLATFORM...
+            else if (isPageInframe () && (navigator.appName == 'Netscape') && (navigator.platform !== 'iPhone') && (navigator.platform !== 'iPad') && (navigator.platform !== 'Android') && (navigator.platform !== 'iPhone Simulator') && (navigator.platform !== 'iPad Simulator') && (navigator.platform !== 'Linux armv7l') && (navigator.platform !== 'iPod') && (navigator.platform !== 'iPod touch')){ 
+              // alert(navigator.platform);
+              document.getElementById('navbar-container').style.display="none";
+              document.getElementById('mainnav-container').style.display="none";
+              document.getElementById('SearchBlock').style.padding="0 0 0 10px";
+              document.getElementById('searchResults').style.padding="0 0 0 10px";
+                      };
+            
+        });
+  
+    </script>
+
+    
+    <script>
+        /* Scripts from ECO_Portal */
+        $(function() {
+            $("img.lazy").lazyload({
+                event : "sporty"
+            });
+        });
+
+        $(window).bind("load", function() {
+            var timeout = setTimeout(function() { $("img.lazy").trigger("sporty") }, 500);
+        });   
+
+        $(document).ready(function(){
+            $(".showAllApps").click(function(){
+                $(".hiddenOnMobile").toggle();
+            });
+
+            $(".showAllApps").click(function(){
+                $(".showHideSwap").toggleClass("hidden-xs");
+        });
+
+
+            $(".showAllApps").click(function(){
+              if ($("i").is('.fa-eye')) {
+                $("i.fa-eye").toggleClass("fa-eye-slash");
+              } else {
+                $("i.fa-eye-slash").toggleClass("fa-eye");
+              }
+            });
+            
+            // Plugin used: http://jedfoster.com/Readmore.js, part of ECONiftyResources static resource
+            $('div.nf').readmore({
+              speed: 75,
+              collapsedHeight: 40,
+              moreLink: '<a href="#">{!$Label.ECOPortalMore}</a>',
+              lessLink: '<a href="#">{!$Label.ECOPortalLess}</a>'
+            });
+            
+            // Plugin used: http://tablesorter.com/docs, part of ECONiftyResources static resource
+            $("#projectsTable").tablesorter();
+
+
+            var w_height = $(window).height();
+             var width = $(window).width();
+                $('.mainnav-height').css('height', w_height)
+
+             });
+            // for the window resize
+            $(window).resize(function() {
+                var bodyheight = $(window).height();
+                $('.mainnav-height').css('height', bodyheight);
+        }); 
+
+    </script>
+
+    
+    <apex:includeScript value="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/js/jquery.sparkline.min.js')}" />
+    
+    <script src="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/js/jquery.sparkline.min.js')}"></script>
+    <script src="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/js/bootstrap.min.js')}"></script>
+    <script src="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/js/nifty.min.js')}"></script>
+    <!-- MORRIS.MIN.JS - USED ONLY FOR VISITOR DATA CHART - TOM SMALARA 2015DEC17    
+    <script src="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/js/morris.min.js')}"></script>-->
+    <script src="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/js/raphael.min.js')}"></script>
+    <!-- out for now, this was for scrolling APPs
+    <script src="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/js/jquery.hoverscroll.js')}"></script>
+    <script src="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/js/jquery.simplyscroll.min.js')}"></script>
+    -->
+    <script src="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/js/gauge.min.js')}"></script>
+    <!-- // <script src="{!URLFOR($Resource.ECO_SmartSearchPortal_min_js)}"></script> -->
+    <script src="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/js/ECO_PortalSpecificJS.min.js')}"></script>
+    <script src="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/js/readmore.min.js')}"></script>
+    <script src="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/js/jquery.tablesorter.min.js')}"></script>
+    
+    
+
+    <script>
+        // CLIENT CARE PROGRAM
+        // =================================================================
+        $("#client-care-program").sparkline(["{!$Setup.ECO_Portal_Graph_Settings__c.Client_Care_Promoter__c}", "{!$Setup.ECO_Portal_Graph_Settings__c.Client_Care_Passive__c}", "{!$Setup.ECO_Portal_Graph_Settings__c.Client_Care_Detractor__c}"], {
+            type: 'pie',
+            width: '120',
+            height: '120',
+            tooltipChartTitle: '{!$Label.ECOPortalClientCareProgram}',
+            tooltipFormat: '{{offset:offset}} ({{percent.1}}%)',
+            tooltipValueLookups: {
+                'offset': {
+                    0: '{!$Label.ECOPortalPromoter}',
+                    1: '{!$Label.ECOPortalPassive}',
+                    2: '{!$Label.ECOPortalDetractor}',
+                }
+            },
+            sliceColors: ['#7ad689','#fec311','#fe2d11'],
+        });
+
+        
+
+        // CASE INDICENT RATE (Safety)
+        // =================================================================
+        var opts = {
+            lines: 10, // The number of lines to draw
+            angle: 0, // The length of each line
+            lineWidth: 0.3, // The line thickness
+            pointer: {
+                length: 0.45, // The radius of the inner circle
+                strokeWidth: 0.035, // The rotation offset
+                color: '#231f20' // Fill color
+            },
+            limitMax: 'true', // If true, the pointer will not go past the end of the gauge
+            colorStart: '#59ba47', // Colors
+            colorStop: '#59ba47', // just experiment with them
+            strokeColor: '#ddd', // to see which ones work best for you
+            generateGradient: true
+        };
+
+        var target = document.getElementById('case-incident-rate'); // your canvas element
+        var gauge = new Gauge(target).setOptions(opts); // create sexy gauge!
+        gauge.maxValue = 6; // set max gauge value
+        gauge.animationSpeed = 32; // set animation speed (32 is default value)
+        gauge.set({!$Setup.ECO_Portal_Graph_Settings__c.Incident_Rate_YTD_TCIR__c}); // set actual value
+        gauge.setTextField(document.getElementById("case-incident-rate-txt"));
+
+        // GOOGLE ANALYTICS
+        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){ 
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o), 
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m) 
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga'); 
+
+        ga('create', 'UA-33974532-20', 'auto'); 
+        ga('send', 'pageview'); 
+
+        function goToNewOpportunityWithPermCheck() {
+            var hasOpptyAccess =  {!$ObjectType.Opportunity.accessible};
+            if (!hasOpptyAccess) {
+                alert("{!$Label.ECOPortalNoOppAlert}");
+            } else {
+                goToNewOpportunity();
+            }
+        }
+
+        function showNewProjectMessage() {
+            alert("{!$Label.ECOPortalProjectMessage}");
+        }
+    </script>
+   
+
+</apex:page>

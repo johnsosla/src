@@ -1,0 +1,22 @@
+<apex:component language="{!theLanguage}" controller="nttdcore.DLabelChildController" access="global" ><apex:attribute name="theLanguage" type="String" required="true" description="language" access="global" /><apex:attribute name="theRecipient" type="User" required="true" description="recipient" access="global" /><apex:attribute name="theRelatedTo" type="Delegate__c" required="true" description="related to" access="global" />
+
+<html>
+<style type="text/css" >
+body {font-family: Arial;}
+</style>
+<body><nttdcore:DLabel name="DL1" default="A delegation has been made on behalf of" labelParent="{!this}" componentContext="DelegateSubmittedbyGeoAdmin_1" /><nttdcore:DLabel name="DL2" default="by your Ecosystem Delegation Administrator," labelParent="{!this}" componentContext="DelegateSubmittedbyGeoAdmin_1" /><nttdcore:DLabel name="DL3" default=".  This delegation is now active, or, if future-dated, will become active on the nominated date." labelParent="{!this}" componentContext="DelegateSubmittedbyGeoAdmin_1" /><nttdcore:DLabel name="DL4" default="Please approve or reject this delegation request using the links provided below.  Please note this delegation will become active as noted below, even if you do not approve.  In order to remove/cancel this delegation please Reject below." labelParent="{!this}" componentContext="DelegateSubmittedbyGeoAdmin_1" />
+
+{!dlRoot.dLabel['DL1']} <b> {!theRelatedTo.Delegator__r.firstname} {!theRelatedTo.Delegator__r.lastname}</b> {!dlRoot.dLabel['DL2']} <b>{!theRelatedTo.CreatedBy.name}</b>{!dlRoot.dLabel['DL3']}    <br/><br/>
+
+
+{!dlRoot.dLabel['DL4']}
+
+
+<c:ECO_DelegateOrgStringTable delegateid="{!theRelatedTo.id}" />
+
+
+</body>
+</html>
+
+
+<nttdcore:DLabelInit language="{!theLanguage}" labelParentInit="{!this}" /></apex:component>

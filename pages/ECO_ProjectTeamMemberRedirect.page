@@ -1,0 +1,9 @@
+<apex:page showHeader="true" sidebar="true" standardController="ProjectTeamMember__c" action="{!redirect}" extensions="ECO_ProjectTeamMemberRedirectController">
+
+	<apex:form >
+		<apex:inputHidden value="{!ProjectTeamMember__c.Project__c}"/>
+		<apex:inputHidden value="{!ProjectTeamMember__c.Project__r.IsSystemAdmin__c}"/>
+		<apex:inputHidden value="{!ProjectTeamMember__c.Project__r.pse__Stage__c}"/>
+	</apex:form>
+	
+</apex:page>

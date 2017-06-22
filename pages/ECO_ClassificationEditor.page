@@ -1,0 +1,27 @@
+<apex:page standardcontroller="pse__Proj__c" extensions="ECO_ClassificationEditorController,nttdcore.DLabelParentController" showheader="true" sidebar="true" >
+    <style>
+        .message{
+            background-color: #A2D3F1;
+        }
+    </style>
+    <nttdcore:DLabel labelParent="{!this}" name="DL1" default="Classification Editor" /><apex:sectionHeader title="{!dLabel['DL1']}" subtitle="{!pse__Proj__c.ProjectSectionHeaderName__c}" />
+
+    <apex:form >
+        <apex:pageMessages />
+        <nttdcore:DLabel labelParent="{!this}" name="DL2" default="
+                    Classifications capture the key attributes of a project that are used to support business analytics by our marketing and business line leaders.  The classification fields listed below are configured to the project's primary organization to ensure the selected values accurately capture the relevant project work, market and client information.   Select the appropriate values from the drop down lists that best reflect the primary or overarching attributes of the project.  
+
+                    Identifying project classifications is required prior to syncing the project to Oracle.  Classifications can be changed once the project is in Execution, but this change will require an additional sync to Oracle." /><apex:pageMessage id="headerSummaryMessage" severity="info" escape="false" summary="{!dLabel['DL2']}" />
+        <nttdcore:DLabel labelParent="{!this}" name="DL3" default="Classification Manager" /><apex:pageBlock title="{!dLabel['DL3']}" ><nttdcore:DLabel labelParent="{!this}" name="DL6" default="Oracle Classification" />
+            <apex:pageBlockButtons >
+                <nttdcore:DLabel labelParent="{!this}" name="DL4" default="Save" /><apex:commandButton action="{!SaveClassification}" value="{!dLabel['DL4']}" />
+                <nttdcore:DLabel labelParent="{!this}" name="DL5" default="Return to Project" /><apex:commandButton action="{!Cancel}" value="{!dLabel['DL5']}" />
+            </apex:pageBlockButtons>
+            <apex:pageBlockSection title="{!dLabel['DL6']}" collapsible="false" columns="2" >
+                <apex:repeat value="{!lClassifications}" var="fsmWrap" >
+                        <apex:inputField value="{!oProject[fsmWrap.fsm.fieldPath]}" required="{!OR(fsmWrap.isRequired, fsmWrap.fsm.required, fsmWrap.fsm.dbrequired)}" />
+                </apex:repeat>
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+    </apex:form>    
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

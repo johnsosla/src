@@ -1,0 +1,425 @@
+<apex:component controller="rsProjectController" allowDML="true">
+
+    <!-- <apex:attribute name="rsProfile" assignTo="{!profile}" description="" type="rsProfile" required="true"/>
+
+    <apex:attribute name="reRender" description="" type="String" required="false"/>
+
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h3 class="panel-title has-spinner" id="nonprojectsHeader">{!$Label.Non_AECOM_Projects} &nbsp; <img height="15" width="15" class="spinner" src="{!URLFOR($Resource.rs_bundle, '/images/loading.gif')}" alt="loading" title="loading"/></h3>
+
+            <apex:commandLink value="" styleClass="{!IF(canEdit, '','disabled')} pull-right" reRender="{!reRender}" action="{!newNonAECOMPart}" onclick="if(inProgress) return false; showSectionSpinner('nonprojectsHeader'); setNonProjRequiredFields(); inProgress = true;" oncomplete="resetProgress();focusField('projectNameEditNon');setupFields('new');loadCountry('locationCountryEditNon');stateChange(j$('[id$=locationCountryEditNon]').val(),'StateNon','locationStateEditNon');hidePlaceHolder();" rendered="{!IsListMode && canEdit}">
+                <span title="{!$Label.Add}" class="glyphicon glyphicon-plus"></span>
+            </apex:commandLink>
+        </div>
+        <div class="clearfix"/>
+        <div class="panel-body">
+
+            <!-- Edit Mode Start
+            <apex:outputPanel layout="none" rendered="{!IsEditMode}" id="editPnl"> <!-- && isExistingAECOMProject
+                <table class="table">
+                    <tr>
+                        <td style="border-top:none;">
+                            <apex:outputLabel for="projectNameEditNon" value="{!$ObjectType['PR_Team_Employee__c'].fields['Project_Id__c'].Label}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['PR_Team_Employee__c'].fields['Project_Id__c'].inlineHelpText}"/></apex:outputLabel>
+                        </td>
+                        <td style="border-top:none;">
+                            <div class="rsRequired">
+                                <div class="rsRequiredBlock"/>
+                                <apex:inputText value="{!CurrentProject.ProjectNameEditable}" id="projectNameEditNon" />
+                                <span class="rsError"><br/>{!$ObjectType['PR_Team_Employee__c'].fields['Project_Id__c'].Label} {!$Label.Is_Required}</span>
+                            </div>
+                        </td>
+                        <td style="border-top:none;">
+                            <apex:outputLabel for="projectRoleNon" value="{!$ObjectType['PR_Team_Employee__c'].fields['Project_Role__c'].Label}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['PR_Team_Employee__c'].fields['Project_Role__c'].inlineHelpText}"/></apex:outputLabel>
+                        </td>
+                        <td style="border-top:none;">
+                            <div class="rsRequired">
+                                <div class="rsRequiredBlock"/>
+                                <apex:inputField value="{!CurrentProject.PrObj.Project_Role__c}" id="projectRoleNon" styleClass=""/>
+                                <span class="rsError">{!$Label.Project_Role} {!$Label.Is_Required}</span>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <apex:outputLabel for="clientNameEditableNon" value="{!$Label.Client_Name}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['PR_Team_Employee__c'].fields['Client_Name_Editable__c'].inlineHelpText}"/></apex:outputLabel>
+                        </td>
+                        <td>
+                            <div class="rsRequired">
+                                <div class="rsRequiredBlock"/>
+                                <apex:inputText value="{!CurrentProject.ClientNameEditable}" id="clientNameEditableNon" />
+                                <span class="rsError"><br/>{!$Label.Client_Name} {!$Label.Is_Required}</span>
+                            </div>
+                        </td>
+                        <td width="25%">
+                            <apex:outputLabel for="projectGroupEditNon" value="{!$Label.Project_Group}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['PR_Team_Employee__c'].fields['Project_Group_Editable__c'].inlineHelpText}"/></apex:outputLabel>
+                        </td>
+                        <td width="25%">
+                            <div class="rsRequired">
+                                <div class="rsRequiredBlock"/>
+                                <apex:inputText value="{!CurrentProject.ProjectGroup}" id="projectGroupEditNon" />
+                                <span class="rsError"><br/>{!$Label.Project_Group} {!$Label.Is_Required}</span>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+
+                        <td width="25%">
+                            <apex:outputLabel for="locationCountryEditNon" value="{!$Label.Location_Country}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['PR_Team_Employee__c'].fields['Location_Country_Editable__c'].inlineHelpText}"/></apex:outputLabel>
+                        </td>
+                        <td width="25%">
+                            <div class="rsRequired">
+                                <div class="rsRequiredBlock"/>
+                                <apex:selectList id="locationCountryEditNon" value="{!CurrentProject.locationCountryEditable}" multiselect="false" size="1">
+                                    <apex:actionSupport event="onchange" onsubmit="stateChange(j$('[id$=locationCountryEditNon]').val(),'StateNon','locationStateEditNon');" reRender=""/>
+                                    <apex:selectOption itemValue="" itemLabel="--None--"/>
+                                    <apex:selectOptions value="{!countryList}"/>
+                                </apex:selectList>
+                                <span class="rsError"><br/>{!$Label.Location_Country} {!$Label.Is_Required}</span>
+                            </div>
+                        </td>
+                        <td >
+                            <apex:outputLabel for="DateInvolvementStartedNon" value="{!$Label.Date_Involvement_Started}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['PR_Team_Employee__c'].fields['Date_Involvement_Started__c'].inlineHelpText}"/></apex:outputLabel>
+                        </td>
+                        <td style="width:250px;">
+                            <apex:inputField id="DateInvolvementStartedNon" value="{!CurrentProject.Obj['Date_Involvement_Started__c']}" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <apex:outputLabel for="locationStateEditNon" value="{!$Label.Location_State_Province} " styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['PR_Team_Employee__c'].fields['Location_State_Prov_Emirate_Editable__c'].inlineHelpText}"/></apex:outputLabel>
+                        </td>
+
+                        <td>
+                            <apex:inputHidden value="{!CurrentProject.LocationStateProvinceEditable}" id="locationStateEditNon" />
+                            <select id="StateNon" class="" onchange="hiddenFieldUpdate(this.value,'locationStateEditNon')">
+                                <option value="">--None--</option>
+                            </select>
+                        </td>
+                        <td>
+                            <apex:outputLabel for="DateInvolvementEndedNon" value="{!$Label.Date_Involvement_Ended}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['PR_Team_Employee__c'].fields['Date_Involvement_Ended__c'].inlineHelpText}"/></apex:outputLabel>
+                        </td>
+                        <td>
+                            <apex:inputField id="DateInvolvementEndedNon" value="{!CurrentProject.Obj['Date_Involvement_Ended__c']}" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <apex:outputLabel for="locationCityEdit" value="{!$Label.Location_City}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['PR_Team_Employee__c'].fields['Location_City_Editable__c'].inlineHelpText}"/></apex:outputLabel>
+                        </td>
+                        <td>
+                            <apex:inputText value="{!CurrentProject.LocationCityEditable}" id="locationCityEdit" />
+                        </td>
+
+                        <td>
+                            <apex:outputLabel for="OutputOnResume" value="{!$ObjectType['PR_Team_Employee__c'].fields['Output_On_Resume__c'].Label}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['PR_Team_Employee__c'].fields['Output_on_Resume__c'].inlineHelpText}"/></apex:outputLabel>
+                        </td>
+                        <td colspan="3">
+                            <apex:inputCheckbox id="OutputOnResume" value="{!CurrentProject.OutputOnResume}" />
+                        </td>
+
+                    </tr>
+                    <tr>
+                        <td>
+                            <apex:outputLabel for="WorkHistory" value="Work History" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['PR_Team_Employee__c'].fields['Work_History__c'].inlineHelpText}"/></apex:outputLabel>
+                        </td>
+                        <td colspan="3">
+                            <input type="text" readonly="readonly" id="workHistoryNamePlaceHolder"></input>
+                            <apex:inputField value="{!CurrentProject.PrObj.Work_History__c}" id="WorkHistory" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <apex:outputLabel for="RoleDescriptionNon" value="{!$ObjectType['PR_Team_Employee__c'].fields['Description__c'].Label}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['PR_Team_Employee__c'].fields['Description__c'].inlineHelpText}"/></apex:outputLabel>
+                        </td>
+                        <td colspan="3">
+                            <div class="rsRequired">
+                                <div class="rsRequiredBlock"/>
+                                <apex:inputTextArea style="width:100%;" rows="3" id="RoleDescriptionNon" value="{!CurrentProject.RoleDescription}" />
+                                <span class="rsError"><br/>{!$ObjectType['PR_Team_Employee__c'].fields['Description__c'].Label} {!$Label.Is_Required}</span>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+                <div class="text-center" style="padding-bottom:18px;">
+                    <apex:commandLink styleClass="btn brandStyledBtn" style="text-decoration:none;" action="{!savePart}" value="{!$Label.Save}" reRender="{!reRender}" onclick="if(inProgress) return false; setNonProjRequiredFields(); if(!checkRequiredFields()) return false; inProgress = true; showSectionSpinner('nonprojectsHeader');" oncomplete="resetProgress();removeSpacesFromId();restoreCollapsedSections();" >
+                        <span class="glyphicon glyphicon-ok-circle"></span>
+                    </apex:commandLink>
+                    &nbsp;
+                    <apex:commandLink styleClass="btn brandStyledBtn" style="text-decoration:none;" action="{!saveAndApprove}" value="{!$Label.Save_And_Approve}" reRender="{!reRender}" onclick="if(inProgress) return false; setNonProjRequiredFields(); if(!checkRequiredFields()) return false; inProgress = true; showSectionSpinner('nonprojectsHeader');" oncomplete="resetProgress();removeSpacesFromId();restoreCollapsedSections();" rendered="{!isApprovable && CurrentProject.IsPendingOrInReview}">
+                        <apex:param value="{!CurrentProject.Id}" name="partId"/>
+                        <span class="glyphicon glyphicon-ok-circle"></span>
+                    </apex:commandLink>
+                    &nbsp;
+                    <apex:commandLink styleClass="btn btn--neutral" style="text-decoration:none;" action="{!cancelPart}" value="{!$Label.Cancel}" reRender="{!reRender}" onclick="if(inProgress) return false; showSectionSpinner('nonprojectsHeader'); inProgress = true; clearInputFields();" oncomplete="resetProgress();removeSpacesFromId();restoreCollapsedSections();">
+                        <span class="glyphicon glyphicon-remove-circle"></span>
+                    </apex:commandLink>
+                </div>
+            </apex:outputPanel>
+            <!-- Edit Mode End
+
+            <!-- View Mode Start
+            <apex:outputPanel layout="none" rendered="{!IsViewMode}">
+                    <div class="col-md-4 text-center">
+                        <apex:commandLink action="{!cancelPart}" immediate="true" value="{!$Label.Cancel}" styleClass="btn btn--neutral" reRender="{!reRender}" onclick="if(inProgress) return false; showSectionSpinner('nonprojectsHeader'); inProgress = true; clearInputFields();" oncomplete="resetProgress();restoreCollapsedSections();">
+                             <span class="glyphicon glyphicon-remove-circle"></span>
+                        </apex:commandLink>
+                    </div>
+                    <br />
+                    <table class="table">
+                        <tr>
+                            <td>
+                                <apex:outputLabel for="ProjectIdview" value="{!$ObjectType['PR_Team_Employee__c'].fields['Project_Id__c'].Label}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['PR_Team_Employee__c'].fields['Project_Id__c'].inlineHelpText}"/></apex:outputLabel>
+                            </td>
+                            <td>
+                                <apex:outputText id="ProjectIdview" value="{!CurrentProject.ProjectName}" />
+                            </td>
+                            <td>
+                                <apex:outputLabel for="ProjectRoleview" value="{!$ObjectType['PR_Team_Employee__c'].fields['Project_Role__c'].Label}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['PR_Team_Employee__c'].fields['Project_Role__c'].inlineHelpText}"/></apex:outputLabel>
+                            </td>
+                            <td>
+                                <apex:outputText id="ProjectRoleview" value="{!CurrentProject.ProjectRole}" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <apex:outputLabel value="{!$Label.Client_Name} " styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['PR_Team_Employee__c'].fields['Client__c'].inlineHelpText}"/></apex:outputLabel>
+                            </td>
+                            <td>
+                                <apex:outputText value="{!CurrentProject.ClientName}" />
+                            </td>
+                            <td>
+                                <apex:outputLabel value="{!$Label.Project_Group} " />
+                            </td>
+                            <td>
+                                <apex:outputText value="{!CurrentProject.ProjectGroup}" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td width="25%">
+                                <apex:outputLabel value="{!$Label.Location_Country}: " styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['PR_Team_Employee__c'].fields['Location_Country_Editable__c'].inlineHelpText}"/></apex:outputLabel>
+                            </td>
+                            <td width="20%">
+                                <apex:outputText value="{!CurrentProject.LocationCountry}" />
+                            </td>
+                            <td>
+                                <apex:outputLabel for="DateInvolvementStartedNonview" value="{!$Label.Date_Involvement_Started}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['PR_Team_Employee__c'].fields['Date_Involvement_Started__c'].inlineHelpText}"/></apex:outputLabel>
+                            </td>
+                            <td>
+                                <apex:outputText id="DateInvolvementStartedNonview" value="{!CurrentProject.DateInvolvementStarted}" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <apex:outputLabel value="{!$Label.Location_State_Province}: " styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['PR_Team_Employee__c'].fields['Location_State_Prov_Emirate_Editable__c'].inlineHelpText}"/></apex:outputLabel>
+                            </td>
+                            <td>
+                                <apex:outputText value="{!CurrentProject.LocationStateProvince}" />
+                            </td>
+                            <td>
+                                <apex:outputLabel for="DateInvolvementEndedNonview" value="{!$Label.Date_Involvement_Ended}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['PR_Team_Employee__c'].fields['Date_Involvement_Ended__c'].inlineHelpText}"/></apex:outputLabel>
+                            </td>
+                            <td>
+                                <apex:outputText id="DateInvolvementEndedNonview" value="{!CurrentProject.DateInvolvementEnded}" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <apex:outputLabel value="{!$Label.Location_City}: " styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['PR_Team_Employee__c'].fields['Location_City_Editable__c'].inlineHelpText}"/></apex:outputLabel>
+                            </td>
+                            <td>
+                                <apex:outputText value="{!CurrentProject.LocationCity}" />
+                            </td>
+                            <td>
+                                <apex:outputLabel for="OutputOnResumeview" value="{!$ObjectType['PR_Team_Employee__c'].fields['Output_On_Resume__c'].Label}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['PR_Team_Employee__c'].fields['Output_on_Resume__c'].inlineHelpText}"/></apex:outputLabel>
+                            </td>
+                            <td>
+                                <img id="OutputOnResumeview" src="{!IF(CurrentProject.OutputOnResume, '/img/checkbox_checked.gif', '/img/checkbox_unchecked.gif')}" title="{!IF(CurrentProject.OutputOnResume, 'True', 'False')}" ></img>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <apex:outputLabel for="WorkHistory" value="Work History" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['PR_Team_Employee__c'].fields['Work_History__c'].inlineHelpText}"/></apex:outputLabel>
+                            </td>
+                            <td colspan="3">
+                                <apex:outputText value="{!CurrentProject.WorkHistoryName}" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <apex:outputLabel for="RoleDescriptionNonview" value="{!$ObjectType['PR_Team_Employee__c'].fields['Description__c'].Label}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['PR_Team_Employee__c'].fields['Description__c'].inlineHelpText}"/></apex:outputLabel>
+                            </td>
+                            <td colspan="3">
+                                <apex:outputText id="RoleDescriptionNonview" value="{!CurrentProject.RoleDescription}" />
+                            </td>
+                        </tr>
+                    </table>
+            </apex:outputPanel>
+            <!-- View Mode End
+
+            <!-- List Mode Start
+            <apex:outputPanel layout="none" rendered="{!IsListMode}">
+                <apex:outputPanel layout="none" rendered="{!NonAECOMProfileProjectParts.size>0}" >
+
+                <!-- Non-AECOM Projects
+                    <apex:repeat value="{!NonAECOMProjectViewParts}" var="group">
+                        <div class="list-group-item-heading">
+                            <h4><a class="accordion-toggle" data-toggle="collapse" data-target="#collapsible{!group.Obj.projectGroup}NonAEC" href="#" id="nonAecomCollapseLink{!group.Obj.projectGroup}" onclick="setCollapsedCookie(this.id,this.className);"><apex:outputText value="{!$Label.Project_Group} - {!group.Obj.projectGroup}" />&nbsp;</a></h4>
+                        </div>
+                        <div class="list-group panel-collapse collapse in" id="collapsible{!group.Obj.projectGroup}NonAEC">
+                            <apex:repeat value="{!group.Obj.groupProjects}" var="project">
+                                <div class="list-group-item" style="background-color:{!IF(project.IsPendingOrInReview, 'LightYellow', 'white')};">
+                                    <h5 class="list-group-item-heading">
+                                        <apex:outputText value="{!project.ProjectName}" />
+                                    </h5>
+
+                                    <div class="dropdown" style="float:right;">
+                                        <button class="wrench btn-default btn-sm dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown">
+                                            <span class="glyphicon glyphicon-wrench"></span>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-right" role="menu" aria-labelledby="dropdownMenu1" >
+                                            <li role="presentation" >
+                                                <apex:commandLink tabindex="-1" html-data-role="menuitem" action="{!viewPart}" value="{!$Label.View}" reRender="{!reRender}" onclick="if(inProgress) return false; showSectionSpinner('nonprojectsHeader'); inProgress = true;" oncomplete="resetProgress(); scrollToHeader('nonprojectsHeader');">
+                                                    <apex:param value="{!project.Id}" name="projectId"/>
+                                                </apex:commandLink>
+                                            </li>
+                                            <apex:outputPanel layout="none" rendered="{!canEdit}">
+                                                <li role="presentation" >
+                                                    <apex:commandLink tabindex="-1" html-data-role="menuitem" action="{!editPart}" value="{!$Label.Edit}" reRender="{!reRender}" onclick="if(inProgress) return false; showSectionSpinner('nonprojectsHeader'); setNonProjRequiredFields(); inProgress = true;" oncomplete="resetProgress(); setupFields('edit');stateChange(j$('[id$=locationCountryEditNon]').val(),'StateNon','locationStateEditNon');removeSpacesFromId(); scrollToHeader('nonprojectsHeader');updateWorkHistoryName();">
+                                                        <apex:param value="{!project.Id}" name="projectId"/>
+                                                    </apex:commandLink>
+                                                </li>
+                                                <li role="presentation" class="divider"></li>
+                                                <li role="presentation" >
+                                                    <apex:commandLink tabindex="-1" html-data-role="menuitem" action="{!moveGroupUp}" id="moveGroupUp" value="{!$Label.Move_Project_Group_Up}" reRender="{!reRender}" styleClass="{!group.Obj.order}" onclick="if(inProgress) return false; showSectionSpinner('nonprojectsHeader'); inProgress = true;" oncomplete="resetProgress();">
+                                                        <apex:param value="{!group.Obj.projectGroup}" name="projectGroup"/>
+                                                        <apex:param value="{!project.RecordTypeId}" name="recordType" />
+                                                    </apex:commandLink>
+                                                </li>
+                                                <li role="presentation" >
+                                                    <apex:commandLink tabindex="-1" html-data-role="menuitem" action="{!moveGroupDown}" id="moveGroupDown" value="{!$Label.Move_Project_Group_Down}" reRender="{!reRender}" styleClass="{!group.Obj.order} nonAECOM" onclick="if(inProgress) return false; showSectionSpinner('nonprojectsHeader'); inProgress = true;" oncomplete="resetProgress();">
+                                                        <apex:param value="{!group.Obj.projectGroup}" name="projectGroup"/>
+                                                        <apex:param value="{!project.RecordTypeId}" name="recordType" />
+                                                    </apex:commandLink>
+                                                </li>
+                                                <li role="presentation" >
+                                                    <apex:commandLink tabindex="-1" html-data-role="menuitem" action="{!moveProjectUp}" id="moveProjectUp" value="{!$Label.Move_Project_Up}" reRender="{!reRender}" styleClass="{!numProjInNonAECOMGroup[group.Obj.projectGroup]-1} {!project.ProjectSequence}" onclick="if(inProgress) return false; showSectionSpinner('nonprojectsHeader'); inProgress = true;" oncomplete="resetProgress();restoreCollapsedSections();">
+                                                        <apex:param value="{!group.Obj.projectGroup}" name="projectGroup" />
+                                                        <apex:param value="{!project.Id}" name="projectId"/>
+                                                        <apex:param value="{!project.RecordTypeId}" name="recordType" />
+                                                    </apex:commandLink>
+                                                </li>
+                                                <li role="presentation" >
+                                                    <apex:commandLink tabindex="-1" html-data-role="menuitem" action="{!moveProjectDown}" id="moveProjectDown" value="{!$Label.Move_Project_Down}" reRender="{!reRender}" styleClass="{!numProjInNonAECOMGroup[group.Obj.projectGroup]-1} {!project.ProjectSequence}" onclick="if(inProgress) return false; showSectionSpinner('nonprojectsHeader'); inProgress = true;" oncomplete="resetProgress();restoreCollapsedSections();">
+                                                        <apex:param value="{!group.Obj.projectGroup}" name="projectGroup"/>
+                                                        <apex:param value="{!project.Id}" name="projectId"/>
+                                                        <apex:param value="{!project.RecordTypeId}" name="recordType" />
+                                                    </apex:commandLink>
+                                                </li>
+                                                <li role="presentation" class="divider"></li>
+                                                <li role="presentation" >
+                                                    <apex:commandLink tabindex="-1" html-data-role="menuitem" action="{!deletePart}" value="{!$Label.Delete}" reRender="{!reRender}" onclick="if(inProgress) return false; if(!confirmDeletePart()) return false; showSectionSpinner('nonprojectsHeader');  inProgress = true;" oncomplete="resetProgress();restoreCollapsedSections();">
+                                                        <apex:param value="{!project.Id}" name="projectId"/>
+                                                        <apex:param value="{!project.RecordTypeId}" name="recordType" />
+                                                    </apex:commandLink>
+                                                </li>
+                                            </apex:outputPanel>
+                                            <apex:outputPanel layout="none" rendered="{!isApprovable && project.IsPendingOrInReview}">
+                                                <li role="presentation" class="divider"></li>
+                                                <li role="presentation">
+                                                    <apex:commandLink tabindex="-1" html-data-role="menuitem" action="{!approvePart}" value="{!$Label.Approve_Item}" reRender="{!reRender}" onclick="if(inProgress) return false; showSectionSpinner('nonprojectsHeader'); inProgress = true;" oncomplete="resetProgress();restoreCollapsedSections();">
+                                                        <apex:param value="{!project.Id}" name="partId"/>
+                                                    </apex:commandLink>
+                                                </li>
+                                            </apex:outputPanel>
+                                        </ul>
+                                    </div>
+
+                                    <table width="100%" class="list-group-item-text">
+                                        <tr>
+                                            <td width="25%">
+                                                <apex:outputLabel value="{!$Label.Location_Country} " styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['PR_Team_Employee__c'].fields['Location_Country_Editable__c'].inlineHelpText}"/></apex:outputLabel>
+                                            </td>
+                                            <td width="20%">
+                                                <apex:outputText value="{!project.LocationCountry}" />
+                                            </td>
+                                            <td width="30%">
+                                                <apex:outputLabel value="{!$Label.Project_Group} " />
+                                            </td>
+                                            <td width="25%">
+                                                <apex:outputText value="{!project.ProjectGroup}" />
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <apex:outputLabel value="{!$Label.Location_State_Province} " styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['PR_Team_Employee__c'].fields['Location_State_Prov_Emirate_Editable__c'].inlineHelpText}"/></apex:outputLabel>
+                                            </td>
+                                            <td>
+                                                <apex:outputText value="{!project.LocationStateProvince}" />
+                                            </td>
+                                            <td>
+                                                <apex:outputLabel value="{!$Label.Date_Involvement_Started}: " styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['PR_Team_Employee__c'].fields['Date_Involvement_Started__c'].inlineHelpText}"/></apex:outputLabel>
+                                            </td>
+                                            <td>
+                                                <apex:outputText value="{!project.DateInvolvementStarted}" />
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <apex:outputLabel value="{!$Label.Location_City} " styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['PR_Team_Employee__c'].fields['Location_City_Editable__c'].inlineHelpText}"/></apex:outputLabel>
+                                            </td>
+                                            <td>
+                                                <apex:outputText value="{!project.LocationCity}" />
+                                            </td>
+                                            <td>
+                                                <apex:outputLabel value="{!$Label.Date_Involvement_Ended} " styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['PR_Team_Employee__c'].fields['Date_Involvement_Ended__c'].inlineHelpText}"/></apex:outputLabel>
+                                            </td>
+                                            <td>
+                                                <apex:outputText value="{!project.DateInvolvementEnded}" />
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <apex:outputLabel for="WorkHistory" value="Work History" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['PR_Team_Employee__c'].fields['Work_History__c'].inlineHelpText}"/></apex:outputLabel>
+                                            </td>
+                                            <td>
+                                                <apex:outputText value="{!project.WorkHistoryName}" />
+                                            </td>
+                                            <td>
+                                                <apex:outputLabel value="{!$Label.Client_Name} " styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['PR_Team_Employee__c'].fields['Client__c'].inlineHelpText}"/></apex:outputLabel>
+                                            </td>
+                                            <td>
+                                                <apex:outputText value="{!project.ClientName}" />
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <apex:outputLabel for="outputOnResumeSummaryNon" value="{!$ObjectType['PR_Team_Employee__c'].fields['Output_On_Resume__c'].Label}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['PR_Team_Employee__c'].fields['Output_on_Resume__c'].inlineHelpText}"/></apex:outputLabel>
+                                            </td>
+                                            <td>
+                                                <img id="outputOnResumeSummaryNon" src="{!IF(project.OutputOnResume, '/img/checkbox_checked.gif', '/img/checkbox_unchecked.gif')}" title="{!IF(project.OutputOnResume, 'True', 'False')}" ></img>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td valign="top">
+                                                <apex:outputLabel value="{!$ObjectType['PR_Team_Employee__c'].fields['Description__c'].Label} " styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['PR_Team_Employee__c'].fields['Project_Role__c'].inlineHelpText}"/></apex:outputLabel>
+                                            </td>
+
+
+                                            <td colspan="3">
+                                                <apex:outputText value="{!project.RoleDescription}" />
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </apex:repeat>
+                        </div>
+                    </apex:repeat>
+                    <c:rsPaginationComponent nextPage="{!getNextPage}" previousPage="{!getPreviousPage}" firstPage="{!getFirstPage}" lastPage="{!getLastPage}" viewIndex="{!ViewIndex}" viewLimit="{!ViewLimit}" totalParts="{!TotalParts}" pageNumber="{!PageNum}" numberOfPages="{!NumberOfPages}" rendered="{!TotalParts > ResultLimit}" reRender="{!reRender}"/>
+
+                </apex:outputPanel>
+            </apex:outputPanel>
+            <!--List Mode End
+        </div>
+    </div> -->
+</apex:component>

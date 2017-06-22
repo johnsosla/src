@@ -1,0 +1,51 @@
+<apex:page showheader="true" sidebar="true" controller="ECO_ChangeRecordTypeSelectController" action="{!startHere}" cache="false" tabstyle="Task" title="New Change: Select Change Record Type" extensions="nttdcore.DLabelParentController" >
+    
+    <nttdcore:DLabel name="DL1" default="New Change" labelParent="{!this}" /><nttdcore:DLabel name="DL2" default="Select Change Record Type" labelParent="{!this}" /><apex:sectionheader title="{!dLabel['DL1']}" subtitle="{!dLabel['DL2']}" />  
+        
+    <p>
+        <span style="font-family: arial,helvetica,sans-serif; font-size: 108%;" ><nttdcore:DLabel name="DL3" default="Select a record type for the new change. To skip this page in the future, change your record type settings on your personal setup page." labelParent="{!this}" />{!dLabel['DL3']}</span><br/>
+    </p>
+
+    <apex:form >
+        <nttdcore:DLabel name="DL4" default="Select Change Record Type" labelParent="{!this}" /><apex:pageblock title="{!dLabel['DL4']}" mode="edit" ><nttdcore:DLabel name="DL7" default="Record Type of new record" labelParent="{!this}" />
+            <apex:pageblockbuttons location="bottom" >
+                <nttdcore:DLabel name="DL5" default="Continue" labelParent="{!this}" /><apex:commandbutton action="{!btnContinue}" value="{!dLabel['DL5']}" />
+                <nttdcore:DLabel name="DL6" default="Cancel" labelParent="{!this}" /><apex:commandbutton action="{!btnCancel}" value="{!dLabel['DL6']}" />
+            </apex:pageblockbuttons>
+            <apex:pageblocksection columns="1" >
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!dLabel['DL7']}" />
+                    <apex:outputpanel layout="block" >
+                        <div class="requiredInput" >
+                            <div class="requiredBlock" />
+                            <apex:selectlist id="rtList" style="width: 250px;" value="{!selectedRt}" multiselect="false" size="1" required="true" >
+                                <apex:selectoptions value="{!availableRTList}" />
+                            </apex:selectlist>
+                        </div>
+                    </apex:outputpanel>
+                </apex:pageblocksectionitem>
+            </apex:pageblocksection>
+        </apex:pageblock>
+    </apex:form>
+
+    <br/>
+    <nttdcore:DLabel name="DL8" default="Available Change Record Types" labelParent="{!this}" /><apex:outputtext value="{!dLabel['DL8']}" style="font-weight:bold;" />
+    <br/><br/>
+
+    <table class="recordTypeInfo infoTable" border="0" cellpadding="0" cellspacing="0" >
+        <tbody>
+            <tr class="headerRow" >
+                <th class="recordTypeName" scope="col" ><nttdcore:DLabel name="DL9" default="Record Type Name" labelParent="{!this}" />{!dLabel['DL9']}</th>
+                <th class="recordTypeDescription" scope="col" ><nttdcore:DLabel name="DL10" default="Description" labelParent="{!this}" />{!dLabel['DL10']}</th>
+            </tr>
+            <apex:repeat value="{!rtDescriptionList}" var="rt" >
+                <tr>
+                    <th class="recordTypeName" scope="row" >{!rt.Name}</th>
+                    <td class="recordTypeDescription" >{!$label['Change_' + rt.devName + '_Desc']}</td>
+                    <!--<td>{!rt.devName}</td>-->
+                </tr>
+            </apex:repeat>
+        </tbody>
+    </table>
+
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

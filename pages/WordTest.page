@@ -1,0 +1,14 @@
+<apex:page standardController="Project__c">
+  <apex:variable value="{!Project__c}" var="prj"/>
+<apex:form >    
+   <apex:outputLabel value="Oracle Project Number"/>
+  , &nbsp;
+          <apex:outputField value="{!prj.Oracle_Project_Number__c}"/>
+                    <apex:outputLabel value="Project Description"/>
+ , &nbsp;
+        <apex:outputField value="{!prj.Project_Description__c}"/>
+ <apex:outputField value="{!prj.Image__c}"/>
+
+
+</apex:form>
+</apex:page>

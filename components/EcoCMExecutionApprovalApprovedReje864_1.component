@@ -1,0 +1,17 @@
+<apex:component language="{!theLanguage}" controller="nttdcore.DLabelChildController" access="global" ><apex:attribute name="theLanguage" type="String" required="true" description="language" access="global" /><apex:attribute name="theRecipient" type="User" required="true" description="recipient" access="global" /><apex:attribute name="theRelatedTo" type="ChangeManager__c" required="true" description="related to" access="global" />
+    <apex:outputpanel >
+        <p><nttdcore:DLabel name="DL1" default="The Project Plan for the subject project has been {{1}} for execution." labelParent="{!this}" componentContext="EcoCMExecutionApprovalApprovedReje864_1" p1="{!theRelatedTo.ApprovalStatus__c}" />{!dlRoot.dLabel['DL1']}  
+        </p>
+        <p><nttdcore:DLabel name="DL2" default="Note that approval of project execution also includes approval of the baseline Project Plan, including the project budget, margin, team and schedule." labelParent="{!this}" componentContext="EcoCMExecutionApprovalApprovedReje864_1" />{!dlRoot.dLabel['DL2']}
+        </p>
+        <p>
+        <b><nttdcore:DLabel name="DL3" default="Project Name:" labelParent="{!this}" componentContext="EcoCMExecutionApprovalApprovedReje864_1" />{!dlRoot.dLabel['DL3']}</b> {!theRelatedTo.ProjectName__c}
+        <br/>
+        <b><nttdcore:DLabel name="DL4" default="Client:" labelParent="{!this}" componentContext="EcoCMExecutionApprovalApprovedReje864_1" />{!dlRoot.dLabel['DL4']}</b> {!theRelatedTo.Client__c}
+        <br/>
+        <b><nttdcore:DLabel name="DL5" default="Project Manager:" labelParent="{!this}" componentContext="EcoCMExecutionApprovalApprovedReje864_1" />{!dlRoot.dLabel['DL5']}</b> {!theRelatedTo.ProjectManager__c}
+        </p><p>
+        <a href="{!theRelatedTo.ProjectLink__c}" ><nttdcore:DLabel name="DL6" default="Project Link" labelParent="{!this}" componentContext="EcoCMExecutionApprovalApprovedReje864_1" /> {!dlRoot.dLabel['DL6']} </a>
+        </p>
+    </apex:outputpanel>
+<nttdcore:DLabelInit language="{!theLanguage}" labelParentInit="{!this}" /></apex:component>

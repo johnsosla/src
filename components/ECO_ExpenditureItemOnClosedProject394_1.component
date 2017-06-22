@@ -1,0 +1,14 @@
+<apex:component language="{!theLanguage}" controller="nttdcore.DLabelChildController" access="global" ><nttdcore:DLabel name="DL1" default="{{1}} has been reopened and a new expenditure item(s) have been added to the project." labelParent="{!this}" componentContext="ECO_ExpenditureItemOnClosedProject394_1" p1="{!theRelatedTo.Name}" /><apex:attribute name="theLanguage" type="String" required="true" description="language" access="global" /><apex:attribute name="theRecipient" type="Contact" required="true" description="recipient" access="global" /><apex:attribute name="theRelatedTo" type="pse__Proj__c" required="true" description="related to" access="global" />        
+        {!dlRoot.dLabel['DL1']} 
+        <br/><br/>
+        <b><nttdcore:DLabel name="DL2" default="Project Name:" labelParent="{!this}" componentContext="ECO_ExpenditureItemOnClosedProject394_1" />{!dlRoot.dLabel['DL2']}</b> {!theRelatedTo.Name}
+        <br/>
+        <b><nttdcore:DLabel name="DL3" default="Project Long Name:" labelParent="{!this}" componentContext="ECO_ExpenditureItemOnClosedProject394_1" />{!dlRoot.dLabel['DL3']}</b> {!theRelatedTo.ProjectLongName__c}
+        <br/>
+        <b><nttdcore:DLabel name="DL4" default="Project Description:" labelParent="{!this}" componentContext="ECO_ExpenditureItemOnClosedProject394_1" />{!dlRoot.dLabel['DL4']}</b> {!theRelatedTo.ProjectDescription__c}
+        <br/>
+        <b><nttdcore:DLabel name="DL5" default="Estimated Gross Fee:" labelParent="{!this}" componentContext="ECO_ExpenditureItemOnClosedProject394_1" />{!dlRoot.dLabel['DL5']}</b> {!theRelatedTo.EstimatedContractValue__c}
+        <br/><br/>
+        <a href="{!LEFT($Api.Partner_Server_URL_290,FIND('services',$Api.Partner_Server_URL_290)-1)}{!theRelatedTo.Id}" ><nttdcore:DLabel name="DL6" default="Project Link" labelParent="{!this}" componentContext="ECO_ExpenditureItemOnClosedProject394_1" />
+        {!dlRoot.dLabel['DL6']}</a>
+    <nttdcore:DLabelInit language="{!theLanguage}" labelParentInit="{!this}" /></apex:component>

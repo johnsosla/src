@@ -1,0 +1,120 @@
+<apex:page showHeader="true" sidebar="true" standardController="GFA_Project__c" extensions="GFA_ProjectFrameworkController" action="{!refreshProjectSubtasks}">
+<!-- <apex:stylesheet value="{!URLFOR($Resource.GFA, 'bootstrap/css/bootstrap.min.css')}"/> -->
+<apex:stylesheet value="{!URLFOR($Resource.GFA, 'bootstrap/css/bootstrap.css')}"/>
+<apex:stylesheet value="{!URLFOR($Resource.GFA, 'custom/css/GFA_app.css')}"/>
+<apex:stylesheet value="{!URLFOR($Resource.GFA, 'font-awesome/css/font-awesome.min.css')}"/>
+<apex:stylesheet value="{!URLFOR($Resource.GFA, 'custom/css/GFA_app2.css')}"/>
+
+<script src="{!URLFOR($Resource.GFA, 'jQuery/jquery-1.12.1.min.js')}" type="text/javascript" charset="utf-8"></script>
+<script src="{!URLFOR($Resource.GFA, 'bootstrap/js/bootstrap.min.js')}" type="text/javascript" charset="utf-8"></script>
+<script src="{!URLFOR($Resource.GFA, 'custom/js/GFA_app.js')}" type="text/javascript" charset="utf-8"></script>
+<div class="GFA">
+
+<div class="bPageTitle">
+    <div class="ptBody">
+        <div class="content">
+            <img src="{!URLFOR($Resource.GFA, 'icons/task.png')}" alt="Project Framework" title="Project Framework" class="GFA_pageTitleIcon"/>
+            <h1 class="pageType">Project Framework for<span class="titleSeparatingColon">:</span></h1>
+            <h2 class="pageDescription">{!project.ProjectName}</h2>
+            <div class="blank">&nbsp;</div>
+        </div>
+    </div>
+</div>
+
+<apex:form id="form">
+    <apex:pageMessages />
+    <div class="pageContainer">
+        <div class="btn-group pull-right">
+            <a href="/apex/GFA_ProjectTreeView?id={!project.Id}" class="btn menuButton-left">
+                <img src="{!URLFOR($Resource.GFA, 'icons/tree-view.png')}" alt="Tree View" title="Tree View" class="GFA_menuIcon"/>
+                Tree View
+            </a>
+            <button type="button" class="btn disabled menuButton AE_Blue">
+                <img src="{!URLFOR($Resource.GFA, 'icons/dark/swim-lane-dark.png')}" alt="Swim Lane" title="Swim Lane" class="GFA_menuIcon"/>
+                Swim Lane View
+            </button>
+            <a href="/apex/GFA_ProjectDetailView?id={!Project.Id}" class="btn menuButton-right">
+                <img src="{!URLFOR($Resource.GFA, 'icons/detail-view.png')}" alt="Detail View" title="Detail View" class="GFA_menuIcon"/>
+                Project Detail
+            </a>
+        </div>
+
+        <div class="clearfix"></div>
+
+        <div class="p10 m-b-10">
+            <apex:outputPanel id="filterTable">
+                <label>Impact Level:</label> &nbsp; &nbsp;
+                <apex:selectList value="{!Filter.ImpactLevel}" size="1">
+                    <apex:selectOptions value="{!Filter.ImpactLevels}"/>
+                </apex:selectList> &nbsp; &nbsp; &nbsp;
+
+                <span class="btn-group">
+                    <apex:actionStatus id="actionButtonsStatus">
+                        <apex:facet name="stop">
+                            <apex:outputPanel id="buttonPanel">
+                                <apex:commandButton value="My Tasks" action="{!myTasks}" styleClass="mainButton" reRender="form" rendered="{!!MyTaskView}" status="actionButtonsStatus"/>
+                                <apex:commandButton value="All Tasks" action="{!allTasks}" styleClass="mainButton" reRender="form" rendered="{!MyTaskView}" status="actionButtonsStatus"/>
+                            </apex:outputPanel>
+                        </apex:facet>
+                        <apex:facet name="start">
+                            <apex:image styleClass="actionButtonSpinner" value="/img/loading.gif" style="margin: 0 37px;"/>
+                        </apex:facet>
+                    </apex:actionStatus>
+                </span>
+
+                <apex:outputPanel >
+                     <apex:commandButton value="Go" action="{!refreshProjectSubtasks}" status="refreshStatus" reRender="projectFramework" styleClass="mainButton AE_Blue" oncomplete="adjustLaneHeight()" />
+                      <apex:commandButton value="Clear" styleClass="mainButton AE_Green" action="{!ClearFilter}" status="refreshStatus" reRender="projectFramework,filterTable" oncomplete="adjustLaneHeight()"/>
+                </apex:outputPanel>
+                <apex:actionStatus id="refreshStatus">
+                    <apex:facet name="start">
+                      <apex:image value="/img/loading.gif"/>
+                  </apex:facet>
+                </apex:actionStatus>
+
+            </apex:outputPanel>
+        </div>
+    </div>
+
+    <apex:outputPanel id="projectFramework">
+        <div class="row swimLaneRowStacking">
+        <apex:repeat value="{!project.ProjectPhases}" var="phase">
+            <div class="col-sm-4 col-md-3 col-lg-2 clearfix">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <div class="panel-title text-center">{!phase.LibraryPhaseName}</div>
+                        <div class="panel-subTitle">{!phase.NumberOfSubtasks} Subtask(s); {!phase.NumberOfCriticals} Critical(s)</div>
+                        <div class="{!IF(isBlank(phase.LibraryPhaseDescription), '', 'panel-description')}">{!phase.LibraryPhaseDescription}</div>
+                        <div class="progress">
+                            <div class="progress-bar" role="progressbar" style="width: {!phase.SubtaskCompletedCount};">
+                                {!phase.SubtaskCompletedCount}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        <apex:repeat value="{!phase.ProjectTasks}" var="task">
+                            <div class="taskNode">
+                                <a href="/apex/GFA_ProjectTaskDetail?id={!task.Id}"></a>
+                                <div>{!task.LibraryTaskName}</div>
+                                <div class="progress">
+                                    <div class="progress-bar" role="progressbar" style="width: {!task.SubtaskCompletedCount};">
+                                        {!task.SubtaskCompletedCount}
+                                    </div>
+                                </div>
+                            </div>
+                        </apex:repeat>
+                    </div>
+                </div>
+            </div>
+        </apex:repeat>
+        </div>
+    </apex:outputPanel>
+
+</apex:form>
+
+</div>
+<script>
+    adjustLaneHeight();
+    adjustLaneHeightOnResizeEvent();
+</script>
+</apex:page>

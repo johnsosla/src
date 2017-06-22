@@ -1,0 +1,251 @@
+<apex:component layout="none" controller="ECO_PMD_ProjectDetails_Controller" >
+<apex:attribute name="projectId" description="Project Id" assignTo="{!currentProjectId}" type="string" required="true" />
+<apex:attribute name="pageTitle" description="Page Title" type="string" />
+<apex:attribute name="showDetails" description="Show Project Details (true/false)" type="string" />
+<style> 
+     div.navbar-collapse.collapse {
+        display: block;
+        overflow: hidden;
+        max-height: 0px;
+        -webkit-transition: max-height .3s ease;
+        -moz-transition: max-height .3s ease;
+        -o-transition: max-height .3s ease;
+        transition: max-height .3s ease;
+    }
+    div.navbar-collapse.collapse.in {
+        max-height: 2000px;
+    }
+</style>
+<!-- mobile collapse not correct in SFDC, try https://plnkr.co/edit/lWcsyqGpAXvM9UrCLPUX?p=preview -->
+<script type="text/ng-template" id="navigation-bar-directive.html">
+
+    <nav id="pmd-nav" class="navbar navbar-default">
+        <div class="container-fluid">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle collapsed" 
+                   data-toggle="collapse" data-target="#pmd-navbar-1" 
+                   aria-expanded="false">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+              </button>
+               <p class="navbar-brand">
+                   <span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span>
+                   <div class="navbar-page-info">
+                      <div class="navbar-page-title" ng-bind="ctrl.pageTitle"></div>
+                      <div class="navbar-project-title" ng-bind="ctrl.projectName + ' - ' + ctrl.projectNumber"></div>
+                  </div>
+               </p>
+            </div>
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="pmd-navbar-1">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <div class="btn-group" uib-dropdown uib-keyboard-nav>
+                          <a id="simple-btn-keyboard-nav" type="button" class="btn btn-default" uib-dropdown-toggle aria-haspopup="true" aria-expanded="false">
+                              Navigate to...<span class="caret"></span>
+                          </a>
+                          <ul class="uib-dropdown-menu" role="menu" aria-labelledby="simple-btn-keyboard-nav">
+                            <li role="menuItem"><a href="/{{ctrl.projectId}}">Project Command Console</a></li>
+                            <li role="menuItem"><a href="/apex/eco_pmd_projectdashboard?id={{ctrl.projectId}}">Project Dashboard</a></li>
+                            <li role="menuItem"><a href="/apex/eco_pmd_financialdashboard?id={{ctrl.projectId}}">Financial Dashboard</a></li>
+                            <li role="menuItem"><a href="/apex/eco_pmd_tasksummaryreport?id={{ctrl.projectId}}">Task Summary</a></li>
+                            <li role="menuItem"><a href="/apex/eco_pmd_earnedvaluedetail?id={{ctrl.projectId}}">Earned Value Detail</a></li>
+                            <li role="menuItem"><a href="/apex/eco_pmd_costdetail_allcosts?id={{ctrl.projectId}}">Cost Detail - All Costs</a></li>
+                            <li role="menuItem"><a href="/apex/eco_pmd_costdetail_labourhours?id={{ctrl.projectId}}">Cost Detail - Labour Hours</a></li>
+                            <li role="menuItem"><a href="/apex/eco_pmd_costdetail_labourcost?id={{ctrl.projectId}}">Cost Detail - Labour Costs</a></li>
+                            <li role="menuItem"><a href="/apex/eco_pmd_costdetail_odcexpenses?id={{ctrl.projectId}}">Cost Detail - ODC Expenses</a></li>
+                            <li role="menuItem"><a href="/apex/eco_pmd_costdetail_odcsubs?id={{ctrl.projectId}}">Cost Detail - ODC Subs</a></li>
+                            <apex:outputText rendered="{!IF(id_Report_CostDetailRawCost == '',false,true)}">
+                            <li role="menuItem"><a href="/{!id_Report_CostDetailRawCost}?pv0={{ctrl.projectId}}">Cost Detail - Raw Data</a></li>
+                            </apex:outputText>
+                            <li role="menuItem"><a href="/apex/eco_pmd_accountsreceivablereport?id={{ctrl.projectId}}">Billing &amp; A/R</a></li>
+                            <li role="menuItem"><a href="/apex/eco_pmd_RevenueDetails?id={{ctrl.projectId}}">Revenue Details</a></li>
+                            <li role="menuItem"><a href="/apex/eco_pmd_CommitmentsReport?id={{ctrl.projectId}}">Commitments</a></li>
+                            <li role="menuItem"><a href="/apex/eco_pmd_TrendAnalysis?id={{ctrl.projectId}}">Snapshot Trend Analysis</a></li>
+                          </ul>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <!-- /.navbar-collapse -->
+            <div class="clearfix"></div>
+            <div class="pmd-details-header">
+              <span class="">
+                 <label ng-click="ctrl.showDetails = !ctrl.showDetails" class="btn btn-xs btn-link">
+                   <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
+                 </label>
+               </span>
+                <span>Project Details</span>
+            </div>
+        </div>
+      <!-- /.container-fluid -->
+    </nav>
+    
+    <div id="pmd-details" class="container-fluid">
+        
+        <div uib-collapse="!ctrl.showDetails" class="in collapse" aria-expanded="true" aria-hidden="false" style="height: auto;">
+          <div class="panel">
+            <div class="row panel-footer">
+              <div class="row">
+                <pmd-item pmd-value="{!BLANKVALUE(project.pse__Project_Manager__r.Name,'&nbsp;')}"
+                          pmd-label="{!$ObjectType['pse__Proj__c'].fields['pse__Project_Manager__c'].Label}">
+                </pmd-item>
+                <pmd-item pmd-value="{!BLANKVALUE(project.ProjectApprover__r.Name,'&nbsp;')}"
+                          pmd-label="{!$ObjectType['pse__Proj__c'].fields['ProjectApprover__c'].Label}">
+                </pmd-item>
+              </div>
+              <div class="row">
+                <pmd-item pmd-value="{!BLANKVALUE(project.clAECOMProjectReviewCategory__c,'&nbsp;')}"
+                          pmd-label="{!$ObjectType['pse__Proj__c'].fields['clAECOMProjectReviewCategory__c'].Label}">
+                </pmd-item>
+                <pmd-item pmd-value="{!BLANKVALUE(project.ContractTypes__c,'&nbsp;')}"
+                          pmd-label="{!$ObjectType['pse__Proj__c'].fields['ContractTypes__c'].Label}">
+                </pmd-item>
+              </div>
+              <div class="row">
+                <pmd-item pmd-value="{!BLANKVALUE(project.PrimaryBillingClientNameOnly__c,'&nbsp;')}"
+                          pmd-label="{!$ObjectType['pse__Proj__c'].fields['PrimaryBillingClientNameOnly__c'].Label}">
+                </pmd-item>
+                <pmd-item pmd-value="{!BLANKVALUE(project.DefaultTopTaskCustomer__r.Name,'&nbsp;')}"
+                          pmd-label="{!$ObjectType['pse__Proj__c'].fields['DefaultTopTaskCustomer__c'].Label}">
+                </pmd-item>                  
+              </div>
+              <div class="row">
+                <pmd-item pmd-value="{!BLANKVALUE(project.BusinessLineOwningOrg__c,'&nbsp;')}"
+                          pmd-label="{!$ObjectType['pse__Proj__c'].fields['BusinessLineOwningOrg__c'].Label}">
+                </pmd-item>
+                <pmd-item pmd-value="{!BLANKVALUE(project.clAECOMWork__c,'&nbsp;')}"
+                          pmd-label="{!$ObjectType['pse__Proj__c'].fields['clAECOMWork__c'].Label}">
+                </pmd-item>
+              </div>
+              <div class="row">
+                <pmd-item pmd-value="{!BLANKVALUE(StartDate,'&nbsp;')}"
+                        pmd-label="{!$ObjectType['pse__Proj__c'].fields['pse__Start_Date__c'].Label}">
+                </pmd-item>     
+                <pmd-item pmd-value="{!BLANKVALUE(EndDate,'&nbsp;')}"
+                        pmd-label="{!$ObjectType['pse__Proj__c'].fields['pse__End_Date__c'].Label}">
+                </pmd-item>
+              </div>
+              <div class="row">
+                <pmd-item pmd-value="{!BLANKVALUE(ForecastStartDate,'&nbsp;')}"
+                        pmd-label="{!$ObjectType['pse__Proj__c'].fields['RevisedStartDate__c'].Label}">
+                </pmd-item>
+                <pmd-item pmd-value="{!BLANKVALUE(ForecastEndDate,'&nbsp;')}"
+                        pmd-label="{!$ObjectType['pse__Proj__c'].fields['RevisedEndDate__c'].Label}">
+                </pmd-item> 
+              </div>
+              <div class="row">
+                <pmd-item pmd-value="{!BLANKVALUE(project.ProjectFunctionalCurrencyCode__c,'&nbsp;')}"
+                          pmd-label="{!$ObjectType['pse__Proj__c'].fields['ProjectFunctionalCurrencyCode__c'].Label}">
+                </pmd-item>
+              </div>
+            </div>
+            <div class="clearfix">
+            </div>
+          </div>
+        </div>
+    </div>
+    <div class="clearfix"></div>
+ </script>
+
+<script id="components/KpiItem/pmd-item.directive.js">
+     (function() {
+        'use strict';
+
+       angular
+        .module('components')
+        .directive('kpiItem', kpiItem);
+
+        kpiItem.$inject = [];
+
+        function kpiItem() {
+            var directive =  {
+                 restrict: 'EA'
+                ,transclude : false
+                ,scope: {kpiLabel: '@', kpiValue:'@', kpiClass: '@'}
+                ,template:'<div class="pmd-item">'
+                +'<div class="pmd-value" ng-class="{{kpiClass}}" ng-bind="{{kpiValue}}"></div>'
+                +'<div class="pmd-label">{{kpiLabel}}</div>'
+                +'</div>'
+            };
+            return directive;
+        };
+    })();
+</script>
+
+<script id="components/PmdItem/pmd-item.directive.js">
+     (function() {
+        'use strict';
+
+       angular
+        .module('components')
+        .directive('pmdItem', pmdItem);
+
+        pmdItem.$inject = [];
+
+        function pmdItem() {
+            var directive =  {
+                 restrict: 'EA'
+                ,transclude : false
+                ,scope: {pmdLabel: '@', pmdValue:'@'}
+                ,template:'<div class="pmd-item col-md-6">'
+                +'<div class="pmd-label">{{pmdLabel}}</div>'
+                +'<div class="pmd-value">{{pmdValue}}</div>'
+                +'</div>'
+            };
+            return directive;
+        };
+    })();
+</script>
+
+
+
+<script id="components/NavigationBar/navigation-bar.directive.js">
+    (function() {
+        'use strict';
+
+        angular
+        .module('components')
+        .directive('navigationBar', navigationBar);
+
+        navigationBar.$inject = [];
+
+        function navigationBar() {
+            var directive =  {
+                restrict            : 'EA',
+                controller          : NavigationBarController,
+                controllerAs        : 'ctrl',
+                bindToController    : true,
+                templateUrl         : 'navigation-bar-directive.html',
+                scope               : {
+                    pageTitle    : '@',
+                    projectName  : '@',
+                    projectNumber: '@',
+                    projectId    : '@',
+                    showDetails  : '='
+                }
+            };
+
+            return directive;
+        }
+
+        angular
+        .module('components')
+        .controller('NavigationBarController', NavigationBarController);
+
+        NavigationBarController.$inject = [];
+
+        function NavigationBarController() {
+            var vm = this;
+            vm.pageTitle = vm.pageTitle || "{!pageTitle}";
+            vm.showDetails = vm.showDetails || ("{!showDetails}"==="true"); 
+        }
+    })();
+</script>
+
+
+
+</apex:component>

@@ -1,0 +1,173 @@
+<apex:page showHeader="true" sidebar="true" standardController="PMCertReq__c" action="{!checkUserIsPlManager}" extensions="PMC_PLMgrTrainingApprovalController">
+
+	<apex:form >
+
+		<apex:pageMessages />
+
+		<div style="font-size: 2em; font-weight: bold; margin:10px">{!$Label.PMCAP_PL_Training_Header}</div>
+
+		<apex:pageBlock rendered="{!jobIdError}">
+				<p>
+				<apex:outputField value="{!certReq.Candidate__c}" /> {!$Label.PMCAP_PL_Training_NoJobIDError_1} <a href="https://myecosystem.aecom.com/ops/fwi/delex/Documents/PM-Certification-Regional-Leads.pdf">{!$Label.PMCAP_Click_Here}</a> {!$Label.PMCAP_PL_Training_NoJobIDError_2}
+				</p>
+				<p>
+					{!$Label.PMCAP_PL_Training_SelectApplicationLink}
+				</p>
+				<p>
+					<a href="/{!certReq.Id}"><apex:outputField value="{!certReq.Name}" /></a>
+				</p>
+
+		</apex:pageBlock>
+
+
+		<apex:outputPanel rendered="{!!authError && !jobIdError}">
+			
+			<!-- Step 1: Provisional Approval -->
+			<apex:pageBlock rendered="{!currentStep == 1}">
+				<apex:pageBlockButtons style="float: right">
+					<apex:commandButton value="{!$Label.Next}" action="{!provisionalNext}" />
+				</apex:pageBlockButtons>
+
+				<div style="font-size: 1.2em; font-weight: bold; margin: 10px">
+					<u>{!$Label.PMCAP_PL_Training_ProvisionalAttestation}</u>
+				</div>
+
+				<div style="margin-top: 20px; margin-bottom: 20px">
+					{!$Label.PMCAP_PL_Training_Provisional_PleaseProvide}
+				</div>
+
+				<apex:pageBlockSection columns="1">
+
+					<apex:pageBlockSectionItem >
+						<apex:outputLabel value="{!$Label.PMCAP_PL_Training_ProvisionalStatusApproval}" for="provisionalApproval" />
+						<apex:outputPanel styleClass="requiredInput" layout="block">
+							<div class="requiredBlock" />
+							<apex:selectRadio label="{!$Label.PMCAP_PL_Training_ProvisionalStatusApproval}" id="provisionalApproval" value="{!certReq.Provisional_Status_Approved__c}" layout="pageDirection" required="true" styleClass="requiredField">
+								<apex:selectOptions value="{!provisionalApprovalOptions}" />
+							</apex:selectRadio>
+						</apex:outputPanel>
+					</apex:pageBlockSectionItem>
+
+				</apex:pageBlockSection>
+
+
+			</apex:pageBlock>
+
+
+
+			<!-- Step 2: Training Approval -->
+
+			<apex:pageBlock rendered="{!currentStep == 2}">
+				<apex:pageBlockButtons style="float: right">
+					<apex:commandButton value="{!$Label.Previous}" action="{!approvalPrevious}" rendered="{!certReq.Provisional_PM_Request__c}" immediate="true"/>
+					<apex:commandButton value="{!$Label.Next}" action="{!approvalNext}" />
+				</apex:pageBlockButtons>
+
+				<div style="font-size: 1.2em; font-weight: bold; margin: 10px">
+					<i>
+						{!$Label.PMCAP_PL_Training_IVerify_1}. <a href="{!$Label.PMCAP_PL_Training_CompetenciesBehaviorsLink}">{!$Label.PMCAP_Click_Here}</a> {!$Label.PMCAP_PL_Training_IVerify_2}
+					</i>
+				</div>
+
+				<p>
+					{!$Label.PMCAP_PL_Training_ApprovalIncludes}
+				</p>
+
+				<p>
+					<b>{!$Label.PMCAP_Sponsor_Endorsement_CandidateName}-</b> &nbsp; <apex:outputField value="{!certReq.Candidate__c}" />
+					<br/>
+					<b>{!$Label.PMCAP_Sponsor_Endorsement_CandidateRes}-</b> &nbsp; <apex:outputField value="{!certReq.CandidatesResume__c}" />
+					<br/>
+					<b>{!$Label.PMCAP_Sponsor_Endorsement_CandidateTitle}-</b> &nbsp; <apex:outputField value="{!certReq.Candidate_Title__c}" />
+					<br/>
+					<b>{!$Label.PMCAP_Sponsor_Endorsement_CandidateSuper}-</b> &nbsp; <apex:outputField value="{!certReq.Candidate_Supervisor__c}" />
+					<br/>
+					<b>{!$Label.PMCAP_PL_Training_SponsorName}-</b> &nbsp; <apex:outputField value="{!certReq.Sponsor__c}" />
+					<br/>
+					<b>{!$Label.PMCAP_PL_Training_SponsorComment}-</b> &nbsp; <apex:outputField value="{!certReq.Sponsor_Comments__c}" />
+					<br/>
+					<b>{!$Label.PMCAP_PL_Training_SponsorEndorsement}-</b> &nbsp; <apex:outputField value="{!certReq.Sponsor_Endorsement__c}" />
+				</p>
+
+				<br/>
+
+				<apex:pageBlockSection columns="1">
+
+					<apex:pageBlockSectionItem >
+						<apex:outputLabel value="{!$Label.PMCAP_PL_Training_DoYouApprove}" for="trainingApproval" />
+						<apex:outputPanel styleClass="requiredInput" layout="block">
+							<div class="requiredBlock" />
+							<apex:selectRadio label="{!$Label.PMCAP_PL_Training_DoYouApprove}" id="trainingApproval" value="{!trainingApprovalGranted}" layout="pageDirection" required="true" styleClass="requiredField">
+								<apex:selectOption itemValue="Yes" itemLabel="{!$Label.PMCAP_PL_Training_YesIApprove}" />
+								<apex:selectOption itemValue="No" itemLabel="{!$Label.PMCAP_PL_Training_IDoNotApprove}" />
+							</apex:selectRadio>
+						</apex:outputPanel>
+					</apex:pageBlockSectionItem>
+
+				</apex:pageBlockSection>
+
+				<p>
+
+					*{!$Label.PMCAP_PL_Training_500CharLimit}
+
+				</p>
+
+				<apex:outputPanel rendered="{!lengthExceeded}">
+					<p style="font-weight: bold; color: #f00">
+						{!$Label.PMCAP_PL_Training_LengthError1} <apex:outputText value="{!LEN(certReq.P_L_Manager_Comments__c)}" /> {!$Label.PMCAP_PL_Training_LengthError2}
+					</p>
+				</apex:outputPanel>
+
+				<br/>
+
+				<apex:pageBlockSection columns="1">
+					<apex:pageBlockSectionItem >
+						<apex:outputLabel value="{!$Label.PMCAP_PL_Training_PLManager_Comments}" />
+						<apex:outputPanel styleClass="requiredInput" layout="block">
+							<div class="requiredBlock" />
+							<apex:inputTextarea rows="8" cols="80" value="{!certReq.P_L_Manager_Comments__c}" required="true" />
+						</apex:outputPanel>
+					</apex:pageBlockSectionItem>
+				</apex:pageBlockSection>
+
+
+
+			</apex:pageBlock>
+
+
+
+			<!-- Step 3: Rejection Reason -->
+
+			<apex:pageBlock rendered="{!currentStep == 3}">
+				<apex:pageBlockButtons style="float: right">
+					<apex:commandButton value="{!$Label.Previous}" action="{!rejectionPrevious}" />
+					<apex:commandButton value="{!$Label.Next}" action="{!rejectionNext}" />
+				</apex:pageBlockButtons>
+
+				<div style="font-size: 1.2em; font-weight: bold; margin: 10px">
+					<u>{!$Label.PMCAP_PL_Training_RejectionReason}</u>
+				</div>
+
+				<apex:pageBlockSection columns="1">
+
+					<apex:pageBlockSectionItem >
+						<apex:outputLabel value="{!$Label.PMCAP_PL_Training_NotApprovedReason}" for="rejectionReason" />
+						<apex:outputPanel styleClass="requiredInput" layout="block">
+							<div class="requiredBlock" />
+							<apex:selectList size="1" label="{!$Label.PMCAP_PL_Training_NotApprovedReason}" id="rejectionReason" value="{!certReq.P_L_Manager_Rejection_List_Reason_1__c}" required="true">
+								<apex:selectOptions value="{!rejectionReasons}" />
+							</apex:selectList>
+						</apex:outputPanel>
+					</apex:pageBlockSectionItem>
+
+				</apex:pageBlockSection>
+
+
+			</apex:pageBlock>
+
+	</apex:outputPanel>
+
+
+	</apex:form>
+	
+</apex:page>

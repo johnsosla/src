@@ -1,0 +1,27 @@
+<apex:page standardController="CollaborationGroup" extensions="ChatterLiveController" 
+showHeader="false" sidebar="false" standardStylesheets="true" applyHtmlTag="false" applyBodyTag="false" docType="html-5.0">
+
+<apex:form >
+     <apex:actionPoller action="{!CheckReload}" interval="5" enabled="true" reRender="PB"/>
+ </apex:form>
+
+<html style="margin:0; padding:0; height:100%;">
+    
+    <body style="margin:0; padding:0; height:100%;">
+    <div style="background:#cae3b4; margin:0 auto; width:1000px; min-height:100%; position:relative;">
+        <header style="height:160px; border-bottom:1px solid #94877e; margin-bottom:24px;padding-top:24px; background:#fff;">
+            <apex:image id="theImage" value="{!$Resource.globalConferenceHead2}" width="1000" height="160"/>
+        </header>
+<div style="background:#fff;margin:0 auto; padding:24px 24px 180px; width:460px; -moz-box-shadow:0px 0px 14px #709333; -webkit-box-shadow: 0px 0px 14px #709333; box-shadow: 0px 0px 14px #709333;">
+ <chatter:feed entityId="{!GroupId}"  showPublisher="false" >
+  
+    </chatter:feed>
+    </div>
+    </div>
+    <div style="width:100%; position:fixed; z-index:10000; bottom:0; left:0;">
+     <div style="width:1000px; height:160px; margin: 0 auto;"><apex:image id="theFooter" value="{!$Resource.globalConferenceFooter}" width="1000" /></div>
+     </div>
+    </body>
+</html>
+
+</apex:page>

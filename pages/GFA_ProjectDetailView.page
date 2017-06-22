@@ -1,0 +1,228 @@
+<apex:page showHeader="true" sidebar="true" standardController="GFA_Project__c" extensions="GFA_ProjectDetailViewController">
+<!-- <apex:stylesheet value="{!URLFOR($Resource.GFA, 'bootstrap/css/bootstrap.min.css')}"/> -->
+<apex:stylesheet value="{!URLFOR($Resource.GFA, 'bootstrap/css/bootstrap.css')}"/>
+<apex:stylesheet value="{!URLFOR($Resource.GFA, 'custom/css/GFA_app.css')}"/>
+<apex:stylesheet value="{!URLFOR($Resource.GFA, 'font-awesome/css/font-awesome.min.css')}"/>
+<apex:stylesheet value="{!URLFOR($Resource.GFA, 'custom/css/GFA_app2.css')}"/>
+
+<script src="{!URLFOR($Resource.GFA, 'jQuery/jquery-1.12.1.min.js')}" type="text/javascript" charset="utf-8"></script>
+<script src="{!URLFOR($Resource.GFA, 'bootstrap/js/bootstrap.min.js')}" type="text/javascript" charset="utf-8"></script>
+<script src="{!URLFOR($Resource.GFA, 'custom/js/GFA_app.js')}" type="text/javascript" charset="utf-8"></script>
+<div class="GFA">
+
+<div class="bPageTitle">
+    <div class="ptBody">
+        <div class="content">
+            <img src="{!URLFOR($Resource.GFA, 'icons/task.png')}" alt="GFA Project Detail View" title="GFA Project Detail View" class="GFA_pageTitleIcon"/>
+            <h1 class="pageType">GFA Project Detail View<span class="titleSeparatingColon">:</span></h1>
+            <h2 class="pageDescription">{!project.ProjectName}</h2>
+            <div class="blank">&nbsp;</div>
+        </div>
+    </div>
+</div>
+
+<div class="pageContainer">
+    <apex:form id="form">
+        <div class="btn-group pull-right">
+            <a href="/apex/GFA_ProjectTreeView?id={!Project.Id}" class="btn menuButton-left">
+                <img src="{!URLFOR($Resource.GFA, 'icons/tree-view.png')}" alt="Tree View" title="Tree View" class="GFA_menuIcon"/>
+                Tree View
+            </a>
+            <a href="/apex/GFA_ProjectFramework?id={!Project.Id}&OnlyApplicable=true" class="btn menuButton">
+                <img src="{!URLFOR($Resource.GFA, 'icons/swim-lane.png')}" alt="Swim Lane" title="Swim Lane" class="GFA_menuIcon"/>
+                Swim Lane View
+            </a>
+            <button type="button" class="btn disabled menuButton-right AE_Blue">
+                <img src="{!URLFOR($Resource.GFA, 'icons/dark/detail-view-dark.png')}" alt="Detail View" title="Detail View" class="GFA_menuIcon"/>
+                Project Detail
+            </button>
+        </div>
+
+        <div class="pull-left">
+            <h2>Project Detail View</h2>
+        </div>
+        <div class="clearfix"/>
+
+        <div class="centerButtonsGroup p10">
+            <apex:actionStatus id="actionButtonsStatus">
+                <apex:facet name="stop">
+                    <apex:outputPanel >
+                        <apex:commandButton value="Edit" action="{!Edit}"  status="actionButtonsStatus" reRender="form" styleClass="mainButton AE_Blue" rendered="{!canEditProject}"/>
+                        <apex:commandButton value="Delete" action="{!deleteProject}" status="actionButtonsStatus" reRender="form" styleClass="mainButton AE_Green" rendered="{!CurrentUser.IsAdminUser}" onclick="if(!confirmDeletePart('project')) return false;" />
+                    </apex:outputPanel>
+                </apex:facet>
+                <apex:facet name="start">
+                    <apex:image styleClass="actionButtonSpinner" value="/img/loading.gif"/>
+                </apex:facet>
+            </apex:actionStatus>
+        </div>
+
+        <c:GFA_ProjectDetailComponent Project="{!project}"
+                                      editMode="false"
+                                      AvailableTemplates="{!AvailableTemplates}"
+                                      SelectTemplate="{!selectTemplate}"
+                                      addTemplate="{!addTemplate}"/>
+
+        <div class="panel panel-default" id="teamRosterPanel">
+            <div class="panel-heading">
+                <h3 class="panel-title">Team Roster</h3>
+                <div class="panel-buttons text-center">
+                    <apex:commandButton value="New" action="{!newRoster}" styleClass="mainButton" reRender="form" rendered="{!CanEditProject}">
+                    </apex:commandButton>
+                </div>
+            </div>
+
+            <apex:outputPanel id="rosterTable">
+                <div class="panel-body">
+                    <table class="table">
+                        <thead>
+                            <th>Action</th>
+                            <th>Name</th>
+                            <th>Team Member Name</th>
+                            <th>Project Role</th>
+                            <th>Is Acting PM?</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                        </thead>
+                        <tbody>
+                            <apex:repeat var="team" value="{!project.ProjectRosters}" >
+                                <tr>
+                                    <td>
+                                        <apex:actionStatus id="actionButtonsStatus" rendered="{!CanEditProject}">
+                                            <apex:facet name="stop">
+                                                <apex:outputPanel id="btnPanel">
+                                                    <apex:commandLink action="{!editRoster}" value="Edit" id="editLink" status="actionButtonsStatus">
+                                                         <apex:param name="rosterId" value="{!team.Id}"/>
+                                                    </apex:commandLink> &nbsp; | &nbsp;
+                                                    <apex:commandLink action="{!deleteRoster}" value="Del" id="deleteLink" status="actionButtonsStatus" onclick="if(!confirmDeletePart('team roster')) return false;" reRender="rosterTable">
+                                                        <apex:param name="rosterId" value="{!team.Id}"/>
+                                                    </apex:commandLink>
+                                                </apex:outputPanel>
+                                            </apex:facet>
+                                            <apex:facet name="start">
+                                                <apex:image styleClass="actionButtonSpinner" value="/img/loading.gif"/>
+                                            </apex:facet>
+                                        </apex:actionStatus>
+                                    </td>
+                                    <td>
+                                        <a href="/apex/GFA_ProjectRosterView?id={!team.Id}">{!team.Name}</a>
+                                    </td>
+                                    <td>
+                                        <apex:outputField value="{!team.obj.Team_Member_Name__c}" />
+                                    </td>
+                                    <td>
+                                        <apex:outputText value="{!team.Role}" />
+                                    </td>
+                                    <td>
+                                        <apex:outputField value="{!team.obj.Is_Acting_Project_Manager__c}" />
+                                    </td>
+                                    <td>
+                                        <apex:outputField value="{!team.obj.Team_Member_Name__r.Email}" />
+                                    </td>
+                                    <td>
+                                        <apex:outputField value="{!team.obj.Team_Member_Name__r.Phone}" />
+                                    </td>
+                                </tr>
+                            </apex:repeat>
+                        </tbody>
+                    </table>
+                </div>
+            </apex:outputPanel>
+        </div>
+
+
+        <div class="panel panel-default" id="notesAndAttachmentPanel">
+            <div class="panel-heading">
+                <h3 class="panel-title">Notes &amp; Attachments</h3>
+                <div class="panel-buttons text-center">
+                    <apex:commandButton value="New Note" action="{!newNote}" styleClass="mainButton" reRender="form" rendered="{!CanEditProject}"/>&nbsp;&nbsp;
+                    <apex:commandButton value="Attach File" action="{!attachFile}" styleClass="mainButton" reRender="form" rendered="{!CanEditProject}"/>
+                </div>
+            </div>
+            <apex:outputPanel id="notesAndAttachTable">
+                <div class="panel-body">
+                    <table class="table">
+                        <thead>
+                            <th>Action</th>
+                            <th>Type</th>
+                            <th>Title</th>
+                            <th>Last Modified</th>
+                            <th>Created By</th>
+                        </thead>
+                        <apex:repeat var="note" value="{!project.Notes}" >
+                            <tr>
+                                <td>
+                                    <apex:actionStatus id="actionButtonsStatus" rendered="{!CanEditProject}">
+                                        <apex:facet name="stop">
+                                            <apex:outputPanel id="btnPanel">
+                                                <apex:commandLink action="{!editNote}" value="Edit" id="editLink">
+                                                    <apex:param name="noteId" value="{!note.Id}"/>
+                                                </apex:commandLink> &nbsp; | &nbsp;
+                                                <apex:commandLink action="{!deleteNote}" value="Del" id="deleteLink" onclick="if(!confirmDeletePart('note')) return false;" reRender="notesAndAttachTable">
+                                                    <apex:param name="noteId" value="{!note.Id}"/>
+                                                </apex:commandLink>
+                                            </apex:outputPanel>
+                                        </apex:facet>
+                                        <apex:facet name="start">
+                                            <apex:image styleClass="actionButtonSpinner" value="/img/loading.gif"/>
+                                        </apex:facet>
+                                    </apex:actionStatus>
+                                </td>
+                                <td>
+                                    <apex:outputText value="Note" />
+                                </td>
+                                <td>
+                                    <a href="/{!note.Id}">{!note.Title}</a>
+                                </td>
+                                <td>
+                                    <apex:outputField value="{!note.obj.LastModifiedDate}" />
+                                </td>
+                                <td>
+                                    <apex:outputField value="{!note.obj.CreatedById}" />
+                                </td>
+                            </tr>
+                        </apex:repeat>
+                        <apex:repeat var="attachment" value="{!project.Attachments}" >
+                            <tr>
+                                <td>
+                                    <apex:actionStatus id="actionButtonsStatus" rendered="{!CanEditProject}">
+                                        <apex:facet name="stop">
+                                            <apex:outputPanel id="btnPanel">
+                                                <apex:commandLink action="{!editAttach}" value="Edit" id="editLink" >
+                                                    <apex:param name="attachmentId" value="{!attachment.Id}"/>
+                                                </apex:commandLink> &nbsp; | &nbsp;
+                                                <apex:commandLink action="{!deleteAttach}" value="Del" id="deleteLink" onclick="if(!confirmDeletePart('attachment')) return false;" reRender="notesAndAttachTable">
+                                                    <apex:param name="attachmentId" value="{!attachment.Id}"/>
+                                                </apex:commandLink>
+                                            </apex:outputPanel>
+                                        </apex:facet>
+                                        <apex:facet name="start">
+                                            <apex:image styleClass="actionButtonSpinner" value="/img/loading.gif"/>
+                                        </apex:facet>
+                                    </apex:actionStatus>
+                                </td>
+                                <td>
+                                    <apex:outputText value="Attachment" />
+                                </td>
+                                <td>
+                                    <a href="/{!attachment.Id}">{!attachment.Name}</a>
+                                </td>
+                                <td>
+                                    <apex:outputField value="{!attachment.obj.LastModifiedDate}" />
+                                </td>
+                                <td>
+                                    <apex:outputField value="{!attachment.obj.CreatedById}" />
+                                </td>
+                            </tr>
+                        </apex:repeat>
+                    </table>
+                </div>
+            </apex:outputPanel>
+        </div>
+
+    </apex:form>
+</div>
+
+
+</div>
+</apex:page>

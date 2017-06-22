@@ -1,0 +1,79 @@
+<apex:page standardController="Opportunity" extensions="ECO_SmartSearch_TokenExt" cache="false" showheader="false" sidebar="false" standardstylesheets="false">
+    <script>
+        Coveo.$(function () {
+        	Coveo.Rest.SearchEndpoint.endpoints['default'].options.accessToken = '{!coveoToken}'; 
+        });
+    </script>
+    <div class="search-more">
+        <a href="/apex/ECO_SmartSearch" target="_blank"><img src="/resource/1434652833000/ECO_SmartSearchAssets/ss_searchIcon.png" />&ensp;SEARCH FOR MORE</a>
+    </div>
+    <CoveoSolutions:CoveoPanel debug="true" type="opportunity" recordId="{!record.id}" fields="accountid;name;ownerid;description;Project_DirectorUser__c;Project_ManagerUser__c;Marketing_Lead_User__c;Capture_Manager__c;Client_Group__c;Client_Subgroup__c;Practice_Area_of_Primary_AECOM_Dept__c;APD_Client_Name__c;AECOM_Role__c;" />
+    <style>
+        body {
+            font-family: "Open Sans", Arial, sans-serif;
+        }
+        .coveo-item > .coveo-header > .coveo-more img,
+        .coveo-item > .coveo-header > .coveo-icon,
+        .coveo-box .coveo-tabs,
+        .CoveoPanel > .coveo-header
+        {
+            display:none;
+        }
+        .coveo-box > .coveo-header, .coveo-horizontal > .coveo-item > .coveo-header {
+            background-color: #4d5256;
+            padding: 15px;
+        }
+        .coveo-item > .coveo-header > .coveo-title {
+            color: white !important;
+            text-transform:uppercase;
+            font-size: 17px;
+            letter-spacing: .03em;
+            font-weight: normal;
+        }
+        .search-more {
+            text-align:right;
+            padding:4px;
+            margin-bottom: 10px;
+        }
+        .coveo-box .resultContainer {
+            background-color: #fff;
+        }
+        .coveo-box > .coveo-body, .coveo-horizontal > .coveo-item > .coveo-body {
+            border: 1px solid #dbdbdb;
+            top: 54px !important;
+        }
+        .CoveoResult {
+            border: none !important;
+        }
+        .result a:link, .resultsTable a:link, .result .CoveoResultLink:link, .resultsTable .CoveoResultLink:link, a:visited, a:active {
+            color: #00709d !important;
+            text-decoration: none;
+            font-size: 16px;
+        }
+        .coveo-template-container span {
+            font-size: 12px; 
+            color: rgb(81, 81, 81);
+            line-height: 19px;
+        }
+        .CoveoResult .highlight {
+            font-size: 16px;
+            vertical-align: initial !important;
+            color: #00709d;
+        }
+        .raw.sfemail.coveo-email > a {
+            color: #02bce5;
+            font-size: 12px;
+        }
+        .coveo-box .CoveoResult .coveo-date.coveo-alignment-right {
+            color: rgb(170, 170, 170);
+            float: right;
+            font-size: 11px;
+        }
+        .search-more > a {
+            color: #00709d;
+            font-size: 17px;
+            font-weight: bold;
+            text-decoration: none;
+        }
+    </style>
+</apex:page>

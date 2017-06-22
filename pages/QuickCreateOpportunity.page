@@ -1,0 +1,74 @@
+<apex:page StandardController="Opportunity" extensions="QuickCreateOpportunityExtension">
+  <apex:sectionHeader title="Opportunity Edit" subtitle="New Opportunity" help="/help/doc/user_ed.jsp?loc=help&target=opp_edit.htm&section=Opportunities"/>
+  <apex:form id="frm">
+    
+        <!-- Show Page Error Messages -->
+        <apex:pageMessages />
+        
+        <!-- Opportunity Edit page Block -->
+        <apex:pageblock title="Opportunity Edit" mode="edit">
+            <apex:pageBlockButtons >
+                <apex:commandButton value="Save" action="{!save}"/>
+                <!--
+                <apex:commandButton value="Save & New" action="{!saveAndNew}"/>
+                -->
+                <apex:commandButton value="Cancel" action="{!cancel}" immediate="false"/>
+            </apex:pageBlockButtons>
+            <apex:pageblockSection columns="1">
+                <apex:pageblockSectionItem >
+                    <apex:outputLabel value=""/>
+                    <apex:outputPanel >
+                        <apex:image value="{!$Resource.BlueBorder}" rendered="{!IF(recordTypeStr ='Program',True,False)}"/>
+                        <apex:image value="{!$Resource.GreenBorder}" rendered="{!IF(recordTypeStr ='Project',True,False)}"/>
+                        <apex:image value="{!$Resource.RedBorder}" rendered="{!IF(recordTypeStr ='Task Order',True,False)}"/>
+                    </apex:outputPanel>
+                </apex:pageblockSectionItem>
+            </apex:pageblockSection>
+            <apex:pageblocksection columns="2" title="Opportunity Information">
+                <apex:inputField value="{!pOpportunity.Name}" id="rType"/>
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Opportunity Record Type" for="rType"/>
+                    <apex:outputText value="{!recordTypeStr}"/>
+                </apex:pageBlockSectionItem>
+                
+                <apex:inputField value="{!pOpportunity.AccountId}" required="true"/>
+                <apex:inputField value="{!pOpportunity.Amount}" rendered="{!AND(($Profile.Name!='Standard User'),(recordTypeStr !='Program'))}" required="{!IF(OR(recordTypeStr ='Task Order',recordTypeStr ='Project'),true,false)}"/>
+                <apex:inputField value="{!pOpportunity.CloseDate}" rendered="{!NOT(AND(($Profile.Name!='Standard User'),(recordTypeStr !='Program')))}"/>
+                
+                <!-- Additional Field added for Record Type "Task Order" -->
+                <apex:inputField value="{!pOpportunity.Master_Contract_lookup__c}" rendered="{!IF(recordTypeStr ='Task Order', true, false)}"/>
+                <apex:inputField value="{!pOpportunity.CloseDate}" rendered="{!IF(recordTypeStr ='Task Order', true, false)}"/>
+                
+                
+                <apex:inputField value="{!pOpportunity.CloseDate}" rendered="{!IF(recordTypeStr ='Project', true, false)}"/>
+                <apex:inputField value="{!pOpportunity.StageName}" rendered="{!IF(recordTypeStr ='Project', false, true)}"/>
+                
+                <apex:inputField value="{!pOpportunity.Probability}" required="true" rendered="{!IF(recordTypeStr ='Project', false, true)}"/>
+                <apex:inputField value="{!pOpportunity.StageName}" rendered="{!IF(recordTypeStr ='Project', true, false)}"/>
+                <apex:inputField value="{!pOpportunity.PDD_General_Market_Sector__c}"/>
+                <apex:inputField value="{!pOpportunity.Probability}" required="true" rendered="{!IF(recordTypeStr ='Project', true, false)}"/>
+                
+                <apex:pageblockSectionItem rendered="{!IF(recordTypeStr ='Project', false, true)}"/>
+                <apex:inputField value="{!pOpportunity.PDD_D_P_E_Primary_Global_Practice_Line__c}"/>
+                <apex:inputField value="{!pOpportunity.Capture_Manager__c}" required="true"/>
+            </apex:pageblocksection>
+            
+            
+            <!-- Department Information Section -->
+            <apex:pageblocksection columns="2" title="Department Information">
+                <apex:inputField value="{!pOpportunity.AECOM_Primary_Dept_Lookup__c}" required="true"/>
+                <!--<apex:inputField value="{!pOpportunity.Legacy_Primary_AECOM_Department__c}"/>-->
+                
+            </apex:pageblocksection>
+            
+            
+            <!-- Date Fields Section -->
+            <apex:pageblocksection columns="2" title="Date Fields">
+                <!--<apex:inputField value="{!pOpportunity.Contract_duration_in_Months__c}"/>-->
+                <apex:inputField value="{!pOpportunity.Estimated_work_start_date__c}"/>
+            </apex:pageblocksection>
+        
+        </apex:pageblock>
+        
+    </apex:form>
+</apex:page>

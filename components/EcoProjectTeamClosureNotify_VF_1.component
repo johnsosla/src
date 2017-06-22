@@ -1,0 +1,14 @@
+<apex:component language="{!theLanguage}" controller="nttdcore.DLabelChildController" access="global" ><apex:attribute name="theLanguage" type="String" required="true" description="language" access="global" /><apex:attribute name="theRecipient" type="Contact" required="true" description="recipient" access="global" /><apex:attribute name="theRelatedTo" type="pse__Proj__c" required="true" description="related to" access="global" />
+    <apex:outputpanel ><nttdcore:DLabel name="DL1" default="The subject project is scheduled to close on {{1}}.  Complete any outstanding project tasks, commence project file or archive activities, and submit outstanding expense reports prior to the appointed date." labelParent="{!this}" componentContext="EcoProjectTeamClosureNotify_VF_1" p1="{!theRelatedTo.ClosureDate__c}" />
+        {!dlRoot.dLabel['DL1']}  
+        <br/>
+        <b><nttdcore:DLabel name="DL2" default="Project Number:" labelParent="{!this}" componentContext="EcoProjectTeamClosureNotify_VF_1" />{!dlRoot.dLabel['DL2']}</b> {!theRelatedTo.OracleProjectnumber__c}
+        <br/>
+        <b><nttdcore:DLabel name="DL3" default="Project Name:" labelParent="{!this}" componentContext="EcoProjectTeamClosureNotify_VF_1" />{!dlRoot.dLabel['DL3']}</b> {!theRelatedTo.Name}
+        <br/>
+        <b><nttdcore:DLabel name="DL4" default="Scheduled Closure Date:" labelParent="{!this}" componentContext="EcoProjectTeamClosureNotify_VF_1" />{!dlRoot.dLabel['DL4']}</b> {!theRelatedTo.ClosureDate__c}
+        <br/>
+        <!--<a href="{!theRelatedTo.Link}">Project Link</a>-->
+        <a href="{!LEFT($Api.Partner_Server_URL_290,FIND('services',$Api.Partner_Server_URL_290)-1)}{!theRelatedTo.Id}" ><nttdcore:DLabel name="DL5" default="Project Link" labelParent="{!this}" componentContext="EcoProjectTeamClosureNotify_VF_1" />{!dlRoot.dLabel['DL5']}</a>
+    </apex:outputpanel>
+<nttdcore:DLabelInit language="{!theLanguage}" labelParentInit="{!this}" /></apex:component>

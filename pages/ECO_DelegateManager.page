@@ -1,0 +1,566 @@
+<apex:page standardcontroller="Delegate__c" extensions="ECO_DelegateManagerController,nttdcore.DLabelParentController" tabstyle="Contact" >
+<apex:includescript value="{!$Resource.ECO_jQuery_1_11_2_min_js}" />
+
+<script type="text/javascript" >
+	var $x = jQuery.noConflict();
+
+	$x(document).ready(function(){
+		checkSelectAll();
+		resetLimitLabels();
+		addURLParameters();
+	})
+
+	function resetLimitLabels(){
+		$x('.limitsLabel').each(function(){
+			$x(this).html($x(this).html().replace(/&/g, ''));
+			$x(this).html($x(this).html().replace(/gt;/g, ''));
+			$x(this).html($x(this).html().replace(/lt;/g, ''));
+		});
+	}
+
+	function checkSelectAll(){
+		$x('[id$=organizationCheckAll]').prop('checked', true);
+		selectAllOrganizations();
+	}
+
+	//updates the current delegation recordtype depending on which tab is selected
+	function updateRecordTypeId(recordTypeId){
+		$x('[id$=delegateRecordType]').val(recordTypeId);
+		changeTabFields(recordTypeId);
+	}
+
+	//selects/deselects all of the allowed organization checkboxes depending on the checkbox state in the header
+	function selectAllOrganizations(){
+		 $x('.organizationCheckBox').each(function () {
+		 	$x(this).prop('checked', $x('[id$=organizationCheckAll]').prop('checked'));
+		 })
+	}
+
+	//adds the contactId into the url on page reload
+	function addURLParameters(){
+		var contactId = '{!contact.Id}';
+		if(contactId != ''){
+			var currentURL = window.location.href;
+			if (currentURL.indexOf('contactId') < 1)
+				window.history.replaceState('', 'contactId', currentURL+'?contactId={!contact.Id}');
+		}
+	}
+
+	//selects the opposite of what is selected by default in the bypass radio button lists
+	function resetRadioSelects(yesOrNo){
+		$x('.selectRadio input:radio').each(function(index){
+			if($x(this).val() == yesOrNo){
+				$x(this).prop('checked', true);
+			}
+			else{
+				$x(this).prop('checked', false);
+			}
+		});
+	}
+
+	//sets the limit input field to the associated maximum allowed
+	function setLimitsToSettings(){
+		$x('.maximumColumn').each(function(index){
+			var value = $x(this).children().text();
+			if(value.indexOf(' ') >= 0){
+				var valueArray = value.split(' ');
+				value = valueArray[1];
+			}
+			value = value.replace(/,/g, '');
+			value = value.replace(/%/g, '');
+			var numberValue = parseInt(value);
+			$x(this).parent().find('.limitInput').val(numberValue)
+		});
+	}
+
+</script>
+<style>
+	.limitTable{
+		width: 100%;
+	}
+	fieldset {   
+  		-moz-border-radius:5px;  
+  		border-radius: 5px;  
+  		-webkit-border-radius: 5px;
+	}
+	.selectRadio{
+		margin-top:-10px;
+	}
+	.maximumColumn{
+		margin-top:5px;
+	}
+
+	.limitColumn{
+		min-width:200px;
+	}
+</style>
+
+	<apex:form rendered="{!AND(NOT(isError), NOT(ISNULL(contact)))}" ><nttdcore:DLabel name="DL107" default="Loading..." labelParent="{!this}" />
+		<apex:outputpanel id="addDelegateForm" >
+		<apex:pagemessages id="pageMessages" />
+		<nttdcore:DLabel name="DL55" default="Delegation Manager" labelParent="{!this}" /><apex:sectionheader title="{!dLabel['DL55']}" subtitle="{!contact.Name}" /> 
+
+		<!-- contact details pb -->
+		<nttdcore:DLabel name="DL56" default="Contact Details" labelParent="{!this}" /><apex:pageblock title="{!dLabel['DL56']}" >
+			<apex:pageblockbuttons location="top" >
+				<nttdcore:DLabel name="DL57" default="Return To Contact" labelParent="{!this}" /><apex:commandbutton action="{!backToContact}" value="{!dLabel['DL57']}" immediate="true" />	
+				<!--<apex:commandButton rendered="{!AND(contact.DateDelegationEmailSent__c != null, contact.ReviewedDelegation__c = false, contact.pse__Salesforce_User__c = $User.Id)}" value="Confirm Delegation Review" action="{!ConfirmDelegationReview}" immediate="true" />-->
+			</apex:pageblockbuttons>
+			<apex:pageblocksection showheader="false" >
+				<apex:repeat value="{!$ObjectType.Contact.Fieldsets.DelegationModuleContactDetails}" var="contactField" >
+					<apex:outputfield value="{!contact[contactField]}" />
+				</apex:repeat>
+			</apex:pageblocksection>
+		</apex:pageblock>
+		<!-- end contact details pb -->
+
+
+		<!-- add new delegate -->
+		
+			<nttdcore:DLabel name="DL58" default="Add Delegate" labelParent="{!this}" /><apex:pageblock title="{!dLabel['DL58']}" id="pbAddDelegate" ><nttdcore:DLabel name="DL61" default="Key Roles" labelParent="{!this}" /><nttdcore:DLabel name="DL62" default="Delegation Limits" labelParent="{!this}" /><nttdcore:DLabel name="DL63" default="Criteria" labelParent="{!this}" /><nttdcore:DLabel name="DL64" default="Delegation Limit" labelParent="{!this}" /><nttdcore:DLabel name="DL65" default="Set to Maximum" labelParent="{!this}" /><nttdcore:DLabel name="DL66" default="Maximum Delegatable" labelParent="{!this}" /><nttdcore:DLabel name="DL67" default="Bypass Delegate?" labelParent="{!this}" /><nttdcore:DLabel name="DL68" default="Greater Than" labelParent="{!this}" /><nttdcore:DLabel name="DL69" default="Less Than" labelParent="{!this}" /><nttdcore:DLabel name="DL70" default="Greater Than" labelParent="{!this}" /><nttdcore:DLabel name="DL71" default="Less Than" labelParent="{!this}" /><nttdcore:DLabel name="DL72" default="Greater Than" labelParent="{!this}" /><nttdcore:DLabel name="DL73" default="Less Than" labelParent="{!this}" /><nttdcore:DLabel name="DL74" default="Greater Than" labelParent="{!this}" /><nttdcore:DLabel name="DL75" default="Less Than" labelParent="{!this}" /><nttdcore:DLabel name="DL76" default="Greater Than" labelParent="{!this}" /><nttdcore:DLabel name="DL77" default="%" labelParent="{!this}" /><nttdcore:DLabel name="DL78" default="Less Than" labelParent="{!this}" /><nttdcore:DLabel name="DL79" default="%" labelParent="{!this}" /><nttdcore:DLabel name="DL80" default="Greater Than" labelParent="{!this}" /><nttdcore:DLabel name="DL81" default="%" labelParent="{!this}" /><nttdcore:DLabel name="DL82" default="Less Than" labelParent="{!this}" /><nttdcore:DLabel name="DL83" default="%" labelParent="{!this}" /><nttdcore:DLabel name="DL84" default="Greater Than" labelParent="{!this}" /><nttdcore:DLabel name="DL85" default="Less Than" labelParent="{!this}" /><nttdcore:DLabel name="DL86" default="Project Review Category" labelParent="{!this}" /><nttdcore:DLabel name="DL87" default="C-0" labelParent="{!this}" /><nttdcore:DLabel name="DL88" default="C-1" labelParent="{!this}" /><nttdcore:DLabel name="DL89" default="C-2" labelParent="{!this}" /><nttdcore:DLabel name="DL90" default="C-3" labelParent="{!this}" /><nttdcore:DLabel name="DL91" default="C-3A" labelParent="{!this}" /><nttdcore:DLabel name="DL92" default="Set Bypass Defaults to Yes" labelParent="{!this}" /><nttdcore:DLabel name="DL93" default="Set Bypass Defaults to No" labelParent="{!this}" /><nttdcore:DLabel name="DL94" default="Notes" labelParent="{!this}" /><nttdcore:DLabel name="DL95" default="Allowed Organizations" labelParent="{!this}" /><nttdcore:DLabel name="DL96" default="Office" labelParent="{!this}" /><nttdcore:DLabel name="DL97" default="Vacation" labelParent="{!this}" /><nttdcore:DLabel name="DL98" default="Administrator Override" labelParent="{!this}" /><nttdcore:DLabel name="DL99" default="Alternate" labelParent="{!this}" /><nttdcore:DLabel name="DL100" default="Action" labelParent="{!this}" /><nttdcore:DLabel name="DL101" default="View" labelParent="{!this}" /><nttdcore:DLabel name="DL102" default="Edit" labelParent="{!this}" /><nttdcore:DLabel name="DL103" default="Attach" labelParent="{!this}" /><nttdcore:DLabel name="DL104" default="Type" labelParent="{!this}" /><nttdcore:DLabel name="DL105" default="Created By" labelParent="{!this}" /><nttdcore:DLabel name="DL106" default="This contact does not have any delegates currently assigned for {{1}}" labelParent="{!this}" p1="{!currentRecordType}" />
+				<apex:pageblockbuttons location="top" id="pbButtons" ><nttdcore:DLabel name="DL59" default="Add Delegate" labelParent="{!this}" /><nttdcore:DLabel name="DL60" default="Saving..." labelParent="{!this}" />
+
+					<apex:actionstatus id="saveStatus" >
+					    <apex:facet name="stop" >
+
+					        <apex:commandbutton value="{!dLabel['DL59']}" rendered="{!and(not(AND(not(isAdmin), currentRecordType == 'Administrator Override')), canEdit)}" action="{!addNewDelegate}" status="saveStatus" rerender="addDelegateForm, pageMessages" />
+
+					    </apex:facet>
+					    <apex:facet name="start" >
+					        <apex:commandbutton value="{!dLabel['DL60']}" disabled="true" />
+					    </apex:facet>
+					</apex:actionstatus>
+
+					<!--<apex:commandButton rendered="{!canEdit}" value="Add Delegate" action="{!addNewDelegate}" reRender="pbAddDelegate, pageMessages" />-->
+				</apex:pageblockbuttons>
+				<apex:tabpanel value="{!currentRecordType}" id="delegateTabs" immediate="true" >
+					<apex:tab id="activeKeyRoles" label="{!dLabel['DL61']}" name="Key Roles" ontabenter="checkSelectAll();" >
+						<apex:pageblocksection showheader="false" rendered="{!AND(canEdit, currentRecordType == 'Key Roles')}" >
+							<apex:inputfield value="{!delegate.Delegate__c}" required="true" />
+							<apex:inputfield value="{!delegate.Key_Member_Role__c}" required="true" />
+							<apex:inputfield value="{!delegate.Start_Date__c}" required="true" />
+							<apex:inputfield value="{!delegate.End_Date__c}" />
+							<apex:outputfield value="{!delegate.CurrencyIsoCode}" />
+						</apex:pageblocksection>
+						<apex:outputpanel id="panelKeyRoles" rendered="{!AND(canEdit, currentRecordType == 'Key Roles')}" >
+							<fieldset>
+							<legend>{!dLabel['DL62']}</legend>
+								<table class="limitTable" >
+									<tr>
+										<th>{!dLabel['DL63']}</th>
+										<th>{!dLabel['DL64']} <span class="btn" onclick="setLimitsToSettings()" >{!dLabel['DL65']}</span></th>
+										<th>{!dLabel['DL66']}</th>
+										<th>{!dLabel['DL67']}</th>
+									</tr>
+									<tr>
+										<td>
+											<apex:outputlabel styleclass="limitsLabel" value="{!$ObjectType.Delegate__c.fields.Agreement_Amount_estimated__c.label}" />
+										</td>
+										<td class="limitColumn" >
+											{!dLabel['DL68']}&nbsp;<apex:inputfield styleclass="limitInput" value="{!delegate.Agreement_Amount_estimated__c}" />&nbsp;{!delegate.CurrencyIsoCode}
+										</td>
+										<td class="maximumColumn" >
+											<apex:outputfield value="{!delegateLimitSettings.Agreement_Amount__c}" />
+										</td>
+										<td>
+											<apex:selectradio value="{!agreementAmountBypass}" styleclass="selectRadio" >
+												<apex:selectoptions value="{!yesNoOptions}" />
+											</apex:selectradio>
+										</td>
+									</tr>
+									<tr>
+										<td>
+											<apex:outputlabel styleclass="limitsLabel" value="{!$ObjectType.Delegate__c.fields.Agreement_Amount_estimated_lt__c.label}" />
+										</td>
+										<td class="limitColumn" style="padding-left:15px;" >
+											{!dLabel['DL69']}&nbsp;<apex:inputfield styleclass="limitInput" value="{!delegate.Agreement_Amount_estimated_lt__c}" />&nbsp;{!delegate.CurrencyIsoCode}
+										</td>
+										<td class="maximumColumn" >
+											<apex:outputfield value="{!delegateLimitSettings.Agreement_Amount_lt__c}" />
+										</td>
+										<td>
+											<apex:selectradio value="{!agreementAmountBypassLT}" styleclass="selectRadio" >
+												<apex:selectoptions value="{!yesNoOptions}" />
+											</apex:selectradio>
+										</td>
+									</tr>
+									<tr>
+										<td>
+											<apex:outputlabel styleclass="limitsLabel" value="{!$ObjectType.Delegate__c.fields.Project_Revenue_Budget__c.label}" escape="false" />
+										</td>
+										<td class="limitColumn" >
+											{!dLabel['DL70']}&nbsp;<apex:inputfield styleclass="limitInput" value="{!delegate.Project_Revenue_Budget__c}" />&nbsp;{!delegate.CurrencyIsoCode}
+										</td>
+										<td class="maximumColumn" >
+											<apex:outputfield value="{!delegateLimitSettings.Project_Revenue_Budget__c}" />
+										</td>
+										<td>
+											<apex:selectradio value="{!projectRevenueBudgetBypass}" styleclass="selectRadio" >
+												<apex:selectoptions value="{!yesNoOptions}" />
+											</apex:selectradio>
+										</td>
+									</tr>
+									<tr>
+										<td>
+											<apex:outputlabel styleclass="limitsLabel" value="{!$ObjectType.Delegate__c.fields.Project_Revenue_Budget_lt__c.label}" />
+										</td>
+										<td class="limitColumn" style="padding-left:15px;" >
+											{!dLabel['DL71']}&nbsp;<apex:inputfield styleclass="limitInput" value="{!delegate.Project_Revenue_Budget_lt__c}" />&nbsp;{!delegate.CurrencyIsoCode}
+										</td>
+										<td class="maximumColumn" >
+											<apex:outputfield value="{!delegateLimitSettings.Project_Revenue_Budget_lt__c}" />
+										</td>
+										<td>
+											<apex:selectradio value="{!projectRevenueBudgetBypassLT}" styleclass="selectRadio" >
+												<apex:selectoptions value="{!yesNoOptions}" />
+											</apex:selectradio>
+										</td>
+									</tr>
+									<tr>
+										<td>
+											<apex:outputlabel styleclass="limitsLabel" value="{!$ObjectType.Delegate__c.fields.Backlog_Value__c.label}" />
+										</td>
+										<td class="limitColumn" >
+											{!dLabel['DL72']}&nbsp;<apex:inputfield styleclass="limitInput" value="{!delegate.Backlog_Value__c}" />&nbsp;{!delegate.CurrencyIsoCode}
+										</td>
+										<td class="maximumColumn" >
+											<apex:outputfield value="{!delegateLimitSettings.Backlog_Value__c}" />
+										</td>
+										<td>
+											<apex:selectradio value="{!backlogValueBypass}" styleclass="selectRadio" >
+												<apex:selectoptions value="{!yesNoOptions}" />
+											</apex:selectradio>
+										</td>
+									</tr>
+									<tr>
+										<td>
+											<apex:outputlabel styleclass="limitsLabel" value="{!$ObjectType.Delegate__c.fields.Backlog_Value_lt__c.label}" />
+										</td>
+										<td class="limitColumn" style="padding-left:15px;" >
+											{!dLabel['DL73']}&nbsp;<apex:inputfield styleclass="limitInput" value="{!delegate.Backlog_Value_lt__c}" />&nbsp;{!delegate.CurrencyIsoCode}
+										</td>
+										<td class="maximumColumn" >
+											<apex:outputfield value="{!delegateLimitSettings.Backlog_Value_lt__c}" />
+										</td>
+										<td>
+											<apex:selectradio value="{!backlogValueBypassLT}" styleclass="selectRadio" >
+												<apex:selectoptions value="{!yesNoOptions}" />
+											</apex:selectradio>
+										</td>
+									</tr>
+									<tr>
+										<td>
+											<apex:outputlabel styleclass="limitsLabel" value="{!$ObjectType.Delegate__c.fields.Project_Net_Margin_Value__c.label}" />
+										</td>
+										<td class="limitColumn" >
+											{!dLabel['DL74']}&nbsp;<apex:inputfield styleclass="limitInput" value="{!delegate.Project_Net_Margin_Value__c}" />&nbsp;{!delegate.CurrencyIsoCode}
+										</td>
+										<td class="maximumColumn" >
+											<apex:outputfield value="{!delegateLimitSettings.Project_Net_Margin_Value__c}" />
+										</td>
+										<td>
+											<apex:selectradio value="{!projectNetMarginValueBypass}" styleclass="selectRadio" >
+												<apex:selectoptions value="{!yesNoOptions}" />
+											</apex:selectradio>
+										</td>
+									</tr>
+									<tr>
+										<td>
+											<apex:outputlabel styleclass="limitsLabel" value="{!$ObjectType.Delegate__c.fields.Project_Net_Margin_Value_lt__c.label}" />
+										</td>
+										<td class="limitColumn" style="padding-left:15px;" >
+											{!dLabel['DL75']}&nbsp;<apex:inputfield styleclass="limitInput" value="{!delegate.Project_Net_Margin_Value_lt__c}" />&nbsp;{!delegate.CurrencyIsoCode}
+										</td>
+										<td class="maximumColumn" >
+											<apex:outputfield value="{!delegateLimitSettings.Project_Net_Margin_Value_lt__c}" />
+										</td>
+										<td>
+											<apex:selectradio value="{!projectNetMarginValueBypassLT}" styleclass="selectRadio" >
+												<apex:selectoptions value="{!yesNoOptions}" />
+											</apex:selectradio>
+										</td>
+									</tr>
+									<tr>
+										<td>
+											<apex:outputlabel styleclass="limitsLabel" value="{!$ObjectType.Delegate__c.fields.Project_Net_Margin_age_of_NSR__c.label}" />
+										</td>
+										<td class="limitColumn" >
+											{!dLabel['DL76']}&nbsp;<apex:inputfield styleclass="limitInput" value="{!delegate.Project_Net_Margin_age_of_NSR__c}" />&nbsp;{!dLabel['DL77']}
+										</td>
+										<td class="maximumColumn" >
+											<apex:outputfield value="{!delegateLimitSettings.Project_Net_Margin_age_of_NSR__c}" />
+										</td>
+										<td>
+											<apex:selectradio value="{!projectNetMarginNSRBypass}" styleclass="selectRadio" >
+												<apex:selectoptions value="{!yesNoOptions}" />
+											</apex:selectradio>
+										</td>
+									</tr>
+									<tr>
+										<td>
+											<apex:outputlabel styleclass="limitsLabel" value="{!$ObjectType.Delegate__c.fields.Project_Net_Margin_age_of_NSR_lt__c.label}" />
+										</td>
+										<td class="limitColumn" style="padding-left:15px;" >
+											{!dLabel['DL78']}&nbsp;<apex:inputfield styleclass="limitInput" value="{!delegate.Project_Net_Margin_age_of_NSR_lt__c}" />&nbsp;{!dLabel['DL79']}
+										</td>
+										<td class="maximumColumn" >
+											<apex:outputfield value="{!delegateLimitSettings.Project_Net_Margin_age_of_NSR_lt__c}" />
+										</td>
+										<td>
+											<apex:selectradio value="{!projectNetMarginNSRBypassLT}" styleclass="selectRadio" >
+												<apex:selectoptions value="{!yesNoOptions}" />
+											</apex:selectradio>
+										</td>
+									</tr>
+									<tr>
+										<td>
+											<apex:outputlabel styleclass="limitsLabel" value="{!$ObjectType.Delegate__c.fields.age_Change_in_Forecast_Net_Margin__c.label}" />
+										</td>
+										<td class="limitColumn" >
+											{!dLabel['DL80']}&nbsp;<apex:inputfield styleclass="limitInput" value="{!delegate.age_Change_in_Forecast_Net_Margin__c}" />&nbsp;{!dLabel['DL81']}
+										</td>
+										<td class="maximumColumn" >
+											<apex:outputfield value="{!delegateLimitSettings.age_Change_in_Forecast_Net_Margin__c}" />
+										</td>
+										<td>
+											<apex:selectradio value="{!percentageChangeInForecastBypass}" styleclass="selectRadio" >
+												<apex:selectoptions value="{!yesNoOptions}" />
+											</apex:selectradio>
+										</td>
+									</tr>
+									<tr>
+										<td>
+											<apex:outputlabel styleclass="limitsLabel" value="{!$ObjectType.Delegate__c.fields.age_Change_in_Forecast_Net_Margin_lt__c.label}" />
+										</td>
+										<td class="limitColumn" style="padding-left:15px;" >
+											{!dLabel['DL82']}&nbsp;<apex:inputfield styleclass="limitInput" value="{!delegate.age_Change_in_Forecast_Net_Margin_lt__c}" />&nbsp;{!dLabel['DL83']}
+										</td>
+										<td class="maximumColumn" >
+											<apex:outputfield value="{!delegateLimitSettings.age_Change_in_Forecast_Net_Margin_lt__c}" />
+										</td>
+										<td>
+											<apex:selectradio value="{!percentageChangeInForecastBypassLT}" styleclass="selectRadio" >
+												<apex:selectoptions value="{!yesNoOptions}" />
+											</apex:selectradio>
+										</td>
+									</tr>
+									<tr>
+										<td>
+											<apex:outputlabel styleclass="limitsLabel" value="{!$ObjectType.Delegate__c.fields.Value_change_in_Forecast_Net_Margin__c.label}" />
+										</td>
+										<td class="limitColumn" >
+											{!dLabel['DL84']}&nbsp;<apex:inputfield styleclass="limitInput" value="{!delegate.Value_change_in_Forecast_Net_Margin__c}" />&nbsp;{!delegate.CurrencyIsoCode}
+										</td>
+										<td class="maximumColumn" >
+											<apex:outputfield value="{!delegateLimitSettings.Value_Change_In_Forecast_Net_Margin__c}" />
+										</td>
+										<td>
+											<apex:selectradio value="{!valueChangeInForecastNetMarginBypass}" styleclass="selectRadio" >
+												<apex:selectoptions value="{!yesNoOptions}" />
+											</apex:selectradio>
+										</td>
+									</tr>
+									<tr>
+										<td>
+											<apex:outputlabel styleclass="limitsLabel" value="{!$ObjectType.Delegate__c.fields.Value_change_in_Forecast_Net_Margin_lt__c.label}" />
+										</td>
+										<td class="limitColumn" style="padding-left:15px;" >
+											{!dLabel['DL85']}&nbsp;<apex:inputfield styleclass="limitInput" value="{!delegate.Value_change_in_Forecast_Net_Margin_lt__c}" />&nbsp;{!delegate.CurrencyIsoCode}
+										</td>
+										<td class="maximumColumn" >
+											<apex:outputfield value="{!delegateLimitSettings.Value_change_in_Forecast_Net_Margin_lt__c}" />
+										</td>
+										<td>
+											<apex:selectradio value="{!valueChangeInForecastNetMarginBypassLT}" styleclass="selectRadio" >
+												<apex:selectoptions value="{!yesNoOptions}" />
+											</apex:selectradio>
+										</td>
+									</tr>
+									<tr>
+										<td>
+											<apex:outputlabel styleclass="limitsLabel" value="{!dLabel['DL86']}" />
+										</td>
+										<td>
+											<apex:outputlabel value="{!dLabel['DL87']}" />&nbsp;<apex:inputfield value="{!delegate.Project_Review_Category_C_0__c}" />
+										</td>
+										<td/>
+										<td>
+											<apex:selectradio value="{!c0Bypass}" styleclass="selectRadio" >
+												<apex:selectoptions value="{!yesNoOptions}" />
+											</apex:selectradio>
+										</td>
+									</tr>
+									<tr>
+										<td/>
+										<td>
+											<apex:outputlabel value="{!dLabel['DL88']}" />&nbsp;<apex:inputfield value="{!delegate.Project_Review_Category_C_1__c}" />
+										</td>
+										<td/>
+										<td>
+											<apex:selectradio value="{!c1Bypass}" styleclass="selectRadio" >
+												<apex:selectoptions value="{!yesNoOptions}" />
+											</apex:selectradio>
+										</td>
+									</tr>
+									<tr>
+										<td/>
+										<td>
+											<apex:outputlabel value="{!dLabel['DL89']}" />&nbsp;<apex:inputfield value="{!delegate.Project_Review_Category_C_2__c}" />
+										</td>
+										<td/>
+										<td>
+											<apex:selectradio value="{!c2Bypass}" styleclass="selectRadio" >
+												<apex:selectoptions value="{!yesNoOptions}" />
+											</apex:selectradio>
+										</td>
+									</tr>
+									<tr>
+										<td/>
+										<td>
+											<apex:outputlabel value="{!dLabel['DL90']}" />&nbsp;<apex:inputfield value="{!delegate.Project_Review_Category_C_3__c}" />
+										</td>
+										<td/>
+										<td>
+											<apex:selectradio value="{!c3Bypass}" styleclass="selectRadio" >
+												<apex:selectoptions value="{!yesNoOptions}" />
+											</apex:selectradio>
+										</td>
+									</tr>
+									<tr>
+										<td/>
+										<td>
+											<apex:outputlabel value="{!dLabel['DL91']}" />&nbsp;<apex:inputfield value="{!delegate.Project_Review_Category_C_4__c}" />
+										</td>
+										<td/>
+										<td>
+											<apex:selectradio value="{!c4Bypass}" styleclass="selectRadio" >
+												<apex:selectoptions value="{!yesNoOptions}" />
+											</apex:selectradio>
+										</td>
+									</tr>
+									<tfoot>
+										<td colspan="4" align="right" >
+											<apex:commandbutton onclick="resetRadioSelects('Yes')" rerender="panelKeyRoles" action="{!setDefaultBypassDefaults}" rendered="{!userPreferences.Default_Delegate_Bypass_to_No__c}" value="{!dLabel['DL92']}" immediate="true" />
+											<apex:commandbutton onclick="resetRadioSelects('No')" rerender="panelKeyRoles" action="{!setDefaultBypassDefaults}" rendered="{!NOT(userPreferences.Default_Delegate_Bypass_to_No__c)}" value="{!dLabel['DL93']}" immediate="true" />
+										</td>
+									</tfoot>
+								</table>
+							</fieldset>
+						</apex:outputpanel>
+						<apex:outputpanel rendered="{!canEdit}" >
+							<fieldset>
+								<legend>{!dLabel['DL94']}</legend>
+								<apex:inputfield value="{!delegate.Notes__c}" style="width:100%; height:45px;" />
+							</fieldset>
+						</apex:outputpanel>
+						<apex:outputpanel rendered="{!AND(AND(AND(owningOrganizations != NULL, owningOrganizations.SIZE > 0), currentRecordType == 'Key Roles'), canEdit)}" >
+							<fieldset>
+								<legend>{!dLabel['DL95']}</legend>
+								<apex:pageblocktable value="{!owningOrganizations}" var="owningOrganization" >
+									<apex:column >
+										<apex:facet name="header" >
+											<apex:inputcheckbox onclick="selectAllOrganizations()" id="organizationCheckAll" />
+										</apex:facet>
+										<apex:inputcheckbox value="{!owningOrganization.checked}" styleclass="organizationCheckBox" />
+									</apex:column>
+									<apex:repeat value="{!$ObjectType.OrganizationString__c.Fieldsets.Delegate_Owning_Organization_Table}" var="orgField" >
+										<apex:column value="{!owningOrganization.organization[orgField]}" />               
+									</apex:repeat>
+									<apex:column headervalue="{!dLabel['DL96']}" value="{!owningOrganization.organization.LocationName__c}" />
+								</apex:pageblocktable>
+							</fieldset>
+						</apex:outputpanel>
+					</apex:tab>
+					<apex:tab id="activeVacation" label="{!dLabel['DL97']}" name="Vacation" >
+						<apex:pageblocksection showheader="false" rendered="{!AND(canEdit, currentRecordType == 'Vacation')}" >
+							<apex:inputfield value="{!delegate.Delegate__c}" required="true" />
+							<apex:pageblocksectionitem />
+							<apex:inputfield value="{!delegate.Start_Date__c}" required="true" />
+							<apex:inputfield value="{!delegate.End_Date__c}" required="true" />
+							<apex:outputfield value="{!delegate.RecordTypeId}" />
+						</apex:pageblocksection>
+					</apex:tab>
+					<apex:tab id="activeAdministrator" label="{!dLabel['DL98']}" name="Administrator Override" >
+						<apex:pageblocksection showheader="false" rendered="{!AND(isAdmin, currentRecordType == 'Administrator Override')}" >
+							<apex:inputfield value="{!delegate.Delegate__c}" required="true" />
+							<!--<apex:pageBlockSectionItem >
+								<apex:outputLabel value="Attachment" />
+								<apex:inputFile value="{!attachment.body}" fileName="{!attachment.Name}" />
+							</apex:pageBlockSectionItem>-->
+							<apex:outputtext value="" />
+							<apex:inputfield value="{!delegate.Start_Date__c}" required="true" />
+							<apex:inputfield value="{!delegate.End_Date__c}" />
+						</apex:pageblocksection>
+
+                    </apex:tab>
+                    <apex:tab id="activeAlternate" label="{!dLabel['DL99']}" name="Alternate" >
+                        <apex:pageblocksection columns="1" showheader="false" rendered="{!AND(OR(canCreateAlternate, isAdmin), currentRecordType == 'Alternate')}" >
+
+							<!--<apex:panelGrid columns="3">
+								<apex:inputField value="{!delegate.Delegate__c}" required="true"  />
+								<apex:pageBlockSectionItem />
+								<apex:pageBlockSectionItem />
+								<apex:inputField value="{!delegate.Start_Date__c}" required="true" />
+								<apex:pageBlockSectionItem />
+								<apex:inputField value="{!delegate.End_Date__c}" />
+							</apex:panelGrid>-->
+
+							<apex:inputfield value="{!delegate.Delegate__c}" required="true" />
+							<apex:pageblocksectionitem />
+							<apex:inputfield value="{!delegate.Start_Date__c}" required="true" />
+							<apex:inputfield value="{!delegate.End_Date__c}" />
+						</apex:pageblocksection>
+					</apex:tab>
+				</apex:tabpanel>
+				<apex:pageblocktable value="{!delegates}" id="delegateTable" var="delegate" rendered="{!AND(NOT(ISNULL(delegates)), delegates.size > 0)}" >
+					<!--<apex:column headerValue="Action" rendered="{!OR(AND(canEdit, currentRecordType != 'Alternate'), canCreateAlternate)}">-->
+					<apex:column headervalue="{!dLabel['DL100']}" >
+						<apex:outputlink value="/{!delegate.Id}?retURL=%2fapex%2fECO_DelegateManager?contactId={!contact.Id}" rendered="{!currentRecordType == 'Administrator Override'}" >{!dLabel['DL101']}</apex:outputlink>&nbsp;
+						<apex:outputlink value="/{!delegate.Id}/e?retURL=%2fapex%2fECO_DelegateManager?contactId={!contact.Id}" >{!dLabel['DL102']}</apex:outputlink>&nbsp;
+						<apex:outputlink value="/p/attach/NoteAttach?pid={!delegate.Id}&parentname={!delegate.Delegate_Name__c}&retURL=%2fapex%2fECO_DelegateManagerEdit?id={!delegate.Id}%26retURL=%2fapex%2fECO_DelegateManager?contactId={!contact.Id}" rendered="{!and(isAdmin, currentRecordType == 'Administrator Override')}" >{!dLabel['DL103']}</apex:outputlink>
+					</apex:column>
+					<apex:column value="{!delegate.Delegate__c}" />
+					<apex:column value="{!delegate.Key_Member_Role__c}" rendered="{!currentRecordType == 'Key Roles'}" />
+					<apex:column >
+						<apex:facet name="header" >{!dLabel['DL104']}</apex:facet>
+						<apex:outputlabel value="{!delegate.RecordType.Name}" />
+					</apex:column>
+					<apex:column value="{!delegate.Start_Date__c}" />
+					<apex:column value="{!delegate.End_Date__c}" />
+					<apex:column >
+						<apex:facet name="header" >{!dLabel['DL105']}</apex:facet>
+						<apex:outputfield value="{!delegate.CreatedBy.Name}" />
+					</apex:column>
+					<apex:column value="{!delegate.LastModifiedDate}" />
+					<apex:column value="{!delegate.Approval_Status__c}" />
+
+					
+				</apex:pageblocktable>
+				<apex:pageblocksection showheader="false" columns="1" rendered="{!OR(ISNULL(delegates), delegates.size < 1)}" >
+					<apex:outputtext >
+						<p>{!dLabel['DL106']}</p>
+					</apex:outputtext>
+				</apex:pageblocksection>
+				<apex:inputhidden value="{!delegate.RecordTypeId}" id="delegateRecordType" />
+			</apex:pageblock>
+		</apex:outputpanel>
+		<!-- end add new delegate -->
+
+		<apex:actionfunction action="{!changeTabFields}" name="changeTabFields" oncomplete="resetLimitLabels();" rerender="pbAddDelegate" status="addStatus" immediate="true" >
+			<apex:param name="recordTypeId" value="" />
+		</apex:actionfunction>
+		<apex:actionstatus id="addStatus" >
+			<apex:facet name="start" >
+				<div class="waitingSearchDiv" id="el_loading" style="height: 100%;background-color:rgba(251,251,251,0.7);width:100%;" > 
+					<div class="waitingHolder" >
+						<img class="waitingImage" src="/img/loading.gif" title="Please Wait..." />
+						<span class="waitingDescription" >{!dLabel['DL107']}</span>
+					</div>
+				</div>
+			</apex:facet>
+		</apex:actionstatus>
+	</apex:form>
+	<nttdcore:DLabel name="DL108" default="
+	Either you are not currently a PSA User or you have navigated to this page incorrectly.
+	" labelParent="{!this}" /><apex:pagemessage rendered="{!ISNULL(contact)}" severity="warning" escape="false" summary="{!dLabel['DL108']}" />
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

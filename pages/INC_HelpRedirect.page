@@ -1,0 +1,16 @@
+<apex:page >
+    <META http-equiv="refresh" content="1;URL=https://myecosystem.aecom.com/ops/fwi/delex/Pages/d2w-dcs-approverresources.aspx?SectionId=26
+                                        " />
+
+    
+    <p>
+        {!$Label.DTWINCHRREDIRRECTING}...
+        <!--Redirrecting you to the DTW Help Page-->
+    </p>
+    <p>
+       
+       {!$Label.DTWINCHRIFYOUARE}<a href="https://myecosystem.aecom.com/ops/fwi/delex/Pages/d2w-dcs-approverresources.aspx?SectionId=26
+">{!$Label.DTWINCHRCLICKHERE} </a>.
+<!--click here-->
+    </p>
+</apex:page>

@@ -1,0 +1,96 @@
+<apex:page showHeader="true" sidebar="true" standardController="Case" extensions="HRS_CaseContactExt" action="{!validateRetrieve}" cache="false" docType="html-5.0" tabStyle="Case">
+
+	<script type="text/javascript">
+
+	window.onload = function() {
+		if('{!isTokenValid}' != 'true') { 
+			openModal('modalDialogOracleLogin');
+			//alert('Open login');
+			return false;
+		}
+	}
+
+	function closeAuthenticationModal(){
+        closeModal('modalDialogOracleLogin');
+        closeAuthenticationWindow();
+        return true;
+    }
+
+    function cancelModal(dialogWindow)
+    {
+        closeModal(dialogWindow);  
+        returnToProject();
+    }
+
+    function authenticate()
+    {
+        authenticateCredentials($x('[id$=username]').val(), $x('[id$=password]').val());
+    }
+   
+	</script>
+
+
+	<apex:form >
+ 		
+		<c:ECO_ModalDialog width="350" padding="0px 0px 0px 0px" name="modalDialogOracleLogin">
+            <apex:pageBlock title="Oracle Authentication">
+	            <div>
+	                <apex:outputText >Your Oracle security token has expired - please enter your Oracle credentials below to renew the token</apex:outputText>
+	            <br/><br/>
+	            </div>
+	            <div align="center">
+	            <apex:outputText style="font-weight:bold" value="Oracle Username:"/>
+	            <apex:inputText label="Username:" value="{!OracleUserName}" id="username"/><br/>
+	            <apex:outputText style="font-weight:bold" value="Oracle Password:"/>
+	            <apex:inputSecret label="Password" value="{!OraclePassword}" id="password"/><br/><br/>
+	            </div>
+
+	            <apex:outputPanel id="btn1">
+	                <apex:outputPanel rendered="{!authenticationResult != 'SUCCESS'}">
+	                    <div align="center">
+	                        <apex:outputPanel layout="inline" styleClass="btn" onclick="authenticate()">Login</apex:outputPanel>
+	                        <apex:outputPanel layout="inline" styleClass="btn" onclick="cancelModal('modalDialogOracleLogin')">Cancel</apex:outputPanel>
+	                    </div>
+	                </apex:outputPanel>
+	            </apex:outputPanel>
+
+	            <apex:outputPanel id="btn2">
+	                <apex:outputPanel rendered="{!authenticationResult == 'SUCCESS'}">
+	                    <div align="center">
+	                        <apex:outputPanel layout="inline" styleClass="btn" onclick="closeAuthenticationModal()">Close</apex:outputPanel>
+	                    </div>
+	                </apex:outputPanel>
+	            </apex:outputPanel>
+
+	            <apex:outputPanel id="result">
+	                <apex:outputPanel rendered="{!authenticationResult != null}" ><br/>
+	                    <b>Result: </b><apex:outputText value="{!authenticationResult}" id="authenticationResult" />
+	                </apex:outputPanel>
+	            </apex:outputPanel>
+
+	            <apex:actionStatus id="queryStatus">
+	                <apex:facet name="start">
+	                    <p style="padding-bottom:20px;text-align:center;" class="searchText"><img style="position:relative;top:24px;" src="/img/loading32.gif" /> Authenticating...</p>
+	                </apex:facet>
+	            </apex:actionStatus>
+            </apex:pageBlock>
+        </c:ECO_ModalDialog>
+
+        <apex:actionFunction name="authenticateCredentials" action="{!authenticateCredentials}" rerender="result, btn1, btn2" status="queryStatus" immediate="true">
+            <apex:param name="username" value=""/>
+            <apex:param name="password" value=""/>
+        </apex:actionFunction>
+
+        <apex:actionStatus id="closeAuthentication">
+            <apex:facet name="start">
+                <p style="padding-bottom:20px;text-align:center;" class="searchText"><img style="position:relative;top:24px;" src="/img/loading32.gif" /> Closing...</p>
+            </apex:facet>
+        </apex:actionStatus>
+
+        <apex:actionFunction name="closeAuthenticationWindow" action="{!closeAuthenticationWindow}" status="closeAuthentication" immediate="true"/>
+	</apex:form>
+	
+	<apex:messages />
+	<c:HRS_apiData isAllowEdit="true" HRSData="{!hrsManager}" ColumnCount="2" rendered="{!isDisplay}" />
+
+</apex:page>

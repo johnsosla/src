@@ -1,0 +1,200 @@
+<apex:component controller="rsTranslationsController" allowDML="true">
+
+    <apex:attribute name="rsProfile" assignTo="{!profile}" description="" type="rsProfile" required="true"/>
+
+    <apex:attribute name="reRender" description="" type="String" required="false"/>
+
+    <script type="text/javascript">
+        var j$ = jQuery.noConflict();
+        j$(document).ready(function() {
+            if( '{!IsSF1}' == 'true' ) {
+                j$('[id$=transAttachLink]').removeAttr('onclick href').parent().addClass('disabled');
+            }
+            helpTextSetup();
+            setTranslationRequiredFields();
+        });
+        function setTranslationRequiredFields() {
+            //Required fields for this component
+            requiredFields = ['[id$=translateFrom]','[id$=translateTo]'];
+        }
+    </script>
+
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h3 class="panel-title has-spinner pull-left" id="translateHeader">{!$Label.Translations}&nbsp;<img height="15" width="15" class="spinner" src="{!URLFOR($Resource.rs_bundle, '/images/loading.gif')}" alt="loading" title="loading"/></h3>
+            <apex:commandLink value="" styleClass="{!IF(canEdit, '','disabled')} has-spinner pull-right " reRender="{!reRender}" action="{!newPart}" onclick="if(!inProgress) showSectionSpinner('translateHeader'); if (inProgress) return false; inProgress = true;" oncomplete="resetProgress(); setupFields();focusField('translateFrom');" rendered="{!IsListMode && canEdit}">
+                 <span title="{!$Label.Add}" class="glyphicon glyphicon-plus"></span>
+            </apex:commandLink>
+            <div class="clearfix"/>
+        </div>
+
+        <div class="panel-body">
+
+            <apex:outputPanel rendered="{!IsEditMode}">
+            <apex:actionRegion >
+
+                <table class="table">
+                    <tr>
+                        <td style="border-top:none;">
+                            <apex:outputLabel for="translateFrom" value="{!$ObjectType['rs_Profile_Part__c'].fields['Translate_From__c'].Label}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['rs_Profile_Part__c'].fields['Translate_From__c'].inlineHelpText}"/></apex:outputLabel>
+                        </td>
+                        <td style="border-top:none;">
+                            <div class="rsRequired">
+                                <div class="rsRequiredBlock"/>
+                                <apex:selectList id="translateFrom" value="{!CurrentPart.TranslateFrom}" size="1" styleClass="">
+                                    <apex:selectOptions value="{!languageList}"/>
+                                </apex:selectList>
+                                <span class="rsError">{!$ObjectType['rs_Profile_Part__c'].fields['Translate_From__c'].Label} {!$Label.Is_Required}</span>
+                            </div>
+                        </td>
+                        <td style="border-top:none;">
+                            <apex:outputLabel for="translateTo" value="{!$ObjectType['rs_Profile_Part__c'].fields['Translate_To__c'].Label}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['rs_Profile_Part__c'].fields['Translate_To__c'].inlineHelpText}"/></apex:outputLabel>
+                        </td>
+                        <td style="border-top:none;">
+                            <div class="rsRequired">
+                                <div class="rsRequiredBlock"/>
+                                <apex:selectList id="translateTo" value="{!CurrentPart.TranslateTo}" size="1" styleClass="">
+                                    <apex:selectOptions value="{!languageList}"/>
+                                </apex:selectList>
+                                <span class="rsError">{!$ObjectType['rs_Profile_Part__c'].fields['Translate_To__c'].Label} {!$Label.Is_Required}</span>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+                <br/><br/>
+                <div class="text-center">
+                    <apex:commandLink action="{!savePart}" value="{!$Label.Save}" styleClass="btn brandStyledBtn" reRender="{!reRender}" onclick="if(inProgress) return false; setTranslationRequiredFields();if(!checkRequiredFields()) return false; showSectionSpinner('translateHeader'); inProgress = true;" oncomplete="resetProgress();">
+                         <span class="glyphicon glyphicon-ok-circle"></span>
+                    </apex:commandLink>
+                    &nbsp;
+                    <apex:commandLink action="{!saveAndApprove}" value="{!$Label.Save_And_Approve}" styleClass="btn brandStyledBtn" reRender="{!reRender}" onclick="if(inProgress) return false;setTranslationRequiredFields();if(!checkRequiredFields()) return false; showSectionSpinner('translateHeader'); inProgress = true;" oncomplete="resetProgress();" rendered="{!isApprovable && CurrentPart.IsPendingOrInReview}">
+                         <apex:param value="{!CurrentPart.Id}" name="partId"/>
+                         <span class="glyphicon glyphicon-ok-circle"></span>
+                    </apex:commandLink>
+                    &nbsp;
+                    <apex:commandLink action="{!cancelPart}" immediate="true" value="{!$Label.Cancel}" styleClass="btn btn--neutral" reRender="{!reRender}" onclick="if(inProgress) return false; showSectionSpinner('translateHeader'); inProgress = true;" oncomplete="resetProgress();">
+                         <span class="glyphicon glyphicon-remove-circle"></span>
+                    </apex:commandLink>
+                </div>
+            </apex:actionRegion>
+            </apex:outputPanel>
+
+            <apex:outputPanel rendered="{!IsViewMode}">
+                <div class="col-md-4 text-center">
+                    <apex:commandLink action="{!cancelPart}" immediate="true" value="{!$Label.Cancel}" styleClass="btn btn--neutral" reRender="{!reRender}" onclick="if(inProgress) return false; showSectionSpinner('translateHeader'); inProgress = true;" oncomplete="resetProgress();">
+                         <span class="glyphicon glyphicon-remove-circle"></span>
+                    </apex:commandLink>
+                </div>
+                <br/>
+                <table class="table">
+                    <tr>
+                        <td>
+                            <apex:outputLabel for="translateFrom" value="{!$ObjectType['rs_Profile_Part__c'].fields['Translate_From__c'].Label}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['rs_Profile_Part__c'].fields['Translate_From__c'].inlineHelpText}"/></apex:outputLabel>
+                        </td>
+                        <td>
+                            <apex:outputText value="{!CurrentPart.TranslateFrom}"/>
+                        </td>
+                        <td>
+                            <apex:outputLabel for="translateTo" value="{!$ObjectType['rs_Profile_Part__c'].fields['Translate_To__c'].Label}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['rs_Profile_Part__c'].fields['Translate_To__c'].inlineHelpText}"/></apex:outputLabel>
+                        </td>
+                        <td>
+                            <apex:outputText value="{!CurrentPart.TranslateTo}"/>
+                        </td>
+                    </tr>
+                </table>
+            </apex:outputPanel>
+
+            <apex:outputPanel rendered="{!IsListMode}" id="translationsPanel">
+
+                <table id="regTable" class="table">
+                    <thead>
+                        <tr>
+                            <th>{!$Label.Action}</th>
+                            <th>
+                                <apex:commandLink action="{!sortParts}" reRender="translationsPanel" onclick="if (inProgress) return false; inProgress = true;" oncomplete="resetProgress();sortOrderArrow(this.id);" value="{!$ObjectType['rs_Profile_Part__c'].fields['Translate_From__c'].Label}">
+                                    <apex:param name="sortField" value="Translate_From__c"/>
+                                    <span class="toggleClassDown glyphicon glyphicon-chevron-down"></span>
+                                    <span class="toggleClassUp glyphicon glyphicon-chevron-up"></span>
+                                </apex:commandLink>
+                            </th>
+                            <th>
+                                <apex:commandLink action="{!sortParts}" reRender="translationsPanel" onclick="if (inProgress) return false; inProgress = true;" oncomplete="resetProgress();sortOrderArrow(this.id);" value="{!$ObjectType['rs_Profile_Part__c'].fields['Translate_To__c'].Label}">
+                                    <apex:param name="sortField" value="Translate_To__c"/>
+                                    <span class="toggleClassDown glyphicon glyphicon-chevron-down"></span>
+                                    <span class="toggleClassUp glyphicon glyphicon-chevron-up"></span>
+                                </apex:commandLink>
+                            </th>
+                            <th class="text-center">{!$Label.Attachment}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        <apex:repeat value="{!ViewParts}" var="part">
+                            <tr style="background-color:{!IF(part.ProfilePart.IsPendingOrInReview, 'LightYellow', 'white')};">
+                                <td>
+                                    <div class="dropdown">
+                                        <button class="wrench btn-default btn-sm dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown">
+                                            <span class="glyphicon glyphicon-wrench"></span>
+                                        </button>
+                                        <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">
+                                            <li role="presentation">
+                                                <apex:commandLink tabindex="-1" html-data-role="menuitem" action="{!viewPart}" value="{!$Label.View}" reRender="{!reRender}" onclick="if(inProgress) return false; showSectionSpinner('translateHeader'); inProgress = true;" oncomplete="resetProgress();">
+                                                    <apex:param value="{!part.ProfilePart.Id}" name="partId"/>
+                                                </apex:commandLink>
+                                            </li>
+                                            <apex:outputPanel rendered="{!canEdit}" layout="none">
+                                                <li role="presentation">
+                                                    <apex:commandLink tabindex="-1" html-data-role="menuitem" action="{!editPart}" value="{!$Label.Edit}" reRender="{!reRender}" onclick="if(inProgress) return false; showSectionSpinner('translateHeader'); inProgress = true;" oncomplete="resetProgress();setupFields();">
+                                                        <apex:param value="{!part.ProfilePart.Id}" name="partId"/>
+                                                    </apex:commandLink>
+                                                </li>
+                                                <li role="presentation" class="divider"></li>
+                                                <li role="presentation">
+                                                    <apex:commandLink tabindex="-1" html-data-role="menuitem" value="{!$Label.Add_Attachment}" onclick="if(inProgress) return false; showSectionSpinner('translateHeader'); inProgress = true; window.top.location.href='/apex/rsAttachment?partId={!part.ProfilePart.Id}&retUrl=/_ui/core/userprofile/UserProfilePage&ownerId={!profile.Id}&tab=Skills_and_Qualifications&tab.Skills_and_Qualifications.subtab=1';" oncomplete="resetProgress();" id="transAttachLink">
+                                                        <apex:param value="{!part.ProfilePart.Id}" name="partId"/>
+                                                    </apex:commandLink>
+                                                </li>
+                                                <li role="presentation">
+                                                    <apex:commandLink action="{!deleteAttachment}" reRender="{!reRender}" rendered="{!part.DeleteRender}" value="{!$Label.Remove_Attachment}" onclick="if(inProgress) return false; if(!confirmDeleteAttachment()) return false; showSectionSpinner('translateHeader');">
+                                                        <apex:param name="attachmentId" value="{!part.ProfilePart.AttachmentId}"/>
+                                                        <apex:param name="partId" value="{!part.ProfilePart.Id}"/>
+                                                    </apex:commandLink>
+                                                </li>
+                                                <li role="presentation" class="divider"></li>
+                                                <li role="presentation">
+                                                    <apex:commandLink tabindex="-1" html-data-role="menuitem" action="{!deletePart}" value="{!$Label.Delete}" reRender="{!reRender}" onclick="if(inProgress) return false; if(!confirmDeletePart()) return false; inProgress = true; showSectionSpinner('translateHeader');" oncomplete="resetProgress();">
+                                                        <apex:param value="{!part.ProfilePart.Id}" name="partId"/>
+                                                    </apex:commandLink>
+                                                </li>
+                                            </apex:outputPanel>
+                                            <apex:outputPanel layout="none" rendered="{!isApprovable && part.ProfilePart.IsPendingOrInReview}">
+                                                <li role="presentation" class="divider"></li>
+                                                <li role="presentation">
+                                                    <apex:commandLink tabindex="-1" html-data-role="menuitem" action="{!approvePart}" value="{!$Label.Approve_Item}" reRender="{!reRender}" onclick="if(inProgress) return false; showSectionSpinner('translateHeader'); inProgress = true;" oncomplete="resetProgress();">
+                                                        <apex:param value="{!part.ProfilePart.Id}" name="partId"/>
+                                                    </apex:commandLink>
+                                                </li>
+                                            </apex:outputPanel>
+                                        </ul>
+                                    </div>
+                                </td>
+                                <td>{!part.ProfilePart.TranslateFrom}</td>
+                                <td>{!part.ProfilePart.TranslateTo}</td>
+                                <td>
+                                    <div class="text-center">
+                                        <apex:outputLink value="/servlet/servlet.FileDownload?file={!part.ProfilePart.AttachmentId}" target="_blank">{!part.ProfilePart.AttachmentName}</apex:outputLink>
+                                    </div>
+                                </td>
+                            </tr>
+                        </apex:repeat>
+                    </tbody>
+                </table>
+
+                <c:rsPaginationComponent nextPage="{!getNextPage}" previousPage="{!getPreviousPage}" firstPage="{!getFirstPage}" lastPage="{!getLastPage}" viewIndex="{!ViewIndex}" viewLimit="{!ViewLimit}" totalParts="{!TotalParts}" pageNumber="{!PageNum}" numberOfPages="{!NumberOfPages}" rendered="{!TotalParts > ResultLimit}" reRender="{!reRender}"/>
+
+            </apex:outputPanel>
+
+        </div>
+    </div>
+
+</apex:component>

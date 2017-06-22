@@ -1,0 +1,539 @@
+<apex:page tabstyle="Questionnaire__c" standardcontroller="Questionnaire__c" extensions="ECO_RAQuestionnaireController,nttdcore.DLabelParentController" showheader="true" sidebar="false" standardstylesheets="true" id="thePage" >
+    <style>
+
+
+        input.hiddenIdField {
+            display: block;
+        }
+        
+        div.spinnerModal {
+            display: none;
+        }
+        
+        .fa {
+            font-size: 400%;
+            text-align: center;
+            color: white;
+        }
+        
+        .modal-dialog {
+            text-align: center !important;
+        }
+
+        .modal-backdrop
+        {
+            opacity:0 !important;
+        }
+
+        .questionnaireTable table tr td{
+            padding-right:18px;
+        }
+
+        .questionHelpText table tr td div.sfdc_richtext{
+            margin-left:35px;
+        }
+
+        .Custom50Block .bPageBlock{
+            margin-bottom:20px !important;
+        }
+
+        td.cell.false textarea{
+            margin-left:3px;
+        }
+        .pageDescription{
+            margin-top:-7px;
+        }
+        .pageType{
+            margin-top:0 !important;
+        }
+        .currentPageLink{
+            font-weight:bold;
+        }
+        .halfWidthWrapper {
+            width:47%;
+            display:inline-block;
+            vertical-align:top;
+        }
+        .halfWidthWrapper:first-child{
+            margin-right:20px;
+        }
+        .centeredColumn{
+            text-align:center;
+        }
+        .table .dataCell a{
+            text-decoration:underline;
+        }
+        .table th{
+            text-align:center;
+        }
+        body .pbBody table.list tr.headerRow th:first-child{
+            text-align:left !important;
+        }
+
+
+        /* TABLE */
+        /*======================================*/
+        .questionnaire .table th {
+          font-size: 1.05em;
+          font-weight: 600;
+          border-bottom: 2px solid rgba(0, 0, 0, 0.14);
+        }
+        .questionnaire .table td {
+          border-top: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        .questionnaire .table table td{
+            border:none !important;
+        }
+        .questionnaire .table.table-vcenter th,
+        .questionnaire .table.table-vcenter td {
+          vertical-align: middle;
+        }
+        .questionnaire .table .min-width {
+          width: 1%;
+          white-space: nowrap;
+          padding-left: 15px !important;
+          padding-right: 15px !important;
+        }
+        .questionnaire .table-bordered td,
+        .questionnaire .table-bordered th {
+          border-color: rgba(0, 0, 0, 0.11);
+        }
+        .questionnaire .table-striped > tbody > tr:nth-child(2n+1) {
+          background-color: #f9f9f9;
+        }
+        .questionnaire .table-hover > tbody > tr:hover {
+        background-color: #e3f3ff;
+        }
+        .table>tbody>tr>td, .table>tbody>tr>th, .table>tfoot>tr>td, .table>tfoot>tr>th, .table>thead>tr>td, .table>thead>tr>th{
+            padding:4px 8px 4px 8px;
+        }
+        .cell td label{
+            vertical-align:middle;
+            margin-left:3px;
+        }
+        table.list table tr td{
+            border:none !important;
+        }
+        table.list .headerRow th{
+            font-size:1.1em !important;
+        }
+        body .pbBody table.list tr th, body .pbBody table.list tr td{
+            border-left:none !important;
+            border-top:none !important;
+            border-right:1px solid #ededed;
+            }   
+        /* CUSTOM HELP / GUIDANCE TEXT BOX */
+        .customHelpText{
+            padding:7px;
+            border:1px solid #85B3CE;
+            min-height:30px;
+            display:block;
+            width:auto;
+            margin:0;
+            background-repeat:no-repeat;
+            border-radius:4px;
+            background-color:#A2D3F1;
+        }
+        .customHelpBody{
+            display:inline-block;
+            color:#;
+            max-width:95%;
+        }
+
+</style>
+    
+    <apex:includeScript value="{!$Resource.ECO_jQuery_1_11_2_min_js}" />
+    <apex:includeScript value="{!URLFOR($Resource.ECO_jQueryUI_1_11_2, 'jquery-ui.min.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.ECO_Bootstrap_3_3_2, 'js/bootstrap.min.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/js/nifty.min.js')}" />
+    
+    
+    <apex:stylesheet value="{!URLFOR($Resource.ECO_jQueryUI_1_11_2_Themes, 'themes/smoothness/jquery-ui.css')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.ECO_Bootstrap_3_3_2, 'css/bootstrap.min.css')}" /> 
+    <apex:stylesheet value="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/css/nifty.css')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/css/font-awesome.min.css')}" />
+    
+    <script type="text/javascript" >
+
+        var dict = {};
+
+        $(document).ready(function () {
+            $('#spinnerModal').modal({
+                show: false
+            }); 
+            
+            $(":radio").each(function() { 
+                if ($(this).is(":checked")) {
+                    console.log($(this).is(":checked") + $(this).attr('name') + $(this).attr('value'));
+                    dict[$(this).attr('name')] = $(this).attr('value');   
+                }    
+            });          
+
+        });
+
+        
+        function toggleShow (thisElement) 
+        {                  
+            var isFirstTime = dict[thisElement.name] == undefined;
+            dict[thisElement.name] = thisElement.value;
+                  
+            if (thisElement.value == 'Yes' || thisElement.value == 'True' || thisElement.value == 'Unknown') 
+            {
+                
+                $('#spinnerModal').modal({
+                    show: true
+                });
+                
+                if ($(thisElement).closest('td.cell').attr('isSectionHeader') == 'true') 
+                {
+                    apexShowDOASection();
+                } 
+                else 
+                {
+                    if ($(thisElement).closest('td.cell').attr('isDOA') == 'true') 
+                    {
+                        apexAddDOARisk($(thisElement).closest('td.cell').attr('id'));
+                    }
+                    else
+                    {
+                        apexAddRisk($(thisElement).closest('td.cell').attr('id'));
+                    }
+                }
+            }
+            else
+            {
+                if ($(thisElement).closest('td.cell').attr('isSectionHeader') == 'true') 
+                {
+                    if (!isFirstTime) {  
+                        apexHideDOASection();
+                    }    
+                }
+                else
+                {
+                    if ($(thisElement).closest('td.cell').attr('isDOA') == 'true') 
+                    {
+                        if (!isFirstTime) {
+                           apexRemoveDOARisk($(thisElement).closest('td.cell').attr('id'));
+                           console.log($(thisElement).closest('td.cell').attr('id'));
+                        }
+                    }
+                    else
+                    {
+                        if (!isFirstTime) {                    
+                           apexRemoveRisk($(thisElement).closest('td.cell').attr('id'));
+                           console.log($(thisElement).closest('td.cell').attr('id'));
+                        }   
+                    }
+                }
+            }
+        }
+        
+        function showModal () {
+            $('#spinnerModal').modal({
+                show: true
+            });
+        }
+        
+        function hideModal () {
+            $('#spinnerModal').modal('hide');
+        }
+    </script>
+    
+    <!-- <apex:composition template="ECO_Temp_Portal">
+        
+        <apex:define name="head">
+            
+        </apex:define>
+
+
+        
+        <apex:define name="content"> -->
+            
+            <div class="modal" id="spinnerModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" >
+                <!-- <div class="modal-dialog modal-sm">-->
+                    <!-- <div class="modal-content"> -->
+                        <!-- <div class="modal-body"> -->
+                            <!-- <i class="fa fa-cog fa-spin"></i> -->
+                        <!-- </div> -->
+                    <!-- </div> -->
+                <!-- </div>-->
+            </div>
+            
+            <nttdcore:DLabel name="DL1" default="Risk Assessment" labelParent="{!this}" /><nttdcore:DLabel name="DL2" default="{{1}} Questions" labelParent="{!this}" p1="{!Questionnaire__c.Name}" /><apex:sectionHeader title="{!dLabel['DL1']}" subtitle="{!dLabel['DL2']}" />
+            
+            <apex:pageMessages id="pageMessages" />
+            
+            <!-- <apex:actionStatus startText="loading..." id="theStatus" /> -->
+    
+            <apex:form id="theForm" >
+                
+                <apex:inputField value="{!Questionnaire__c.QuestionnaireSet__r.ApprovalStatus__c}" rendered="false" />
+
+                <apex:actionFunction name="apexAddRisk" action="{!addRiskToAnswer}" rerender="theBlock, pageMessages" oncomplete="hideModal();" >
+                    <apex:param name="questionTemplateId" assignto="{!selectedQuestionId}" value="" />
+                </apex:actionFunction>
+                
+                <apex:actionFunction name="apexRemoveRisk" action="{!removeRiskFromAnswer}" rerender="theBlock, pageMessages"  oncomplete="hideModal();">
+                    <apex:param name="questionTemplateId" assignto="{!selectedQuestionId}" value="" />
+                </apex:actionFunction>
+
+                <apex:actionFunction name="apexAddDOARisk" action="{!addDOARiskToAnswer}" rerender="theBlock, pageMessages" oncomplete="hideModal();" >
+                    <apex:param name="questionTemplateId" assignto="{!selectedQuestionId}" value="" />
+                </apex:actionFunction>
+                
+                <apex:actionFunction name="apexRemoveDOARisk" action="{!removeDOARiskFromAnswer}" rerender="theBlock, pageMessages" oncomplete="hideModal();" >                    
+                    <apex:param name="questionTemplateId" assignto="{!selectedQuestionId}" value="" />
+                </apex:actionFunction>
+                
+                <apex:actionFunction name="apexShowDOASection" action="{!doShowDOASection}" rerender="theBlock, pageMessages" oncomplete="hideModal();" >
+                </apex:actionFunction>
+                
+                <apex:actionFunction name="apexHideDOASection" action="{!doHideDOASection}" rerender="theBlock, pageMessages" oncomplete="hideModal();" >
+                </apex:actionFunction>
+
+              <!--  <div class="halfWidthWrapper"> 
+                    <div>
+                        <apex:pageBlock title="Table of Contents" id="countBlock">
+                            <apex:pageBlockTable value="{!lQuestionnaires}" var="item" styleClass="table table-striped table-hover table-bordered">
+                                <apex:column headerValue="Name">
+                                    <apex:commandLink action="{!goToSpecificQuestionnaire}" value="{!item.Name}" rendered="{!item.Name == Questionnaire__c.Name}" styleClass="currentPageLink">
+                                        <apex:param name="questionnaireId" assignTo="{!navTargetQuestionnaireId}" value="{!item.Id}"/>
+                                    </apex:commandLink>
+                                    <apex:commandLink action="{!goToSpecificQuestionnaire}" value="{!item.Name}" rendered="{!item.Name != Questionnaire__c.Name}">
+                                        <apex:param name="questionnaireId" assignTo="{!navTargetQuestionnaireId}" value="{!item.Id}"/>
+                                    </apex:commandLink>
+                                </apex:column>
+                                <apex:column value="{!item.ProjectRisk__c}" styleClass="centeredColumn"/> 
+                                <apex:column value="{!item.DoATriggers__c}" styleClass="centeredColumn"/> 
+                                <apex:column value="{!item.PercentComplete__c}" styleClass="centeredColumn"/> 
+                            </apex:pageBlockTable>
+                        </apex:pageBlock>
+                    </div>
+                </div> -->
+               <!-- <div class="halfWidthWrapper" style="margin-left:25px;">   -->                 
+                    <c:ECO_CollapsibleSection sectiontitle="General Guidance Instructions" >           
+                        <strong><nttdcore:DLabel name="DL3" default="Directions:" labelParent="{!this}" />{!dLabel['DL3']}</strong>
+                            <ul>
+                                <li><nttdcore:DLabel name="DL4" default="Step 1:  Create a version name for the Risk &amp; Market Assessment (default will be saved as &ldquo;Initial Assessment&rdquo;)" labelParent="{!this}" />{!dLabel['DL4']}</li>
+                                <li><nttdcore:DLabel name="DL5" default="Step 2:  Complete the Risk Assessment" labelParent="{!this}" />{!dLabel['DL5']}</li>
+                                <li><nttdcore:DLabel name="DL6" default="Step 3:  Complete the Market Assessment" labelParent="{!this}" />{!dLabel['DL6']}</li>
+                                <li><nttdcore:DLabel name="DL7" default="Step 4:  Schedule and conduct a Go/No Go meeting (optional)" labelParent="{!this}" />{!dLabel['DL7']}</li>
+                                <li><nttdcore:DLabel name="DL8" default="Step 5:  Select &ldquo;go&rdquo; or &ldquo;no go&rdquo; for approval" labelParent="{!this}" />{!dLabel['DL8']}</li>
+                                <li><nttdcore:DLabel name="DL9" default="Step 6:  Submit the completed R&amp;M Assessment and go/no go recommendation for approval" labelParent="{!this}" />{!dLabel['DL9']} </li>
+                            </ul>
+                            <em><nttdcore:DLabel name="DL10" default="The system will automatically submit the request to the owning organization P&amp;L Manager or delegate.  The approver will review the results of the Risk &amp; Market Assessment and approve/reject the go/no go recommendation." labelParent="{!this}" />{!dLabel['DL10']}</em>
+                    </c:ECO_CollapsibleSection>
+               <!-- </div> -->
+             
+                <apex:outputPanel layout="block" styleclass="questionnaire" id="theAccordion" >
+                    <nttdcore:DLabel name="DL11" default="{{1}} Details" labelParent="{!this}" p1="{!Questionnaire__c.Name}" /><apex:pageBlock title="{!dLabel['DL11']}" id="theBlock" ><nttdcore:DLabel name="DL17" default="Risk Assessment Questions" labelParent="{!this}" />
+                        <apex:pageBlockButtons location="both" ><nttdcore:DLabel name="DL12" default="Saving..." labelParent="{!this}" /><nttdcore:DLabel name="DL13" default="Save &amp; Next" labelParent="{!this}" /><nttdcore:DLabel name="DL14" default="Saving..." labelParent="{!this}" /><nttdcore:DLabel name="DL15" default="Save" labelParent="{!this}" /> 
+                            <!--<apex:commandButton action="{!SavePrevious}" value="Save & Previous" rerender="pageMessages" onClick="showModal();" onComplete="hideModal();" disabled="{!AND(OR(oQuestionnaire.QuestionnaireSet__r.ApprovalStatus__c!='Pending Approval', oQuestionnaire.Name=='SH&E and Resilience'), oQuestionnaire.QuestionnaireSet__r.ApprovalStatus__c!='Cancelled')}" />-->
+                            <!-- <apex:commandButton action="{!SaveNext}" value="Save & Next" rerender="pageMessages" onClick="showModal();" onComplete="hideModal();"  disabled="{!AND(oQuestionnaire.QuestionnaireSet__r.ApprovalStatus__c!='Pending Approval', oQuestionnaire.QuestionnaireSet__r.ApprovalStatus__c!='Cancelled')}"/> -->
+
+                            <apex:actionStatus id="AddStatusSN" >
+                            <apex:facet name="start" >
+                            <apex:outputText style="font-style: italic;" value="{!dLabel['DL12']}" />
+                            </apex:facet>
+                            <apex:facet name="stop" >
+                            <apex:commandButton status="AddStatusSN" action="{!SaveNext}" value="{!dLabel['DL13']}" rerender="pageMessages" onclick="showModal();" oncomplete="hideModal();" disabled="{!AND(oQuestionnaire.QuestionnaireSet__r.ApprovalStatus__c!='Pending Approval', oQuestionnaire.QuestionnaireSet__r.ApprovalStatus__c!='Cancelled')}" />
+                            </apex:facet>
+                            </apex:actionStatus>                              
+                            <!-- <apex:commandButton action="{!SaveRecord}" value="Save" rerender="pageMessages, countBlock" onClick="showModal();" onComplete="hideModal();"  disabled="{!AND(oQuestionnaire.QuestionnaireSet__r.ApprovalStatus__c!='Pending Approval', oQuestionnaire.QuestionnaireSet__r.ApprovalStatus__c!='Cancelled')}"/> -->
+                            
+                            <apex:actionStatus id="AddStatus" >
+                            <apex:facet name="start" >
+                            <apex:outputText style="font-style: italic;" value="{!dLabel['DL14']}" />
+                            </apex:facet>
+                            <apex:facet name="stop" >
+                            <apex:commandButton status="AddStatus" action="{!SaveRecord}" value="{!dLabel['DL15']}" rerender="pageMessages, countBlock" onclick="showModal();" oncomplete="hideModal();" disabled="{!AND(oQuestionnaire.QuestionnaireSet__r.ApprovalStatus__c!='Pending Approval', oQuestionnaire.QuestionnaireSet__r.ApprovalStatus__c!='Cancelled')}" />
+                            </apex:facet>
+                            </apex:actionStatus>                            
+                            
+                            <nttdcore:DLabel name="DL16" default="Return to Summary" labelParent="{!this}" /><apex:commandButton action="{!ReturnToSummary}" value="{!dLabel['DL16']}" rerender="pageMessages" onclick="showModal();" oncomplete="hideModal();" />
+                            <!--<apex:commandButton action="{!SetDefaultNo}" value="Default to Remaining to No" />-->
+                        </apex:pageBlockButtons>
+                        
+                        <apex:pageBlockSection collapsible="false" title="{!dLabel['DL17']}" />
+                        <table class="table-hover list" width="100%" cellpadding="0" cellspacing="0" >                
+                            <tr class="headerRow" >
+                                <!--<th>Type</th>-->
+                                <th><nttdcore:DLabel name="DL18" default="Question" labelParent="{!this}" />{!dLabel['DL18']}</th>
+                                <th width="255px" ><nttdcore:DLabel name="DL19" default="Answer" labelParent="{!this}" />{!dLabel['DL19']}</th>
+                            </tr>
+
+                            <apex:repeat value="{!mNotDoAAnswers}" var="group" id="notDoAAnswerOuterRepeater" >
+                                <apex:repeat value="{!mNotDoAAnswers[group]}" var="answer" id="notDoAAnswerInnerRepeater" >
+                                    
+                                    <tr>
+                                        <!--<td width="150px" class="cell">
+                                            <apex:outputField value="{!answer.TemplateQuestion__r.RiskTitle__c}" />
+                                            <apex:outputPanel rendered="{!if(answer.TemplateQuestion__r.Help_Icon_Text__c == null, false, true)}">
+                                             <c:ECO_HelpIcon helpText="{!answer.TemplateQuestion__r.Help_Icon_Text__c}"/>
+                                            </apex:outputPanel>
+                                        </td>-->
+                                        <td class="cell {!answer.TemplateQuestion__r.Indented__c}" >
+                                            <apex:outputField value="{!answer.TemplateQuestion__r.Question_1__c}" 
+                                                rendered="{!if(OR(userLanguage != 'fr',AND(userLanguage == 'fr', answer.TemplateQuestion__r.FrQuestion_1__c == null)), true, false)}" />
+                                            <apex:outputField value="{!answer.TemplateQuestion__r.FrQuestion_1__c}" 
+                                                rendered="{!NOT(if(OR(userLanguage != 'fr',AND(userLanguage == 'fr', answer.TemplateQuestion__r.FrQuestion_1__c == null)), true, false))}" />
+                                            <apex:outputPanel layout="inline" styleclass="questionHelpText" rendered="{!answer.TemplateQuestion__r.HelpText__c != ''}" >
+                                                <apex:outputField styleclass="helpText" value="{!answer.TemplateQuestion__r.HelpText__c}" />
+                                            </apex:outputPanel>
+                                        </td>
+                                        <td class="cell" valign="middle" id="{!answer.TemplateQuestion__c}" issectionheader="{!answer.TemplateQuestion__r.isDOAmaster__c}" >
+                                            <apex:selectRadio value="{!answer.Value__c}" id="answerRadio" onchange="toggleShow(this);" >
+                                                <apex:selectOptions value="{!lAnswerValues}" />
+                                            </apex:selectRadio>
+                                          
+                                        <!-- {!questionToRiskMap[answer.TemplateQuestion__c].Project__c != null}
+                                        
+                                        {!questionToRiskMap[answer.TemplateQuestion__c].RiskMitigation__c} -->
+                                        </td>
+                                    </tr>
+                                    <apex:outputPanel layout="none" rendered="{!questionToRiskMap[answer.TemplateQuestion__c].Project__c != null}" >
+                                    <!--<apex:outputPanel layout="none" rendered="{!questionToRiskMap[answer.TemplateQuestion__c].Answer__r.Value__c == 'Unknown'}">-->
+                                    <!--<apex:outputPanel layout="none" rendered="{!questionToRiskMap[answer.TemplateQuestion__c].RiskMitigation__c != null}">
+                                    <apex:outputPanel layout="none"> -->
+                                        <tr class="risk" >
+                                            <td class="cell {!answer.TemplateQuestion__r.Indented__c}" align="right" colspan="3" >
+                                                <table style="width: 100%;" >
+                                                    <tr>
+                                                        <td align="right" valign="middle" ><nttdcore:DLabel name="DL20" default="Risk Mitigation" labelParent="{!this}" /><nttdcore:DLabel name="DL21" default="(Response Required):" labelParent="{!this}" />{!dLabel['DL20']} <br/> {!dLabel['DL21']}</td>
+                                                        <td align="right" valign="top" ><apex:inputTextarea id="m1" value="{!questionToRiskMap[answer.TemplateQuestion__c].RiskMitigation__c}" style="width: 98%; height: 60px; border-left: 5px solid red; padding: 10px" /></td>
+                                                    </tr>
+                                                </table>
+                                                
+                                            </td>
+                                        </tr>
+                                    </apex:outputPanel>
+                                    
+                                </apex:repeat>
+                            </apex:repeat>
+                        </table>
+
+                        <br/>
+
+                        <!--<apex:outputPanel rendered="{!DOA_SectionAnswer != null}">-->
+                        <apex:outputPanel rendered="{!showDOASubSection}" ><nttdcore:DLabel name="DL22" default="DOA Triggers" labelParent="{!this}" />
+                        <apex:pageBlockSection collapsible="false" title="{!dLabel['DL22']}" />
+                        <!--<table class="table-hover list" width="100%" cellpadding="0" cellspacing="0" >
+                            <tr class="headerRow">
+                                <th>Type</th>
+                                <th>Question</th>
+                                <th width="255px">Answer</th>
+                            </tr>
+                            <tr>
+                                <td width="150px" class="cell">
+                                    <apex:outputField value="{!DOA_SectionAnswer.TemplateQuestion__r.RiskTitle__c}" />
+                                </td>
+                                <td class="cell {!DOA_SectionAnswer.TemplateQuestion__r.Indented__c}">
+                                    <apex:outputField value="{!DOA_SectionAnswer.TemplateQuestion__r.Question_1__c}" />
+                                    <apex:outputPanel layout="inline" styleClass="questionHelpText" rendered="{!DOA_SectionAnswer.TemplateQuestion__r.HelpText__c != ''}">
+                                        <apex:outputField styleClass="helpText" value="{!DOA_SectionAnswer.TemplateQuestion__r.HelpText__c}"  />
+                                    </apex:outputPanel>
+                                </td>
+                                <td class="cell" valign="bottom" id="{!DOA_SectionAnswer.TemplateQuestion__c}" isSectionHeader="{!DOA_SectionAnswer.TemplateQuestion__r.isDOAmaster__c}">
+                                    <apex:selectRadio value="{!DOA_SectionAnswer.Value__c}" id="answerRadio" >
+                                        <apex:selectOptions value="{!lAnswerValues}"/>
+                                    </apex:selectRadio>
+                                </td>
+                            </tr>
+                            <apex:outputPanel layout="none" rendered="{!questionToRiskMap[DOA_SectionAnswer.TemplateQuestion__c].Project__c != null}">
+                                <tr class="risk">
+                                    <td class="cell {!DOA_SectionAnswer.TemplateQuestion__r.Indented__c}" align="right" valign="middle" colspan="3">
+                                        <apex:outputLabel value="Risk Mitigation <br /> (Response Required):" for="m1" escape="true"/>
+                                        <apex:inputTextarea id="m1" value="{!questionToRiskMap[DOA_SectionAnswer.TemplateQuestion__c].RiskMitigation__c}" style="width: 80%; height: 80px; border-left: 5px solid red;" required="true" />
+                                    </td>
+                                </tr>
+                            </apex:outputPanel>                         
+                        </table>-->
+
+                        <BR/><BR/>
+                        <!--<apex:outputPanel id="DOAHeader" rendered="{!showDOASection}">-->
+                        <apex:outputPanel id="DOAHeader" >
+                        <table class="table-hover list" width="100%" cellpadding="0" cellspacing="0" >                
+                            <tr class="headerRow" >
+                                <th><nttdcore:DLabel name="DL23" default="Type" labelParent="{!this}" />{!dLabel['DL23']}</th>
+                                <!--<th>Enterprise DOA</th>-->
+                                <th><nttdcore:DLabel name="DL24" default="DCS Sub-DOA" labelParent="{!this}" />{!dLabel['DL24']}</th>
+                                <th>
+                                    <!--DoA Triggers <button type="button" onClick="showModal();apexShowDOASection();" style="display:inline-block; margin:-2px 0 0 10px;">Show all DOA Questions</button>-->
+                                </th>
+                                <th><nttdcore:DLabel name="DL25" default="Answer" labelParent="{!this}" />{!dLabel['DL25']}</th>
+                            </tr>
+                            <apex:repeat value="{!mDoAAnswers}" var="group" id="DoAAnswersOuterRepeater" >
+                                <apex:repeat value="{!mDoAAnswers[group]}" var="answer" id="DoAAnswersInnerRepeater" >
+                                    <apex:outputPanel id="DoAQuestions" layout="none" rendered="{!answer.TemplateQuestion__r.isDOAmaster__c || showDOASubSection}" >
+                                    <!--<apex:outputPanel id="DoAQuestions" layout="none" rendered="{!answer.TemplateQuestion__r.isDOAmaster__c }">-->
+                                        <tr>
+                                            <td width="150px" class="cell" >
+                                                <!--<apex:outputField value="{!answer.TemplateQuestion__r.RiskTitle__c}" />-->
+                                                <apex:outputField value="{!answer.TemplateQuestion__r.RiskTitle__c}" 
+                                                    rendered="{!if(OR(userLanguage != 'fr',AND(userLanguage == 'fr', answer.TemplateQuestion__r.FrRiskTitle__c == null)), true, false)}" />
+                                                <apex:outputField value="{!answer.TemplateQuestion__r.FrRiskTitle__c}" 
+                                                    rendered="{!NOT(if(OR(userLanguage != 'fr',AND(userLanguage == 'fr', answer.TemplateQuestion__r.FrRiskTitle__c == null)), true, false))}" />
+                                            </td>
+                                            <!--<td width="110px" class="cell">
+                                                <apex:outputField value="{!answer.TemplateQuestion__r.EnterpriseDOA__c}" />
+                                            </td >-->
+                                            <td width="110px" class="cell" >
+                                                <apex:outputField value="{!answer.TemplateQuestion__r.DCSSubDOA__c}" />
+                                            </td>
+                                            <td class="cell" >
+                                                <!--<apex:outputField value="{!answer.TemplateQuestion__r.Question_1__c}" />-->
+                                                <apex:outputField value="{!answer.TemplateQuestion__r.Question_1__c}" 
+                                                rendered="{!if(OR(userLanguage != 'fr',AND(userLanguage == 'fr', answer.TemplateQuestion__r.FrQuestion_1__c == null)), true, false)}" />
+                                                <apex:outputField value="{!answer.TemplateQuestion__r.FrQuestion_1__c}" 
+                                                rendered="{!NOT(if(OR(userLanguage != 'fr',AND(userLanguage == 'fr', answer.TemplateQuestion__r.FrQuestion_1__c == null)), true, false))}" />
+                                            </td>
+                                            <td class="cell" valign="bottom" width="255px" id="{!answer.TemplateQuestion__c}" issectionheader="{!answer.TemplateQuestion__r.isDOAmaster__c}" isdoa="{!answer.TemplateQuestion__r.IsDoATrigger__c}" >
+                                                <apex:selectRadio value="{!answer.Value__c}" onchange="toggleShow(this);" >                       
+                                                    <apex:selectOptions value="{!lAnswerValues}" />
+                                                </apex:selectRadio>
+                                            </td>
+                                        </tr>
+                                        
+                                        
+                                    </apex:outputPanel>
+                                    
+                                    <apex:outputPanel layout="none" rendered="{!questionToDOAMap[answer.TemplateQuestion__c].Project__c != null}" >
+                                        <tr class="risk" >
+                                            <td/>
+                                            <td/>
+                                            <td class="cell {!answer.TemplateQuestion__r.Indented__c}" align="right" colspan="3" >
+                                                <table style="width: 100%;" >
+                                                    <tr>
+                                                        <td align="right" valign="middle" ><nttdcore:DLabel name="DL26" default="Risk Mitigation" labelParent="{!this}" /><nttdcore:DLabel name="DL27" default="(Response Required):" labelParent="{!this}" />{!dLabel['DL26']} <br/> {!dLabel['DL27']}</td>
+                                                        <!--<td align="right" valign="top"><apex:inputTextarea id="m1" value="{!questionToDOAMap[answer.TemplateQuestion__c].MitigationStrategy__c}" style="width: 98%; height: 60px; border-left: 5px solid red; padding: 10px" />
+                                                            <apex:param value="{!questionToDOAMap[answer.TemplateQuestion__c].MitigationStrategy__c}" assignTo="{!questionToRiskMap[answer.TemplateQuestion__c].RiskMitigation__c}"/>
+                                                        </td>-->
+                                                        <td align="right" valign="top" ><apex:inputTextarea id="m1" value="{!questionToRiskMap[answer.TemplateQuestion__c].RiskMitigation__c}" style="width: 98%; height: 60px; border-left: 5px solid red; padding: 10px" />
+                                                            <apex:param value="{!questionToRiskMap[answer.TemplateQuestion__c].RiskMitigation__c}" assignto="{!questionToDOAMap[answer.TemplateQuestion__c].MitigationStrategy__c}" />
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                                
+                                            </td>
+                                        </tr>
+                                    </apex:outputPanel>
+                                </apex:repeat>
+                            </apex:repeat>
+                        </table>
+                        <br/>&nbsp;&nbsp;
+                        <div align="right" draggable="false" >
+                            <nttdcore:DLabel name="DL28" default="Default Remaining to No" labelParent="{!this}" /><apex:commandButton action="{!SetDefaultNo}" value="{!dLabel['DL28']}" style="margin-right:170px" />
+                        </div>                            
+                        </apex:outputPanel> 
+                        </apex:outputPanel>
+
+                    </apex:pageBlock>
+                </apex:outputPanel>                  
+            </apex:form>
+            
+        <!-- </apex:define>
+        
+    </apex:composition> -->
+
+    
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

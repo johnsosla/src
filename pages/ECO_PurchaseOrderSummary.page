@@ -1,0 +1,796 @@
+<apex:page standardcontroller="POHeader__c" extensions="ECO_PurchaseOrderSummaryController,nttdcore.DLabelParentController" >
+    
+    <apex:includeScript value="{!URLFOR($Resource.ECO_jQuery_1_11_2_min_js)}" />
+    <apex:includeScript value="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.3/jquery-ui.min.js" />
+
+    <link rel="stylesheet" type="text/css" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/themes/redmond/jquery-ui.css" />
+    <style>
+        table.list .headerRow th{
+            font-size:1.1em !important;
+        }
+
+        .archive{
+            background-color: #BDBDBD;
+        }
+    </style>
+    
+    <style>
+        .largerTextBox {
+            width: 85%;
+        }
+        
+        div.attachmentModal {
+            //display: none;
+        }
+        
+        .percentInput{
+          float: right;
+          z-index: 999;
+          margin-right: -45px;
+          margin-top: 1px;
+          color: #A7A7A7;
+        }
+        
+        .smallInput {
+            width: 46px;
+            float:right;
+            line-height:14px;
+            height: 19px;
+        }
+        .fileList
+        {
+            padding-top: 5px;
+            padding-bottom: 5px;
+        }       
+        
+        .attachNewFile{
+            visibility: hidden;
+        }   
+        
+        .customHelpText{
+            padding:7px;
+            border:1px solid #85B3CE;
+            min-height:30px;
+            display:block;
+            width:auto;
+            margin:0;
+        //  background-color:#C6E4EE;
+            background-color:#A2D3F1;
+            background-repeat:no-repeat;
+            border-radius:4px;
+        }
+        
+        .customHelpBody{
+            display:block;
+            color:#;
+            max-width:95%;
+        }
+        
+        .mouseOverInfoOuter{
+            text-align:left;
+        }
+    </style>
+    
+    <apex:form ><nttdcore:DLabel name="DL67" default="Closing..." labelParent="{!this}" />
+        <script type="text/javascript" >
+            var doSync = "false";
+             function setFocusOnLoad() {}
+        </script>
+
+        <apex:outputPanel id="autoApproveSuccessCheck" >
+            <script type="text/javascript" >
+                doSync = "{!isApprovedDoSyncNow}";          
+            </script>
+        </apex:outputPanel>
+    
+        <script type="text/javascript" >
+            j$ = jQuery.noConflict();
+
+            var poLineItemModal = null;
+
+
+        /*function showDialog(modalTitle){
+                
+                poLineItemModal = j$("#divTest").dialog({
+                                            autoOpen: false,
+                                            title: modalTitle,
+                                            resizable: true,
+                                            width: 'auto',
+                                            height: 'auto',
+                                            autoResize: true,
+                                            modal: true,
+                                            draggable: true
+                                        });
+                poLineItemModal.dialog('open');             
+                
+            }*/
+
+        /*function closeDialog(){
+                poLineItemModal.dialog('close');   
+                //vf rerender wasn't working - workaround for that
+                //setTimeout(doRerenderPOListItems_JS, 1000);               
+            }*/
+
+        /*function closeDialogAndReRender(){
+                closeDialog();
+                doRerenderPOListItems_JS();
+            }*/
+
+        /*function save2(){
+                closeDialog();
+                saveCurrentPOLineItem_JS();
+            }*/
+
+        /*function addNewPOLineItem(){
+                var url = "/apex/ECO_ProjectTaskSearch?projectId={!poHeader.Project__c}&poHeaderId={!poHeader.Id}";
+                j$("[id*=iPOLineItem]").attr('src', url);
+                showDialog('Add New Purchase Order Line Item');
+            }*/
+        
+            function submitForApproval(){
+                var purchaseOrderId = "{!poHeader.Id}";
+                var url = "/p/process/Submit?id={!poHeader.Id}&retURL=%2F{!poHeader.Id}";
+                alert(url);
+                navigateToUrl(url);     
+            }
+
+            function SaveAndSubmitPurchaseOrder(){              
+                purchaseOrderStatus = "{!poHeader.Status__c}";
+                if(purchaseOrderStatus == 'APPROVED') {
+                    saveAndSubmitForApproval_JS();
+                }
+                else {
+                    var confirmMsg = "Submit Purchase Order for Approval?";
+                    if (Modal.confirm && Modal.confirm(confirmMsg)){
+                        saveAndSubmitForApproval_JS();
+                    }
+                }
+            }
+
+            function SyncPurchaseOrderIfAutoApproved(){             
+                if(doSync == "true"){
+                    createMessageQueueRecord_start_JS();
+                }
+            }
+
+            function doMessageQueuePolling(){
+                if(pollMessageQueue == "true") {
+                    var timerVal = document.getElementById('pollingTimer').innerHTML;               
+                    var seconds = parseInt(timerVal);
+             
+                    if (seconds == 1) {
+                      temp = document.getElementById('pollingTimer');
+                      temp2 = document.getElementById('pollingTimerBottom');
+                      temp.innerHTML = "checking if processed";
+                      temp2.innerHTML = "checking if processed";
+                      checkIfSyncHasBeenProcessed_JS();
+                      return;
+                    }
+         
+                    seconds--;
+                    temp = document.getElementById('pollingTimer');
+                    temp2 = document.getElementById('pollingTimerBottom');
+                    temp.innerHTML = seconds;
+                    temp2.innerHTML = seconds;
+                    var timeoutFunction = setTimeout(doMessageQueuePolling, 1000);
+                }
+            }
+
+        /*function changeVendor(vendorId){
+                //alert(vendorId);
+                j$("[id*=selectedVendorId]").val(vendorId); 
+                getDefaultPaymentTermsForVendor_JS();
+            }*/
+
+            function confirmCancelPurchaseOrder(){
+                if(confirm("Are you sure you want to cancel this purchase order?")){
+                    cancelPurchaseOrder_JS();
+                }
+            }
+        
+            function authenticate() {
+                authenticateCredentials($x('[id$=username]').val(), $x('[id$=password]').val());
+            }
+        
+            function cancelModal() {
+                closeModal('modalDialogOracleLogin');
+                return false;
+            }
+        
+            function closeAuthenticationModal(){
+                closeModal('modalDialogOracleLogin');
+                closeAuthenticationWindow();
+                return false;
+            }
+        </script>
+
+        <!--apex:actionFunction action="{!gotoPOLineItemPage}" name="addNewPOLineItem_JS" oncomplete="showDialog();" reRender="pbCurrentPOLineItem"/-->
+        <!--apex:actionFunction action="{!doRerenderPOListItems}" name="doRerenderPOListItems_JS" reRender="pbStatus,pbsDistributions,msgPanel,btnSync,msgValidation"/-->
+        <apex:actionFunction action="{!initiateOracleSyncRequest}" name="initiateOracleSyncRequest_JS" status="statusBar" oncomplete="executeOracleSyncRequest_JS();" />
+        <apex:actionFunction action="{!executeOracleSyncRequest}" name="executeOracleSyncRequest_JS" status="statusBar" rerender="msg,syncHistorySection,statusBar" />   
+        <apex:actionFunction action="{!saveAndSubmitForApproval}" name="saveAndSubmitForApproval_JS" status="statusBar" rerender="topButtons,poStatusPanel,subVendor,pohAgreementSec,pocurrency,porequestor,popaymentterm,poLineItemSec,addpolbutton,msg,statusBar,approvalHistory,autoApproveSuccessCheck" oncomplete="SyncPurchaseOrderIfAutoApproved();" />  
+        <apex:actionFunction action="{!createMessageQueueRecord_start}" name="createMessageQueueRecord_start_JS" oncomplete="createMessageQueueRecord_complete_JS();" rerender="msgPanel,msgPanelBottom,msgPollingTop,msgPollingBottom" status="statusBar" />    
+        <apex:actionFunction action="{!createMessageQueueRecord_complete}" name="createMessageQueueRecord_complete_JS" oncomplete="sendPOSyncRequest_start_JS();" rerender="msgPanel,msgPanelBottom" status="statusBar" />
+        <apex:actionFunction action="{!sendPOSyncRequest_start}" name="sendPOSyncRequest_start_JS" oncomplete="sendPOSyncRequest_complete_JS();" rerender="msgPanel,msgPanelBottom,msgPollingTop,msgPollingBottom" status="statusBar" />
+        <apex:actionFunction action="{!sendPOSyncRequest_complete}" name="sendPOSyncRequest_complete_JS" oncomplete="sendPOSyncRequest_Finish_JS();" rerender="msgPanel,msgPanelBottom,syncHistorySection" status="statusBar" />
+        <apex:actionFunction action="{!sendPOSyncRequest_Finish}" name="sendPOSyncRequest_Finish_JS" rerender="msgPanel,msgPanelBottom,pbStatus,pbtValidPOLineItems,pbsPOHeader,txtJSON,btnSavePOHeader" status="statusBar" />
+        <apex:actionFunction action="{!checkIfSyncHasBeenProcessed}" name="checkIfSyncHasBeenProcessed_JS" rerender="msgPollingTop,msgPollingBottom,syncHistorySection" oncomplete="doMessageQueuePolling();" />
+        <!--apex:actionFunction action="{!getDefaultPaymentTermsForVendor}" name="getDefaultPaymentTermsForVendor_JS" reRender="pohAgreement, pohPaymentTerm, vendorSection" /-->
+        <apex:actionFunction action="{!cancelPurchaseOrder}" name="cancelPurchaseOrder_JS" rerender="msg,statusBar,approvalHistory,autoApproveSuccessCheck" status="statusBar" oncomplete="SyncPurchaseOrderIfAutoApproved();" />
+        <!--div style="display:none;">
+            <apex:inputText value="{!selectedVendorId}" id="selectedVendorId" />
+        </div-->
+        <nttdcore:DLabel name="DL1" default="Purchase Order Summary" labelParent="{!this}" /><nttdcore:DLabel name="DL2" default=" Sync Purchase Order " labelParent="{!this}" /><apex:sectionHeader subtitle="{!dLabel['DL1']}" title="{!dLabel['DL2']}" ><nttdcore:DLabel name="DL3" default="Processing..." labelParent="{!this}" />
+            <apex:actionStatus id="statusBar" >
+                <apex:facet name="start" >
+                    <p style="padding-bottom:20px;" class="searchText" ><img style="position:relative;top:12px;" src="/img/loading32.gif" /> {!dLabel['DL3']}</p>
+                </apex:facet>
+                <apex:facet name="stop" >
+                </apex:facet>
+            </apex:actionStatus>
+        </apex:sectionHeader>
+
+        <apex:outputPanel id="msgPanel" >
+            <nttdcore:DLabel name="DL4" default="Your Oracle Login has expired and you are required to login to Oracle before Synching the Purchase Order. Please click the Login button and enter your Oracle credentials." labelParent="{!this}" /><nttdcore:DLabel name="DL5" default="Expired Oracle Login" labelParent="{!this}" /><apex:pageMessage detail="{!dLabel['DL4']}" severity="warning" strength="2" title="{!dLabel['DL5']}" rendered="{!NOT($User.IsValidOracleToken__c) && poheader.Status__c == 'APPROVED'}" />
+            <apex:pageMessages id="msg" escape="false" />
+        </apex:outputPanel>
+
+        <apex:outputPanel id="msgPolling" >
+            <div style="display:{!if(showPollingMsg==true, 'block', 'none')}" >
+                <apex:pageMessage escape="false" summary="{!pollingMessageQueueMsg}" severity="INFO" />
+            </div>
+        </apex:outputPanel>
+
+        <apex:outputPanel rendered="{!!hideEverything}" >
+            <apex:outputPanel id="msgValidation" >
+                <apex:pageMessage summary="{!validationMsgSummary}" severity="warning" strength="3" rendered="{!showValidationMsg}" escape="false" />
+            </apex:outputPanel>
+        </apex:outputPanel>
+        
+        <nttdcore:DLabel name="DL6" default="The purchase order is pending approval." labelParent="{!this}" /><apex:pageMessage summary="{!dLabel['DL6']}" severity="INFO" rendered="{!pendingApproval}" />
+        <div class="customHelpText" >
+            <div class="customHelpBody" ><nttdcore:DLabel name="DL7" default="The raising of a Purchase Order for a Sub Contract or Vendor Agreement enables tracking of the committed costs against a project, as well as complance with finance policies regarding the capturing of purchase committments within Oracle.  To raise a PO, complete the following steps:" labelParent="{!this}" /><nttdcore:DLabel name="DL8" default="1.  Select the Vendor or Sub and input the minimum fields required, then click &quot;Save Purchase Order&quot;" labelParent="{!this}" /><nttdcore:DLabel name="DL9" default="2.  Add as many PO Line Items as required" labelParent="{!this}" /><nttdcore:DLabel name="DL10" default="3.  Submit for approval." labelParent="{!this}" /><nttdcore:DLabel name="DL11" default="4.  Once approved, you must sync the approved PO with Oracle. You complete this by selecting &#39;Sync with Oracle&#39; from the approved PO record. Once synced, an Oracle PO Number will be provided - this number should be given to the sub/vendor to quote on their subsequent invoices." labelParent="{!this}" /><nttdcore:DLabel name="DL12" default="Please note - Advantage should be used for the purchase of indirect materials., the ePM Purchase Order functionality should only be used in relation to project specific subs or specialised vendor services/supplies." labelParent="{!this}" />
+                {!dLabel['DL7']}<br/>
+                {!dLabel['DL8']}<br/>
+                {!dLabel['DL9']}<br/>
+                {!dLabel['DL10']} <br/>
+                {!dLabel['DL11']}<br/><br/>
+    
+                    {!dLabel['DL12']}
+            </div>
+        </div>
+        <apex:pageBlock rendered="{!!hideEverything}" ><nttdcore:DLabel name="DL18" default="Purchase Order Summary" labelParent="{!this}" /><nttdcore:DLabel name="DL19" default="Purchase Order Information" labelParent="{!this}" /><nttdcore:DLabel name="DL20" default="Purchase Order Number" labelParent="{!this}" /><nttdcore:DLabel name="DL21" default="Sub / Vendor" labelParent="{!this}" /><nttdcore:DLabel name="DL22" default="Currency" labelParent="{!this}" /><nttdcore:DLabel name="DL23" default="Sub / Vendor Information" labelParent="{!this}" /><nttdcore:DLabel name="DL24" default="Address" labelParent="{!this}" /><nttdcore:DLabel name="DL25" default="Purchase Order Line Items" labelParent="{!this}" /><nttdcore:DLabel name="DL26" default="This section shows all the PO Line Items raised on this PO (a single PO may contain one or many line items).  Click 
+                                            on &quot;Add Purchase Order Line Item &quot; to add new/additional line items." labelParent="{!this}" /><nttdcore:DLabel name="DL27" default="Add Purchase Order Line Item" labelParent="{!this}" /><nttdcore:DLabel name="DL28" default="Action" labelParent="{!this}" /><nttdcore:DLabel name="DL30" default="Cancelled" labelParent="{!this}" /><nttdcore:DLabel name="DL31" default="Submitted" labelParent="{!this}" /><nttdcore:DLabel name="DL32" default="Purchase Order Status" labelParent="{!this}" /><nttdcore:DLabel name="DL33" default="This section shows the current status of the PO - the total summary values and a list of the AP 
+                                            Invoices received from the sub/vendor which have been entered into Oracle and allocated against this PO." labelParent="{!this}" /><nttdcore:DLabel name="DL34" default="Total Purchase Order Amount:" labelParent="{!this}" /><nttdcore:DLabel name="DL35" default="Total Allocated Amount:" labelParent="{!this}" /><nttdcore:DLabel name="DL36" default="Total Remaining Amount:" labelParent="{!this}" /><nttdcore:DLabel name="DL37" default="PO Line Number" labelParent="{!this}" /><nttdcore:DLabel name="DL38" default="Invoice Number" labelParent="{!this}" /><nttdcore:DLabel name="DL39" default="Invoice Date" labelParent="{!this}" /><nttdcore:DLabel name="DL40" default="Invoice Amount" labelParent="{!this}" /><nttdcore:DLabel name="DL41" default="(In Inv Currency)" labelParent="{!this}" /><nttdcore:DLabel name="DL42" default="Invoice Amount" labelParent="{!this}" /><nttdcore:DLabel name="DL43" default="(In Proj Func" labelParent="{!this}" /><nttdcore:DLabel name="DL44" default="Currency)" labelParent="{!this}" /><nttdcore:DLabel name="DL45" default="Payment Date" labelParent="{!this}" /><nttdcore:DLabel name="DL46" default="Payment Amount" labelParent="{!this}" /><nttdcore:DLabel name="DL47" default="Request JSON" labelParent="{!this}" /><nttdcore:DLabel name="DL48" default="Refresh JSON" labelParent="{!this}" /><nttdcore:DLabel name="DL49" default="Oracle Sync History" labelParent="{!this}" /><nttdcore:DLabel name="DL50" default="Successful Syncs ({{1}})" labelParent="{!this}" p1="{!numSuccessfulSyncs}" /><nttdcore:DLabel name="DL51" default="No sync history exists." labelParent="{!this}" /><nttdcore:DLabel name="DL52" default="Date Processed" labelParent="{!this}" /><nttdcore:DLabel name="DL53" default="Failed/Attempted Syncs ({{1}})" labelParent="{!this}" p1="{!numFailedAttemptedSyncs}" /><nttdcore:DLabel name="DL54" default="No sync failures exists." labelParent="{!this}" /><nttdcore:DLabel name="DL55" default="Date Attempted" labelParent="{!this}" />
+            <apex:pageBlockButtons location="top" >
+                <!-- creates purchase order header -->
+                <apex:outputPanel id="topButtons" >
+                    <apex:commandButton value="{!savePOBtnValue}" action="{!updatePurchaseOrder}" rendered="{!canEditHeader}" rerender="msg" id="btnSavePOHeader" />
+                    <apex:commandButton value="{!if(poheader.Status__c == 'APPROVED', 'Sync Purchase Order', 'Submit for Approval')}" onclick="SaveAndSubmitPurchaseOrder(); return false;" rerender="syncHistorySection,pbtValidPOLineItems,btnSyncWithProgress,tabPOSummary" disabled="{!!allowRequestSubmit}" id="btnSyncWithProgress" rendered="{!if(allowNewPOLineItems == true && pendingApproval == false && ((poheader.Status__c == 'APPROVED' && $User.IsValidOracleToken__c) || (poheader.Status__c != 'APPROVED')), 'true', 'false')}" />
+                    <nttdcore:DLabel name="DL13" default="Escalate Approval" labelParent="{!this}" /><apex:commandButton id="EscalateApproval" value="{!dLabel['DL13']}" action="{!escalateApproval}" rendered="{!and(poheader.Status__c = 'Pending',poheader.FlagForEscalate__c != true)}" />
+                    <nttdcore:DLabel name="DL14" default="Delete" labelParent="{!this}" /><apex:commandButton value="{!dLabel['DL14']}" immediate="true" action="{!deletePurchaseOrder}" rendered="{!if(poheader.Status__c != 'APPROVED', 'true', 'false')}" />
+                    <nttdcore:DLabel name="DL15" default="Closeout Purchase Order" labelParent="{!this}" /><apex:commandButton value="{!dLabel['DL15']}" action="{!closeOutPurchaseOrder}" status="statusBar" disabled="{!!allowPOCloseout}" rendered="{!allowRequestSubmit}" />
+                    <nttdcore:DLabel name="DL16" default="Cancel Purchase Order" labelParent="{!this}" /><apex:commandButton value="{!dLabel['DL16']}" onclick="confirmCancelPurchaseOrder(); return false;" disabled="{!!allowPOCancel}" rendered="{!allowRequestSubmit}" />
+                    <apex:commandButton value="{!returnBtnValue}" action="{!returnToProject}" immediate="true" />
+                    <!--apex:commandButton action="{!SimulateProcessedByOracle}" value="Mock PO Number Sent Back"  rendered="{!if(hasSyncHistory && poHeader.OraclePurchaseOrderId__c == null, 'true', 'false')}"/-->
+                    <!--apex:commandButton action="{!SimulateInvoicedByOracle}" value="Mock PO Invoiced"  rendered="{!if(poHeader.OraclePurchaseOrderId__c != null && poStatus.AP_Invoice__c == null, 'true', 'false')}"/-->
+                    <nttdcore:DLabel name="DL17" default="Login to Oracle" labelParent="{!this}" /><apex:commandButton value="{!dLabel['DL17']}" onclick="openModal('modalDialogOracleLogin');return false;" rendered="{!NOT($User.IsValidOracleToken__c) && poheader.Status__c == 'APPROVED'}" />
+                </apex:outputPanel>
+                </apex:pageBlockButtons>
+            <apex:pageBlockSection columns="1" >
+                <apex:pageBlockSectionItem >
+                    <apex:tabPanel switchtype="client" selectedtab="tabPOSummary" >
+                        <apex:tab label="{!dLabel['DL18']}" id="tabPOSummary" >
+                            <apex:pageBlock id="posummary" >
+                                <apex:pageBlockSection columns="2" title="{!dLabel['DL19']}" id="pbsPOHeader" >
+                                    <apex:pageBlockSectionItem rendered="{!allowNewPOLineItems}" >
+                                        <apex:outputLabel value="{!dLabel['DL20']}" for="PO_NUMBER" />
+                                        <apex:outputField value="{!poHeader.OraclePurchaseOrderNumber__c}" id="PO_NUMBER" />                            
+                                    </apex:pageBlockSectionItem>
+
+                                    <apex:pageBlockSectionItem rendered="{!allowNewPOLineItems}" >
+                                        <apex:outputLabel value="{!$ObjectType.POHeader__c.Fields.Status__c.Label}" for="pohStatus" />
+                                        <apex:outputPanel id="poStatusPanel" >   
+                                            <apex:outputField value="{!poHeader.Status__c}" id="pohStatus" />                           
+                                        </apex:outputPanel>                                        
+                                    </apex:pageBlockSectionItem>
+            
+
+                                    <apex:pageBlockSectionItem >
+                                        <apex:outputPanel >
+                                            <apex:outputLabel value="{!dLabel['DL21']}" for="pohProjSite" />                    
+                                            <c:ECO_HelpIcon helptext="Choose a Sub/Vendor to raise the PO against.  Subs/Vendors must be added to the project team via the Subs & Vendors page to be available for selection here." />
+                                        </apex:outputPanel>                                        
+                                        <apex:outputPanel id="subVendor" >
+                                            <div class="requiredInput" >
+                                                <div class="requiredBlock" />
+                                                <apex:actionRegion >
+                                                <apex:selectList value="{!selProjectSiteId}" size="1" id="pohProjSite" rendered="{!canEditHeader}" >
+                                                    <apex:selectOptions value="{!optSelectProjectSites}" />
+                                                    <apex:actionSupport action="{!getDefaultPaymentTermsForVendor}" rerender="pohAgreement, pohPaymentTerm, vendorSection" event="onchange" />                                                
+                                                </apex:selectList>  
+                                                </apex:actionRegion>
+                                                <apex:outputText value="{!poHeader.VendorName__c}" rendered="{!!canEditHeader}" />
+                                            </div>
+                                        </apex:outputPanel>             
+                                    </apex:pageBlockSectionItem>
+                                    
+
+                                    <apex:pageBlockSectionItem >
+                                        <apex:outputPanel >
+                                            <apex:outputLabel value="{!$ObjectType.POHeader__c.Fields.Project__c.Label}" for="pohProject" />                    
+                                            <c:ECO_HelpIcon helptext="This is the project this PO relates to.  This will be automatically determined by how you access/create the PO." />
+                                        </apex:outputPanel>                                       
+                                        <apex:outputField value="{!poHeader.Project__c}" id="pohProject" />
+                                    </apex:pageBlockSectionItem>
+                                    
+                                    <apex:pageBlockSectionItem >
+                                        <apex:outputPanel >
+                                            <apex:outputLabel value="{!$ObjectType.POHeader__c.Fields.Agreement__c.Label}" for="pohAgreement" />                   
+                                            <c:ECO_HelpIcon helptext="Select the agreement the PO relates to (e.g. the Subs agreement created 
+                                                                      in the Agreements page).  In the case of vendors where no specific agreement 
+                                                                      has been entered into , this field can be left blank" />
+                                        </apex:outputPanel>                                        
+                                        <apex:outputPanel id="pohAgreementSec" >
+
+
+
+
+                                            
+                                            <div class="requiredInput" >
+
+                                            <div class="requiredBlock" />
+
+
+                                             
+                                                
+
+                                            <apex:selectList value="{!poHeader.Agreement__c}" size="1" id="pohAgreement" rendered="{!canEditHeader}" >
+                                                <apex:selectOptions value="{!optAgreements}" />
+                                            </apex:selectList>
+                                            <apex:outputText value="{!agreementIdentifier}" rendered="{!!canEditHeader}" />
+
+                                            </div>
+
+
+
+
+
+
+
+                                        </apex:outputPanel>                         
+                                    </apex:pageBlockSectionItem>
+            
+                                    <apex:pageBlockSectionItem >
+                                        <apex:outputPanel >
+                                            <apex:outputLabel value="{!dLabel['DL22']}" for="pohCurrencyIsoCode" />                    
+                                            <c:ECO_HelpIcon helptext="Select the currency for the Purchase Order to be raised in (this would typically 
+                                                                      be the currency of the agreement with the sub/vendor)" />
+                                        </apex:outputPanel>
+                                        <apex:outputPanel id="pocurrency" >
+                                            <apex:inputField value="{!poHeader.CurrencyIsoCode}" id="pohCurrencyIsoCode" rendered="{!canEditHeader}" />
+                                            <apex:outputText value="{!poHeader.CurrencyIsoCode}" rendered="{!!canEditHeader}" />
+                                        </apex:outputPanel>     
+                                    </apex:pageBlockSectionItem>
+                            
+                                    <apex:pageBlockSectionItem >
+                                        <apex:outputPanel >
+                                            <apex:outputLabel value="{!$ObjectType.POHeader__c.Fields.Requestor__c.Label}" for="pohRequestor" />                   
+                                            <c:ECO_HelpIcon helptext="Search & Select for the name of the Requestor (i.e. person raising the PO).  
+                                                                      This is typically the PM, but may be a task manager, discipline leader who 
+                                                                      has responbility for managing the sub/vendor." />
+                                        </apex:outputPanel>                                        
+                                        <apex:outputPanel id="porequestor" >
+                                            <apex:inputField required="true" value="{!poHeader.Requestor__c}" id="pohRequestor" rendered="{!canEditHeader}" />
+                                            <apex:outputText value="{!poHeader.Requestor__r.Name}" rendered="{!!canEditHeader}" />
+                                        </apex:outputPanel> 
+                                    </apex:pageBlockSectionItem>
+            
+                                    <apex:pageBlockSectionItem >
+                                        <apex:outputPanel >
+                                            <apex:outputLabel value="{!$ObjectType.POHeader__c.Fields.PaymentTerm__c.Label}" for="pohPaymentTerm" />                   
+                                            <c:ECO_HelpIcon helptext="Select the payment terms for this Purchase Order.  These may be pre-populated based 
+                                                                      on the default for the sub/vendor selected, but should be updated to reflect the 
+                                                                      agreed terms per the subs contract if required." />
+                                        </apex:outputPanel>
+                                        <apex:outputPanel id="popaymentterm" >
+                                            <apex:inputField value="{!poHeader.PaymentTerm__c}" id="pohPaymentTerm" rendered="{!canEditHeader}" />
+                                            <apex:outputText value="{!poHeader.PaymentTerm__c}" rendered="{!!canEditHeader}" />
+                                        </apex:outputPanel>
+                                    </apex:pageBlockSectionItem>
+                                    <apex:pageBlockSectionItem >
+                                        <apex:outputLabel value="{!$ObjectType.POHeader__c.Fields.PO_Date__c.Label}" for="poDate" />
+                                        <apex:inputField value="{!poHeader.PO_Date__c}" id="poDate" required="true" />
+                                    </apex:pageBlockSectionItem>
+                                </apex:pageBlockSection>
+    
+                                <apex:pageBlockSection id="vendorSection" columns="2" title="{!dLabel['DL23']}" rendered="{!allowNewPOLineItems}" >
+                                    <apex:pageBlockSectionItem >
+                                        <apex:outputLabel value="{!$ObjectType.POHeader__c.Fields.VendorName__c.Label}" for="pohVendorName" />
+                                        <apex:outputField value="{!poHeader.VendorName__c}" id="pohVendorName" />
+                                    </apex:pageBlockSectionItem>
+            
+                                    <apex:pageBlockSectionItem >
+                                        &nbsp;
+                                    </apex:pageBlockSectionItem>
+            
+                                    <apex:pageBlockSectionItem >
+                                        <apex:outputLabel value="{!dLabel['DL24']}" for="pohOracleVendorAddress" />
+                                        <apex:outputField value="{!poHeader.VendorSite__r.Address1__c}" id="pohOracleVendorAddress" />
+                                    </apex:pageBlockSectionItem>
+            
+                                    <apex:pageBlockSectionItem >
+                                        <apex:outputLabel value="{!$ObjectType.POHeader__c.Fields.OracleVendorId__c.Label}" for="pohOracleVendorId" />
+                                        <apex:outputField value="{!poHeader.OracleVendorId__c}" id="pohOracleVendorId" />
+                                    </apex:pageBlockSectionItem>
+            
+                                    <apex:pageBlockSectionItem >
+                                        <apex:outputLabel value="{!$ObjectType.VendorSite__c.Fields.City__c.Label}" for="pohOracleVendorCity" />
+                                        <apex:outputField value="{!poHeader.VendorSite__r.City__c}" id="pohOracleVendorCity" />
+                                    </apex:pageBlockSectionItem>
+            
+                                    <apex:pageBlockSectionItem >
+                                        <apex:outputLabel value="{!$ObjectType.POHeader__c.Fields.OracleVendorNumber__c.Label}" for="pohOracleVendorNumber" />
+                                        <apex:outputField value="{!poHeader.OracleVendorNumber__c}" id="pohOracleVendorNumber" />
+                                    </apex:pageBlockSectionItem>                        
+            
+                                    <apex:pageBlockSectionItem >
+                                        <apex:outputLabel value="{!$ObjectType.VendorSite__c.Fields.State__c.Label}" for="pohOracleVendorState" />
+                                        <apex:outputField value="{!poHeader.VendorSite__r.State__c}" id="pohOracleVendorState" />
+                                    </apex:pageBlockSectionItem>
+            
+                                    <apex:pageBlockSectionItem >
+                                        <apex:outputLabel value="{!$ObjectType.POHeader__c.Fields.OracleVendorSiteId__c.Label}" for="pohOracleVendorSiteId" />
+                                        <apex:outputField value="{!poHeader.OracleVendorSiteId__c}" id="pohOracleVendorSiteId" />
+                                    </apex:pageBlockSectionItem>        
+            
+                                    <apex:pageBlockSectionItem >
+                                        <apex:outputLabel value="{!$ObjectType.VendorSite__c.Fields.Country__c.Label}" for="pohOracleVendorCountry" />
+                                        <apex:outputField value="{!poHeader.VendorSite__r.Country__c}" id="pohOracleVendorCountry" />
+                                    </apex:pageBlockSectionItem>
+            
+                                    <apex:pageBlockSectionItem >
+            
+                                    </apex:pageBlockSectionItem>
+            
+                                    <apex:pageBlockSectionItem >
+                                        <apex:outputLabel value="{!$ObjectType.VendorSite__c.Fields.PostalCode__c.Label}" for="pohOracleVendorPostal" />
+                                        <apex:outputField value="{!poHeader.VendorSite__r.PostalCode__c}" id="pohOracleVendorPostal" />
+                                    </apex:pageBlockSectionItem>    
+            
+                                </apex:pageBlockSection>
+                                
+                                <apex:pageBlockSection columns="1" title="{!dLabel['DL25']}" rendered="{!allowNewPOLineItems}" id="pbStatus" >
+                                    <div class="customHelpText" >
+                                        <div class="customHelpBody" >
+                                            {!dLabel['DL26']}
+                                        </div>
+                                    </div>
+                                    <apex:pageBlockSectionItem >
+                                        <apex:outputPanel id="addpolbutton" >
+                                            <div align="center" >
+                                                <apex:commandButton value="{!dLabel['DL27']}" action="{!gotoPOLineItemPage}" rendered="{!if(poHeader.Id != null 
+                                                        && (poHeader.Status__c != 'Pending' 
+                                                        && poHeader.Status__c != 'Closed'), 'true', 'false')}" /> 
+                                            </div>  
+                                        </apex:outputPanel>                                            
+                                    </apex:pageBlockSectionItem>
+                                    <apex:pageBlockSectionItem >
+                                        <apex:pageBlockTable value="{!poLineItems}" var="poLineItem" id="poLineItemSec" >    
+                                            <apex:column styleclass="{!if(poLineItem.IsArchived__c == true, 'archive', '')}" >
+                                                <apex:facet name="header" >{!dLabel['DL28']}</apex:facet>
+                                                <div style="display:{!if(poLineItem.IsArchived__c == true || poLineItem.CancelFlag__c == true || poLineItem.IsLocked__c == True || poHeader.Status__c == 'Pending', 'none', 'block')};" >
+                                                    <a href="{!URLFOR('/apex/ECO_PurchaseOrderLineItem', null,["id"=poLineItem.Id,"retURL"=retUrl])}" >{!if(poLineItem.OracleSyncDatetime__c == null, 'Edit', 'Change')}</a>
+                                                </div>                                                
+                                            </apex:column>
+                                            <apex:column styleclass="{!if(poLineItem.IsArchived__c == true, 'archive', '')}" >
+                                                <apex:facet name="header" >{!$ObjectType.POLineItem__c.Fields.LineNumber__c.Label}</apex:facet>
+                                                {!poLineItem.LineNumber__c}
+                                            </apex:column>                                                    
+                                            <apex:column styleclass="{!if(poLineItem.IsArchived__c == true, 'archive', '')}" >
+                                                <apex:facet name="header" >{!$ObjectType.POLineItem__c.Fields.LineDescription__c.Label}</apex:facet>
+                                                {!poLineItem.LineDescription__c}
+                                            </apex:column>
+                                            <apex:column styleclass="{!if(poLineItem.IsArchived__c == true, 'archive', '')}" >
+                                                <apex:facet name="header" >{!$ObjectType.POLineItem__c.Fields.ProjectTask__c.Label}</apex:facet>
+                                                {!poLineItem.ProjectTask__r.ProjectTaskNumber__c} ({!poLineItem.ProjectTask__r.Name})
+                                            </apex:column>                                           
+                                            <apex:column styleclass="{!if(poLineItem.IsArchived__c == true, 'archive', '')}" >
+                                                <apex:facet name="header" >{!$ObjectType.POLineItem__c.Fields.LineType__c.Label}</apex:facet>
+                                                {!poLineItem.LineType__c}
+                                            </apex:column>
+                                            <apex:column styleclass="{!if(poLineItem.IsArchived__c == true, 'archive', '')}" >
+                                                <apex:facet name="header" >{!$ObjectType.POLineItem__c.Fields.Quantity__c.Label}</apex:facet>
+                                                {!poLineItem.Quantity__c}
+                                            </apex:column>
+                                            <apex:column styleclass="{!if(poLineItem.IsArchived__c == true, 'archive', '')}" >
+                                                <apex:facet name="header" >{!$ObjectType.POLineItem__c.Fields.UnitofMeasure__c.Label}</apex:facet>
+                                                {!poLineItem.UnitOfMeasureUserDefined__c}
+                                            </apex:column>
+                                            <apex:column styleclass="{!if(poLineItem.IsArchived__c == true, 'archive', '')}" >
+                                                <apex:facet name="header" >{!$ObjectType.POLineItem__c.Fields.UnitPrice__c.Label}</apex:facet>
+                                                {!poLineItem.UnitPrice__c}
+                                            </apex:column>        
+                                            <apex:column styleclass="{!if(poLineItem.IsArchived__c == true, 'archive', '')}" >
+                                                <apex:facet name="header" >{!$ObjectType.POLineItem__c.Fields.Amount__c.Label}</apex:facet>
+                                                {!poLineItem.Amount__c}
+                                            </apex:column>                                                
+                                            <apex:column styleclass="{!if(poLineItem.IsArchived__c == true, 'archive', '')}" >
+                                                <apex:facet name="header" >{!$ObjectType.POLineItem__c.Fields.ExpenditureType__c.Label}</apex:facet>
+                                                {!poLineItem.ExpenditureType__c}
+                                            </apex:column>
+                                            <apex:column styleclass="{!if(poLineItem.IsArchived__c == true, 'archive', '')}" >
+                                                <apex:facet name="header" >{!dLabel['DL30']}</apex:facet>
+                                                {!if(poLineItem.CancelFlag__c == true, 'Y', 'N')}
+                                            </apex:column>
+                                            <apex:column styleclass="{!if(poLineItem.IsArchived__c == true, 'archive', '')}" >
+                                                <apex:facet name="header" >{!dLabel['DL31']}</apex:facet>                                                                            
+                                                <c:ECO_DateFormat date="{!poLineItem.OracleSyncDatetime__c}" />
+                                            </apex:column>                      
+                                        </apex:pageBlockTable> 
+                                    </apex:pageBlockSectionItem>
+                                </apex:pageBlockSection>
+                                
+                                <apex:pageBlockSection columns="1" title="{!dLabel['DL32']}" rendered="{!allowNewPOLineItems}" >
+                                    <div class="customHelpText" >
+                                        <div class="customHelpBody" >
+                                            {!dLabel['DL33']}
+                                        </div>
+                                    </div>
+                                    <apex:pageBlockSectionItem >
+                                        <apex:outputPanel >
+                                            <apex:outputLabel value="{!dLabel['DL34']}" />
+                                            <c:ECO_HelpIcon helptext="The Total Amount of the overall PO (this is the sum of the individual line items entered)." />
+                                        </apex:outputPanel>
+                                        <apex:outputText value="{!totalPurchaseOrderLineAmount}" />
+                                    </apex:pageBlockSectionItem>
+                                    <apex:pageBlockSectionItem >
+                                        <apex:outputPanel >
+                                            <apex:outputLabel value="{!dLabel['DL35']}" />
+                                            <c:ECO_HelpIcon helptext="The Toal Amount of all Accounts Payable Invoices that have been matched against or allocated to this 
+                                                                      PO upon entry into Oracle and being chraged to this project.  This does not indicate how much has 
+                                                                      been paid to the sub/vendor.  Refer to the table below for further details  on invoices, including 
+                                                                      payment date." />
+                                        </apex:outputPanel>                                        
+                                        <apex:outputText value="{!totalAllocatedAmount}" />
+                                    </apex:pageBlockSectionItem>
+                                    <apex:pageBlockSectionItem >
+                                        <apex:outputPanel >
+                                            <apex:outputLabel value="{!dLabel['DL36']}" />
+                                            <c:ECO_HelpIcon helptext="The balance of the PO yet to be allocated against an invoice from the sub/vendor." />
+                                        </apex:outputPanel>                                        
+                                        <apex:outputText value="{!totalRemainingAmount}" />
+                                    </apex:pageBlockSectionItem>
+
+<!--DJO replace this table-->
+                                    <apex:pageBlockTable value="{!poStatusList}" var="poStatus" >
+
+                                        <apex:column >
+                                            <apex:facet name="header" >
+                                                <!--{!$ObjectType.POStatus__c.Fields.POLine__c.Label}-->
+                                                {!dLabel['DL37']}
+                                            </apex:facet>
+                                            {!poStatus.POLine__c}
+                                        </apex:column>
+
+                                        <apex:column >
+                                            <apex:facet name="header" >
+                                                <!--{!$ObjectType.POStatus__c.Fields.APInvoiceNumber__c.Label}-->
+                                                {!dLabel['DL38']}
+                                            </apex:facet>
+                                            {!poStatus.APInvoiceNumber__c}
+                                        </apex:column>
+
+                                        <apex:column >
+                                            <apex:facet name="header" >
+                                                <!--{!$ObjectType.POStatus__c.Fields.APINVDate__c.Label}-->
+                                                {!dLabel['DL39']}
+                                            </apex:facet>
+                                            <c:ECO_DateFormat date="{!poStatus.APINVDate__c}" />
+                                        </apex:column>
+
+                                        <apex:column >
+                                            <apex:facet name="header" >
+                                                <!--{!$ObjectType.POStatus__c.Fields.APINVLineAmount__c.Label}-->
+                                                {!dLabel['DL40']}<br/>
+                                                {!dLabel['DL41']}
+                                            </apex:facet>                                            
+                                            <apex:outputText value="{0, number, ###,###,###,##0}" >
+                                                <apex:param value="{!poStatus.APINVLineAmount__c}" />
+                                            </apex:outputText>  
+                                        </apex:column>
+                                        
+                                        <apex:column >
+                                            <apex:facet name="header" >
+                                                <!--{!$ObjectType.POStatus__c.Fields.APinvLineFunctAmount__c.Label}-->
+                                                {!dLabel['DL42']}<br/>
+                                                {!dLabel['DL43']}<br/>
+                                                {!dLabel['DL44']}
+                                            </apex:facet>                                            
+                                            <apex:outputText value="{0, number, ###,###,###,##0}" >
+                                                <apex:param value="{!poStatus.APinvLineFunctAmount__c}" />
+                                            </apex:outputText>  
+                                        </apex:column>
+
+                                        <apex:column >
+                                            <apex:facet name="header" >
+                                                <!--{!$ObjectType.POStatus__c.Fields.APPaidDate__c.Label}-->
+                                                {!dLabel['DL45']}
+                                            </apex:facet>
+                                            <c:ECO_DateFormat date="{!poStatus.APPaidDate__c}" />
+                                        </apex:column>
+
+                                        <apex:column >
+                                            <apex:facet name="header" >
+                                                <!--{!$ObjectType.POStatus__c.Fields.APPaidAmount__c.Label}-->
+                                                {!dLabel['DL46']}
+                                            </apex:facet>
+                                            <apex:outputText value="{0, number, ###,###,###,##0}" >
+                                                <apex:param value="{!poStatus.APPaidAmount__c}" />                                          
+                                            </apex:outputText>
+                                        </apex:column>
+
+                                        <apex:column >
+                                            <apex:facet name="header" >
+                                                {!$ObjectType.POStatus__c.Fields.APINVCurrency__c.Label}
+                                            </apex:facet>
+                                            {!poStatus.APINVCurrency__c}                                            
+                                        </apex:column>
+
+                                    </apex:pageBlockTable>
+
+                                </apex:pageBlockSection>
+                            </apex:pageBlock>
+
+                        </apex:tab>
+
+                        <apex:tab label="{!dLabel['DL47']}" id="tabJSON" >
+                            <apex:commandButton value="{!dLabel['DL48']}" action="{!refreshJSON}" rerender="txtJSON" /><br/>
+                            <apex:inputTextarea cols="200" rows="30" value="{!sJSON}" id="txtJSON" />
+                        </apex:tab>
+
+                    </apex:tabPanel>        
+                </apex:pageBlockSectionItem>
+            </apex:pageBlockSection>
+            
+            <apex:pageBlockSection columns="1" title="{!dLabel['DL49']}" id="syncHistorySection" rendered="{!allowNewPOLineItems}" >
+                <apex:pageBlockSectionItem >        
+                    <apex:tabPanel switchtype="client" selectedtab="successSync" >
+                        <apex:tab label="{!dLabel['DL50']}" id="successSync" >
+                            <apex:pageMessage severity="INFO" rendered="{!!hasSyncHistory}" summary="{!dLabel['DL51']}" />                                   
+                            <apex:pageBlockTable value="{!syncHistory}" var="history" rendered="{!hasSyncHistory}" >                 
+                                <apex:column >
+                                    <apex:facet name="header" >{!$ObjectType.IntegrationMessageQueue__c.Fields.Status__c.Label}</apex:facet>
+                                    <apex:image url="{!URLFOR($Resource.GreenLight)}" height="20px" width="20px" />
+                                </apex:column>                  
+                                <apex:column >
+                                    <apex:facet name="header" >{!$ObjectType.IntegrationMessageQueue__c.Fields.SuccessMessage__c.Label}</apex:facet>
+                                    {!history.msgQueue.SuccessMessage__c}
+                                </apex:column>
+                                <apex:column >
+                                    <apex:facet name="header" >{!dLabel['DL52']}</apex:facet>
+                                    {!history.syncLocalDateTime}
+                                </apex:column>
+                            </apex:pageBlockTable>  
+                        </apex:tab>
+                        <apex:tab label="{!dLabel['DL53']}" id="failedSync" >
+                            <apex:pageMessage severity="INFO" rendered="{!!hasRequestFailures}" summary="{!dLabel['DL54']}" />                                  
+                            <apex:pageBlockTable value="{!requestFailures}" var="failure" rendered="{!hasRequestFailures}" >             
+                                <apex:column >
+                                    <apex:facet name="header" >{!$ObjectType.IntegrationMessageQueue__c.Fields.Status__c.Label}</apex:facet>
+                                    <apex:image url="{!if(failure.msgQueue.ErrorMessage__c == '' || failure.msgQueue.ErrorMessage__c == null, URLFOR($Resource.YellowLight), URLFOR($Resource.RedLight))}" height="20px" width="20px" />{!failure.msgQueue.Status__c}
+                                </apex:column>                  
+                                <apex:column >
+                                    <apex:facet name="header" >{!$ObjectType.IntegrationMessageQueue__c.Fields.ErrorMessage__c.Label}</apex:facet>
+                                    {!failure.msgQueue.ErrorMessage__c}
+                                </apex:column>
+                                <apex:column >
+                                    <apex:facet name="header" >{!dLabel['DL55']}</apex:facet>
+                                    {!failure.syncLocalDateTime}
+                                </apex:column>
+                            </apex:pageBlockTable>  
+                        </apex:tab>                    
+                    </apex:tabPanel>
+                </apex:pageBlockSectionItem>
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+        <apex:outputPanel id="msgPanelBottom" >
+            <apex:pageMessages escape="false" />
+        </apex:outputPanel>
+
+        <apex:outputPanel id="msgPollingBottom" >
+            <div style="display:{!if(showPollingMsg==true, 'block', 'none')}" >
+                <apex:pageMessage escape="false" summary="{!pollingMessageQueueMsgBottom}" severity="INFO" />
+            </div>
+        </apex:outputPanel>
+        
+        <c:ECO_ModalDialog width="350" padding="0px 0px 0px 0px" name="modalDialogOracleLogin" >
+            <nttdcore:DLabel name="DL56" default="Oracle Authentication" labelParent="{!this}" /><apex:pageBlock title="{!dLabel['DL56']}" ><nttdcore:DLabel name="DL66" default="Authenticating..." labelParent="{!this}" />
+                <div>
+                    <apex:outputText ><nttdcore:DLabel name="DL57" default="Your Oracle security token has expired - please enter your Oracle credentials below to renew the token" labelParent="{!this}" />{!dLabel['DL57']}</apex:outputText>
+                </div>
+                <br/><br/>
+                <div align="center" >
+                    <nttdcore:DLabel name="DL58" default="Oracle Username:" labelParent="{!this}" /><apex:outputText style="font-weight:bold" value="{!dLabel['DL58']}" />
+                    <nttdcore:DLabel name="DL59" default="Oracle Username:" labelParent="{!this}" /><apex:inputText label="{!dLabel['DL59']}" value="{!OracleUserName}" id="username" /><br/>
+        
+                    <nttdcore:DLabel name="DL60" default="Oracle Password:" labelParent="{!this}" /><apex:outputText style="font-weight:bold" value="{!dLabel['DL60']}" />
+                    <nttdcore:DLabel name="DL61" default="Oracle Password" labelParent="{!this}" /><apex:inputSecret label="{!dLabel['DL61']}" value="{!OraclePassword}" id="password" /><br/><br/>
+                </div>
+
+                <apex:outputPanel id="btn1" >
+                    <apex:outputPanel rendered="{!authenticationResult != 'SUCCESS'}" >
+                        <div align="center" >
+                            <apex:outputPanel layout="inline" styleclass="btn" onclick="authenticate()" ><nttdcore:DLabel name="DL62" default="Login" labelParent="{!this}" />{!dLabel['DL62']}</apex:outputPanel>
+                            <apex:outputPanel layout="inline" styleclass="btn" onclick="cancelModal()" ><nttdcore:DLabel name="DL63" default="Cancel" labelParent="{!this}" />{!dLabel['DL63']}</apex:outputPanel>
+                        </div>
+                    </apex:outputPanel>
+                </apex:outputPanel>
+
+                <apex:outputPanel id="btn2" >
+                    <apex:outputPanel rendered="{!authenticationResult == 'SUCCESS'}" >
+                        <div align="center" >
+                            <apex:outputPanel layout="inline" styleclass="btn" onclick="closeAuthenticationModal()" ><nttdcore:DLabel name="DL64" default="Close" labelParent="{!this}" />{!dLabel['DL64']}</apex:outputPanel>
+                        </div>
+                    </apex:outputPanel>
+                </apex:outputPanel>
+
+                <apex:outputPanel id="result" >
+                    <apex:outputPanel rendered="{!authenticationResult != null}" ><br/>
+                        <b><nttdcore:DLabel name="DL65" default="Result:" labelParent="{!this}" />{!dLabel['DL65']} </b><apex:outputText value="{!authenticationResult}" id="authenticationResult" />
+                    </apex:outputPanel>
+                </apex:outputPanel>
+    
+                <apex:actionStatus id="queryStatus" >
+                    <apex:facet name="start" >
+                        <p style="padding-bottom:20px;text-align:center;" class="searchText" ><img style="position:relative;top:24px;" src="/img/loading32.gif" /> {!dLabel['DL66']}</p>
+                    </apex:facet>
+                </apex:actionStatus>
+            </apex:pageBlock>
+        </c:ECO_ModalDialog>
+        
+        <apex:actionFunction name="authenticateCredentials" action="{!authenticateCredentials}" rerender="result, btn1, btn2" status="queryStatus" immediate="true" >
+            <apex:param name="username" value="" />
+            <apex:param name="password" value="" />
+        </apex:actionFunction>
+        
+        <apex:actionStatus id="closeAuthentication" >
+            <apex:facet name="start" >
+                <p style="padding-bottom:20px;text-align:center;" class="searchText" ><img style="position:relative;top:24px;" src="/img/loading32.gif" /> {!dLabel['DL67']}</p>
+            </apex:facet>
+        </apex:actionStatus>
+        
+        <apex:actionFunction name="closeAuthenticationWindow" action="{!closeAuthenticationWindow}" status="closeAuthentication" immediate="true" />
+    </apex:form>
+    <apex:relatedList subject="{!poHeader}" list="CombinedAttachments" />
+    <apex:relatedList list="ProcessSteps" id="approvalHistory" />
+
+    <script type="text/javascript" >
+
+           
+    
+        function showHideDivisions(){
+            var id = j$("[id*=pbsDistributions]").attr('id');
+            twistSection(document.getElementById(id).getElementsByTagName('img')[0]);
+        }
+        
+        j$(document).ready(function(){
+        
+            //Hide Reassign link for Approval Process        
+            var reassign;
+            j$( "a" ).each(function( index ) {
+               var href= j$( this ).attr("href");
+    
+               if (typeof href != 'undefined') {
+                   if (href.includes("REASSIGN")) {
+                       reassign = j$(this).parent();
+                       return false; //break
+                   }
+               }
+            });
+            reassign.html(reassign.children().eq(1));        
+        
+            j$("input[name='piSubmit']").hide();
+        });    
+    </script>
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

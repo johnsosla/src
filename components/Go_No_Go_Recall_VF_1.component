@@ -1,0 +1,14 @@
+<apex:component language="{!theLanguage}" controller="nttdcore.DLabelChildController" access="global" ><apex:attribute name="theLanguage" type="String" required="true" description="language" access="global" /><apex:attribute name="theRecipient" type="User" required="true" description="recipient" access="global" /><apex:attribute name="theRelatedTo" type="QuestionnaireSet__c" required="true" description="related to" access="global" />
+    <apex:outputpanel ><nttdcore:DLabel name="DL2" default="The Go/No Go decision for {{1}} has been Recalled. The Go/No Go may be submitted at a later date." labelParent="{!this}" componentContext="Go_No_Go_Recall_VF_1" p1="{!theRelatedTo.ProjectLongName__c}" />
+        <b><nttdcore:DLabel name="DL1" default="ACTION: Go/No Go Approval for {{1}}" labelParent="{!this}" componentContext="Go_No_Go_Recall_VF_1" p1="{!theRelatedTo.ProjectLongName__c}" />{!dlRoot.dLabel['DL1']}</b>
+        <br/><br/>
+        {!dlRoot.dLabel['DL2']}
+        <br/><br/>
+        <b><nttdcore:DLabel name="DL3" default="Project Name:" labelParent="{!this}" componentContext="Go_No_Go_Recall_VF_1" />{!dlRoot.dLabel['DL3']}</b> {!theRelatedTo.ProjectLongName__c}
+        <br/>
+        <b><nttdcore:DLabel name="DL4" default="Comments:" labelParent="{!this}" componentContext="Go_No_Go_Recall_VF_1" />{!dlRoot.dLabel['DL4']} </b><c:ECO_Email_Approval_Component relatedtoid="{!theRelatedTo.Id}" /><br/>
+        <br/>
+        <br/>
+        <a href="{!theRelatedTo.ProjectLink__c}" ><nttdcore:DLabel name="DL5" default="Project Link" labelParent="{!this}" componentContext="Go_No_Go_Recall_VF_1" />{!dlRoot.dLabel['DL5']}</a>
+    </apex:outputpanel>
+<nttdcore:DLabelInit language="{!theLanguage}" labelParentInit="{!this}" /></apex:component>

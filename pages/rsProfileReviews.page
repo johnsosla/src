@@ -1,0 +1,115 @@
+<apex:page showHeader="true" sidebar="true" controller="rsProfileReviewsController" docType="html-5.0">
+    <script>
+        function setFocusOnLoad() {} //This will prevent the date fields being set focus on page load and date picker popping up
+        var inProgress = false;
+        function resetProgress() {
+            inProgress = false;
+        }
+    </script>
+    <apex:form id="f" >
+        <apex:sectionHeader title="{!$Label.Profile_Reviews}" subtitle="{!$Label.Profile_Reviews_Subtitle}" />
+
+        <apex:outputLabel for="profileReviewViewSelect" value="{!$Label.View}: " />
+        <apex:selectList id="profileReviewViewSelect" value="{!ProfileReviewViewType}" size="1">
+            <apex:selectOptions value="{!ProfileReviewView}" />
+        </apex:selectList>
+        <apex:actionStatus id="viewStatus">
+            <apex:facet name="start">
+                <apex:outputPanel >
+                    <apex:commandButton value="{!$Label.Go}" disabled="true" />
+                    <apex:image value="/img/loading.gif"/>
+                </apex:outputPanel>
+                </apex:facet>
+            <apex:facet name="stop">
+                <apex:commandButton value="{!$Label.Go}" action="{!resetSearch}" status="viewStatus" reRender="f" oncomplete="resetCounter();"/>
+            </apex:facet>
+        </apex:actionStatus>
+
+        <br/>
+        <apex:pageBlock title="{!$Label.Filter_Criteria}">
+            <apex:pageBlockButtons location="top">
+                <apex:actionStatus id="profileRefreshStatus">
+                    <apex:facet name="start">
+                        <apex:outputPanel >
+                            <apex:commandButton value="{!$Label.Refresh_Results}" disabled="true" />
+                            <apex:image value="/img/loading.gif"/>
+                        </apex:outputPanel>
+                    </apex:facet>
+                    <apex:facet name="stop">
+                        <apex:commandButton value="{!$Label.Refresh_Results}" status="profileRefreshStatus" reRender="f" oncomplete="resetCounter();"/>
+                    </apex:facet>
+                </apex:actionStatus>
+
+                <apex:actionStatus id="resetStatus">
+                    <apex:facet name="start">
+                        <apex:outputPanel >
+                            <apex:commandButton value="{!$Label.Reset_Search}" disabled="true" />
+                            <apex:image value="/img/loading.gif"/>
+                        </apex:outputPanel>
+                    </apex:facet>
+                    <apex:facet name="stop">
+                        <apex:commandButton value="{!$Label.Reset_Search}" action="{!resetSearch}" status="resetStatus" reRender="f" oncomplete="resetCounter();"/>
+                    </apex:facet>
+                </apex:actionStatus>
+
+            </apex:pageBlockButtons>
+
+            <apex:pageBlockSection >
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="{!$Label.Sent_For_Review_After}" for="assigneeSearchStart" />
+                    <apex:inputField id="assigneeSearchStart" value="{!dummyUser.Date_Time_Sent_for_Review__c}" />
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="{!$Label.Sent_For_Review_Before}" for="assigneeSearchStop" />
+                    <apex:inputField id="assigneeSearchStop" value="{!dummyUser2.Date_Time_Sent_for_Review__c}" />
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="{!$ObjectType['User'].fields['LastName'].Label}" for="lastNameSearch" />
+                    <apex:inputText id="lastNameSearch" value="{!SearchLastName}" />
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="{!$ObjectType['User'].fields['FirstName'].Label}" for="geoSearch" />
+                    <apex:inputText id="geoSearch" value="{!SearchFirstName}" />
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="{!$ObjectType['User'].fields['Geography__c'].Label}" for="regionSearch" />
+                    <apex:inputText id="regionSearch" value="{!SearchGeography}" />
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="{!$ObjectType['User'].fields['Country'].Label}" for="countrySearch" />
+                    <apex:inputText id="countrySearch" value="{!SearchCountry}" />
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem rendered="{!showAssignee}">
+                    <apex:outputLabel value="{!$Label.Current_Assignee}" for="assigneeSearch" />
+                    <apex:inputText id="assigneeSearchStart" value="{!SearchAssignee}" />
+                </apex:pageBlockSectionItem>
+            </apex:pageBlockSection>
+
+
+            <div align="right">
+
+                <apex:outputLabel value="{!$Label.Sort_By}: " for="sortingVal" />
+                <apex:selectList value="{!sortVal}" size="1" id="sortingVal">
+                     <apex:selectOption itemValue="Date_Time_Sent_for_Review__c" itemLabel="{!$ObjectType['User'].fields['Date_Time_Sent_for_Review__c'].Label}" />
+                    <apex:selectOption itemValue="LastName" itemLabel="{!$ObjectType['User'].fields['LastName'].Label}" />
+                    <apex:selectOption itemValue="FirstName" itemLabel="{!$ObjectType['User'].fields['FirstName'].Label}" />
+                    <apex:selectOption itemValue="Geography__c" itemLabel="{!$ObjectType['User'].fields['Geography__c'].Label}" />
+                    <apex:selectOption itemValue="Country" itemLabel="{!$ObjectType['User'].fields['Country'].Label}" />
+                </apex:selectList>
+
+
+                <apex:outputLabel value="{!$Label.Sort_Direction}: " for="sortingDir" />
+                <apex:selectList value="{!sortDir}" size="1" id="sortingDir">
+                    <apex:selectOption itemValue="asc" itemLabel="{!$Label.Ascending}"/>
+                    <apex:selectOption itemValue="desc" itemLabel="{!$Label.Descending}"/>
+                </apex:selectList>
+            </div>
+        </apex:pageBlock>
+    </apex:form>
+
+        <apex:pageBlock title="{!$Label.Results}" id="results">
+            <apex:pageMessages />
+            <c:rsProfileReviewComponent ProfileIdsList="{!ReviewProfiles}" ProjectIdsList="{!ReviewProjects}" profileViewType="{!ProfileReviewViewType}" SortingDirection="{!sortDir}" SortingValue="{!sortVal}" ProjectWhereClause="{!ProjectWhereClause}" PartWhereClause="{!PartWhereClause}"/>
+
+        </apex:pageBlock>
+</apex:page>

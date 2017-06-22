@@ -1,0 +1,14 @@
+<apex:page showheader="true" sidebar="true" standardcontroller="BudgetHeader__c" extensions="ECO_BudgetLoadingSetZeroETC,nttdcore.DLabelParentController" action="{!doAction}" >
+<apex:pageMessages />
+
+<apex:form ><nttdcore:DLabel name="DL1" default="Processing may take up to a minute for larger projects" labelParent="{!this}" />
+{!dLabel['DL1']}
+<br/>
+<br/>
+<nttdcore:DLabel name="DL2" default="Status: {{1}}  {{2}} secs" labelParent="{!this}" p1="{!status}" p2="{!counter}" /><apex:outputText value="{!dLabel['DL2']}" id="eacStatus" />
+<apex:actionPoller action="{!pollEacStatus}" rerender="eacStatus" interval="5" enabled="{!OR(status!='Completed',status!='Failed')}" />
+<br/>
+<br/>
+<apex:outputLink value="/apex/ECO_BudgetHeader?id={!BudgetHeader__c.Id}" ><nttdcore:DLabel name="DL3" default="Back to Budget Header Page" labelParent="{!this}" />{!dLabel['DL3']}</apex:outputLink>
+</apex:form>
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

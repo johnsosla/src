@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ApexComponent xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>38.0</apiVersion>
+    <description>Component to retrieve approval comment based on status and Id.
+Implements VF component for ECO_ApprovalCommentsApproverController</description>
+    <label>ECO Recalled Comments</label>
+</ApexComponent>

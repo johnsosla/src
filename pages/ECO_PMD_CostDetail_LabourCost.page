@@ -1,0 +1,27 @@
+<apex:page standardcontroller="pse__Proj__c" extensions="ECO_PMD_CostDetail_Controller,nttdcore.DLabelParentController" >
+
+  <div ng-app="ecopmd" >
+    <apex:composition template="ECO_PMD_Chrome2" >
+        
+        <apex:define name="head" >
+          <c:ECO_PMD_ag_grid_js />
+        </apex:define>
+
+        <apex:define name="mainContent" >
+            <div class="pmd-details-header" >
+                <span><nttdcore:DLabel name="DL2" default="For multi-line costed (MLC) projects, Fringe and Overhead costs are excluded from this report." labelParent="{!this}" /><B><nttdcore:DLabel name="DL1" default="Note:" labelParent="{!this}" />{!dLabel['DL1']}</B> {!dLabel['DL2']}</span>
+            </div>
+            <p/>
+            <div class="ecopmd-ag-wrap" >
+                <cost-detail-report project-id="{!Id}" project-name="{!pse__Proj__c.ProjectNumber__c} - {!pse__Proj__c.Name}" layout="LabourCost" data="ctrl.costDetailData" labels="ctrl.labels" />
+             </div>
+        </apex:define>
+
+        <apex:define name="belowFooter" >
+            <c:ECO_PMD_NavigationBar_ng projectid="{!Id}" pagetitle="Cost Detail (Labour Cost)" />
+        </apex:define>
+
+    </apex:composition>
+  </div>
+
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

@@ -1,0 +1,169 @@
+<apex:component controller="ECO_PMD_CashFlowChart_Controller">
+  <apex:attribute name="projectId" description="Project Number" type="String" required="true" /> 
+    
+  <div ng-controller="dashCashFlowController"  class="panel panel-default dashbox">
+      <div class="panel-heading">
+           {!$Label.ECO_PMD_CASH_FLOW_TITLE} <span ng-Show="SFDCDATA.nodata"><b>{!$Label.ECO_PMD_NO_DATA}</b></span>
+      </div>
+      <div class="text-center" ng-hide="isLoaded">
+          <span class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span>
+      </div>
+      <div ng-show="isLoaded">
+        <table class="pmd-kpi" width="100%">
+          <tr>
+            <td>
+              <div class="pmd-value"
+                   ng-class="{'negative': SFDCDATA.ARITD < 0}"
+                   ng-bind="(SFDCDATA.ARITD/1000 | number:0) + 'k'"/>
+              <div class="pmd-label">{!$Label.ECO_PMD_CASH_FLOW_BILLING}</div>
+            </td>
+            <td>
+              <div class="pmd-value"
+                   ng-class="{'negative': SFDCDATA.receiptsITD < 0}"
+                   ng-bind="(SFDCDATA.receiptsITD/1000 | number:0) + 'k'"/>
+              <div class="pmd-label">{!$Label.ECO_PMD_CASH_FLOW_RECEIPTS}</div>
+            </td>
+            <td>
+              <div class="pmd-value"
+                   ng-class="{'negative': SFDCDATA.cashFlowITD < 0}" 
+                   ng-bind="(SFDCDATA.cashFlowITD/1000 | number:0) + 'k'"/>
+              <div class="pmd-label">{!$Label.ECO_PMD_CASH_FLOW_ITD}</div>
+            </td>
+          </tr>
+        </table>
+      </div>
+      <div class="panel-body" >
+          <div class="k-content">
+                  <div id="chartCF" width="100%"></div>
+          </div>
+      </div>
+      <c:ECO_PMD_PanelFooter panelID="CF">
+        {!$Label.ECO_PMD_CASH_FLOW_MOREINFO_DETAILS}
+      </c:ECO_PMD_PanelFooter>
+  </div>
+  <script>
+    (function(){
+        angular
+        .module("ecopmd")
+        .controller("dashCashFlowController",dashCashFlowController);
+
+        function dashCashFlowController($scope,$locale){
+            
+          $scope.isCollapsed = true;
+          $scope.isLoaded = false;
+          loadData($scope);
+          
+          function createChart(elSpec) {
+            return $(elSpec).kendoChart({
+                    
+                resizable: true,
+                chartArea: {
+                    height: 250
+                },
+                dataSource: {
+                    data: $scope.SFDCDATA.cashflowdata
+                },
+                legend: {
+                    position: "bottom"
+                },
+                    seriesDefaults: {
+                    type: "bar",
+                    stack: true
+                },
+                series: [{                
+                    type: "column",
+                    field: "CashInPeriod",
+                    name: "{!$Label.ECO_PMD_CASH_FLOW_NET_CASH}",
+                    color: "#99CCFF",
+                    axis: "MTD"                  
+                }, {
+                    type: "line",
+                    field: "CashFlowITD__c",
+                    name: "{!$Label.ECO_PMD_CASH_FLOW_ITD}",
+                    color: "#FF9933",
+                    axis: "ITD",
+                    markers: {
+                    type: function(e){
+                      return (e.dataItem.isHistorical?"cross":"circle");}
+                    }
+                }],
+                xvalueAxes: [{
+                    name: "Currency",
+                    title: { text: $scope.SFDCDATA.currencyCode },
+                    labels: {template : "#= value/1000 #k"}
+                }],
+                valueAxes: [{
+                  name: "MTD",
+                  title: { text: "" },
+                  labels: {template : "#=kendo.formatK(value)#"}
+                },{
+                  name: "ITD",
+                  title: { text: "" },
+                  labels: {template : "#=kendo.formatK(value)#"}
+                }],
+                categoryAxis: {
+                    field: "kendoCategory",
+                    axisCrossingValues: [0,999999],
+                    labels: {
+                        rotation: 300//270
+                        ,template: '#= kendo.formatSnapshotDate(value).month #'
+                    }
+                },
+                tooltip: {
+                    visible: true,
+                    template: "#= series.name #: #= kendo.formatNum(value) # [#= kendo.formatSnapshotDate(category).date #]"
+                }
+            }).data("kendoChart");
+          }
+
+          function loadData($scope){
+            ECO_PMD_CashFlowChart_Controller.ProjectSnapshot(
+              '{!projectId}',
+              function(result, event){
+                if(event.status) {
+                  //console.log(result);
+                  $scope.$apply(function(){
+                      $scope.SFDCDATA = result ;
+                      $scope.SFDCDATA.cashflowdata = mapSFDCResults(result.cashflowdata)
+                      $scope.isLoaded = true;
+                      var chart = createChart("#chartCF");
+                      if (!$scope.SFDCDATA.nodata) {
+                        //chart.options.valueAxis.title.text = $scope.SFDCDATA.currencyCode + " (k)";
+                        chart.options.valueAxis[0].title.text = "MTD - " + $scope.SFDCDATA.currencyCode;
+                        chart.options.valueAxis[1].title.text = "ITD - " + $scope.SFDCDATA.currencyCode;
+                        chart.options.categoryAxis.labels.step = (1 + Math.floor(result.cashflowdata.length/24));
+                      }
+                      chart.refresh();
+                      $(window).resize(function(){chart.refresh();});
+                  });
+                }
+              });
+            }
+        }
+
+        function mapSFDCResults(result) {
+            // assumes result is an array of objects
+            var data =[];
+            var CashFlowITDPrevME_backup = 0;
+            angular.forEach(result, function (val, key) {
+              val['kendoCategory'] = val.SnapshotFiscalMonth__c + '|' + val['SnapshotDate__c'];
+              // var CashFlowITDPrevME  = (typeof(val.CashFlowITDPrevME__c) == 'undefined') ? CashFlowITDPrevME_backup : val.CashFlowITDPrevME__c;
+              var CashFlowITDPrevME  = CashFlowITDPrevME_backup; // compute prev. Month locally until reliable on snapshot
+              val['CashFlowITDPrevME__c'] = CashFlowITDPrevME
+              CashFlowITDPrevME_backup = val.CashFlowITD__c;
+              val['CashInPeriod'] = val['CashFlowITD__c'] - val['CashFlowITDPrevME__c'];
+
+              var isHistorical = false;
+              try {
+                var createdHowManyDaysAfterSnapshotDate = ((val['CreatedDate'] - val['SnapshotDate__c'])/86400000); //(24*60*60*1000)
+                isHistorical = ( createdHowManyDaysAfterSnapshotDate > 45 ); // 31+13
+              } finally {
+                val['isHistorical'] = isHistorical;
+              }
+              this.push(val);
+            },data);
+            return data.length>12?data.slice(-12):data;
+        }
+    })();
+  </script>
+</apex:component>

@@ -1,0 +1,565 @@
+<apex:page extensions="ECO_RMASummaryControllerPdf,nttdcore.DLabelParentController" showheader="false" renderas="pdf" sidebar="false" standardstylesheets="false" applybodytag="false" applyhtmltag="false" standardcontroller="QuestionnaireSet__c" >
+
+    <head>
+        <script>
+
+            $( document ).ready(function() {
+
+                function mouseDownGo() {
+                    document.style.color = "green";
+
+                }
+                function mouseDownNoGo() {
+                    document.style.color = "red";
+                }
+
+            });
+            
+        </script>
+
+        <apex:includeScript value="{!$Resource.ECO_jQuery_1_11_2_min_js}" />
+        <script type="text/javascript" >
+        function collapseSection()
+        {
+            console.log('collapseSection');
+            $("div[id$='ProjectSummary']").find("div.pbBody").find("img.hideListButton").click();
+        }
+        sfdcPage.appendToOnloadQueue(collapseSection);
+        </script>
+
+        <style type="text/css" media="print" >
+            @page{
+                size:landscape;
+                @top-center {
+                    content: element(header);
+                }
+                @bottom-center{
+                    content: element(footer);
+                }
+            }
+            body{
+                font-family:arial, sans-serif;
+                font-size:80%;
+            }
+
+           .header{
+                display:block;
+                padding-bottom: 40px;
+            }
+
+            .headerInline{
+                height:75px;
+                border-bottom: 2px solid #DDDDDD;
+                padding:0 0 15px 0; 
+                margin: 10px 0 25px 0;
+                background-position:top right;
+                background-repeat:no-repeat;
+                background-size:5% auto !important;
+                background-image : url({!URLFOR($Resource.ECO_CustomGraphicAssets, 'PDFLogo.jpg')});
+            }
+            .headerInline h1{
+                margin:-2px 0 0 0;
+                font-size:16px;
+                line-height:80%;
+            }
+            .headerInline h2{
+                font-size:16px;
+                line-height:80%;
+            }
+            .headerInline h5{
+                line-height:80%;
+                margin:0;
+            }
+            .rightHeaderInfo{
+                float:right; 
+                border-left:2px solid #ddd; 
+                height:40px;
+                vertical-align:middle; 
+                padding-left:55px;
+                position:absolute;
+                right:0;
+                top:0;
+                padding:50px 10px 0 25px;
+                margin-top:10px;
+                width:150px;
+            }
+            table{
+                border: 1px solid #ddd;
+                width:100%; 
+            }
+            table tr th {
+                vertical-align: bottom;
+                background-color: #f8f8f8;
+                
+            }
+            table>caption+thead>tr:first-child>td, table>caption+thead>tr:first-child>th, table>colgroup+thead>tr:first-child>td, table>colgroup+thead>tr:first-child>th, table>thead:first-child>tr:first-child>td, table>thead:first-child>tr:first-child>th {
+                border-top: 0;
+            }
+            table>tbody>tr>td, table>tbody>tr>th, table>tfoot>tr>td, table>tfoot>tr>th, table>thead>tr>td, table>thead>tr>th, table tr td, table tr th {
+                padding: 5px;
+                line-height: 1.42857143;
+                vertical-align: top;
+                border-top: 1px solid #ddd;
+            }
+            table tr > td > td, table tr > td > tr > td, td > td, td > span > table tr td, td > table tr td, td > span > table, td > table {
+                border:none;
+                padding:0;
+            }
+            .notificationAndAlerts > span > div > table > tbody > tr:last-child, .notificationAndAlerts > span > div > table > tbody > tr > td:first-child, .notificationAndAlerts td:first-child, .notificationAndAlerts table tr:last-child {
+                display:none;
+                border:none;
+                padding:0;
+                width:0;
+            }
+            .notificationAndAlerts table > tbody > tr > td:first-child, .notificationAndAlerts table > tbody > tr:last-child{
+                display:none;
+            }
+
+            .pbHeader > table > tbody > tr > td, .pbHeader > table, .pbHeader table td, .pbHeader table{
+                border:none !important;
+                padding: 0;
+            }
+            .pbHeader{
+                
+            }
+            .pbSubheader {
+                margin: 6px 0 0 0;
+                background-color:#008cb2;
+                color:#fff;
+                -moz-border-radius: 4px 4px 0 0;
+                -webkit-border-radius:  4px 4px 0 0;
+                border-radius:  4px 4px 0 0;
+                border-top: 3px solid #f8f8f8;
+                padding:4px 12px 4px 12px;
+            }
+            .pbSubheader h3{
+                margin:0;
+            }
+            .footer{
+                position:absolute; height:100px; bottom:0; border-top:1px solid #4a4a56; padding-top:15px;
+                position: running(footer);
+            }
+            .risk{
+                background:#ebebeb;
+            }
+            .notificationAndAlerts table, .notificationAndAlerts td{
+                border:none !important;
+                width:auto;
+                padding:0;
+            }
+            .mainTitle{
+                margin:15px 0 -5px 0;
+            }
+        </style>
+
+    </head>
+        <div class="header" >
+            <div class="headerInline" >
+                <h5><nttdcore:DLabel name="DL1" default="Risk and Market Assessment" labelParent="{!this}" />{!dLabel['DL1']}</h5>
+                <h2 style="line-height:80%;" ><nttdcore:DLabel name="DL2" default="Project: {{1}}" labelParent="{!this}" p1="{!QuestionnaireSet__c.Project__r.Name}" />{!dLabel['DL2']}</h2>
+                <h2 style="line-height:80%;" ><nttdcore:DLabel name="DL3" default="Date: {{1}}" labelParent="{!this}" p1="{!now()}" />{!dLabel['DL3']}</h2>
+
+                <div class="rightHeaderInfo" ><nttdcore:DLabel name="DL4" default="Project ID:" labelParent="{!this}" />
+                    {!dLabel['DL4']}<br/>
+                    {!QuestionnaireSet__c.Project__r.Id}
+                </div>
+
+                <h1 style="" >
+                    <nttdcore:DLabel name="DL5" default="Version: " labelParent="{!this}" /><apex:outputLabel for="QuestionnaireSetName" value="{!dLabel['DL5']}" />
+                    <apex:outputText value="{!oQuestionnaireSet.Name}" />
+                </h1> 
+            </div>
+        </div>
+
+        <div class="footer" ><nttdcore:DLabel name="DL6" default="{{1}} | {{2}} |  Risk and Market Assessment |" labelParent="{!this}" p1="{!QuestionnaireSet__c.Project__r.Id}" p2="{!QuestionnaireSet__c.Project__r.Name}" />
+            {!dLabel['DL6']} <strong><nttdcore:DLabel name="DL7" default="FOR INTERNAL USE ONLY" labelParent="{!this}" />{!dLabel['DL7']}</strong>
+        </div>
+
+        <apex:pageMessages id="pageMessages" />
+        <apex:outputPanel id="topPanel" rendered="{!NOT(ISNULL(QuestionnaireSet__c.Project__c))}" >
+            <div class="projectSummary" >
+
+                <apex:pageBlock id="ProjectSummary" ><nttdcore:DLabel name="DL8" default="Project Information" labelParent="{!this}" />
+                 <apex:pageBlockSection title="{!dLabel['DL8']}" collapsible="true" columns="2" >     
+                    <apex:repeat value="{!CustomProjSetupFields}" var="f" >
+                        <apex:outputField value="{!theProject[f.fieldPath]}" />
+                    </apex:repeat>
+                </apex:pageBlockSection>
+                <div style="page-break-after: always;" />
+
+                    <nttdcore:DLabel name="DL9" default="There are no Notifications or Alerts associated to this project" labelParent="{!this}" /><apex:pageMessage severity="INFO" summary="{!dLabel['DL9']}" rendered="{!if(lNotifications != null && lNotifications.size = 0, true, false)}" />
+
+                    <div style="clear:both;" /><br/>
+                   
+                    <div id="goNoGo" ><nttdcore:DLabel name="DL10" default="Go / No Go" labelParent="{!this}" />
+                        <apex:pageBlockSection title="{!dLabel['DL10']}" columns="2" collapsible="false" rendered="{!NOT(showGoNoGoButton)}" >
+                                <apex:outputField value="{!QuestionnaireSet__c.GoNoGoRecommendation__c}" />
+                                <apex:outputField style="align:right;" value="{!QuestionnaireSet__c.GoNoGo_Review__c}" />
+                                <apex:outputField value="{!QuestionnaireSet__c.GoNoGo_Review__r.ScheduledDate__c}" />
+                                <apex:outputField style="align:right;" value="{!QuestionnaireSet__c.GoNoGo_Review__r.Status__c}" />
+                                <apex:outputField value="{!QuestionnaireSet__c.MeetingNotes__c}" />
+                                <!--<apex:outputField style="align:right;" value="{!QuestionnaireSet__c.Project__r.ProjectReviewCategory__c}"/>
+                                <apex:outputField value="{!QuestionnaireSet__c.RequestedProjectCategory__c}"/>
+                                <apex:outputField style="align:right;" value="{!QuestionnaireSet__c.ReasonForVariance__c}"/>-->
+                        </apex:pageBlockSection>
+                    </div>
+                    
+                    <div id="attendees" style="margin-bottom:1px;" ><nttdcore:DLabel name="DL11" default="Attendees" labelParent="{!this}" /><nttdcore:DLabel name="DL12" default="Name" labelParent="{!this}" /><nttdcore:DLabel name="DL13" default="Phone" labelParent="{!this}" /><nttdcore:DLabel name="DL14" default="Email" labelParent="{!this}" />
+                        <apex:pageBlockSection collapsible="false" title="{!dLabel['DL11']}" />
+                        <apex:pageBlockTable value="{!lAttendees}" var="eachAttendee" rendered="{!IF(lAttendees != null && lAttendees.size > 0, true, false)}" >  
+                            <apex:column headervalue="{!dLabel['DL12']}" value="{!eachAttendee.name}" />  
+                            <apex:column headervalue="{!dLabel['DL13']}" value="{!eachAttendee.phone}" />
+                            <apex:column headervalue="{!dLabel['DL14']}" value="{!eachAttendee.email}" />
+                        </apex:pageBlockTable> 
+                        <nttdcore:DLabel name="DL15" default="No Attendees found for this meeting." labelParent="{!this}" /><apex:outputText value="{!dLabel['DL15']}" rendered="{!if(lAttendees != null && lAttendees.size < 1, true, false)}" />
+                    </div>
+                    <div style="margin-bottom:1px;" ><nttdcore:DLabel name="DL16" default="Summary of Exceptions/Triggers" labelParent="{!this}" /><nttdcore:DLabel name="DL17" default="Name" labelParent="{!this}" />
+                        <apex:pageBlockSection title="{!dLabel['DL16']}" collapsible="false" />
+                        <apex:pageBlockTable value="{!lQuestionnaires}" var="item" >
+                            <apex:column headervalue="{!dLabel['DL17']}" >
+                                <apex:outputField value="{!item.Name}" />
+                            </apex:column>
+                            <apex:column value="{!item.ProjectRisk__c}" styleclass="centeredColumn" /> 
+                            <apex:column value="{!item.DoATriggers__c}" styleclass="centeredColumn" /> 
+                            <apex:column value="{!item.PercentComplete__c}" styleclass="centeredColumn" /> 
+                        </apex:pageBlockTable>
+                    </div>
+                    
+                </apex:pageBlock>
+                
+                
+            </div>
+            
+        </apex:outputPanel>
+        
+        <apex:outputPanel layout="block" styleclass="questionnaire" id="theAccordion" >
+            <apex:repeat value="{!questionnaireNameToMNotDoAAnswersOrderedKeys}" var="questionnaireNameKey" >  
+                <nttdcore:DLabel name="DL18" default="{{1}} Risk Assessment Details" labelParent="{!this}" p1="{!questionnaireNameKey}" /><apex:pageBlock title="{!dLabel['DL18']}" id="theBlock" ><nttdcore:DLabel name="DL19" default="Risk Assessment" labelParent="{!this}" />
+                        <apex:pageBlockSection collapsible="false" title="{!dLabel['DL19']}" />
+                        <table class="table-hover list" width="100%" cellpadding="0" cellspacing="0" >
+                            <tr class="headerRow" >
+                                <th><nttdcore:DLabel name="DL20" default="Type" labelParent="{!this}" />{!dLabel['DL20']}</th>
+                                <th><nttdcore:DLabel name="DL21" default="Question" labelParent="{!this}" />{!dLabel['DL21']}</th>
+                                <th width="10%" ><nttdcore:DLabel name="DL22" default="Answer" labelParent="{!this}" />{!dLabel['DL22']}</th>
+                            </tr>
+                            
+                            <apex:repeat value="{!questionnaireNameToMNotDoAAnswers[questionnaireNameKey]}" var="group" >
+                                <apex:repeat value="{!questionnaireNameToMNotDoAAnswers[questionnaireNameKey][group]}" var="answer" id="notDoAAnswerInnerRepeater" >
+                                    
+                                    <tr>
+                                        <td width="150px" class="cell" >
+                                            <apex:outputField value="{!answer.TemplateQuestion__r.RiskTitle__c}" />
+                                        </td>
+                                        <td class="cell {!answer.TemplateQuestion__r.Indented__c}" >
+                                            <apex:outputField value="{!answer.TemplateQuestion__r.Question_1__c}" />
+                                            <apex:outputPanel layout="inline" styleclass="questionHelpText" rendered="{!answer.TemplateQuestion__r.HelpText__c != ''}" >
+                                                <apex:outputField styleclass="helpText" value="{!answer.TemplateQuestion__r.HelpText__c}" />
+                                            </apex:outputPanel>
+                                        </td>
+                                        <td class="cell" valign="bottom" id="{!answer.TemplateQuestion__c}" issectionheader="{!answer.TemplateQuestion__r.isDOAmaster__c}" >
+                                            <apex:outputField value="{!answer.Value__c}" id="answerRadio" />
+                                        </td>
+                                    </tr>
+                                    <apex:outputPanel layout="none" rendered="{!questionnaireNameToQuestionToRiskMap[questionnaireNameKey][answer.TemplateQuestion__c].Project__c != null}" >
+                                        <tr class="risk" >
+                                            <td class="cell {!answer.TemplateQuestion__r.Indented__c}" align="left" colspan="3" >
+                                                <table style="width: 100%;" >
+                                                    <tr>
+                                                        <td align="left" valign="bottom" width="155px" ><b><nttdcore:DLabel name="DL23" default="Risk Mitigation:" labelParent="{!this}" />{!dLabel['DL23']}</b></td>
+                                                        <td align="left" valign="bottom" ><apex:outputField value="{!questionnaireNameToQuestionToRiskMap[questionnaireNameKey][answer.TemplateQuestion__c].RiskMitigation__c}" style="width:92%; height: 60px; border-left: 5px solid red; padding: 10px; align: left;" /></td>
+                                                        
+                                                    </tr>
+                                                </table>
+                                                
+                                            </td>
+                                        </tr>
+                                    </apex:outputPanel>
+                                    
+                                </apex:repeat>
+                            </apex:repeat>
+                        </table>
+
+                        <br/>
+
+                       
+                    <apex:outputPanel rendered="{!questionnaireNameToShowDOASection[questionnaireNameKey]}" ><nttdcore:DLabel name="DL24" default="DOA Triggers" labelParent="{!this}" />
+                        <apex:pageBlockSection collapsible="false" title="{!dLabel['DL24']}" />
+                        <!--
+                        <table class="table-hover list" width="100%" cellpadding="0" cellspacing="0" >
+                            <tr class="headerRow">
+                                <th>Type</th>
+                                <th>Question</th>
+                                <th width="10%">Answer</th>
+                            </tr>
+                            <tr>
+                                <td width="150px" class="cell">
+                                    <apex:outputField value="{!questionnaireNameToDOA_SectionAnswer[questionnaireNameKey].TemplateQuestion__r.RiskTitle__c}" />
+                                </td>
+                                <td class="cell {!questionnaireNameToDOA_SectionAnswer[questionnaireNameKey].TemplateQuestion__r.Indented__c}">
+                                    <apex:outputField value="{!questionnaireNameToDOA_SectionAnswer[questionnaireNameKey].TemplateQuestion__r.Question_1__c}" />
+                                    <apex:outputPanel layout="inline" styleClass="questionHelpText" rendered="{!questionnaireNameToDOA_SectionAnswer[questionnaireNameKey].TemplateQuestion__r.HelpText__c != ''}">
+                                        <apex:outputField styleClass="helpText" value="{!questionnaireNameToDOA_SectionAnswer[questionnaireNameKey].TemplateQuestion__r.HelpText__c}"  />
+                                    </apex:outputPanel>
+                                </td>
+                                <td class="cell" valign="bottom" id="{!questionnaireNameToDOA_SectionAnswer[questionnaireNameKey].TemplateQuestion__c}" isSectionHeader="{!questionnaireNameToDOA_SectionAnswer[questionnaireNameKey].TemplateQuestion__r.isDOAmaster__c}">
+                                    <apex:outputField value="{!questionnaireNameToDOA_SectionAnswer[questionnaireNameKey].Value__c}" />
+                                </td>
+                            </tr>
+                            <apex:outputPanel layout="none" rendered="{!questionnaireNameToQuestionToRiskMap[questionnaireNameKey][questionnaireNameToDOA_SectionAnswer[questionnaireNameKey].TemplateQuestion__c].Project__c != null}">
+                                <tr class="risk">
+                                    <td class="cell {!questionnaireNameToDOA_SectionAnswer[questionnaireNameKey].TemplateQuestion__r.Indented__c}" align="right" valign="middle" colspan="3">
+                                        <apex:outputLabel value="Risk Mitigation" for="m1" escape="true"/>
+                                        <apex:outputField id="m1" value="{!questionnaireNameToQuestionToRiskMap[questionnaireNameKey][questionnaireNameToDOA_SectionAnswer[questionnaireNameKey].TemplateQuestion__c].RiskMitigation__c}" style="width: 80%; height: 80px; border-left: 5px solid red;" />
+                                    </td>
+                                </tr>
+                            </apex:outputPanel>
+                        </table>
+                        -->
+                      
+                        <apex:outputPanel id="DOAHeader" rendered="{!questionnaireNameToShowDOASection[questionnaireNameKey]}" >
+                        <table class="table-hover list" width="100%" cellpadding="0" cellspacing="0" >
+
+                            <tr class="headerRow" >
+                                <th><nttdcore:DLabel name="DL25" default="Type" labelParent="{!this}" />{!dLabel['DL25']}</th>
+                                <th width="12%" ><nttdcore:DLabel name="DL26" default="DCS sub-DOA" labelParent="{!this}" />{!dLabel['DL26']}</th>
+                                <th><nttdcore:DLabel name="DL27" default="Enterprise DOA" labelParent="{!this}" />{!dLabel['DL27']}</th>
+                                <th><nttdcore:DLabel name="DL28" default="Question" labelParent="{!this}" />{!dLabel['DL28']}</th>
+                                <th width="10%" ><nttdcore:DLabel name="DL29" default="Answer" labelParent="{!this}" />{!dLabel['DL29']}</th>
+                            </tr>
+                            <apex:repeat value="{!questionnaireNameToMDoAAnswers[questionnaireNameKey]}" var="group" >
+                                <apex:repeat value="{!questionnaireNameToMDoAAnswers[questionnaireNameKey][group]}" var="answer" >
+                                    <apex:outputPanel id="DoAQuestions" layout="none" rendered="{!answer.TemplateQuestion__r.isDOAmaster__c || questionnaireNameToShowDOASection[questionnaireNameKey]}" >
+                                        <tr>
+                                            <td width="150px" class="cell" >
+                                                <apex:outputField value="{!answer.TemplateQuestion__r.RiskTitle__c}" />
+                                            </td>
+                                            <td width="100px" class="cell" >
+                                                <apex:outputField value="{!answer.TemplateQuestion__r.DCSSubDOA__c}" />
+                                            </td>
+                                            <td width="100px" class="cell sectionPrefix" >
+                                                <apex:outputField value="{!answer.TemplateQuestion__r.EnterpriseDOA__c}" />
+                                            </td>
+                                            <td class="cell" >
+                                                <apex:outputField value="{!answer.TemplateQuestion__r.Question_1__c}" />
+                                            </td>
+                                            <td class="cell" valign="bottom" width="255px" id="{!answer.TemplateQuestion__c}" issectionheader="{!answer.TemplateQuestion__r.isDOAmaster__c}" isdoa="{!answer.TemplateQuestion__r.IsDoATrigger__c}" >
+                                                <apex:outputField value="{!answer.Value__c}" />
+                                            </td>
+                                        </tr>
+                                    </apex:outputPanel>
+                                    <apex:outputPanel layout="none" rendered="{!questionnaireNameToQuestionToDOAMap[questionnaireNameKey][answer.TemplateQuestion__c].Project__c != null}" >
+                                        <tr class="risk" >
+                                            <td class="cell {!answer.TemplateQuestion__r.Indented__c}" align="left" colspan="5" >
+                                                <table style="width: 100%;" >
+                                                    <tr>
+                                                        <td align="left" valign="bottom" width="155px" ><b><nttdcore:DLabel name="DL30" default="Risk Mitigation:" labelParent="{!this}" />{!dLabel['DL30']}</b></td>
+                                                        <td align="left" valign="bottom" ><apex:outputField value="{!questionnaireNameToQuestionToDOAMap[questionnaireNameKey][answer.TemplateQuestion__c].MitigationStrategy__c}" style="width:92%; height: 60px; border-left: 5px solid red; padding: 10px" /></td>
+                                                    </tr>
+                                                </table>
+                                                
+                                            </td>
+                                        </tr>
+                                    </apex:outputPanel>
+                                </apex:repeat>
+                            </apex:repeat>
+                        </table>
+                        </apex:outputPanel>
+                    </apex:outputPanel>
+                </apex:pageBlock>
+            </apex:repeat>
+                        <apex:repeat value="{!lMarketAssessments}" var="ma" id="theRepeat" rendered="{!if(lMarketAssessments != null && lMarketAssessments.size > 0, true, false)}" >
+                <nttdcore:DLabel name="DL31" default="{{1}} Details" labelParent="{!this}" p1="{!ma.Name}" /><apex:pageBlock title="{!dLabel['DL31']}" html-style="text-decoration: underline;" >
+                    <table class="table-hover list" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:125px;" >
+                        <tr class="headerRow" >
+                            <th width="90%" ><nttdcore:DLabel name="DL32" default="Question" labelParent="{!this}" />{!dLabel['DL32']}</th>
+                            <th width="10%" ><nttdcore:DLabel name="DL33" default="Answer" labelParent="{!this}" />{!dLabel['DL33']}</th>
+                        </tr>
+                        <tr>
+                            <td class="cell" ><nttdcore:DLabel name="DL34" default="This work is consistent with our documented business plan, strategic business aims and corporate values" labelParent="{!this}" />
+                                {!dLabel['DL34']}
+                                 <br/><apex:outputText rendered="{!IF(ma.FreeFormDocumentedBusinessPlan__c !=null, true,false)}" ><b><nttdcore:DLabel name="DL35" default="Comment:" labelParent="{!this}" />{!dLabel['DL35']}</b> &nbsp; </apex:outputText>
+                                <apex:outputField value="{!ma.FreeFormDocumentedBusinessPlan__c}" style="width:75%;" />
+                            </td>
+                            <td class="cell" valign="top" >
+                                <nttdcore:DLabel name="DL36" default="Yes" labelParent="{!this}" /><apex:outputText rendered="{!ma.DocumentedBusinessPlan__c == 'True'}" value="{!dLabel['DL36']}" />
+                                <nttdcore:DLabel name="DL37" default="No" labelParent="{!this}" /><apex:outputText rendered="{!ma.DocumentedBusinessPlan__c == 'False'}" value="{!dLabel['DL37']}" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="cell" ><nttdcore:DLabel name="DL38" default="This is a documented key account or a client from whom we anticipate significant long term revenues" labelParent="{!this}" />
+                                {!dLabel['DL38']}
+                                 <br/><apex:outputText rendered="{!IF(ma.FreeFormDocumentedKeyAccount__c !=null, true,false)}" ><b><nttdcore:DLabel name="DL39" default="Comment:" labelParent="{!this}" />{!dLabel['DL39']}</b> &nbsp; </apex:outputText>
+                                <apex:outputField value="{!ma.FreeFormDocumentedKeyAccount__c}" style="width:75%;" />
+                            </td>
+                            <td class="cell" valign="top" >
+                                <nttdcore:DLabel name="DL40" default="Yes" labelParent="{!this}" /><apex:outputText rendered="{!ma.DocumentedKeyAccount__c == 'True'}" value="{!dLabel['DL40']}" />
+                                <nttdcore:DLabel name="DL41" default="No" labelParent="{!this}" /><apex:outputText rendered="{!ma.DocumentedKeyAccount__c == 'False'}" value="{!dLabel['DL41']}" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="cell" ><nttdcore:DLabel name="DL42" default="We have a strong relationship with this client" labelParent="{!this}" />
+                                {!dLabel['DL42']}
+                                 <br/><apex:outputText rendered="{!IF(ma.FreeFormStrongClientRelationship__c !=null, true,false)}" ><b><nttdcore:DLabel name="DL43" default="Comment:" labelParent="{!this}" />{!dLabel['DL43']}</b> &nbsp; </apex:outputText>
+                                <apex:outputField value="{!ma.FreeFormStrongClientRelationship__c}" style="width:75%;" />
+                            </td>
+                            <td class="cell" valign="bottom" >
+                                <nttdcore:DLabel name="DL44" default="Yes" labelParent="{!this}" /><apex:outputText rendered="{!ma.StrongClientRelationship__c == 'True'}" value="{!dLabel['DL44']}" />
+                                <nttdcore:DLabel name="DL45" default="No" labelParent="{!this}" /><apex:outputText rendered="{!ma.StrongClientRelationship__c == 'False'}" value="{!dLabel['DL45']}" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="cell" ><nttdcore:DLabel name="DL46" default="We have the required and recent project experience to do this project" labelParent="{!this}" />
+                                {!dLabel['DL46']}
+                                <br/><apex:outputText rendered="{!IF(ma.FreeFormRecentProjectExperience__c !=null, true,false)}" ><b><nttdcore:DLabel name="DL47" default="Comment:" labelParent="{!this}" />{!dLabel['DL47']}</b> &nbsp; </apex:outputText>
+                                <apex:outputField value="{!ma.FreeFormRecentProjectExperience__c}" style="width:75%;" />
+                            </td>
+                            <td class="cell" valign="bottom" >
+                                <nttdcore:DLabel name="DL48" default="Yes" labelParent="{!this}" /><apex:outputText rendered="{!ma.RecentProjectExperience__c == 'True'}" value="{!dLabel['DL48']}" />
+                                 <nttdcore:DLabel name="DL49" default="No" labelParent="{!this}" /><apex:outputText rendered="{!ma.RecentProjectExperience__c == 'False'}" value="{!dLabel['DL49']}" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="cell" ><nttdcore:DLabel name="DL50" default="We have the required technical personnel available with the right and recent experience to do this project" labelParent="{!this}" />
+                                {!dLabel['DL50']}
+                                 <br/><apex:outputText rendered="{!IF(ma.FreeFormRequiredTechnicalPersonnel__c !=null, true,false)}" ><b><nttdcore:DLabel name="DL51" default="Comment:" labelParent="{!this}" />{!dLabel['DL51']}</b> &nbsp; </apex:outputText>
+                                <apex:outputField value="{!ma.FreeFormRequiredTechnicalPersonnel__c}" style="width:75%;" />
+                            </td>
+                            <td class="cell" valign="bottom" >
+                                <nttdcore:DLabel name="DL52" default="Yes" labelParent="{!this}" /><apex:outputText rendered="{!ma.RequiredTechnicalPersonnel__c == 'True'}" value="{!dLabel['DL52']}" />
+                                <nttdcore:DLabel name="DL53" default="No" labelParent="{!this}" /><apex:outputText rendered="{!ma.RequiredTechnicalPersonnel__c == 'False'}" value="{!dLabel['DL53']}" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="cell" ><nttdcore:DLabel name="DL54" default="We are in a strong position to win and deliver this project relative to our competitors" labelParent="{!this}" />
+                                {!dLabel['DL54']}
+                                 <br/><apex:outputText rendered="{!IF(ma.FreeFormStrongPositiveWin__c!=null, true,false)}" ><b><nttdcore:DLabel name="DL55" default="Comment:" labelParent="{!this}" />{!dLabel['DL55']}</b> &nbsp; </apex:outputText>
+                                <apex:outputField value="{!ma.FreeFormStrongPositiveWin__c}" style="width:75%;" />
+                            </td>
+                            <td class="cell" valign="bottom" >
+                                <nttdcore:DLabel name="DL56" default="Yes" labelParent="{!this}" /><apex:outputText rendered="{!ma.StrongPositiveWin__c == 'True'}" value="{!dLabel['DL56']}" />
+                                <nttdcore:DLabel name="DL57" default="No" labelParent="{!this}" /><apex:outputText rendered="{!ma.StrongPositiveWin__c == 'False'}" value="{!dLabel['DL57']}" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="cell" ><nttdcore:DLabel name="DL58" default="We were aware of this opportunity prior to the RFP being issued and have pre-positioned for this work" labelParent="{!this}" />
+                                {!dLabel['DL58']}
+                                <br/><apex:outputText rendered="{!IF(ma.FreeFormAwareofOpportunity__c!=null, true,false)}" ><b><nttdcore:DLabel name="DL59" default="Comment:" labelParent="{!this}" />{!dLabel['DL59']}</b> &nbsp; </apex:outputText>
+                                <apex:outputField value="{!ma.FreeFormAwareofOpportunity__c}" style="width:75%;" />
+                            </td>
+                            <td class="cell" valign="bottom" >
+                                <nttdcore:DLabel name="DL60" default="Yes" labelParent="{!this}" /><apex:outputText rendered="{!ma.AwareofOpportunity__c == 'True'}" value="{!dLabel['DL60']}" />
+                                <nttdcore:DLabel name="DL61" default="No" labelParent="{!this}" /><apex:outputText rendered="{!ma.AwareofOpportunity__c == 'False'}" value="{!dLabel['DL61']}" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="cell" ><nttdcore:DLabel name="DL62" default="We have sufficient time and the right resources (both technical and marketing) to prepare a winning bid" labelParent="{!this}" />
+                                {!dLabel['DL62']}
+                                <br/><apex:outputText rendered="{!IF(ma.FreeFormSufficientTimeandResources__c !=null, true,false)}" ><b><nttdcore:DLabel name="DL63" default="Comment:" labelParent="{!this}" />{!dLabel['DL63']}</b> &nbsp; </apex:outputText>
+                                <apex:outputField value="{!ma.FreeFormSufficientTimeandResources__c}" style="width:75%;" />
+                            </td>
+                            <td class="cell" valign="bottom" >
+                                <nttdcore:DLabel name="DL64" default="Yes" labelParent="{!this}" /><apex:outputText rendered="{!ma.SufficientTimeandResources__c == 'True'}" value="{!dLabel['DL64']}" />
+                                <nttdcore:DLabel name="DL65" default="No" labelParent="{!this}" /><apex:outputText rendered="{!ma.SufficientTimeandResources__c == 'False'}" value="{!dLabel['DL65']}" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="cell" ><nttdcore:DLabel name="DL66" default="There is no incumbent or AECOM is the incumbent" labelParent="{!this}" />
+                                {!dLabel['DL66']}
+                                 <br/><apex:outputText rendered="{!IF(ma.FreeFormIncumbent__c !=null, true,false)}" ><b><nttdcore:DLabel name="DL67" default="Comment:" labelParent="{!this}" />{!dLabel['DL67']}</b> &nbsp; </apex:outputText>
+                                <apex:outputField value="{!ma.FreeFormIncumbent__c}" style="width:75%;" />
+                            </td>
+                            <td class="cell" valign="bottom" >
+                                <nttdcore:DLabel name="DL68" default="Yes" labelParent="{!this}" /><apex:outputText rendered="{!ma.Incumbent__c == 'True'}" value="{!dLabel['DL68']}" />
+                                <nttdcore:DLabel name="DL69" default="No" labelParent="{!this}" /><apex:outputText rendered="{!ma.Incumbent__c == 'False'}" value="{!dLabel['DL69']}" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="cell" ><nttdcore:DLabel name="DL70" default="We know who will be making the decision on the client?s behalf" labelParent="{!this}" />
+                                {!dLabel['DL70']}
+                                 <br/><apex:outputText rendered="{!IF(ma.FreeFormDecisionMaker__c !=null, true,false)}" ><b><nttdcore:DLabel name="DL71" default="Comment:" labelParent="{!this}" />{!dLabel['DL71']}</b> &nbsp; </apex:outputText>
+                                <apex:outputField value="{!ma.FreeFormDecisionMaker__c}" style="width:75%;" />
+                            </td>
+                            <td class="cell" valign="bottom" >
+                                <nttdcore:DLabel name="DL72" default="Yes" labelParent="{!this}" /><apex:outputText rendered="{!ma.DecisionMaker__c == 'True'}" value="{!dLabel['DL72']}" />
+                                <nttdcore:DLabel name="DL73" default="No" labelParent="{!this}" /><apex:outputText rendered="{!ma.DecisionMaker__c == 'False'}" value="{!dLabel['DL73']}" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="cell" ><nttdcore:DLabel name="DL74" default="The client?s decision to appoint will predominantly be made on factors other than price" labelParent="{!this}" />
+                                {!dLabel['DL74']}
+                                 <br/><apex:outputText rendered="{!IF(ma.FreeFormDecisiontoAppoint__c !=null, true,false)}" ><b><nttdcore:DLabel name="DL75" default="Comment:" labelParent="{!this}" />{!dLabel['DL75']}</b> &nbsp; </apex:outputText>
+                                <apex:outputField value="{!ma.FreeFormDecisiontoAppoint__c}" style="width:75%;" />
+                            </td>
+                            <td class="cell" valign="bottom" >
+                                <nttdcore:DLabel name="DL76" default="Yes" labelParent="{!this}" /><apex:outputText rendered="{!ma.DecisiontoAppoint__c == 'True'}" value="{!dLabel['DL76']}" />
+                                <nttdcore:DLabel name="DL77" default="No" labelParent="{!this}" /><apex:outputText rendered="{!ma.DecisiontoAppoint__c == 'False'}" value="{!dLabel['DL77']}" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="cell" ><nttdcore:DLabel name="DL78" default="Potential conflict of interest issues exist" labelParent="{!this}" />
+                                {!dLabel['DL78']}
+                                &nbsp;&nbsp;&nbsp;
+                                <apex:outputLink target="_blank" value="{!URLFOR($Resource.GoNoGoConflictofInterestGuidanceSteps)}" ><nttdcore:DLabel name="DL79" default="help" labelParent="{!this}" />{!dLabel['DL79']}</apex:outputLink>
+                                 <br/>
+                                <table>
+                                    <tr>
+                                        <td><nttdcore:DLabel name="DL80" default="Expert Witness or Litigation Support" labelParent="{!this}" />{!dLabel['DL80']}</td>
+                                        <td>
+                                            <nttdcore:DLabel name="DL81" default="Yes" labelParent="{!this}" /><apex:outputText rendered="{!ma.ExpertWitnessorLitigationSupport__c == 'True'}" value="{!dLabel['DL81']}" />
+                                            <nttdcore:DLabel name="DL82" default="No" labelParent="{!this}" /><apex:outputText rendered="{!ma.ExpertWitnessorLitigationSupport__c == 'False'}" value="{!dLabel['DL82']}" />
+                                        </td>
+                                    </tr>                               
+                                    <tr>
+                                        <td><nttdcore:DLabel name="DL83" default="JV Involvement" labelParent="{!this}" />{!dLabel['DL83']}</td>
+                                        <td>
+                                            <nttdcore:DLabel name="DL84" default="Yes" labelParent="{!this}" /><apex:outputText rendered="{!ma.JVinvolvement__c == 'True'}" value="{!dLabel['DL84']}" />
+                                            <nttdcore:DLabel name="DL85" default="No" labelParent="{!this}" /><apex:outputText rendered="{!ma.JVinvolvement__c == 'False'}" value="{!dLabel['DL85']}" />
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><nttdcore:DLabel name="DL86" default="Program Management Services" labelParent="{!this}" />{!dLabel['DL86']}</td>
+                                        <td>
+                                            <nttdcore:DLabel name="DL87" default="Yes" labelParent="{!this}" /><apex:outputText rendered="{!ma.ProgramManagementServices__c == 'True'}" value="{!dLabel['DL87']}" />
+                                            <nttdcore:DLabel name="DL88" default="No" labelParent="{!this}" /><apex:outputText rendered="{!ma.ProgramManagementServices__c == 'False'}" value="{!dLabel['DL88']}" />
+                                        </td>
+                                    </tr>   
+                                    <tr>
+                                        <td><nttdcore:DLabel name="DL89" default="RFP Development Services" labelParent="{!this}" />{!dLabel['DL89']}</td>
+                                        <td>
+                                            <nttdcore:DLabel name="DL90" default="Yes" labelParent="{!this}" /><apex:outputText rendered="{!ma.RFPDevelopmentServices__c == 'True'}" value="{!dLabel['DL90']}" />
+                                            <nttdcore:DLabel name="DL91" default="No" labelParent="{!this}" /><apex:outputText rendered="{!ma.RFPDevelopmentServices__c == 'False'}" value="{!dLabel['DL91']}" />
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><nttdcore:DLabel name="DL92" default="Staff Augmentation or embedded workforce" labelParent="{!this}" />{!dLabel['DL92']}</td>
+                                        <td>
+                                            <nttdcore:DLabel name="DL93" default="Yes" labelParent="{!this}" /><apex:outputText rendered="{!ma.StaffAugmentationorembeddedworkforce__c == 'True'}" value="{!dLabel['DL93']}" />
+                                            <nttdcore:DLabel name="DL94" default="No" labelParent="{!this}" /><apex:outputText rendered="{!ma.StaffAugmentationorembeddedworkforce__c == 'False'}" value="{!dLabel['DL94']}" />
+                                        </td>
+                                    </tr>                                                                                                                           
+                                </table>
+                                <br/><apex:outputText rendered="{!IF(ma.FreeFormPotentialConflictofInterest__c !=null, true,false)}" ><b><nttdcore:DLabel name="DL95" default="Comment:" labelParent="{!this}" />{!dLabel['DL95']}</b> &nbsp; </apex:outputText>                                
+                                <apex:outputField value="{!ma.FreeFormPotentialConflictofInterest__c}" style="width:75%;" />
+                            </td>
+                            <td class="cell" valign="bottom" >
+                                <nttdcore:DLabel name="DL96" default="Yes" labelParent="{!this}" /><apex:outputText rendered="{!ma.Potentialconflictofinterestissues__c == 'True'}" value="{!dLabel['DL96']}" />
+                                <nttdcore:DLabel name="DL97" default="No" labelParent="{!this}" /><apex:outputText rendered="{!ma.Potentialconflictofinterestissues__c == 'False'}" value="{!dLabel['DL97']}" />
+                            </td>
+                        </tr>
+                    </table>
+
+                </apex:pageBlock>
+            </apex:repeat>
+        </apex:outputPanel>
+
+    <script>
+        var allTdTags = document.getElementsByTagName('td');
+        for(var i=0;i<allTdTags.length;i++){
+       
+        if(allTdTags[i].className == 'pbButton'){
+                     document.getElementsByName('piSubmit')[0].style.display = "none";          
+            }
+        }
+    </script>
+    
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

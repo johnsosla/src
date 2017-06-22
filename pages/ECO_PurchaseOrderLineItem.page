@@ -1,0 +1,404 @@
+<apex:page standardcontroller="POLineItem__c" extensions="ECO_PurchaseOrderLineItemController,nttdcore.DLabelParentController" tabstyle="POHeader__c" showheader="true" sidebar="true" >
+	<apex:form >
+		<apex:includeScript value="{!URLFOR($Resource.ECO_jQuery_1_11_2_min_js)}" />
+
+		<script type="text/javascript" >
+			j$ = jQuery.noConflict();
+			
+			function setTaskField(taskId, taskName, projectTaskNumber){				
+				j$("[id*=currentPOLineItem_TaskName]").val(projectTaskNumber + " (" + taskName + ")"); 
+				j$("[id*=currentPOLineItem_TaskId]").val(taskId); 
+
+                //setSelectedTask_JS();
+			}
+
+			function setUnitOfMeasureLabel(){
+				var linetype = j$("[id*=poliLineType]").val(); 
+				if(linetype == 'Unit Rate'){					
+					j$("[id*=poliUnitOfMeasureLabel]").html('Each');
+				}else{	//services
+					j$("[id*=poliUnitOfMeasureLabel]").html('Lump Sum');
+				}
+			}			
+
+			function closeMe(){
+				parent.closeDialog();
+			}
+
+			function closeMeAndReRender(){
+				parent.closeDialogAndReRender();
+			}
+
+			var firstLoad = false;
+
+			function handleLineTypeChange(){
+				var hasBeenSynced = Boolean("{!hasBeenSynced}");
+				var hasPreviousVersions = Boolean("{!hasPreviousVersions}");
+			
+				var linetype = j$("[id*=poliLineTypeForOnChange]").val(); 
+			
+				if(linetype == 'Unit Rate'){
+					if(firstLoad == false){
+						j$("[id*=poliAmount]").val('');
+                        //j$("[id*=poliUnitOfMeasureUserDefined]").val('Each');
+					}					
+					j$("[id*=poliAmount]").attr('disabled','disabled');
+					j$("[id*=poliQuantity]").removeAttr('disabled');					
+					j$("[id*=poliUnitPrice]").removeAttr('disabled');
+					j$("[id*=poliUnitofMeasure]").val('Each');
+					j$("[id*=poliUnitOfMeasureLabel]").html('Each');				
+				}else{	//services
+					j$("[id*=poliAmount]").removeAttr('disabled');
+					if(firstLoad == false){
+						j$("[id*=poliQuantity]").val('');
+                        //j$("[id*=poliUnitOfMeasureUserDefined]").val('Lump Sum');
+					}					
+					j$("[id*=poliQuantity]").attr('disabled','disabled');			
+					j$("[id*=poliUnitPrice]").val('1');
+					j$("[id*=poliUnitPrice]").attr('disabled','disabled');
+					j$("[id*=poliUnitofMeasure]").val('Lump Sum');
+					j$("[id*=poliUnitOfMeasureLabel]").html('Lump Sum');					
+				}
+				firstLoad = false;				
+			}
+
+			function calculateTotalForGoods(){
+				
+				var hasBeenInvoiced = "{!hasBeenInvoiced}";
+				var unitPrice = j$.trim(j$("[id*=poliUnitPrice]").val());
+				if(hasBeenInvoiced == "true"){
+					unitPrice = j$.trim(j$("[id*=changedUnitPrice]").val());
+				}else{
+					unitPrice = j$.trim(j$("[id*=poliUnitPrice]").val());
+				}
+				
+				var quantity = j$.trim(j$("[id*=poliQuantity]").val());
+				
+				if(unitPrice.length > 0 && quantity.length > 0){	
+					if(j$.isNumeric(parseFloat(unitPrice)) && j$.isNumeric(parseFloat(quantity))){
+						var amtTotal = parseFloat(unitPrice) * parseFloat(quantity);	
+						amtTotal = amtTotal.toFixed(2); 						
+						j$("[id*=poliAmount]").val(amtTotal);					
+					}
+				}
+			}
+
+			function setHiddenField(fieldId, value){
+				j$("[id*=" + fieldId + "]").val(value);
+			}
+
+			function handleDeleteClick(action){
+				if(confirm("Are you sure you want to " + action.toLowerCase() + "?")){
+					cancelPurchaseOrderLineItem_JS();
+				}
+			}
+
+			j$(document).ready(function(){
+				firstLoad = true;
+				handleLineTypeChange();
+
+/*
+				j$("[id*=poliUnitPrice]").blur(function(){
+					calculateTotalForGoods();
+				});
+				j$("[id*=poliQuantity]").blur(function(){					
+					calculateTotalForGoods();
+				});
+*/
+				j$("[id*=poliAmount]").blur(function(){
+					var unitOfMeasure = j$("[id*=poliUnitofMeasure]").val();
+					if(unitOfMeasure == 'Lump Sum'){	//services
+						var quantity = j$("[id*=poliQuantity]");
+						quantity.val(j$.trim(j$("[id*=poliAmount]").val()));
+					} 									
+				});
+			});
+		</script>
+        
+        <style>
+            .largerTextBox {
+                width: 85%;
+            }
+            
+            div.attachmentModal {
+                //display: none;
+            }
+            
+            .percentInput{
+              float: right;
+              z-index: 999;
+              margin-right: -45px;
+              margin-top: 1px;
+              color: #A7A7A7;
+            }
+            
+            .smallInput {
+                width: 46px;
+                float:right;
+                line-height:14px;
+                height: 19px;
+            }
+            .fileList
+            {
+                padding-top: 5px;
+                padding-bottom: 5px;
+            }		
+            
+            .attachNewFile{
+                visibility: hidden;
+            }	
+            
+            .customHelpText{
+                padding:7px;
+                border:1px solid #85B3CE;
+                min-height:30px;
+                display:block;
+                width:auto;
+                margin:0;
+            //  background-color:#C6E4EE;
+                background-color:#A2D3F1;
+                background-repeat:no-repeat;
+                border-radius:4px;
+            }
+            
+            .customHelpBody{
+                display:block;
+                color:#;
+                max-width:95%;
+            }
+            
+            .mouseOverInfoOuter{
+                text-align:left;
+            }
+        </style>
+
+		<div style="display:none;" >
+			<apex:inputText value="{!currentPOLineItem_TaskId}" id="currentPOLineItem_TaskId" />
+			<apex:inputField value="{!currentPOLineItem.UnitofMeasure__c}" id="poliUnitofMeasure" />
+			<apex:inputField value="{!currentPOLineItem.LineType__c}" id="poliLineTypeForOnChange" />			
+			<apex:inputField value="{!currentPOLineItem.UnitPrice__c}" id="changedUnitPrice" />			
+		</div>
+
+		<apex:actionFunction action="{!calculateTotalForGoodsService}" name="calculateTotalForGoodsService" rerender="poliQuantity,poliUnitPrice,poliAmount" />
+        <apex:actionFunction action="{!saveCurrentPOLineItem}" name="saveCurrentPOLineItem_JS" oncomplete="closeMeAndReRender();" />
+		<apex:actionFunction action="{!getTasksForProject}" name="getTasksForProject_JS" rerender="pbTasks" immediate="true" oncomplete="return false;" />
+		<apex:actionFunction name="doGetTasksForProject" action="{!getTasksForProject}" rerender="pbTasks" status="statusBar" />
+		<!--apex:actionFunction name="setSelectedTask_JS" action="{!setSelectedTask}" rerender="poliUnitofMeasure" status="statusBar"/-->
+		<apex:actionFunction name="cancelPurchaseOrderLineItem_JS" action="{!cancelPurchaseOrderLineItem}" status="statusBar" />
+
+		<nttdcore:DLabel name="DL1" default="{{1}} Purchase Order Line Item" labelParent="{!this}" p1="{!editType}" /><nttdcore:DLabel name="DL2" default=" Purchase Order {{1}}" labelParent="{!this}" p1="{!poHeaderName}" /><apex:sectionHeader subtitle="{!dLabel['DL1']}" title="{!dLabel['DL2']}" ><nttdcore:DLabel name="DL3" default="Processing..." labelParent="{!this}" />
+			<apex:actionStatus id="statusBar" >
+				<apex:facet name="start" >
+					<p style="padding-bottom:20px;" class="searchText" ><img style="position:relative;top:12px;" src="/img/loading32.gif" /> {!dLabel['DL3']}</p>
+				</apex:facet>
+				<apex:facet name="stop" >
+				</apex:facet>
+			</apex:actionStatus>
+		</apex:sectionHeader>
+
+        <apex:pageMessages id="msg" escape="false" />
+			<apex:outputPanel >
+				<nttdcore:DLabel name="DL4" default="This Purchase Order Line Item has been sent to oracle. Only certain fields may be modified." labelParent="{!this}" /><apex:pageMessage escape="true" severity="INFO" summary="{!dLabel['DL4']}" rendered="{!hasBeenSynced}" />
+			</apex:outputPanel>
+
+			<nttdcore:DLabel name="DL5" default="Purchase Order Line Item Detail" labelParent="{!this}" /><apex:pageBlock id="pbCurrentPOLineItem" title="{!dLabel['DL5']}" ><nttdcore:DLabel name="DL8" default="Available Project Tasks" labelParent="{!this}" /><nttdcore:DLabel name="DL9" default="Select the task this line item is to be allocated and subsequently costed to.  Only Chargeable 
+                            tasks are able to be selected for the allocation of the PO Line Item.  Tasks can be made chargeable 
+                            through the Task Manager screen within the Budget." labelParent="{!this}" /><nttdcore:DLabel name="DL10" default="Search" labelParent="{!this}" /><nttdcore:DLabel name="DL11" default="No tasks were found." labelParent="{!this}" /><nttdcore:DLabel name="DL12" default="Action" labelParent="{!this}" /><nttdcore:DLabel name="DL13" default="Select" labelParent="{!this}" />
+                <div class="customHelpText" >
+                    <div class="customHelpBody" ><nttdcore:DLabel name="DL6" default="Enter/edit the details of the specific line item below.  Refer to the help text for each field for guidance on the 
+                        information required." labelParent="{!this}" />
+                        {!dLabel['DL6']}
+                    </div>
+                </div>
+				<apex:pageBlockButtons >				
+					<apex:commandButton action="{!saveCurrentPOLineItem}" value="{!if(hasBeenSynced == true, 'Change', 'Save')}" rerender="msg" />
+					<apex:commandButton onclick="handleDeleteClick('{!cancelButtonText}');" value="{!cancelButtonText}" immediate="true" disabled="{!if(currentPOLineItem.Id == null, 'true', 'false')}" rerender="msg" />				
+					<nttdcore:DLabel name="DL7" default="Return to Purchase Order" labelParent="{!this}" /><apex:commandButton action="{!returnToPurchaseOrder}" value="{!dLabel['DL7']}" immediate="true" />
+				</apex:pageBlockButtons>
+				<apex:pageBlockSection columns="2" >
+					<apex:pageBlockSectionItem >
+                        <apex:outputPanel >
+                            <apex:outputLabel value="{!$ObjectType.POLineItem__c.Fields.OraclePONumber__c.Label}" for="poliOraclePONumber" />                   
+                            <c:ECO_HelpIcon helptext="The Oracle  PO Number - this will be assigned once the PO is approved and synced to Oracle." />
+                        </apex:outputPanel>						
+						<apex:outputLabel value="{!currentPOLineItem.OraclePONumber__c}" id="poliOraclePONumber" />
+					</apex:pageBlockSectionItem>
+
+					<apex:pageBlockSectionItem >
+						<apex:outputPanel >
+                            <apex:outputLabel value="{!$ObjectType.POLineItem__c.Fields.LineType__c.Label}" for="poliLineType" />                   
+                            <c:ECO_HelpIcon helptext="Choose the Line Type .  If choosing Unit Rate you will be prompted to enter a quantity and unit 
+                                                      price which will determine the overall Line Amount.  If choosing Fixed Fee you  will enter the 
+                                                      total Line Amount value." />
+                        </apex:outputPanel>
+						<apex:outputPanel >
+							<apex:inputField value="{!currentPOLineItem.LineType__c}" id="poliLineType" rendered="{!if(hasBeenSynced == false && hasPreviousVersions == false, 'true', 'false')}" onchange="setHiddenField('poliLineTypeForOnChange', this.options[this.selectedIndex].value); handleLineTypeChange(); return false;" required="true" />
+							<apex:outputLabel value="{!currentPOLineItem.LineType__c}" rendered="{!if(hasBeenSynced == false && hasPreviousVersions == false, 'false', 'true')}" />
+						</apex:outputPanel>
+					</apex:pageBlockSectionItem>
+
+					<apex:pageBlockSectionItem >		
+						<apex:outputPanel >
+                            <apex:outputLabel value="{!$ObjectType.POLineItem__c.Fields.LineNumber__c.Label}" for="poliLineNumber" />                   
+                            <c:ECO_HelpIcon helptext="A sequential system-assigned line number." />
+                        </apex:outputPanel>                        
+						<apex:outputPanel >
+							<apex:outputText value="{!currentPOLineItem.LineNumber__c}" id="poliLineNumber" rendered="{!if(hasBeenSynced == false && hasPreviousVersions == false, 'true', 'false')}" />
+							<apex:outputText value="{!currentPOLineItem.LineNumber__c}" rendered="{!if(hasBeenSynced == false && hasPreviousVersions == false, 'false', 'true')}" />
+						</apex:outputPanel>						
+					</apex:pageBlockSectionItem>
+
+					<apex:pageBlockSectionItem >
+                        <apex:outputPanel >
+                            <apex:outputLabel value="{!$ObjectType.POLineItem__c.Fields.Quantity__c.Label}" for="poliQuantity" />                   
+                            <c:ECO_HelpIcon helptext="Enter the quantity of the item being procured.  This only applies when the Line Type is 'Unit Rate'" />
+                        </apex:outputPanel>																
+						<apex:inputField value="{!currentPOLineItem.Quantity__c}" id="poliQuantity" onchange="calculateTotalForGoodsService();" />						
+					</apex:pageBlockSectionItem>
+
+					<apex:pageBlockSectionItem >
+						<apex:outputPanel >
+                            <apex:outputLabel value="{!$ObjectType.POLineItem__c.Fields.ProjectTask__c.Label}" for="currentPOLineItem_TaskName" />                   
+                            <c:ECO_HelpIcon helptext="The Task on the project this Line Items will be allocated/charged to.  This is picked from the listing provided below." />
+                        </apex:outputPanel>
+						<apex:outputPanel >
+                            <div class="requiredInput" >
+                    			<div class="requiredBlock" />
+                                <apex:inputText value="{!currentPOLineItem_TaskName}" id="currentPOLineItem_TaskName" disabled="true" />							
+                            </div>
+						</apex:outputPanel>						
+					</apex:pageBlockSectionItem>
+
+					<apex:pageBlockSectionItem >
+                        <apex:outputPanel >
+                            <apex:outputLabel value="{!$ObjectType.POLineItem__c.Fields.UnitPrice__c.Label}" for="poliUnitPrice" />                   
+                            <c:ECO_HelpIcon helptext="Enter the unit rate/price of the item being procured.  This only applies when the Line Type is 'Unit Rate'" />
+                        </apex:outputPanel>						
+						<apex:outputPanel >
+							<apex:outputText value="{!currentPOLineItem.UnitPrice__c}" rendered="{!hasBeenInvoiced}" />					
+							<apex:inputField value="{!currentPOLineItem.UnitPrice__c}" id="poliUnitPrice" rendered="{!!hasBeenInvoiced}" onchange="calculateTotalForGoodsService();" />
+						</apex:outputPanel>					
+					</apex:pageBlockSectionItem>	
+
+					<apex:pageBlockSectionItem >
+						<apex:outputPanel >
+                            <apex:outputLabel value="{!$ObjectType.POLineItem__c.Fields.ExpenditureType__c.Label}" for="poliExpenditureType" />                   
+                            <c:ECO_HelpIcon helptext="Select the most appropriate expenditure type from the list provided.  If more than 1 is applicable, consider adding more lines for each type of expense." />
+                        </apex:outputPanel>
+						<apex:outputPanel >
+							<div class="requiredInput" >
+                                <div class="requiredBlock" >&nbsp;</div>
+                                <apex:inputField value="{!currentPOLineItem.ExpenditureType__c}" id="poliExpenditureType" rendered="{!if(hasBeenSynced == false && hasPreviousVersions == false, 'true', 'false')}" />
+                                <apex:outputField value="{!currentPOLineItem.ExpenditureType__c}" rendered="{!if(hasBeenSynced == false && hasPreviousVersions == false, 'false', 'true')}" />
+							</div>
+						</apex:outputPanel>						
+					</apex:pageBlockSectionItem>
+
+					<apex:pageBlockSectionItem >
+                        <apex:outputPanel >
+                            <apex:outputLabel value="{!$ObjectType.POLineItem__c.Fields.Amount__c.Label}" for="poliAmount" />                   
+                            <c:ECO_HelpIcon helptext="The total value of this line item.  When the Line Type is 'Unit Rate' this 
+                                                      will be the product of the unit rate and quantity.  When the Line Type Is 
+                                                      'Fixed Fee' you will input the total amount here directly." />
+                        </apex:outputPanel>																
+						<apex:inputField value="{!currentPOLineItem.Amount__c}" id="poliAmount" required="false" />									
+					</apex:pageBlockSectionItem>		
+
+					<apex:pageBlockSectionItem >
+                        <apex:outputPanel >
+                            <apex:outputLabel value="{!$ObjectType.POLineItem__c.Fields.Class__c.Label}" for="poliClass" />                  
+                            <c:ECO_HelpIcon helptext="The Type of PO to be raised .  At this stage, the only available option is 'Service'" />
+                        </apex:outputPanel>
+						<apex:outputPanel >
+							<apex:inputField value="{!currentPOLineItem.Class__c}" id="poliClass" rendered="{!if(hasBeenSynced == false && hasPreviousVersions == false, 'true', 'false')}" />
+							<apex:outputField value="{!currentPOLineItem.Class__c}" rendered="{!if(hasBeenSynced == false && hasPreviousVersions == false, 'false', 'true')}" />
+						</apex:outputPanel>						
+					</apex:pageBlockSectionItem>		
+
+					<apex:pageBlockSectionItem >
+                        <apex:outputPanel >
+                            <apex:outputLabel value="{!$ObjectType.POLineItem__c.Fields.UnitofMeasure__c.Label}" for="poliUnitOfMeasureUserDefined" />                  
+                            <c:ECO_HelpIcon helptext="Enter the Unit of Measure for each quantity (e.g. each, Sq meters, lbs, etc)" />
+                        </apex:outputPanel>
+						<apex:inputField value="{!currentPOLineItem.UnitOfMeasureUserDefined__c}" id="poliUnitOfMeasureUserDefined" />										
+					</apex:pageBlockSectionItem>
+
+					<apex:pageBlockSectionItem >		
+						<apex:outputLabel value="{!$ObjectType.POLineItem__c.Fields.SubClass__c.Label}" for="poliSubClass" />
+						<apex:outputPanel >
+							<apex:inputField value="{!currentPOLineItem.SubClass__c}" id="poliSubClass" rendered="{!if(hasBeenSynced == false && hasPreviousVersions == false, 'true', 'false')}" />
+							<apex:outputField value="{!currentPOLineItem.SubClass__c}" rendered="{!if(hasBeenSynced == false && hasPreviousVersions == false, 'false', 'true')}" />
+						</apex:outputPanel>						
+					</apex:pageBlockSectionItem>
+
+					<apex:pageBlockSectionItem >
+						<apex:outputPanel >
+                            <apex:outputLabel value="{!$ObjectType.POLineItem__c.Fields.LineDescription__c.Label}" for="poliLineDescription" />                  
+                            <c:ECO_HelpIcon helptext="Enter the description of the line item.  This will be the description captured in Oracle 
+                                                      and the desctription which will appear in  the cost details when AP Invoices are received 
+                                                      from the sub/vendorand allocated against this PO." />
+                        </apex:outputPanel>                        
+						<apex:outputPanel >
+                            <div class="requiredInput" >
+                                <div class="requiredBlock" >&nbsp;</div>
+                                <apex:inputField value="{!currentPOLineItem.LineDescription__c}" id="poliLineDescription" />
+                             </div>
+						</apex:outputPanel>
+					</apex:pageBlockSectionItem>
+				</apex:pageBlockSection>
+				
+				<apex:pageBlockSection columns="1" title="{!dLabel['DL8']}" rendered="{!if(hasBeenSynced == false && hasPreviousVersions == false, 'true', 'false')}" >
+					<div class="customHelpText" >
+                        <div class="customHelpBody" >
+                            {!dLabel['DL9']}
+                        </div>
+                    </div>
+                    <apex:pageBlockSectionItem >
+						<apex:outputPanel layout="block" style="overflow:auto;height:520px" >
+							<apex:outputLabel value="{!$ObjectType.pse__Project_Task__c.Fields.Name.Label}" for="taskFilter" />&nbsp;&nbsp;
+							<apex:inputText id="txtSearchTaskName" value="{!searchTaskName}" />
+							<apex:commandButton onclick="doGetTasksForProject(); return false;" value="{!dLabel['DL10']}" rerender="pbTasks" />
+							<br/><br/>
+							<apex:outputPanel id="pbTasks" >
+		
+							<apex:pageMessage rendered="{!noSearchResults}" summary="{!dLabel['DL11']}" severity="info" strength="3" id="msgNoResults" />
+							<apex:pageBlockTable value="{!projectTasks}" var="task" rendered="{!!noSearchResults}" >
+								<apex:column >
+									<apex:facet name="header" >{!dLabel['DL12']}</apex:facet>
+									<div style="display:{!if(task.IsChargeable__c == true && task.FinancialTask__c == true, 'block', 'none')};" >
+										<a href="#" onclick="setTaskField('{!task.Id}','{!task.Name}', '{!task.ProjectTaskNumber__c}'); return false;" >{!dLabel['DL13']}</a>
+									</div>
+								</apex:column>
+								<apex:column >
+									<apex:facet name="header" >{!$ObjectType.pse__Project_Task__c.Fields.Name.Label}</apex:facet>
+									{!task.Name}
+								</apex:column>
+								<apex:column >
+									<apex:facet name="header" >{!$ObjectType.pse__Project_Task__c.Fields.ProjectTaskNumber__c.Label}</apex:facet>
+									{!task.ProjectTaskNumber__c}
+								</apex:column>
+								
+								<apex:column >
+									<apex:facet name="header" >{!$ObjectType.pse__Project_Task__c.Fields.FinancialTask__c.Label}</apex:facet>
+									{!if(task.FinancialTask__c == true, 'Y', 'N')}
+								</apex:column>
+								<apex:column >
+									<apex:facet name="header" >{!$ObjectType.pse__Project_Task__c.Fields.IsChargeable__c.Label}</apex:facet>
+									{!if(task.IsChargeable__c == true, 'Y', 'N')}
+								</apex:column>
+								<apex:column >
+									<apex:facet name="header" >{!$ObjectType.pse__Project_Task__c.Fields.pse__Start_Date__c.Label}</apex:facet>
+									<c:ECO_DateFormat date="{!task.pse__Start_Date__c}" />
+								</apex:column>
+								<apex:column >
+									<apex:facet name="header" >{!$ObjectType.pse__Project_Task__c.Fields.pse__End_Date__c.Label}</apex:facet>
+									<c:ECO_DateFormat date="{!task.pse__End_Date__c}" />
+								</apex:column>
+							</apex:pageBlockTable>							
+							</apex:outputPanel>							
+						</apex:outputPanel>						
+					</apex:pageBlockSectionItem>
+				</apex:pageBlockSection>
+			</apex:pageBlock>			
+	</apex:form>
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

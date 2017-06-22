@@ -1,0 +1,17 @@
+<apex:page showHeader="true" sidebar="true" standardcontroller="ParticipantAcknowledgement__c">
+<style>
+.projmessage{
+    border: 1px solid red;
+    background-color: #FFFFCC;
+    text-align: left;
+  }
+.messagediv{
+	height:500px;
+}
+</style>
+	<apex:outputPanel styleclass="messagediv" rendered="{!ParticipantAcknowledgement__c.Response_Saved_Date__c!=null}">
+ 		<p class="projmessage">
+			{!$Label.DTWResponseSaved} <apex:outputField value="{!ParticipantAcknowledgement__c.Response_Saved_Date__c}"/>
+ 		</p>
+	</apex:outputPanel>
+</apex:page>

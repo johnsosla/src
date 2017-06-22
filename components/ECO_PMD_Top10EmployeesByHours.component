@@ -1,0 +1,211 @@
+<apex:component controller="ECO_PMD_Top10EmployeesByHours_Controller" extensions="nttdcore.DLabelChildController" >
+	<apex:attribute name="projectId" description="Project Number" type="String" required="true" /> 
+
+
+		<apex:includeScript value="{!URLFOR($Resource.KendoUi, 'KendoUi/js/jquery.min.js')}" />
+		<apex:includeScript value="{!URLFOR($Resource.KendoUi, 'KendoUi/js/kendo.all.min.js')}" />
+		<apex:stylesheet value="{!URLFOR($Resource.KendoUi, 'KendoUi/Style/kendo.common.min.css')}" /> 
+		<apex:stylesheet value="{!URLFOR($Resource.KendoUi, 'KendoUi/Style/kendo.default.min.css')}" /> 
+
+	<!-- <apex:stylesheet value="{!URLFOR($Resource.ecopmd, 'ecopmd.css')}" />
+    -->
+    <style id="ecopmd.css" >
+        .pmd-panel {min-width: 400px;}
+        .pmd-panel .panel-footer {margin-top:2px;margin-bottom: 2px;}
+  
+        .pmd-table-schedule {width:100%;}
+        .pmd-table-schedule th {text-align:left;background-color:#CCCCCC;}
+        .pmd-table-schedule tr:nth-child(even) {background-color:#FFFFFF;}
+        .pmd-table-schedule tr:nth-child(odd) {background-color:#DDDDDD;}
+
+        .nav, .pagination, .carousel, .panel-title a { cursor: pointer; }
+
+        /*.fieldlist {
+            margin: 0 0 -1em;
+            padding: 0;
+        }*/
+
+        .fieldlist li {
+            list-style: none;
+            padding-bottom: 0em;
+        }
+        .pmd-radio label {margin-bottom:0px;}
+        .pmd-date {display:none;}
+    </style>
+
+  
+
+  <div ng-controller="dashTop10EmployeesByHoursController" class="pmd-panel panel panel-default" ><nttdcore:DLabel name="DL2" default="HELLO" labelParent="{!this}" componentContext="ECO_PMD_Top10EmployeesByHours" /><nttdcore:DLabel name="DL8" default="hello" labelParent="{!this}" componentContext="ECO_PMD_Top10EmployeesByHours" />
+    
+    <div class="panel-heading" ><nttdcore:DLabel name="DL1" default="Top10EmployeesByHours" labelParent="{!this}" componentContext="ECO_PMD_Top10EmployeesByHours" />
+       {!dlRoot.dLabel['DL1']} <!--{!$Label.ECO_PMD_PROJECT_SCHEDULE_TITLE}-->
+    </div>
+    <div class="row" >
+    	
+
+    </div>
+    {!dlRoot.dLabel['DL2']}
+    <div class="row" >
+		<div class="col-md-4 nopadding pmd-date" >
+			<label for="fromdatepicker" ><nttdcore:DLabel name="DL3" default="From date:" labelParent="{!this}" componentContext="ECO_PMD_Top10EmployeesByHours" />{!dlRoot.dLabel['DL3']}</label>
+    		<input id="fromdatepicker" />
+		</div>     
+
+		<div class="col-md-4 nopadding pmd-date" >
+			 <label for="todatepicker" ><nttdcore:DLabel name="DL4" default="To date:" labelParent="{!this}" componentContext="ECO_PMD_Top10EmployeesByHours" />{!dlRoot.dLabel['DL4']}</label>
+			 <input id="todatepicker" />
+		</div>  
+		<div class="col-md-4 nopadding" >
+			<ul class="fieldlist pmd-radio" >
+				<li>
+				  <input type="radio" id="engine1" ng-model="dateRangeType" value="MTD" />
+				  <label for="engine1" ><nttdcore:DLabel name="DL5" default="MTD" labelParent="{!this}" componentContext="ECO_PMD_Top10EmployeesByHours" />{!dlRoot.dLabel['DL5']}</label>
+				</li>
+				<li>
+				  <input type="radio" id="engine2" ng-model="dateRangeType" value="YTD" />
+				  <label for="engine2" ><nttdcore:DLabel name="DL6" default="YTD" labelParent="{!this}" componentContext="ECO_PMD_Top10EmployeesByHours" />{!dlRoot.dLabel['DL6']}</label>
+				</li>
+				<li>
+				  <input type="radio" id="engine3" ng-model="dateRangeType" value="ITD" />
+				  <label for="engine3" ><nttdcore:DLabel name="DL7" default="ITD" labelParent="{!this}" componentContext="ECO_PMD_Top10EmployeesByHours" />{!dlRoot.dLabel['DL7']}</label>
+				</li>
+				<!--<li>
+				  <input type="radio"  id="engine4" ng-model="dateRangeType" value="Custom"/>
+				  <label for="engine4">Custom</label>
+				</li>-->
+				
+			</ul>	
+		</div>    
+	</div>
+  {!dlRoot.dLabel['DL8']}
+    <span class="pmd-date" >{{fromDate}} {{dateRangeType}} </span>
+    <div class="panel-body" >
+      
+      <table class="pmd-table-schedule" >
+        <tr>
+            <th><nttdcore:DLabel name="DL9" default="#" labelParent="{!this}" componentContext="ECO_PMD_Top10EmployeesByHours" />{!dlRoot.dLabel['DL9']}</th>
+            <th><nttdcore:DLabel name="DL10" default="Name" labelParent="{!this}" componentContext="ECO_PMD_Top10EmployeesByHours" />{!dlRoot.dLabel['DL10']}</th>
+            <th><nttdcore:DLabel name="DL11" default="Dept" labelParent="{!this}" componentContext="ECO_PMD_Top10EmployeesByHours" />{!dlRoot.dLabel['DL11']}</th>
+            <th align="right" ><nttdcore:DLabel name="DL12" default="Hours" labelParent="{!this}" componentContext="ECO_PMD_Top10EmployeesByHours" />{!dlRoot.dLabel['DL12']}</th>
+        </tr>
+        <tr ng-repeat="emp in SFDCDATA.employeeHours" >
+          <td>{{emp.employeeNo}}</td>
+          <td>{{emp.employeeName}}</td>
+          <td>{{emp.employeeDept}}</td>
+          <td align="right" >{{emp.hours | number:2}}</td>
+        </tr>
+        <tr>
+          <td><nttdcore:DLabel name="DL13" default="Other" labelParent="{!this}" componentContext="ECO_PMD_Top10EmployeesByHours" />{!dlRoot.dLabel['DL13']}</td>
+          <td/>
+          <td/>
+          <td align="right" >{{SFDCDATA.other | number:2}}</td>
+        </tr>
+        <tr>
+          <td><b><nttdcore:DLabel name="DL14" default="Total" labelParent="{!this}" componentContext="ECO_PMD_Top10EmployeesByHours" />{!dlRoot.dLabel['DL14']}</b></td>
+          <td/>
+          <td/>
+          <td align="right" ><b>{{SFDCDATA.total | number:2}}</b></td>
+        </tr>
+      </table>      
+    </div>
+    
+    <c:ECO_PMD_PanelFooter panelid="10EH" ><ul><li><em><nttdcore:DLabel name="DL15" default="Nothing at this time" labelParent="{!this}" componentContext="ECO_PMD_Top10EmployeesByHours" />{!dlRoot.dLabel['DL15']}</em></li></ul></c:ECO_PMD_PanelFooter>
+ 
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Faker/3.0.1/faker.min.js" />
+  <script id="dashpanel.js" >
+      (function(){
+    
+        angular
+        .module("ecopmd")
+        .controller("dashTop10EmployeesByHoursController",dashTop10EmployeesByHoursController);
+        
+        function dashTop10EmployeesByHoursController($scope,$locale){
+          $scope.exportedVariable = [];
+          $scope.exportedFunction = exportedFunction;
+            
+          loadData($scope);
+          $scope.isCollapsed = true;
+          $scope.fromDate = new Date(2015, 10, 10);
+          $scope.toDate = new Date(2015, 9, 10);
+      	
+
+          $scope.dateRangeType = 'YTD';
+	     
+
+	      $scope.$watch('dateRangeType', function() {
+		       console.log('hello');
+		  });
+                                                                            
+          function internalFunction(param){
+            return param;
+          }
+            
+          function exportedFunction(){
+              this.SFDCDATA=[];
+              loadData(this); // this = $scope
+          }
+
+          function onFromDateChange() {
+              console.log("Change :: " + kendo.toString(this.value(), 'd'));
+              var fd = this.value();
+              $scope.$apply(function(){
+                   	 $scope.fromDate = fd;
+               });
+          }
+
+          function onToDateChange() {
+              console.log("Change :: " + kendo.toString(this.value(), 'd'));
+              $scope.toDate = this.value();
+          }
+
+          $("#fromdatepicker").kendoDatePicker({
+			    value: $scope.fromDate,
+			    change: onFromDateChange
+
+			});
+
+          $("#todatepicker").kendoDatePicker({
+          		value: $scope.toDate,
+			    change: onToDateChange
+			});
+
+          function loadData($scope){
+            $scope.exportedVariable.push(internalFunction("value"));
+            ECO_PMD_Top10EmployeesByHours_Controller.getTop10EmployeesByHours(
+              '{!projectId}',
+              function(result, event){
+                if(event.status) {
+                  $scope.$apply(function(){
+                      var tmp = result;
+                      console.log(tmp);
+                      tmp.employeeHours = mapSFDCResults(tmp.employeeHours)
+                      $scope.SFDCDATA = tmp ;
+                  });
+                }
+              });
+          }
+
+          function mapSFDCResults(result) {
+            // assumes result is an array of objects
+            var data =[];
+            angular.forEach(result, function (val, key) {
+              console.log(val);
+              this.push(mapSFDCItem(val, key));
+            },data);
+            return data;
+          }
+
+          function mapSFDCItem(val, key) {
+            // https://github.com/marak/Faker.js/
+            val.employeeName = faker.name.lastName() +", " + faker.name.firstName();
+            val.employeeDept = faker.commerce.department()
+            console.log(val);
+            return val;
+          }
+        }
+    
+      })();
+  </script>
+</apex:component>

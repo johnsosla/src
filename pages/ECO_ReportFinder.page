@@ -1,0 +1,253 @@
+<apex:page controller="ECO_ReportFinderController" showheader="false" sidebar="false" standardStylesheets="false" id="thePage"> 
+
+	<script>
+		$(document).ready(function() {
+			$('.form-control').keydown(function(event){
+		    	if(event.keyCode == 13) {
+		      		event.preventDefault();
+		      		$('.search').click();
+		      		return false;
+		    	}
+			});
+			
+			attachSortable();
+		});
+		
+		function attachSortable() {
+
+			$('a[id$="linkWithId"]').each(function(){
+				$(this).closest('tr').attr('orderid', $(this).attr('orderid'));
+			});
+ 			$('tbody[id$="selectedReportTable:tb"').sortable();
+ 		}
+ 		
+ 		function updatePositions () {
+ 			var serializedIds = $('tbody[id$="selectedReportTable:tb"').sortable('serialize', { 
+ 				key: "id"
+ 				, attribute: "orderId" 
+ 			});
+ 			
+ 			
+ 			updatePositionsInApex(serializedIds);
+ 		};
+ 		
+	</script>
+
+	<style>
+		.panel-heading h4{
+	 		padding:17px;
+	 	}
+	 	.panel-default .panel-heading{
+	 		background-color: #00B0E2 !important;
+			border-color: #18C3F3 !important;
+	 	}
+	 	.pbSubsection table.detailList{
+	 		width:100%;
+	 	}
+	 	.createdSince{
+	 		margin-top:8px;
+	 		position:absolute;
+	 	}
+	 	.col-sm-4 .pbSubsection .detailList tr{
+	 		height:45px;
+	 	}
+	 	.report-search-results .pbSubsection{
+	 		height:636px;
+	 		overflow-y:scroll;
+	 	}
+	 	.pbBottomButtons .pbButtonb{
+	 		position:absolute;
+	 		top:132px;
+	 	}
+	 	.pbBottomButtons .pbButtonb input{
+	 		margin-right:7px;
+	 	}
+	 	.pbHeader .pbButton{
+	 		position: absolute;
+			top: 175px;
+			left: 154px;
+	 	}
+	 	.pbHeader .pbButton input{
+	 		margin-right:7px;
+	 	}
+	 	.buttonsBottom input, .buttonsBottom button{
+	 		border: none !important;
+	 	}
+	 	.buttonsBottom{
+	 		padding-top:20px;
+	 	}
+
+
+		.portalPageWrapper .panel .btn-primary{
+			background-color:#59ba47 !important;
+			border:none !important;
+		}
+		.portalPageWrapper .panel .btn-primary:hover{
+			background-color:rgba(89, 186, 71, 0.78) !important;
+		}
+		.portalPageWrapper .panel .btn-danger{
+		  color: #fff !important;
+		  background-color: #F03732 !important;
+		  margin-left:10px;
+		}
+		.portalPageWrapper .panel .btn-danger:hover{
+			background-color:rgba(240, 55, 50, 0.52) !important;
+		}
+	
+	
+	 	@media (max-width: 767px){
+	
+	 		.pbBottomButtons .pbButtonb{
+		 		position:absolute;
+		 		top:178px;
+		 	}
+	
+	 		.pbHeader .pbButton{
+		 		position: absolute;
+				top: 216px;
+				left: 36px;
+		 	}
+	 	}
+	</style>
+ 
+
+	<apex:composition template="ECO_Temp_Portal">
+	    
+	    <apex:define name="head">
+            <script>var AWAN_online = false;</script>
+            <script src="{!awanJSPath}"></script>	    	
+	    </apex:define>
+	    
+		<apex:define name="mainContent">
+
+
+
+		<div class="portalPageWrapper">	
+
+			<div class="container reportFinder">
+		    	<div class="row">
+		    		<div class="col-sm-12" style="margin-top:90px;">
+		    			<div class="panel panel-default">
+							<div class="panel-heading">
+								<h4>{!$Label.ECORepFindSelectRemoveReports}</h4>
+							</div>
+							
+							<div class="panel-body">
+								
+								<apex:form id="reportsForm" >
+									<apex:actionFunction action="{!save}" name="updatePositionsInApex" rerender="pageMessages, searchBlock">
+										<apex:param name="orderedReports" assignTo="{!orderedReports}" value="" />
+									</apex:actionFunction>
+									
+									<apex:pageBlock id="searchBlock"> 
+											<div class="col-sm-4">
+												<apex:pageBlockSection id="searchFieldsSection" >
+													<div class="form-group">
+														<apex:pageBlockSectionItem >
+															<apex:outputLabel value="{!$Label.ECORepFindReportName}" />
+															<apex:inputText value="{!searchReportName}" styleClass="form-control" />
+														</apex:pageBlockSectionItem>
+													</div>
+													
+													<div class="form-group">
+														<apex:pageBlockSectionItem labelStyleClass="createdSince">
+															<apex:outputLabel value="{!$Label.ECORepFindCreatedSince}" />
+															<apex:inputField value="{!theUser.Date_of_Birth__c}" styleClass="form-control" />
+														</apex:pageBlockSectionItem>
+													</div>
+												</apex:pageBlockSection>
+											</div>
+
+											<apex:pageBlockButtons location="bottom" >
+												<apex:commandButton value="{!$Label.ECOSearch}" action="{!doSearch}" rerender="resultsSection, pageMessages" styleClass="btn btn-primary search" />
+												<!-- <apex:commandButton value="Clear Search Terms" action="{!clearSearchTerms}" rerender="resultsBlock, pageMessages, searchBlock" styleClass="btn btn-warning"/> -->
+											</apex:pageBlockButtons>
+
+									</apex:pageBlock>
+
+
+									<div class="row reports">
+
+										<apex:pageBlock id="resultsBlock" >
+											
+											<div class="row">
+												<apex:pageBlockButtons location="top" styleClass="buttonsBottom">
+													<!-- <apex:commandButton action="{!save}" value="Save" styleClass="btn btn-primary" /> -->
+													<button type="button" class="btn btn-primary" onclick="updatePositions();">
+														{!$Label.ECOSave}
+													</button>
+													<apex:commandButton action="{!cancel}" value="{!$Label.ECOCancel}" styleClass="btn btn-danger" />
+												</apex:pageBlockButtons>
+											</div>
+
+											<div class="row" style="padding-left:15px;"><div class="col-sm-12"><apex:pageMessages id="pageMessages" /></div></div>
+
+											<div class="col-sm-5">
+												<apex:pageBlockSection id="theSelectedReports" columns="1" collapsible="false" title="{!$Label.ECORepFindSelectedReports}">
+													<apex:pageBlockTable value="{!orderedUserConfigItems}" var="configItem" styleClass="table table-striped table-bordered table-hover" id="selectedReportTable">
+														<apex:column >
+															<apex:facet name="header"></apex:facet>
+															<apex:commandButton action="{!removeItem}" value="{!$Label.ECORemove}" rerender="theSelectedReports, pageMessages, resultsSection" onComplete="attachSortable();">
+																<apex:param assignTo="{!selectedReportId}" value="{!configItem.ReportId__c}" name="selectedReportId" />
+															</apex:commandButton>
+														</apex:column>
+														<apex:column >
+															<apex:facet name="header">{!$Label.ECORepFindReportName} </apex:facet>
+															<apex:outputLink value="/{!configItem.ReportId__c}" id="linkWithId" html-orderid="id_{!configItem.ReportId__c}" target="_newReportWindow">
+																<apex:outputText value="{!configItem.ReportName__c}"/>
+															</apex:outputLink>
+														</apex:column>
+													</apex:pageBlockTable>
+												</apex:pageBlockSection>
+											</div>
+											
+											<div class="col-sm-7 report-search-results" style="padding-right:35px;">
+												<apex:pageBlockSection id="resultsSection" columns="1" collapsible="false" title="{!$Label.ECORepFindSearchResults}" >
+													<apex:pageBlockTable value="{!configItemsOnPage}" var="configItem" id="theResultsTable" styleClass="table table-striped table-bordered table-hover" >
+														<apex:column >
+															<apex:facet name="header">
+																<apex:outputPanel layout="block" styleClass="prefaceText" style="display:inline-block; text-align:center; width:100%;">
+																	{!$Label.ECORepFind8reports}
+																</apex:outputPanel>
+															</apex:facet>
+															 
+															<apex:commandButton action="{!selectItem}" value="{!$Label.ECOSelect}" rerender="theSelectedReports, pageMessages, resultsSection" rendered="{!!configItemsOnPage[configItem].selected}" oncomplete="attachSortable();">
+																<apex:param assignTo="{!selectedReportId}" value="{!configItemsOnPage[configItem].theConfigItem.ReportId__c}" name="selectedReportId" />
+															</apex:commandButton>
+															
+															<apex:commandButton action="{!removeItem}" value="{!$Label.ECORemove}" rerender="theSelectedReports, pageMessages, resultsSection" rendered="{!configItemsOnPage[configItem].selected}" oncomplete="attachSortable();">
+																<apex:param assignTo="{!selectedReportId}" value="{!configItemsOnPage[configItem].theConfigItem.ReportId__c}" name="selectedReportId" />
+															</apex:commandButton>
+															
+														</apex:column>
+														
+														<apex:column >
+															<apex:facet name="header">{!$Label.ECORepFindReportName}</apex:facet>
+															
+															<apex:outputLink value="/{!configItemsOnPage[configItem].theConfigItem.ReportId__c}" target="_newReportWindow" >
+																<apex:outputText value="{!configItemsOnPage[configItem].theConfigItem.ReportName__c}"/>
+															</apex:outputLink>
+															 
+														</apex:column>
+														
+													</apex:pageBlockTable>
+												</apex:pageBlockSection>
+											</div>
+
+										</apex:pageBlock>
+									</div><!-- row -->
+								</apex:form>
+							</div><!-- panel-body -->
+						</div><!-- panel -->
+					</div><!-- col-sm-12 -->
+				</div><!-- row -->
+			</div><!-- container -->
+		</div><!-- .portalPageWrapper -->
+		</apex:define>
+	
+		<apex:define name="rightNav">
+
+        </apex:define>
+        
+	</apex:composition>
+</apex:page>

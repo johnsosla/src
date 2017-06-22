@@ -1,0 +1,291 @@
+<apex:component allowDML="true" controller="rsProjectGroupsController">
+    <apex:attribute name="rsProfile" assignTo="{!profile}" description="" type="rsProfile" required="true" />
+    <apex:attribute name="reRender" description="" type="String" required="false"/>
+    <apex:actionFunction name="refreshProjectGroups" action="{!refreshProjectGroups}" reRender="{!reRender}" oncomplete="resetLoadButtons(); openModal('#projectGroupModal');"/>
+    <apex:actionFunction name="addProjectGroup" action="{!addNewProjectGroup}" reRender="existingProjectGroups,newGroupName" oncomplete="resetLoadButtons();"/>
+    <apex:actionFunction name="moveProjectGroupUp" action="{!moveProjectGroupUp}" reRender="existingProjectGroups" oncomplete="resetLoadButtons();"/>
+    <apex:actionFunction name="moveProjectGroupDown" action="{!moveProjectGroupDown}" reRender="existingProjectGroups" oncomplete="resetLoadButtons();"/>
+    <apex:actionFunction name="deleteProjectGroup" action="{!deleteProjectGroup}" reRender="existingProjectGroups,projectGroupHeaderPanel,assignedProjects,unassignedProjects" oncomplete="resetLoadButtons();"/>
+    <apex:actionFunction name="searchProjectGroups" action="{!searchProjectGroups}" reRender="existingProjectGroups" oncomplete="resetLoadButtons();"/>
+    <apex:actionFunction name="moveProjectsUp" action="{!moveProjectsUp}" reRender="assignedProjects" oncomplete="resetLoadButtons();"/>
+    <apex:actionFunction name="moveProjectsDown" action="{!moveProjectsDown}" reRender="assignedProjects" oncomplete="resetLoadButtons();"/>
+    <apex:actionFunction name="moveProjectsToAssigned" action="{!moveUnassignedToAssigned}" reRender="assignedProjects,unassignedProjects,autoCompletePanel" oncomplete="resetLoadButtons();setUnassignedAutoComplete();"/>
+    <apex:actionFunction name="moveProjectsToUnassigned" action="{!moveAssignedToUnassigned}" reRender="assignedProjects,unassignedProjects,autoCompletePanel" oncomplete="resetLoadButtons();setUnassignedAutoComplete();"/>
+    <apex:actionFunction name="saveProjectGroups" action="{!saveProjectGroups}" reRender="{!reRender}" oncomplete="resetLoadButtons(); closeModal('#projectGroupModal');"/>
+    <apex:actionFunction name="cancelProjectGroups" reRender="{!reRender}" oncomplete="resetLoadButtons(); closeModal('#projectGroupModal');"/>
+    <apex:actionFunction name="searchUnassignedProjects" action="{!searchUnassignedProjects}" reRender="unassignedProjects" oncomplete="resetLoadButtons();"/>
+
+    <div id="projectGroupComponent">
+        <button type="button" class="btn brandStyledBtn inlineBlock" data-role="button" id="openProjectGroupModal" data-loading-text="{!$Label.Organize_Project_Groups}">{!$Label.Organize_Project_Groups}</button>
+        <div class="modal" id="projectGroupModal">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                        <apex:outputPanel id="projectGroupHeaderPanel">
+                            <h4 class="modal-title has-spinner" id="projectGroupHeader">{!$Label.Organize_Project_Groups}&nbsp;<img height="15" width="15" class="spinner" src="{!URLFOR($Resource.rs_bundle, '/images/loading.gif')}" alt="loading" title="loading"/></h4> <br/>
+                        </apex:outputPanel>
+                    </div>
+                    <div class="modal-body" id="projectGroupModalBody">
+                        <div>
+                            <span class="groups__helpText">{!$Label.Organize_Project_Group_Help_1}</span>
+                            <span class="groups__helpText">{!$Label.Organize_Project_Group_Help_2}</span>
+                        </div>
+                        <div class="groups__uiFrame clearfix">
+                            <div class="col-xs-4 groups__leftGroupFrame">
+                                <div class="groups__label">{!$Label.Add_Organize_Groups_SectionHeader}</div>
+
+                                <div class="groups__label--small">{!$Label.Search_groups_to_narrow_results_InputLabel}</div>
+                                <div>
+                                    <apex:inputText value="{!ProjectGroupSearch}" id="ProjectGroupSearch" maxlength="255" styleClass="input" style="width: 162px;"/>
+                                    <button type="button" class="btn brandStyledBtn" data-role="button" data-loading-text="<span class='glyphicon glyphicon-search' />" id="projectGroupSearchButton"><span class="glyphicon glyphicon-search" /></button>
+                                </div>
+                                <div class="groups__label--small m-t-10">
+                                    {!$Label.Existing_Project_Groups_InputLabel}
+                                </div>
+
+                                <div>
+                                    <apex:selectList styleClass="form-control groups__selectMenus existingProjectGroups" size="8" multiselect="false" id="existingProjectGroups" value="{!SelectedProjectGroup}">
+                                        <apex:selectOptions value="{!ProjectGroupOptions}"/>
+                                        <apex:actionSupport action="{!changeSelectedProjectGroup}" reRender="assignedProjects,projectGroupHeaderPanel" event="onchange" oncomplete="resetLoadButtons();"/>
+                                    </apex:selectList>
+                                    <div class="groups__buttonColumnsGroup">
+                                        <div class="groups__selectButton--label">{!$Label.Up}</div>
+                                        <button type="button" data-loading-text="<span class='glyphicon glyphicon-arrow-up'/>" class="btn groups__selectButton m-b-5" data-role="button" id="moveProjectGroupUp"><span class="glyphicon glyphicon-arrow-up" /></button>
+                                        <button type="button" data-loading-text="<span class='glyphicon glyphicon-arrow-down'/>" class="btn groups__selectButton" data-role="button" id="moveProjectGroupDown"><span class="glyphicon glyphicon-arrow-down"/></button>
+                                        <div class="groups__selectButton--label">{!$Label.Down}</div>
+                                        <button type="button" class="btn groups__selectButton m-t-5" data-role="button" data-loading-text="<span class='glyphicon glyphicon-remove'>" id="deleteProjectGroupButton"><span class="glyphicon glyphicon-remove"></span></button>
+                                        <div class="groups__selectButton--label">{!$Label.Delete}</div>
+                                    </div>
+                                </div>
+                                <div class="groups__bottomNewGroupInput">
+                                    <div class="groups__label--small">{!$Label.Add_Project_Group}</div>
+                                    <apex:inputText value="{!NewProjectGroup.Name}" id="newGroupName" styleClass="input" style="width: 153px;"/> <button type="button" data-loading-text="{!$Label.Add}" class="btn brandStyledBtn" data-role="button" id="addProjectGroupButton">{!$Label.Add}</button>
+                                </div>
+                            </div>
+                            <div  class="col-xs-8 groups__rightGroupFrame">
+                                <div class="groups__label">{!$Label.Add_Organize_Project_Within_Groups_SectionHeader}</div>
+
+                                <div class="col-xs-12 m-b-10">
+                                    <div class="groups__label--small">{!$Label.Search_Projects_InputLabel}</div>
+                                    <apex:inputText value="{!UnassignedProjectSearch}" id="unassignedProjectSearch" maxlength="255" styleClass="input"/>
+                                    <button type="button" class="btn brandStyledBtn" data-role="button" data-loading-text="<span class='glyphicon glyphicon-search' />" onclick="searchUnassignedProjects();" id="unassignedProjectSearchButton"><span class="glyphicon glyphicon-search" /></button>
+                                </div>
+
+                                <div class="col-xs-6 p-r-0">
+                                    <div class="groups__label--small">{!$Label.Assign_Reassign_Projects_SelectLabel}</div>
+                                    <apex:selectList styleClass="form-control groups__selectMenus projectGroupsSelectList p-r-0" size="8" multiselect="true" id="unassignedProjects" value="{!SelectedUnassignedProjects}">
+                                        <apex:selectOptions value="{!UnassignedProjectOptions}"/>
+                                    </apex:selectList>
+                                    <div class="groups__buttonColumnsGroup">
+                                        <div class="groups__selectButton--label">{!$Label.Add}</div>
+                                        <button type="button" data-loading-text="<span class='glyphicon glyphicon-arrow-right'/>" class="btn groups__selectButton m-b-5" data-role="button" id="moveToAssigned"><span class="glyphicon glyphicon-arrow-right" /></button>
+                                        <button type="button" data-loading-text="<span class='glyphicon glyphicon-arrow-left'/>" class="btn groups__selectButton" data-role="button" id="moveToUnassigned"><span class="glyphicon glyphicon-arrow-left"/></button>
+                                        <div class="groups__selectButton--label">{!$Label.Remove}</div>
+                                    </div>
+                                </div>
+                                <div class="col-xs-6">
+                                    <div class="groups__label--small">{!$Label.Selected_Projects_For_Group_SelectLabel}</div>
+                                    <apex:selectList styleClass="form-control groups__selectMenus projectGroupsSelectList" size="8" multiselect="true" id="assignedProjects" value="{!SelectedProjects}">
+                                        <apex:selectOptions value="{!AssignedProjectOptions}"/>
+                                    </apex:selectList>
+                                    <div class="groups__buttonColumnsGroup">
+                                        <div class="groups__selectButton--label">{!$Label.Up}</div>
+                                        <button type="button" data-loading-text="<span class='glyphicon glyphicon-arrow-up'/>" class="btn groups__selectButton m-b-5" data-role="button" id="moveProjectUp"><span class="glyphicon glyphicon-arrow-up" /></button>
+                                        <button type="button" data-loading-text="<span class='glyphicon glyphicon-arrow-down'/>" class="btn groups__selectButton" data-role="button" id="moveProjectDown"><span class="glyphicon glyphicon-arrow-down"/></button>
+                                        <div class="groups__selectButton--label">{!$Label.Down}</div>
+                                    </div>
+                                </div>
+
+                               <div class="groups__bottomButtonGroup">
+                                    <button id="saveProjectGroupButton" type="button" data-loading-text="{!$Label.Save}" class="btn brandStyledBtn" data-role="button">{!$Label.Save}</button>
+                                   <button type="button" class="btn btn--neutral" data-role="button" id="cancelProjectGroupButton" data-loading-text="{!$Label.Cancel}">{!$Label.Cancel}</button>
+                               </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <c:rsAutoComplete fieldId="ProjectGroupSearch" field="Project_Group_Editable__c" sObject="PR_Team_Employee__c" userId="{!profile.Id}" userField="EmployeeUser__c" />
+
+    <!-- You have to reRender the script if you want the source to update
+        http://salesforce.stackexchange.com/questions/76095/visualforce-still-sees-the-old-controller-variable-value-even-after-update
+     -->
+    <apex:outputPanel id="autoCompletePanel">
+        <script type="text/javascript">
+            function setUnassignedAutoComplete() {
+                $j( "input[id$='unassignedProjectSearch']" ).autocomplete({
+                    source:  [{!UnassignedProjectsSource}]
+                });
+            }
+        </script>
+    </apex:outputPanel>
+
+    <script type="text/javascript">
+        var j$ = jQuery.noConflict();
+
+        function resetLoadButtons() {
+            j$('button[data-loading-text]').button('reset');
+            j$('select:disabled').removeAttr('disabled');
+
+            addTitlePopupsToSelectOptions();
+        }
+
+        function deleteWarning() {
+            var optionSelected = j$('[id$="existingProjectGroups"] option:selected').length;
+            if(optionSelected) {
+                if(confirm('{!$Label.Delete_Project_Group}')) {
+                    deleteProjectGroup();
+                    return true;
+                } else {
+                    resetLoadButtons();
+                    return false;
+                }
+            } else {
+                resetLoadButtons();
+            }
+        }
+
+        function openModal(modalId) {
+            j$(modalId).modal('show');
+        }
+        function closeModal(modalId) {
+            j$(modalId).modal('hide');
+            j$('.modal-backdrop').hide();
+        }
+
+        function addTitlePopupsToSelectOptions() {
+            var projectName = "{!$Label.Project_Name}"+': ';
+            var projectNumber = '{!$Label.Project_Number}'+': ';
+            var clientName = '{!$Label.Client_Name}'+': ';
+
+            // Select the left hand select group and update them
+            var optionTags = j$('.existingProjectGroups option');
+            for (var i = 0; i < optionTags.length; ++i) {
+                optionTags[i].title = optionTags[i].value;
+            }
+            // Select the two right hand select groups and update them
+            optionTags = j$('.projectGroupsSelectList option');
+            for (var i = 0; i < optionTags.length; ++i) {
+                // Expecting optionTags[i] to be a string of the form 'projectName, projectNumber, clientName'
+                var splitFields = optionTags[i].text.split(',');
+                // Assign the Labels and the Values split by new lines to the Title tooltip
+                optionTags[i].title = projectName + splitFields[0] + '\n' +
+                                      projectNumber + splitFields[1] + '\n' +
+                                      clientName + splitFields[2];
+            }
+        }
+
+        j$(function() {
+            j$('#projectGroupModalBody').on("keypress", 'input[id$="newGroupName"]', function(e) {
+                if(window.event && window.event.keyCode == 13 || e.which == 13) {
+                    j$('#addProjectGroupButton').button('loading');
+                    addProjectGroup();
+                    return false;
+                } else {
+                    return true;
+                }
+            });
+            j$('#projectGroupModalBody').on("keypress", 'input[id$="ProjectGroupSearch"]', function(e) {
+                if(window.event && window.event.keyCode == 13 || e.which == 13) {
+                    j$('#projectGroupSearchButton').button('loading');
+                    searchProjectGroups();
+                    return false;
+                } else {
+                    return true;
+                }
+            });
+            j$('#projectGroupModalBody').on("click", '#addProjectGroupButton', function(e) {
+                var btn = j$(this);
+                btn.button('loading');
+                addProjectGroup();
+            });
+            j$('#projectGroupModalBody').on("click", '#moveProjectGroupUp', function(e) {
+                var btn = j$(this);
+                btn.button('loading');
+                moveProjectGroupUp();
+            });
+            j$('#projectGroupModalBody').on("click", '#moveProjectGroupDown', function(e) {
+                var btn = j$(this);
+                btn.button('loading');
+                moveProjectGroupDown();
+            });
+            j$('#projectGroupModalBody').on("click", '#deleteProjectGroupButton', function(e) {
+                var btn = j$(this);
+                btn.button('loading');
+                deleteWarning();
+            });
+            j$('#projectGroupComponent').on("click", '#openProjectGroupModal', function(e) {
+                var btn = j$(this);
+                btn.button('loading');
+                refreshProjectGroups();
+            });
+            j$('#projectGroupModalBody').on("click", '#projectGroupSearchButton', function(e) {
+                var btn = j$(this);
+                btn.button('loading');
+                searchProjectGroups();
+            });
+            j$('#projectGroupModalBody').on("change", '[id$="existingProjectGroups"]', function(e) {
+                showSectionSpinner('projectGroupHeader');
+                j$(this).attr('disabled','disabled');
+            });
+            j$('#projectGroupModal').on("click", '#moveProjectUp', function(e) {
+                var btn = j$(this);
+                var btn2 = j$('#moveProjectDown');
+                btn.button('loading');
+                btn2.button('loading');
+                moveProjectsUp();
+            });
+            j$('#projectGroupModal').on("click", '#moveProjectDown', function(e) {
+                var btn = j$(this);
+                var btn2 = j$('#moveProjectUp');
+                btn.button('loading');
+                btn2.button('loading');
+                moveProjectsDown();
+            });
+            j$('#projectGroupModalBody').on("click", '#moveToAssigned', function(e) {
+                var btn = j$(this);
+                var btn2 = j$('#moveToUnassigned');
+                btn.button('loading');
+                btn2.button('loading');
+                moveProjectsToAssigned();
+            });
+            j$('#projectGroupModalBody').on("click", '#moveToUnassigned', function(e) {
+                var btn = j$(this);
+                var btn2 = j$('#moveToAssigned');
+                btn.button('loading');
+                btn2.button('loading');
+                moveProjectsToUnassigned();
+            });
+            j$('#projectGroupModal').on("click", '#saveProjectGroupButton', function(e) {
+                var btn = j$(this);
+                btn.button('loading');
+                saveProjectGroups();
+            });
+            j$('#projectGroupModal').on("click", '#cancelProjectGroupButton', function(e) {
+                var btn = j$(this);
+                btn.button('loading');
+                cancelProjectGroups();
+            });
+            j$('#projectGroupModal').on("click", '#unassignedProjectSearchButton', function() {
+                j$(this).button('loading');
+                searchUnassignedProjects();
+            });
+            j$('#projectGroupModal').on("keypress", '[id$="unassignedProjectSearch"]', function(e) {
+                if(window.event && window.event.keyCode == 13 || e.which == 13) {
+                    j$('#unassignedProjectSearchButton').button('loading');
+                    searchUnassignedProjects();
+                    return false;
+                } else {
+                    return true;
+                }
+            });
+
+            addTitlePopupsToSelectOptions();
+            setUnassignedAutoComplete();
+        });
+
+    </script>
+</apex:component>

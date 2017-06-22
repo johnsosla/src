@@ -1,0 +1,22 @@
+<apex:component language="{!theLanguage}" controller="nttdcore.DLabelChildController" access="global" ><apex:attribute name="theLanguage" type="String" required="true" description="language" access="global" /><apex:attribute name="theRecipient" type="User" required="true" description="recipient" access="global" /><apex:attribute name="theRelatedTo" type="ReviewMember__c" required="true" description="related to" access="global" />
+    <apex:outputpanel ><nttdcore:DLabel name="DL1" default="You have been named as a/an {{1}} on the project below. Please click on the link below to review the project plan or contact the Project Manager for further details." labelParent="{!this}" componentContext="EcoTechnicalQualityTeamFYI_VF_1" p1="{!theRelatedTo.Role__c}" />  
+
+ {!dlRoot.dLabel['DL1']} 
+<br/><br/>
+<b><nttdcore:DLabel name="DL2" default="Project Number:" labelParent="{!this}" componentContext="EcoTechnicalQualityTeamFYI_VF_1" />{!dlRoot.dLabel['DL2']}</b> {!theRelatedTo.TechnicalQualityTeamMember__r.Deliverable__r.Project__r.OracleProjectnumber__c} <br/>
+<b><nttdcore:DLabel name="DL3" default="Project Name:" labelParent="{!this}" componentContext="EcoTechnicalQualityTeamFYI_VF_1" />{!dlRoot.dLabel['DL3']}</b> {!theRelatedTo.TechnicalQualityTeamMember__r.Deliverable__r.Project__r.ProjectLongName__c} <br/>
+<b><nttdcore:DLabel name="DL4" default="Project Manager:" labelParent="{!this}" componentContext="EcoTechnicalQualityTeamFYI_VF_1" />{!dlRoot.dLabel['DL4']}</b> {!theRelatedTo.TechnicalQualityTeamMember__r.Deliverable__r.Project__r.pse__Project_Manager__r.Name} <br/>
+<b><nttdcore:DLabel name="DL5" default="Deliverable Name:" labelParent="{!this}" componentContext="EcoTechnicalQualityTeamFYI_VF_1" />{!dlRoot.dLabel['DL5']}</b>  {!theRelatedTo.TechnicalQualityTeamMember__r.Deliverable__r.Name}<br/>
+<b><nttdcore:DLabel name="DL6" default="Deliverable Version:" labelParent="{!this}" componentContext="EcoTechnicalQualityTeamFYI_VF_1" />{!dlRoot.dLabel['DL6']}</b> {!theRelatedTo.TechnicalQualityReview__r.Deliverable__r.NumofRevisions__c}<br/> <!-- this field is hidden -->
+<b><nttdcore:DLabel name="DL7" default="Required Review Date:" labelParent="{!this}" componentContext="EcoTechnicalQualityTeamFYI_VF_1" />{!dlRoot.dLabel['DL7']}</b> <apex:outputtext value="{0,date,EEE MMM dd yyyy}" >
+                                       <apex:param value="{!theRelatedTo.TechnicalQualityReview__r.ReviewerRequiredDate__c}" />
+                          </apex:outputtext><br/>
+<b><nttdcore:DLabel name="DL8" default="Deliverable Due Date:" labelParent="{!this}" componentContext="EcoTechnicalQualityTeamFYI_VF_1" />{!dlRoot.dLabel['DL8']}</b> <apex:outputtext value="{0,date,EEE MMM dd yyyy}" >
+                                       <apex:param value="{!theRelatedTo.TechnicalQualityReview__r.Deliverable__r.DueDate__c}" />
+                          </apex:outputtext><br/>
+<br/> 
+
+<br/>
+<a href="{!LEFT($Api.Partner_Server_URL_290,FIND('services',$Api.Partner_Server_URL_290)-1)}{!theRelatedTo.TechnicalQualityReview__r.Deliverable__r.Project__c}" ><nttdcore:DLabel name="DL9" default="Link to Project" labelParent="{!this}" componentContext="EcoTechnicalQualityTeamFYI_VF_1" />{!dlRoot.dLabel['DL9']}</a>
+    </apex:outputpanel>  
+<nttdcore:DLabelInit language="{!theLanguage}" labelParentInit="{!this}" /></apex:component>

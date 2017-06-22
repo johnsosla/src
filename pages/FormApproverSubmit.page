@@ -1,0 +1,18 @@
+<apex:page standardController="Forms__c" extensions="FormApproverController">
+	<apex:sectionHeader title="Request Approval" subtitle="{!Forms__c.Name}"/>
+	<apex:form >
+		<apex:pageBlock mode="maindetail">
+			<apex:pageBlockButtons >
+				<apex:commandButton action="{!submitForApproval}" value="Submit For Approval"/>
+				<apex:commandLink action="{!cancel}" immediate="true" value="Cancel"/>
+			</apex:pageBlockButtons>
+			<apex:pageBlockTable value="{!approvers}" var="appUsr">				
+				<apex:column value="{!appUsr.Name_of_Approver__r.Name}"/>
+				<apex:column value="{!appUsr.Approver_Role__c}"/>
+				<apex:column value="{!appUsr.Approval_Status__c}"/>
+				<apex:column value="{!appUsr.Name}"/>
+			</apex:pageBlockTable>
+			
+		</apex:pageBlock>
+	</apex:form>
+</apex:page>

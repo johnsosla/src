@@ -1,0 +1,259 @@
+<apex:page tabstyle="pse__Proj__c" standardcontroller="ProjectOrganization__c" extensions="ECO_OrganizationFinderController,nttdcore.DLabelParentController" showheader="true" sidebar="false" >
+    <style>
+        .searchTable select{
+            min-width:250px;
+        }
+
+        .searchTable label{
+            font-weight:bold;
+            display:block;
+        }
+
+        .searchText{
+            text-align:center;
+            font-weight:bold;
+            font-size:20px;
+        }
+
+        .colA {
+            text-align:right;
+            vertical-align:middle !important;
+        }
+
+        .colB {
+            vertical-align:middle !important;
+        }
+
+        .colC {
+            text-align:left;
+            vertical-align:middle !important;
+        }       
+        .fixedPickList{
+            width: 350px;
+        }
+        .fixedName{
+            width: 345px;
+        }
+
+    </style>
+
+    <nttdcore:DLabel name="DL53" default="Organization Finder" labelParent="{!this}" /><nttdcore:DLabel name="DL54" default="Selecting Organizations for Project {{1}}" labelParent="{!this}" p1="{!ProjectOrganization__c.Project__r.Name}" /><apex:sectionheader title="{!dLabel['DL53']}" subtitle="{!dLabel['DL54']}" />
+    <apex:form >
+        <apex:outputpanel id="messages" >
+            <apex:pagemessages />
+        </apex:outputpanel>
+
+         <nttdcore:DLabel name="DL55" default="Selected Organizations" labelParent="{!this}" /><apex:pageblock rendered="{!NOT(ISNULL(ProjectOrganization__c.Project__c))}" id="organizationSection" title="{!dLabel['DL55']}" >
+            <apex:pageblockbuttons location="top" >
+                <nttdcore:DLabel name="DL56" default="Save" labelParent="{!this}" /><apex:commandbutton action="{!SaveRecords}" value="{!dLabel['DL56']}" rerender="messages, organizationSection" status="selectStatus" disabled="{!bUpdateContributionDisabled}" />
+                <nttdcore:DLabel name="DL57" default="Return to Project" labelParent="{!this}" /><apex:commandbutton action="{!Cancel}" value="{!dLabel['DL57']}" />
+            </apex:pageblockbuttons>
+
+            <apex:outputpanel id="searchSection" ><nttdcore:DLabel name="DL58" default="Selected Organizations" labelParent="{!this}" /><nttdcore:DLabel name="DL82" default="Search For Organizations" labelParent="{!this}" /><nttdcore:DLabel name="DL99" default="Searching..." labelParent="{!this}" /><nttdcore:DLabel name="DL100" default="Search Results" labelParent="{!this}" /><nttdcore:DLabel name="DL101" default="Action" labelParent="{!this}" /><nttdcore:DLabel name="DL102" default="Set Primary" labelParent="{!this}" /><nttdcore:DLabel name="DL103" default="Set Supporting" labelParent="{!this}" /><nttdcore:DLabel name="DL104" default="Office" labelParent="{!this}" />
+                <apex:pageblocksection title="{!dLabel['DL58']}" columns="1" collapsible="false" />
+                <div style="padding:0 12px;margin-top:7px" ><nttdcore:DLabel name="DL66" default="Updating..." labelParent="{!this}" /><nttdcore:DLabel name="DL67" default="Warning" labelParent="{!this}" /><nttdcore:DLabel name="DL68" default="A client record has been selected that is not associated with the project owning organization. Contact Shared Services to create a client record within the owning organization to avoid a future Oracle syncing error when booking the project." labelParent="{!this}" /><nttdcore:DLabel name="DL69" default="No Organizations have been selected" labelParent="{!this}" /><nttdcore:DLabel name="DL70" default="Action" labelParent="{!this}" /><nttdcore:DLabel name="DL71" default="Make Primary" labelParent="{!this}" /><nttdcore:DLabel name="DL72" default="Remove" labelParent="{!this}" /><nttdcore:DLabel name="DL73" default="Office" labelParent="{!this}" /><nttdcore:DLabel name="DL74" default="Contribution %" labelParent="{!this}" /><nttdcore:DLabel name="DL75" default="%" labelParent="{!this}" />
+                <c:ECO_CollapsibleSection sectiontitle="General Guidance Information" uniqueid="1" ><nttdcore:DLabel name="DL59" default="The organisation/s (commonly referred to as department) selected will determine which region and business line earns the revenue generated from this project." labelParent="{!this}" /><nttdcore:DLabel name="DL60" default="The Primary  organisation will typically be the same department as the Project Manager and will be the organisatinon that incurs the cost and earns revenue on the project.   The project key members will also be defaulted based on this  Primary Department - in partciular the Project Approver 2 (P&L Manager) and the Finance Lead.  The primary department will also determine which classifications are required to be completed in the classification manager screen." labelParent="{!this}" /><nttdcore:DLabel name="DL61" default="Supporting departments are captured for informational reporting purpsoes to support the generation of backlog for groups supporting the primary organisation in delivering the project.  Where supporting departments are nominated, you should make an estimate of the contribution split (i.e. how much of the tentire project will be delivered by each department)." labelParent="{!this}" /><nttdcore:DLabel name="DL62" default="Changing Organisations:" labelParent="{!this}" />
+                    {!dLabel['DL59']}<br/><br/>
+                    {!dLabel['DL60']}<br/><br/>
+                    {!dLabel['DL61']}<br/><br/>
+                    {!dLabel['DL62']}
+                    <li><nttdcore:DLabel name="DL63" default="The Primary organisation can only be changed by the project team during the planning phase.  Once in execution only the Project Accountant can make any authorised changes." labelParent="{!this}" />{!dLabel['DL63']}</li>
+                    <li><nttdcore:DLabel name="DL64" default="If the Primary organistion is changed, the key members allocated to the project will update based on the newly selected primary organisation." labelParent="{!this}" />{!dLabel['DL64']}</li>
+                    <li><nttdcore:DLabel name="DL65" default="Supporting departments can be changed at any time by the project team." labelParent="{!this}" />{!dLabel['DL65']}</li>
+                </c:ECO_CollapsibleSection>
+                <apex:actionstatus id="selectStatus" >
+                    <apex:facet name="start" >
+                        <p style="padding-bottom:20px;" class="searchText" ><img style="position:relative;top:12px;" src="/img/loading32.gif" /> {!dLabel['DL66']}</p>
+                    </apex:facet>
+                    <apex:facet name="stop" >
+                        <apex:outputpanel >
+
+
+                            <apex:pagemessage title="{!dLabel['DL67']}" severity="WARNING" strength="3" rendered="{!AND(IF(primarySite.OUID__c == oProject.CarryingOutOrganization__r.OUID__c, false, true), if(oProject.CarryingOutOrganization__r.OUID__c == null, false, true))}" summary="{!dLabel['DL68']}" /> 
+
+
+                            <apex:outputpanel rendered="{!if(lSelectedOrganizations.size > 0, false, true)}" >
+                                <p style="padding-bottom:20px;" >{!dLabel['DL69']}</p>
+                            </apex:outputpanel>
+
+                            <apex:pageblocktable rendered="{!if(lSelectedOrganizations.size > 0, true, false)}" value="{!lSelectedOrganizations}" var="organization" >
+                                <apex:column >
+                                    <apex:facet name="header" >{!dLabel['DL70']}</apex:facet>
+                                    <apex:commandlink action="{!SelectPrimary}" value="{!dLabel['DL71']}" rendered="{!NOT(AND(organization.Type__c='Primary'))}" rerender="messages, organizationSection, searchSection" status="selectStatus" >
+                                        <apex:param assignto="{!sSelectedOrganizationId}" name="OrganizationId" value="{!organization.OrganizationString__r.Id}" />
+                                    </apex:commandlink>  
+                                    <apex:commandlink action="{!RemoveEntry}" value="{!dLabel['DL72']}" rendered="{!NOT(OR(organization.Type__c='Primary', oProject.OracleSyncStatus__c='S'))}" rerender="messages, organizationSection, searchSection" status="selectStatus" >
+                                        <apex:param assignto="{!sSelectedOrganizationId}" name="OrganizationId" value="{!organization.OrganizationString__r.Id}" />
+                                    </apex:commandlink>
+                                </apex:column>
+                                <apex:column value="{!organization.Type__c}" />
+                                <apex:column value="{!organization.OrganizationString__r.OrganizationName__c}" />
+                                <apex:column value="{!organization.OrganizationString__r.GeographyName__c}" /> 
+                                <apex:column value="{!organization.OrganizationString__r.Region__c}" /> 
+                                <apex:column value="{!organization.OrganizationString__r.District__c}" />
+                                <apex:column headervalue="{!dLabel['DL73']}" value="{!organization.OrganizationString__r.LocationName__c}" />
+                                <apex:column value="{!organization.OrganizationString__r.BusinessLineName__c}" />
+                                <apex:column value="{!organization.OrganizationString__r.Department__c}" />
+                                <apex:column style="text-align:right;" >
+                                    <apex:facet name="header" >{!dLabel['DL74']}</apex:facet>
+                                    <apex:inputfield style="width:4em;text-align:right;" value="{!organization.ContributionPercent__c}" /> {!dLabel['DL75']}
+                                </apex:column> 
+                            </apex:pageblocktable>
+                        </apex:outputpanel>
+                    </apex:facet>
+                </apex:actionstatus>
+                </div>
+                <br/><br/>
+
+                <apex:outputpanel ><nttdcore:DLabel name="DL76" default="Your Owning Organization" labelParent="{!this}" />
+                <apex:pageblocksection title="{!dLabel['DL76']}" collapsible="false" />
+                <div style="padding:0 12px;margin-top:7px" ><nttdcore:DLabel name="DL78" default="Action" labelParent="{!this}" /><nttdcore:DLabel name="DL79" default="Set Primary" labelParent="{!this}" /><nttdcore:DLabel name="DL80" default="Set Supporting" labelParent="{!this}" /><nttdcore:DLabel name="DL81" default="Office" labelParent="{!this}" />
+                <nttdcore:DLabel name="DL77" default="No Owning Organizations Found." labelParent="{!this}" /><apex:outputtext value="{!dLabel['DL77']}" rendered="{!IF(lUserOrganizations.size > 0, false, true)}" />
+                <apex:pageblocktable value="{!lUserOrganizations}" var="organization" rendered="{!IF(lUserOrganizations.size > 0, true, false)}" >
+                    <apex:column width="200px" >
+                        <apex:facet name="header" >{!dLabel['DL78']}</apex:facet>
+                        <apex:commandlink action="{!SelectPrimary}" value="{!dLabel['DL79']}" rendered="{!not(oProject.OracleSyncStatus__c='S')}" rerender="messages, buttons, tabPanel, searchSection" status="selectStatus" >
+                            <apex:param assignto="{!sSelectedOrganizationId}" name="OrganizationId" value="{!organization.Id}" />
+                        </apex:commandlink>  
+                        <apex:commandlink action="{!SelectSecondary}" value="{!dLabel['DL80']}" rerender="messages, buttons, tabPanel, searchSection" status="selectStatus" >
+                            <apex:param assignto="{!sSelectedOrganizationId}" name="OrganizationId" value="{!organization.Id}" />
+                        </apex:commandlink>
+                    </apex:column>
+                    <apex:column value="{!organization.OrganizationName__c}" />
+                    <apex:column value="{!organization.GeographyName__c}" /> 
+                    <apex:column value="{!organization.Region__c}" /> 
+                    <apex:column value="{!organization.District__c}" />
+                    <apex:column headervalue="{!dLabel['DL81']}" value="{!organization.LocationName__c}" />
+                    <apex:column value="{!organization.BusinessLineName__c}" />
+                    <apex:column value="{!organization.Department__c}" />
+                    
+                </apex:pageblocktable>
+                </div>
+                </apex:outputpanel>
+
+                <apex:pageblocksection title="{!dLabel['DL82']}" columns="1" collapsible="false" />
+                <div style="padding:0 12px;margin-top:7px" >
+				<nttdcore:DLabel name="DL88" default="Select" labelParent="{!this}" />
+				<nttdcore:DLabel name="DL90" default="Select" labelParent="{!this}" />
+				<nttdcore:DLabel name="DL92" default="Select" labelParent="{!this}" />
+				<nttdcore:DLabel name="DL94" default="Select" labelParent="{!this}" />
+				<nttdcore:DLabel name="DL96" default="Select" labelParent="{!this}" />
+				<nttdcore:DLabel name="DL98" default="Select" labelParent="{!this}" />
+				<nttdcore:DLabel name="DL83" default="Organization Name" labelParent="{!this}" />
+				<nttdcore:DLabel name="DL84" default="Organization Name" labelParent="{!this}" />
+				<nttdcore:DLabel name="DL85" default="Search" labelParent="{!this}" />
+				<nttdcore:DLabel name="DL86" default="Reset Search" labelParent="{!this}" />
+				<nttdcore:DLabel name="DL87" default="Geography Name" labelParent="{!this}" />
+				<nttdcore:DLabel name="DL89" default="Region" labelParent="{!this}" />
+				<nttdcore:DLabel name="DL91" default="District" labelParent="{!this}" />
+				<nttdcore:DLabel name="DL93" default="Office" labelParent="{!this}" />
+				<nttdcore:DLabel name="DL95" default="Business Line" labelParent="{!this}" />
+				<nttdcore:DLabel name="DL97" default="Department" labelParent="{!this}" />
+				<apex:panelgrid columns="4" columnclasses="colA, colB, colC" id="theGrid" >
+                    <apex:outputlabel for="Name" value="{!dLabel['DL83']}" />
+                    <apex:inputtext title="{!dLabel['DL84']}" styleclass="fixedName" id="Name" value="{!sOrganizationName}" />
+                    <apex:commandbutton value="{!dLabel['DL85']}" action="{!SearchOrganizations}" rerender="messages, searchSection" status="searchStatus" />
+                    <apex:commandbutton value="{!dLabel['DL86']}" action="{!Reset}" rerender="messages, searchSection" status="searchStatus" />
+
+                    <apex:outputlabel for="GeographyName" value="{!dLabel['DL87']}" />
+                    <apex:selectlist styleclass="fixedPickList" size="1" id="GeographyName" value="{!sGeographyName}" >
+                        <apex:selectoption itemvalue="" itemlabel="{!dLabel['DL88']}" />
+                        <apex:selectoptions value="{!loGeographies}" />
+                        <apex:actionsupport event="onchange" action="{!SearchOrganizations}" rerender="messages, searchSection" status="searchStatus" />
+                    </apex:selectlist>  
+                    <apex:outputtext value="" />
+                    <apex:outputtext value="" />
+
+
+                    <apex:outputlabel for="Region" value="{!dLabel['DL89']}" />
+                    <apex:selectlist styleclass="fixedPickList" size="1" id="Region" value="{!sRegion}" >
+                        <apex:selectoption itemvalue="" itemlabel="{!dLabel['DL90']}" />
+                        <apex:selectoptions value="{!loRegions}" />
+                        <apex:actionsupport event="onchange" action="{!SearchOrganizations}" rerender="messages, searchSection" status="searchStatus" />
+                    </apex:selectlist>  
+                    <apex:outputtext value="" />
+                    <apex:outputtext value="" />
+
+
+                    <apex:outputlabel for="District" value="{!dLabel['DL91']}" />
+                    <apex:selectlist styleclass="fixedPickList" size="1" id="District" value="{!sDistrict}" >
+                        <apex:selectoption itemvalue="" itemlabel="{!dLabel['DL92']}" />
+                        <apex:selectoptions value="{!loDistricts}" />
+                        <apex:actionsupport event="onchange" action="{!SearchOrganizations}" rerender="messages, searchSection" status="searchStatus" />
+                    </apex:selectlist>
+                    <apex:outputtext value="" />
+                    <apex:outputtext value="" />
+
+
+                    <apex:outputlabel for="Office" value="{!dLabel['DL93']}" />
+                    <apex:selectlist styleclass="fixedPickList" size="1" id="Office" value="{!sLocation}" >
+                        <apex:selectoption itemvalue="" itemlabel="{!dLabel['DL94']}" />
+                        <apex:selectoptions value="{!loLocations}" />
+                        <apex:actionsupport event="onchange" action="{!SearchOrganizations}" rerender="messages, searchSection" status="searchStatus" />
+                    </apex:selectlist>
+                    <apex:outputtext value="" />
+                    <apex:outputtext value="" />
+
+
+                    <apex:outputlabel for="BusinessLine" value="{!dLabel['DL95']}" />
+                    <apex:selectlist styleclass="fixedPickList" size="1" id="BusinessLine" value="{!sBusinessLine}" >
+                        <apex:selectoption itemvalue="" itemlabel="{!dLabel['DL96']}" />
+                        <apex:selectoptions value="{!loBusinessLines}" />
+                        <apex:actionsupport event="onchange" action="{!SearchOrganizations}" rerender="messages, searchSection" status="searchStatus" />
+                    </apex:selectlist>
+                    <apex:outputtext value="" />
+                    <apex:outputtext value="" />
+
+
+                    <apex:outputlabel for="Department" value="{!dLabel['DL97']}" />
+                    <apex:selectlist styleclass="fixedPickList" size="1" id="Department" value="{!sDepartment}" >
+                        <apex:selectoption itemvalue="" itemlabel="{!dLabel['DL98']}" />
+                        <apex:selectoptions value="{!loDepartments}" />
+                        <apex:actionsupport event="onchange" action="{!SearchOrganizations}" rerender="messages, searchSection" status="searchStatus" />
+                    </apex:selectlist>
+                    <apex:outputtext value="" />
+                    <apex:outputtext value="" />
+
+
+
+                </apex:panelgrid>
+                </div>
+
+                <apex:actionstatus id="searchStatus" >
+                    <apex:facet name="start" >
+                        <p style="padding-bottom:20px;" class="searchText" ><img style="position:relative;top:12px;" src="/img/loading32.gif" /> {!dLabel['DL99']}</p>
+                    </apex:facet>
+                    <apex:facet name="stop" >
+                        <apex:outputpanel >
+                            <apex:pageblocksection rendered="{!bSearchInProgress}" title="{!dLabel['DL100']}" collapsible="false" />
+                            <apex:pageblocktable rendered="{!bSearchInProgress}" value="{!lOrganizations}" var="organization" >
+                                <apex:column >
+                                    <apex:facet name="header" >{!dLabel['DL101']}</apex:facet>
+                                    <apex:commandlink action="{!SelectPrimary}" value="{!dLabel['DL102']}" rendered="{!not(oProject.OracleSyncStatus__c='S')}" rerender="messages, organizationSection, searchSection" status="selectStatus" >
+                                        <apex:param assignto="{!sSelectedOrganizationId}" name="OrganizationId" value="{!organization.Id}" />
+                                    </apex:commandlink>  
+                                    <apex:commandlink action="{!SelectSecondary}" value="{!dLabel['DL103']}" rerender="messages, organizationSection, searchSection" status="selectStatus" >
+                                        <apex:param assignto="{!sSelectedOrganizationId}" name="OrganizationId" value="{!organization.Id}" />
+                                    </apex:commandlink>
+                                </apex:column>
+                                <apex:column value="{!organization.OrganizationName__c}" />
+                                <apex:column value="{!organization.GeographyName__c}" /> 
+                                <apex:column value="{!organization.Region__c}" /> 
+                                <apex:column value="{!organization.District__c}" />
+                                <apex:column headervalue="{!dLabel['DL104']}" value="{!organization.LocationName__c}" />
+                                <apex:column value="{!organization.BusinessLineName__c}" />
+                                <apex:column value="{!organization.Department__c}" />
+                            </apex:pageblocktable>
+                            <br/><br/>
+                            <apex:outputpanel rendered="{!bSearchInProgress}" >
+                                <div style="text-align:center;" >
+                                    <apex:commandbutton value="{!showMoreOrgText}" action="{!toggleOrgShow}" rerender="messages, searchSection" status="searchStatus" rendered="{!bShowMoreButtonOrg}" />
+                                </div>
+                            </apex:outputpanel>
+                        </apex:outputpanel>
+                    </apex:facet>
+                </apex:actionstatus>
+            </apex:outputpanel>
+        </apex:pageblock>
+    </apex:form>
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

@@ -1,0 +1,128 @@
+<apex:page standardController="Project__c" showheader="false"  standardstylesheets="false" Sidebar="false" cache="true" 
+extensions="ProjectExtension"> 
+<style> body {
+  font: 100.1%/1.2 Arial, Helvetica, sans-serif;
+  background: #F00; /* altered 09-15-09 */
+  color: #000; /* altered 09-15-09 */
+}</style>
+<apex:variable value="{!Project__c}" var="prj"/>
+
+
+<apex:outputField value="{!prj.Image__c}"/><p/>
+<b><apex:outputField style="font-family: Arial; font-size: 12pt;"  value="{!prj.Owner_Client_Output__c}"/></b><br/>
+<b><apex:outputField style="font-family: Arial; font-size: 12pt;"  value="{!prj.Project_Name__c}"/></b><br/>
+<b><apex:outputField style="font-family: Arial; font-size: 12pt;"  value="{!prj.Location_Output__c}"/></b> 
+<br/>
+<b>
+<apex:outputField style="font-family: Arial; font-size: 12pt;" value="{!prj.Client_contract__c}" rendered="{!prj.RecordType.name=='Program'}"/>
+<apex:outputField style="font-family: Arial; font-size: 12pt;"  value="{!prj.Program_Master_Contract_Name__r.Client_contract__c}" rendered="{!AND(NOT(ISBLANK(prj.Program_Master_Contract_Name__r.Client_contract__c)), prj.RecordType.name=='Task Order')}" /> 
+<apex:outputText style="font-family: Arial; font-size: 12pt;" value=", " rendered="{!AND(NOT(ISBLANK(prj.Program_Master_Contract_Name__r.Client_contract__c)), prj.RecordType.name=='Task Order')}" /> 
+<apex:outputField style="font-family: Arial; font-size: 12pt;"  value="{!prj.DO_TO_Number__c}" rendered="{!AND(NOT(ISBLANK(prj.DO_TO_Number__c)), prj.RecordType.name=='Task Order')}" /> 
+</b><p/>
+<apex:outputField styleclass="bodyText" value="{!prj.Project_Description__c}"/>    
+<p/>
+<table style ="font-family: Arial; font-size: 9pt;">             
+<tr> 
+           <td><b> <apex:outputText value="Revenue:  "/><apex:outputText value="{!prj.CurrencyIsoCode}"/></b></td>
+           <td align="right"> <apex:outputText value="{0,number,###,###,###,###,###}">
+              <apex:param value="{!prj.SearchFee__c}"/> </apex:outputText></td>
+</tr>
+<tr>
+<td><b> <apex:outputText value="Construction Cost:   "/></b></td>
+                                 <td align="right"> <apex:outputText value="{0,number,###,###,###,###,###}"> 
+                  <apex:param value="{!prj.Search_Construction_Cost__c}"/>
+                  </apex:outputText> </td>
+</tr>   
+<tr>
+<td><b> <apex:outputText value="Owners Total Cost:   "/></b></td>
+                                 <td align="right"> <apex:outputText value="${0,number,###,###,###,###,###}"> 
+                  <apex:param value="{!prj.Owners_Total_cost__c}"/>
+                  </apex:outputText> </td>
+</tr>      
+<tr>
+   <td> <b><apex:outputText value="Dates of Service:  "/></b></td>
+  <td align="right"> <apex:outputText value="{!prj.Date_Started__c} - {!prj.Search_Completion_Date__c}"/> </td>
+</tr>    
+</table>
+<b><p><apex:outputText style="font-family: Arial; font-size: 9pt" value="Project Team"/></p> </b>
+<apex:outputText style="font-family: Arial; font-size: 9pt;" value="{!prj.Project_Manager__r.Name}" rendered="{!prj.Project_Manager_Status__c=='Active'}"/>, <apex:outputText value=" " rendered="{!prj.Project_Manager_Status__c=='Active'}"/>
+<apex:outputText style="font-family: Arial; font-size: 9pt;" value=" "/><apex:outputText style="font-family: Arial; font-size: 9pt;" value=" Project Manager" rendered="{!prj.Project_Manager_Status__c=='Active'}"/>
+<br/>
+<apex:repeat value="{!Project__c.PR_Team_Employees__r}" var="pt">
+<apex:outputPanel style="font-family: Arial; font-size: 9pt;" rendered="{!pt.PRStatusEmployee__c=='Active'}"> {!pt.Employee__r.Name} <br/></apex:outputPanel>
+
+</apex:repeat>
+
+<apex:outputPanel rendered="{!hasReferences}">
+<p><b><apex:outputText style="font-family: Arial; font-size: 9pt;" value="References"/></b> </p>
+ <apex:repeat value="{!prj.PR_Contacts__r}" var="ref">
+           <apex:OutputPanel style="font-family: Arial; font-size: 9pt;" rendered="{!NOT(ISBLANK(ref.Contact__r.Other_City__c))}">
+            <apex:outputtext value="{!ref.Contact__r.Name}" />
+            <br></br>
+            <apex:outputtext value="{!ref.Contact__r.Other_Street__c}" />
+            <br></br>
+            <apex:outputtext value="{!ref.Contact__r.Other_City__c}" />
+            <apex:outputText value=", " />
+            <apex:outputtext value="{!ref.Contact__r.OtherState__c}" />
+            <apex:outputText value=" " />
+            <apex:outputtext value="{!ref.Contact__r.Other_Country__c}" />
+            <apex:outputText value=" " />
+            <apex:outputText value=" " />
+            <apex:outputtext value="{!ref.Contact__r.Other_Zip__c}" />
+            <br></br>
+            <b><apex:outputtext value="Phone:  " /></b>
+            <apex:outputtext value="{!ref.Contact__r.Phone}" />
+            <br></br>
+            <b><apex:outputtext value="Fax:  " />
+            </b>
+            <apex:outputtext value="{!ref.Contact__r.Fax}" />
+            <br></br>
+            <b><apex:outputtext value="Email:  " />
+            </b>
+            <apex:outputtext value="{!ref.Contact__r.Email}" rendered="{!Not(IsBlank(ref.Contact__r.Email))}" />
+            <br />
+            <br />
+                </apex:OutputPanel>
+
+        <apex:OutputPanel style="font-family: Arial; font-size: 9pt;" rendered="{!ISBLANK(ref.Contact__r.Other_City__c)}">
+            <apex:outputtext value="{!ref.Contact__r.Name}" />
+            <br></br>
+            <apex:outputtext value="{!ref.Contact__r.MailingStreet}" />
+            <br></br>
+            <apex:outputtext value="{!ref.Contact__r.MailingCity}" />
+            <apex:outputText value=", " />
+            <apex:outputtext value="{!ref.Contact__r.MailingState}" />
+            <apex:outputText value=" " />
+            <apex:outputtext value="{!ref.Contact__r.MailingCountry}" />
+            <apex:outputText value=" " />
+            <apex:outputText value=" " />
+            <apex:outputtext value="{!ref.Contact__r.MailingPostalCode}" />
+            <br></br>
+            <b><apex:outputtext value="Phone:  " /></b>
+            <apex:outputtext value="{!ref.Contact__r.Phone}" />
+            <br></br>
+            <b><apex:outputtext value="Fax:  " />
+            </b>
+            <apex:outputtext value="{!ref.Contact__r.Fax}" />
+            <br></br>
+            <b><apex:outputtext value="Email:  " />
+            </b>
+            <apex:outputtext value="{!ref.Contact__r.Email}" rendered="{!Not(IsBlank(ref.Contact__r.Email))}" />
+            <br />
+            <br />
+                </apex:OutputPanel></apex:repeat>
+    </apex:outputPanel>
+    
+<apex:outputPanel rendered="{!hasWonAwards}">
+    <b><apex:outputText style="font-family: Arial; font-size: 9pt;"  value="Awards"/> </b><br/>
+    <apex:repeat value="{!Project__c.Awards__r}" var="awd"><br/>
+    <apex:outputpanel style="font-family: Arial; font-size: 9pt;" rendered="{!AND(awd.RecordType.DeveloperName=='Awards', awd.Award_Status__c=='Won', awd.Internal_Award__c=False)}">
+    <apex:outputtext style="font-family: Arial; font-size: 9pt;"  value="{!awd.Name}"/><apex:outputText value=" , "/>
+    <apex:outputtext style="font-family: Arial; font-size: 9pt;"  value="{!awd.Presenting_Sponsoring_Organizaton__r.Name}"/><apex:outputText value=", "/>
+    <apex:outputText value="{0,date,yyyy}">   
+        <apex:param value="{!awd.Date_Award_Won__c}"/>
+            </apex:outputText>
+            </apex:outputpanel>
+    </apex:repeat> 
+</apex:outputPanel>   
+</apex:page>

@@ -1,0 +1,3 @@
+<apex:page standardController="CFM_Survey_Batch__c" extensions="CFM_SurveyBatchController" showHeader="false" sidebar="false" action="{!generateCSVPreviewAction}">
+	<apex:pageMessages />
+</apex:page>

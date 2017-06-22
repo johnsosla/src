@@ -1,0 +1,23 @@
+<apex:component controller="ECO_SmartSearch_TokenExt" extensions="nttdcore.DLabelChildController" >
+    <CoveoSolutions:CoveoJsSearch stylesheet="CoveoFullSearch.css" debug="true" />
+	<script>
+		Coveo.$(function () {
+            if (!isOnSearchPage()) {
+                Coveo.Rest.SearchEndpoint.configureOnPremiseEndpoint('{!endPointURL}', '{!coveoToken}' );
+                Coveo.$("#headerSearchBox").coveo('initSearchBox', 'apex/ECO_SmartSearch');
+            }
+        });
+    	function isOnSearchPage() {
+            return $('#search').length > 0;
+        }
+    </script>
+    <div class="coveo-search-section hidden-sm hidden-xs ecoFrameSearch" >
+        <div class="coveo-searchBox-column" >
+            <div class="coveo-search-section-wrapper" >
+                <div id="headerSearchBox" class="col-lg-3 col-md-3" >
+                    <input type="search" placeholder="SEARCH..." class="CoveoOmniBox" /><span type="button" class="CoveoSearchButton" ><nttdcore:DLabel name="DL1" default="Go" labelParent="{!this}" componentContext="ECO_SmartSearchBox_JFA" />{!dlRoot.dLabel['DL1']}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</apex:component>

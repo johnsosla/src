@@ -1,0 +1,26 @@
+<apex:page sidebar="false" showHeader="false">
+  <apex:pageBlock Title="Visual force page Title" >
+    <apex:pageBlocksection Title="ROGER's Visual Force Page">
+    This is the data for this block section
+    </apex:pageBlocksection>
+    <apex:pageblockSection Title="This is the 2nd section">
+        This is the second section
+    </apex:pageblockSection>
+    <apex:tabPanel title="Title Tab Panel">
+     This tabpanel data  
+         More text
+    </apex:tabPanel>
+    <apex:panelGrid >
+    Panel grid data
+    More grid data
+    </apex:panelGrid>
+    <apex:toolbar >
+    tool bar stuff
+    </apex:toolbar>
+  <apex:pageBlockSection >
+  {! $user.Firstname} " my name"
+  <p> I have been married  {! Year(today()) -1968}  years </p>
+  <p> I have been this company  {! Year(today()) - 1994} Years </p>
+    </apex:pageBlockSection>
+    </apex:pageBlock>
+</apex:page>

@@ -1,0 +1,1105 @@
+<apex:component layout="none" controller="ECO_EarnedValueFlyoutController" allowdml="true" >
+    <apex:attribute name="ProjectId" description="Parent Project ID" type="ID" assignto="{!sProjectId}" required="true" />
+
+    <apex:attribute name="TabLocation" description="The top coordinate of the tab" type="Integer" required="false" default="440" />
+
+    <apex:stylesheet value="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/css/font-awesome.min.css')}" />
+    
+    <apex:includeScript value="{!$Resource.ECO_jQuery_1_11_2_min_js}" />
+    <apex:includeScript value="{!URLFOR($Resource.ECO_jQueryUI_1_11_2, 'jquery-ui.min.js')}" />
+    <apex:includeScript value="{!$Resource.FloatHead}" />
+
+    <script type="text/javascript" src="https://www.google.com/jsapi?autoload={
+            'modules':[{
+              'name':'visualization',
+              'version':'1',
+              'packages':['corechart']
+            }]
+          }" >
+    </script>
+
+    <script>
+        $k = jQuery.noConflict();
+
+
+Number.prototype.format = function(c, d, t){
+var n = this, 
+    c = isNaN(c = Math.abs(c)) ? 2 : c, 
+    d = d == undefined ? "." : d, 
+    t = t == undefined ? "," : t, 
+    s = n < 0 ? "-" : "", 
+    i = parseInt(n = Math.abs(+n || 0).toFixed(c)) + "", 
+    j = (j = i.length) > 3 ? j % 3 : 0;
+   return s + (j ? i.substr(0, j) + t : "") + i.substr(j).replace(/(\d{3})(?=\d)/g, "$1" + t) + (c ? d + Math.abs(n - i).toFixed(c).slice(2) : "");
+ };
+        $k.fn.editableTableWidget = function (options) {
+            'use strict';
+            return $k(this).each(function () {
+                var buildDefaultOptions = function () {
+                        var opts = $k.extend({}, $k.fn.editableTableWidget.defaultOptions);
+                        opts.editor = opts.editor.clone();
+                        return opts;
+                    },
+                    activeOptions = $k.extend(buildDefaultOptions(), options),
+                    ARROW_LEFT = 37, ARROW_UP = 38, ARROW_RIGHT = 39, ARROW_DOWN = 40, ENTER = 13, ESC = 27, TAB = 9,
+                    element = $k(this),
+                    editor = activeOptions.editor.css('position', 'absolute').hide().appendTo(element.parent()),
+                    active,
+                    showEditor = function (select) {
+                        active = element.find('td:focus');
+                        if (active.length) {
+                    
+                            // Prevent edit of the columns specified
+                            if ($k.inArray(active.index() + 1, activeOptions.preventColumns) != -1) {
+                                active.blur();
+
+                                return;
+                            }
+
+                            editor.val(active.text())
+                                .removeClass('error')
+                                .show()
+                                .offset(active.offset())
+                                .css(active.css(activeOptions.cloneProperties))
+                                .width(active.width())
+                                .height(active.height())
+                                .focus();
+                            if (select) {
+                                editor.select();
+                            }
+                        }
+                    },
+                    setActiveText = function () {
+                        var text = editor.val(),
+                            evt = $k.Event('change'),
+                            originalContent;
+                        if (active.text() === text || editor.hasClass('error')) {
+                            return true;
+                        }
+
+                        var vals = [];
+                        vals[0] = text;
+                        vals[1] = active.html();
+
+                        originalContent = active.html();
+
+                        active.text(text).trigger(evt, vals);
+                        if (evt.result === false) {
+                            active.html(originalContent);
+                        }
+                    },
+                    movement = function (element, keycode) {
+                        if (keycode === ARROW_RIGHT) {
+                            return element.next('td');
+                        } else if (keycode === ARROW_LEFT) {
+                            return element.prev('td');
+                        } else if (keycode === ARROW_UP) {
+                            return element.parent().prev().children().eq(element.index());
+                        } else if (keycode === ARROW_DOWN) {
+                            return element.parent().next().children().eq(element.index());
+                        }
+                        return [];
+                    };
+                editor.blur(function () {
+                    setActiveText();
+                    editor.hide();
+                }).keydown(function (e) {
+                    if (e.which === ENTER) {
+                        setActiveText();
+                        editor.hide();
+                        active.focus();
+                        e.preventDefault();
+                        e.stopPropagation();
+                    } else if (e.which === ESC) {
+                        editor.val(active.text());
+                        e.preventDefault();
+                        e.stopPropagation();
+                        editor.hide();
+                        active.focus();
+                    } else if (e.which === TAB) {
+                        active.focus();
+                    } else if (this.selectionEnd - this.selectionStart === this.value.length) {
+                        var possibleMove = movement(active, e.which);
+                        if (possibleMove.length > 0) {
+                            possibleMove.focus();
+                            e.preventDefault();
+                            e.stopPropagation();
+                        }
+                    }
+                })
+                .on('input paste', function () {
+                    var evt = $k.Event('validate');
+                    active.trigger(evt, editor.val());
+                    if (evt.result === false) {
+                        editor.addClass('error');
+                    } else {
+                        editor.removeClass('error');
+                    }
+                });
+                element.on('click keypress dblclick', showEditor)
+                .css('cursor', 'pointer')
+                .keydown(function (e) {
+                    var prevent = true,
+                        possibleMove = movement($k(e.target), e.which);
+                    if (possibleMove.length > 0) {
+                        possibleMove.focus();
+                    } else if (e.which === ENTER) {
+                        showEditor(false);
+                    } else if (e.which === 17 || e.which === 91 || e.which === 93) {
+                        showEditor(true);
+                        prevent = false;
+                    } else {
+                        prevent = false;
+                    }
+                    if (prevent) {
+                        e.stopPropagation();
+                        e.preventDefault();
+                    }
+                });
+
+                element.find('td').prop('tabindex', 1);
+
+                $k(window).on('resize', function () {
+                    if (editor.is(':visible')) {
+                        editor.offset(active.offset())
+                        .width(active.width())
+                        .height(active.height());
+                    }
+                });
+            });
+
+        };
+
+        $k.fn.editableTableWidget.defaultOptions = {
+            cloneProperties: ['padding', 'padding-top', 'padding-bottom', 'padding-left', 'padding-right',
+                              'text-align', 'font', 'font-size', 'font-family', 'font-weight',
+                              'border', 'border-top', 'border-bottom', 'border-left', 'border-right'],
+            editor: $k('<input>')
+        };
+
+        var oldWidth;
+
+        var evFlyout = {
+            init : function(){
+
+                $k('body').on('click', evFlyout.hideContentFlyout);
+                
+                $k('#evPane').on('click', function(event) { 
+                    event.stopPropagation();
+                });
+                
+                $k('#evPane .tab').on('click', evFlyout.showContentFlyout);
+                
+                $k('#evPane .close').click(function(){
+                    evFlyout.hideContentFlyout();
+                });
+                
+                drawPlannedValue();
+                drawCPISPI();
+            },
+
+            hideContentFlyout : function(){
+                //var width = $k('#evPane').outerWidth() * -1 + 'px';
+                
+                $k('#evPane').animate({
+                    right : oldWidth
+                  }, 550, 'easeInCubic');
+            },
+           
+            showContentFlyout : function(event){
+                event.stopPropagation();
+
+                if($k('#evPane').css('right') == '0px'){
+                    evFlyout.hideContentFlyout();
+                }else{
+                    oldWidth = $k('#evPane').css('right');
+                    $k('#evPane').animate({
+                        right : 0
+                      }, 550, 'easeOutCubic');
+                }
+            }
+        }
+
+        $k(document).ready(function (){
+            evFlyout.init();
+
+            $k('.mainTable1EV td').on('change', function(evt, newValue, oldValue) {
+                var col = $k(this).parent().children().index($k(this));
+
+                if (newValue == '?') {
+                    if (col == 1) {
+                        diff = parseFloat(oldValue.replace(/,/g, '')) - parseFloat($k('#plannedCostVarianceEV').html().replace(/,/g, ''));
+
+
+                        if (diff < 0) {
+                        } else {
+                            $k(this).html(diff.format(2));
+                        }
+                    }
+                } else {
+                    if (parseFloat(newValue.replace(/,/g, '')) < 0) {
+                        $k(this).html(oldValue);
+                    }
+                }
+
+                var row = $k(this).parent().parent().children().index($k(this).parent());
+  
+                val = getValueEV(this);
+
+                if (col == 1) {
+                    $k($k($k('.dataTable1EV tbody tr')[row]).children()[1]).find('input').val(val);
+                }
+
+                copyFromDataTableEV();
+            });
+
+            $k('.mainTable1EV').editableTableWidget({preventColumns: [1, 3, 4, 5, 6, 7, 8, 9]});
+
+            $k('.tabsForResourceEV').tabs();
+
+            $k('.mainTable1EV').children('colgroup').remove();
+
+            var $table = $k('.theEVTable');
+            $table.floatThead({
+                scrollContainer: function($table){
+                    return $table.closest('.EVWrapper');
+                }
+            });
+
+
+            copyFromDataTableEV();
+        });
+    
+        var chartJsonEV =  {!chartData};
+        
+        function drawPlannedValue() {
+            //var data = google.visualization.arrayToDataTable(chartJsonEV);
+
+            var data = new google.visualization.DataTable();
+            data.addColumn('string', 'Week');
+            data.addColumn('number', 'Planned');
+            data.addColumn('number', 'Estimate');
+            data.addColumn('number', 'Actual');
+            data.addColumn('number', 'Earned Value');
+
+            data.addRows(chartJsonEV);
+
+            var options = {
+                width:640,
+                height:303,
+                title: 'Project Earned Value',
+                curveType: 'none',
+                legend: { position: 'right' },
+                vAxis: {format: 'decimal'},
+                pointSize: 1,
+                seriesType: "line",
+                interpolateNulls: true,
+                colors: ['#0066ad', '#cad7e9', '#990000', '#009900'],
+                series: {
+                    0 : { pointShape : 'square' },
+                    1 : { pointShape : 'triangle' },
+                    2 : { pointShape : 'circle' },
+                    3 : { pointShape : 'diamond' }
+                }
+            };
+            
+            var chart = new google.visualization.ComboChart(document.getElementById('plannedValueChart'));
+            
+            chart.draw(data, options);
+        }
+    
+        var chartJson2EV = {!chartData2};
+        
+        function drawCPISPI() {
+            var data2 = new google.visualization.DataTable();
+            data2.addColumn('string', 'Week');
+            data2.addColumn('number', 'CPI');
+            data2.addColumn('number', 'SPI');
+
+            data2.addRows(chartJson2EV);
+
+            //var data2 = google.visualization.arrayToDataTable(chartJson2EV);
+            
+            var options2 = {
+                width:640,
+                height:303,
+                title: 'CPI/SPI',
+                curveType: 'none',
+                legend: { position: 'right' },
+                vAxis: {format: 'decimal'},
+                pointSize: 8,
+                seriesType: "line",
+                interpolateNulls: true,
+                colors: ['#ff9933', '#cc3399'],
+                series: {
+                    0 : { pointShape : 'square' },
+                    1 : { pointShape : 'circle' }
+                }                
+            };
+            
+            var chart2 = new google.visualization.ComboChart(document.getElementById('CPISPIChart'));
+
+            var formatter = new google.visualization.NumberFormat({
+                pattern: '#.##', 
+                fractionDigits: 2
+            });
+
+            formatter.format(data2, 1); // Apply formatter to second column.            
+            formatter.format(data2, 2); // Apply formatter to second column.            
+
+            chart2.draw(data2, options2);
+        }
+
+      function getValueEV(obj) {
+        r = 0;
+
+        try {
+            r = parseFloat($k(obj).html().trim().replace(/,/g, ''));
+        } catch (ex) {
+            return null;
+        }
+
+        if (isNaN(r)) {
+            return null;
+        }
+
+        return r;
+      }
+
+      function recalcColumnEV(ps) {
+        x = 0;
+
+        $k('.mainTable1EV tbody tr td:nth-child(' + ps + ')').each( function() {
+            y = 0;
+
+            try {
+                y = parseFloat($k(this).html().trim().replace(/,/g, ''));
+            } catch (ex) {
+
+            }
+
+            if (isNaN(y)) {
+                y = 0;
+            }
+
+            $k(this).html(y.format(2));
+
+            if (y < 0) {
+                $k(this).addClass('negativeNumber');
+            } else {
+                $k(this).removeClass('negativeNumber');
+            }
+
+            x += y;
+            $k(this).next('td').html(x.format(2));
+
+            if (x < 0) {
+                $k(this).next('td').addClass('negativeNumber');
+            } else {
+                $k(this).next('td').removeClass('negativeNumber');
+            }
+        });
+      }
+
+      function calcTotalEV() {
+        $k('.mainTable1EV tbody tr td:nth-child(2)').each( function() {
+            y = 0;
+
+            try {
+                y = parseFloat($k(this).html().trim().replace(/,/g, ''));
+            } catch (ex) {
+            }
+
+            if (isNaN(y)) {
+                y = 0;
+            }
+
+            plannedCostCumulativeCell = 0;
+
+            try {
+                plannedCostCumulativeCell = parseFloat($k($k(this).parent().children()[2]).html().trim().replace(/,/g, ''));
+            } catch (ex) {
+            }
+
+            if (isNaN(plannedCostCumulativeCell)) {
+                plannedCostCumulativeCell = 0;
+            }
+
+            earnedValueCell = 0;
+
+            try {
+                earnedValueCell = parseFloat($k($k(this).parent().children()[6]).html().trim().replace(/,/g, ''));
+            } catch (ex) {
+            }
+
+            if (isNaN(earnedValueCell)) {
+                $k($k(this).parent().children()[8]).html('');
+
+            } else {
+                var newSPI = (plannedCostCumulativeCell != 0) ? earnedValueCell / plannedCostCumulativeCell : 0;
+
+                $k($k(this).parent().children()[8]).html(newSPI.toFixed(2));
+
+            }
+
+            z = 0;
+
+            try {
+                z = parseFloat($k($k(this).parent().children()[4]).html().trim().replace(/,/g, ''));
+            } catch (ex) {
+            }
+
+            if (isNaN(z)) {
+                z = 0;
+            }
+
+            sum = -y + z;
+
+/*
+            $k($k(this).parent().children()[6]).html(sum.format(2));
+
+            if (sum < 0) {
+                $k($k(this).parent().children()[6]).addClass('negativeNumber');
+            } else {
+                $k($k(this).parent().children()[6]).removeClass('negativeNumber');
+            }
+*/            
+        });         
+      }
+
+      function recalculateCumulativeEV() {
+        recalcColumnEV('2');
+//        recalcColumnEV('5');
+
+        calcTotalEV();
+
+//        recalcColumnEV('7');
+      }
+
+      function getCellValueEV(obj, idx) {
+        ret = 0.0;
+
+        try {
+            ret = parseFloat($k($k(obj).children()[idx]).html().trim().replace(/,/g, ''));
+        } catch (ex) {
+
+        }
+
+        if (isNaN(ret)) {
+            ret = 0.0;
+        }
+
+        return ret;
+      }
+
+      function getInputValueEV(obj, idx) {
+        ret = 0.0;
+
+        try {
+            ret = parseFloat($k($k(obj).children()[idx]).find('input').val().trim().replace(/,/g, ''));
+        } catch (ex) {
+            return null;
+        }
+
+        if (isNaN(ret)) {
+            ret = null;
+        }
+
+        return ret;
+      }
+
+      function copyFromDataTableEV() {
+        row = 0;
+
+        main = $k('.mainTable1EV tbody tr');
+
+        $k('.mainTable1EV tbody tr td').removeClass('editedCell');
+
+        var totalPlannedCost = 0;
+
+        $k('.dataTable1EV tbody tr').each(function() {
+            appliedCost = getCellValueEV(this, 0);
+            overrideAppliedCost = getInputValueEV(this, 1);
+            revenue = getCellValueEV(this, 2);
+            overrideRevenue = getInputValueEV(this, 3);
+
+            if (overrideAppliedCost == null) {
+                $k($k(main[row]).children()[1]).html(appliedCost.format(2));
+                totalPlannedCost += appliedCost;
+            } else {
+                $k($k(main[row]).children()[1]).html(overrideAppliedCost.format(2));
+                $k($k(main[row]).children()[1]).addClass('editedCell');
+                totalPlannedCost += overrideAppliedCost;
+            }
+
+/*
+            if (overrideRevenue == null) {
+                $k($k(main[row]).children()[4]).html(revenue.format(2));
+                totalCashIn += revenue;
+            } else {
+                $k($k(main[row]).children()[4]).html(overrideRevenue.format(2));
+                $k($k(main[row]).children()[4]).addClass('editedCell');
+                totalCashIn += overrideRevenue;
+            }
+*/            
+
+            row++;
+        });
+
+        $k('#overriddenPlannedCostTotalEV').html(totalPlannedCost.format(2));
+
+        if (totalPlannedCost < 0) {
+            $k('#overriddenPlannedCostTotalEV').addClass('negativeNumber');
+        } else {
+            $k('#overriddenPlannedCostTotalEV').removeClass('negativeNumber');
+        }
+
+        diff1 = parseFloat((totalPlannedCost - {!plannedCostTotal}).toFixed(2));
+
+        $k('#plannedCostVarianceEV').html(diff1.format(2));
+
+        if (diff1 < 0) {
+            $k('#plannedCostVarianceEV').addClass('negativeNumber');
+        } else {
+            $k('#plannedCostVarianceEV').removeClass('negativeNumber');
+        }
+
+        if (totalPlannedCost != {!plannedCostTotal}) {
+            $k('#plannedCostVarianceLabelEV').addClass('varianceBad');
+        } else {
+            $k('#plannedCostVarianceLabelEV').removeClass('varianceBad');
+        }
+
+        recalculateCumulativeEV();
+
+        row = 1;
+        $k('.mainTable1EV tbody tr td:nth-child(3)').each( function() {
+            chartJsonEV[row - 1][1] = parseFloat($k(this).html().trim().replace(/,/g, ''));
+            row++;
+        });
+
+        drawPlannedValue();
+
+        row = 1;
+        $k('.mainTable1EV tbody tr td:nth-child(9)').each( function() {
+            chartJson2EV[row - 1][2] = parseFloat($k(this).html().trim().replace(/,/g, ''));
+            row++;
+        });
+
+        drawCPISPI();
+      }
+
+      function checkSaveEV() {
+        plannedCostVariance = Math.abs(parseFloat($k('#plannedCostVarianceEV').html().replace(/,/g, '')));
+
+        if (plannedCostVariance >= 1.00) {
+            alert('Can\'t save until Planned Cost Variance is less than 1.00 (preferably balanced to 0.00).');
+
+            return false;
+        } else if (plannedCostVariance > 0) {
+            return confirm('There is a small Planned Cost Variance.  Are you sure you want to save without balancing it first?');
+        }
+
+        return true;
+      }
+    </script>
+
+    <style>
+        /*
+                FLYOUT STYLES
+        */
+
+         #evPane.evFlyout {
+            background-color:#f3f3f3;
+            position: fixed;
+/*            width: 625px; */
+            width: 1000px;
+/*            right: -624px; */
+            right: -1024px;
+            top: 47px;
+            height:700px;
+            padding: 10px 0 20px 20px;
+            border-right: none;
+            -webkit-border-top-left-radius: 20px;
+            -webkit-border-bottom-left-radius: 20px;
+            -moz-border-radius-topleft: 20px;
+            -moz-border-radius-bottomleft: 20px;
+            border-top-left-radius: 20px;
+            border-bottom-left-radius: 20px;
+            z-index: 5000;
+            margin-left: 42px;
+            min-height: 400px;
+            box-shadow: 0 0 10px #787878;
+            border: 1px solid #DEDEDE;
+        }
+
+         #evPane.evFlyout .tab {
+            position: absolute;
+            border-right: none;
+            background-color: #f3f3f3;
+            
+            -webkit-border-top-left-radius: 10px;
+            -webkit-border-top-right-radius: 10px;
+            -moz-border-radius-topleft: 10px;
+            border-top-left-radius: 10px;
+            cursor: pointer;
+            padding:7px 8px;
+            box-shadow:0 -3px 4px #959595;
+
+            top:{!TabLocation}px;
+            left: -59px;
+
+            -webkit-transform: rotate(-90deg); 
+            -moz-transform: rotate(-90deg); 
+            -ms-transform: rotate(-90deg);
+        }
+
+         #evPane.evFlyout .close {
+            color: #D6D6D6;
+            cursor: pointer;
+            display: block;
+            float: right;
+            font-family: 'Platform-Font', Helvetica, Arial, sans-serif;
+            padding-left: 25px;
+            padding-right: 20px;
+            text-align: right;
+            text-transform: uppercase;
+        }
+
+         #evPane.evFlyout .delete{
+            position: absolute;
+            top: 12px;
+            right: 7px;
+            padding: 6px 8px;
+        }
+
+         #evPane.evFlyout .delete:hover{
+            text-decoration:underline;
+        }
+
+         #evPane.evFlyout .header {
+            color: #333;
+            font-size: 25px;
+            padding-bottom: 15px;
+            padding-top: 10px;
+        }
+        
+         #evPane.evFlyout .body {
+            padding-right: 20px;
+        }
+
+         #evPane.evFlyout select{
+            margin:2px 0 5px 0;
+        }
+
+         #evPane.evFlyout .table{
+            width: 100%;
+            max-width: 100%;
+            margin-bottom: 20px;
+            margin-top:15px;
+        }
+
+         #evPane.evFlyout .table th{
+            font-size: 1.05em;
+            font-weight: 600;
+            border-bottom: 2px solid rgba(0, 0, 0, 0.14);
+        }
+
+         #evPane.evFlyout .table-striped > tbody > tr:nth-child(4n),  #evPane.evFlyout .table-striped > tbody > tr:nth-child(4n-1){
+            background-color: #f6f8fa;
+        }
+
+         #evPane.evFlyout .table td{
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+         #evPane.evFlyout .table>tbody>tr>td, .flyout .table>tbody>tr>th, .flyout .table>tfoot>tr>td, .flyout .table>tfoot>tr>th, .flyout .table>thead>tr>td, .flyout .table>thead>tr>th{
+            padding: 8px;
+            line-height: 1.42857143;
+            vertical-align: top;
+        }
+
+         #evPane.evFlyout .label-table{
+            display: inline-block;
+            width: 80%;
+            min-width: 8ex;
+            font-size: 1em;
+            max-width: 100px;
+            padding: 5px;
+            text-overflow: ellipsis;
+            overflow: hidden;
+        }
+
+        /* tables */
+         #evPane.evFlyout table.tablesorter {
+            font-family:arial;
+            background-color: #CDCDCD;
+            margin:10px 0pt 15px;
+            font-size: 8pt;
+            width: 100%;
+            text-align: left;
+        }
+
+         #evPane.evFlyout table.tablesorter thead tr th, table.tablesorter tfoot tr th {
+            background-color: #aebdee;
+            border: 1px solid #FFF;
+            font-size: 8pt;
+            padding: 4px;
+        }
+
+         #evPane.evFlyout table.tablesorter thead tr .header {
+            background-image: url(bg.gif);
+            background-repeat: no-repeat;
+            background-position: center right;
+            cursor: pointer;
+        }
+
+         #evPane.evFlyout table.tablesorter tbody td {
+            color: #3D3D3D;
+            padding: 4px;
+            background-color: #FFF;
+            vertical-align: top;
+            height: 20px;
+        }
+
+         #evPane.evFlyout table.tablesorter tbody tr.odd td {
+            background-color:#F0F0F6;
+        }
+
+         #evPane.evFlyout table.tablesorter thead tr .headerSortUp {
+            background-image: url(asc.gif);
+        }
+
+         #evPane.evFlyout table.tablesorter thead tr .headerSortDown {
+            background-image: url(desc.gif);
+        }
+
+         #evPane.evFlyout table.tablesorter thead tr .headerSortDown, table.tablesorter thead tr .headerSortUp {
+        background-color: #8dbdd8;
+        }
+
+        .noteText{
+            color:#818181;
+            font-style: italic;
+        }
+
+/*
+        .tableHeader1 {
+            padding: 3px;
+            text-align: center;
+            border-style:solid;
+            border-color:#ffffff;
+            border-width: 1px;
+        }
+
+        .tableHeader2 {
+            background-color: #aac0dd;
+            width:110px;
+            min-width:110px;
+            max-width:110px;
+            overflow:hidden;
+        }
+*/        
+
+        .tableCell1 {
+            width:110px;
+            min-width:110px;
+            max-width:110px;
+            padding:3px;
+            overflow:hidden;
+            border:1px solid #ffffff;
+        }
+
+        .nonEditable {
+            background-color: #d4dfee;
+        }
+
+        .editedCell {
+/*          color:#00a000; */
+            background-color:#f0f0b0;
+        }
+
+        .varianceBad {
+            color:#ff0000;
+        }
+
+        .negativeNumber {
+            color:#ff0000;
+        }
+
+        .tabsEV { 
+            padding: 0px; 
+            background: none; 
+            border-width: 0px;
+        }
+
+        .ui-tabs-nav { 
+            padding-left: 0px; 
+            background: transparent; 
+            border-width: 0px 0px 1px 0px; 
+            -moz-border-radius: 0px; 
+            -webkit-border-radius: 0px; 
+            border-radius: 0px; 
+        } 
+
+        .ui-tabs-panel { 
+            background: #ffffff;
+            border-width: 0px 1px 1px 1px;
+        }
+
+        .tableHeader1EV {
+            padding: 6px !important;
+            text-align: center !important;
+            border-style:solid !important;
+            border-color:#f0f0f0 !important;
+            border-width: 1px !important;
+        }
+
+        .tableHeader2aEV {
+            background-color: #aac0dd !important;
+            width:100px !important;
+            min-width:100px !important;
+            max-width:100px !important;
+            /*overflow:hidden !important;*/
+        }
+
+        .tableHeader2bEV {
+            background-color: #aac0dd !important;
+            width:70px !important;
+            min-width:70px !important;
+            max-width:70px !important;
+            /*overflow:hidden !important;*/
+        }
+
+        .tableCell1EV {
+            /*
+            width:109px !important;
+            min-width:109px !important;
+            max-width:109px !important;
+            */
+            padding:6px !important;
+            overflow:hidden !important;
+            border:1px solid #f0f0f0 !important;
+        }
+
+        .nonEditableEV {
+            background-color: #d4dfee !important;
+        }
+    </style>
+    
+        <div id="evPane" class="evFlyout flyout" >
+            <div class="close" >
+                <i class="fa fa-arrow-right" style="color:#333;" />
+            </div>
+            <div class="tab" ><!--<nttdcore:DLabel name="DL1" default="Earned Value" labelParent="{!this}" componentContext="ECO_EarnedValueFlyout" />-->
+                {!$Label.Earned_Value}
+            </div>
+            <div class="header" ><!--<nttdcore:DLabel name="DL2" default="Earned Value" labelParent="{!this}" componentContext="ECO_EarnedValueFlyout" />-->
+                {!$Label.Earned_Value}
+            </div>
+
+            <apex:outputPanel id="evPanel" >
+                <div class="body" >
+                    <apex:pageBlock mode="mainDetail" >
+                        <div id="tabs" class="tabsForResourceEV tabsEV" style="background:#e8e8e8; float: left; height:370px; margin-top:20px" >
+                            <ul class="ui-tabs-nav" >
+                                <li><a class="tabs-1" href="#tabs-1" ><!--<nttdcore:DLabel name="DL3" default="Planned Value" labelParent="{!this}" componentContext="ECO_EarnedValueFlyout" />-->{!$Label.Planned_Value}</a></li>
+                                <li><a class="tabs-2" href="#tabs-2" ><!--<nttdcore:DLabel name="DL4" default="CPI / SPI" labelParent="{!this}" componentContext="ECO_EarnedValueFlyout" />-->{!$Label.CPI_SPI}</a></li>
+                            </ul>
+                            
+                            <div id="tabs-1" class="ui-tabs-panel" >
+                                <div style="height:325px;" >
+                                    <div id="plannedValueChart" style="width: 640px; height: 303px;" />
+                                </div>
+                            </div>
+
+                            <div id="tabs-2" class="ui-tabs-panel" >
+                                <div style="height:325px;" >
+                                    <div id="CPISPIChart" style="width: 640px; height: 303px;" />
+                                </div>
+                            </div>
+                        </div>
+
+
+                            <div style="width:200px; height:200px; padding-left:20px; float:right; padding-right:5px;" >
+
+                            <div style="float:right;" >
+                                <!--<nttdcore:DLabel name="DL5" default="Save" labelParent="{!this}" componentContext="ECO_EarnedValueFlyout" />--><apex:commandButton onclick="return checkSaveEV();" value="{!$Label.Save}" action="{!save}" style="margin-right:10px; margin-bottom: 15px;" />
+                                <!--<nttdcore:DLabel name="DL6" default="Clear All Overrides" labelParent="{!this}" componentContext="ECO_EarnedValueFlyout" />-->
+                                <apex:commandButton value="{!$Label.Clear_All_Overrides}" action="{!clearAllOverrides}" style="margin-right:0px; margin-bottom: 15px;" onclick="return confirm('Are you sure you want to clear all overrides?  This action cannot be undone!');" />
+                             </div>   
+
+                             <div style="float:right;" >
+                            <table style="width:240px;" >
+                                <tr>
+                                    <td><!--<nttdcore:DLabel name="DL7" default="Original Planned Cost Total:" labelParent="{!this}" componentContext="ECO_EarnedValueFlyout" />-->{!$Label.Original_Planned_Cost_Total}</td>
+                                    <td style="padding-left:5px; text-align:right;" class="{!IF(0<0, 'negativeNumber', '')}" >
+                                    <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                                        <apex:param value="{!plannedCostTotal}" />
+                                    </apex:outputText>  
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td><!--<nttdcore:DLabel name="DL8" default="Applied Planned Cost Total:" labelParent="{!this}" componentContext="ECO_EarnedValueFlyout" />-->{!$Label.Applied_Planned_Cost_Total}</td>
+                                    <td id="overriddenPlannedCostTotalEV" style="padding-left:5px; text-align:right;" />
+                                </tr>
+
+                                <tr>
+                                    <td id="plannedCostVarianceLabel" ><!--<nttdcore:DLabel name="DL9" default="Planned Cost Variance:" labelParent="{!this}" componentContext="ECO_EarnedValueFlyout" />-->{!$Label.Planned_Cost_Variance}</td>
+                                    <td id="plannedCostVarianceEV" style="padding-left:5px; text-align:right;" />
+                                </tr>
+
+                                <tr>
+                                    <td colspan="2" style="padding-top:10px;" >
+                                        <i><!--<nttdcore:DLabel name="DL10" default="Enter &#39;?&#39; in any cell to balance the variance to that cell.  If Planned Cost Variance is positive, you won&#39;t be able to balance this way because it would result in a negative number in the Planned Cost cell." labelParent="{!this}" componentContext="ECO_EarnedValueFlyout" />-->{!$Label.Enter_Question_Mark}</i>
+                                        <br/><br/>
+                                        <i><!--<nttdcore:DLabel name="DL11" default="The CPI calculation incorporates any cost accruals entered in the Earned Value report for that week." labelParent="{!this}" componentContext="ECO_EarnedValueFlyout" />-->{!$Label.The_CPI_calculation_incorporates_any_cost_accruals_entered_in_the_Earned_Value_r}</i>
+                                    </td>
+                                </tr>   
+                            </table>
+                            </div>
+                            <div style="clear:both;" />
+
+                            </div>
+
+                            <div style="width:5px; height:20px;clear:both;" />
+
+                            <div style="display:none;" >
+                                <apex:pageBlockTable styleclass="dataTable1EV" value="{!lWeeklyRollupEntries}" var="row" border="1" >
+                                    <apex:column style="width:140px; padding:3px; text-align:right;" headerclass="tableHeader1 tableHeader2a" >
+
+                                    <apex:outputText value="{!row.ApprovedCost__c}" />
+
+                                    <!-- <apex:outputText value="{!row.ApprovedCost__c + (row.ApprovedCost__c * row.Project__r.PercentageMargin__c / 100.0)}" /> -->
+
+                                    </apex:column>
+
+                                    <apex:column style="width:140px; padding:3px; text-align:right;" headerclass="tableHeader1 tableHeader2a" >
+                                        <apex:inputField value="{!row.OverrideApprovedCost__c}" />
+                                    </apex:column>
+
+                                    <apex:column style="width:140px; padding:3px; text-align:right;" headerclass="tableHeader1 tableHeader2a" >
+                                        <apex:outputText value="{!row.Revenue__c}" />
+                                    </apex:column>
+
+                                    <apex:column style="width:140px; padding:3px; text-align:right;" headerclass="tableHeader1 tableHeader2a" >
+                                        <apex:inputField value="{!row.OverrideRevenue__c}" />
+                                    </apex:column>
+                                </apex:pageBlockTable>
+                            </div>
+
+
+                        <div style="height:205px; overflow:auto;" class="EVWrapper" >
+                        <!--<nttdcore:DLabel name="DL12" default="Week Ending" labelParent="{!this}" componentContext="ECO_EarnedValueFlyout" />-->
+                        <!--<nttdcore:DLabel name="DL13" default="Planned Cost" labelParent="{!this}" componentContext="ECO_EarnedValueFlyout" />-->
+                        <!--<nttdcore:DLabel name="DL14" default="(In Period)" labelParent="{!this}" componentContext="ECO_EarnedValueFlyout" />-->
+                        <!--<nttdcore:DLabel name="DL15" default="Planned Cost" labelParent="{!this}" componentContext="ECO_EarnedValueFlyout" />-->
+                        <!--<nttdcore:DLabel name="DL16" default="(Cumulative)" labelParent="{!this}" componentContext="ECO_EarnedValueFlyout" />-->
+                        <!--<nttdcore:DLabel name="DL17" default="Actual Cost" labelParent="{!this}" componentContext="ECO_EarnedValueFlyout" />-->
+                        <!--<nttdcore:DLabel name="DL18" default="(In Period)" labelParent="{!this}" componentContext="ECO_EarnedValueFlyout" />-->
+                        <!--<nttdcore:DLabel name="DL19" default="Actual Cost" labelParent="{!this}" componentContext="ECO_EarnedValueFlyout" />-->
+                        <!--<nttdcore:DLabel name="DL20" default="(Cumulative)" labelParent="{!this}" componentContext="ECO_EarnedValueFlyout" />-->
+                        <!--<nttdcore:DLabel name="DL21" default="Progress %" labelParent="{!this}" componentContext="ECO_EarnedValueFlyout" /> -->
+                        <!--<nttdcore:DLabel name="DL22" default="Complete" labelParent="{!this}" componentContext="ECO_EarnedValueFlyout" />-->
+                        <!--<nttdcore:DLabel name="DL23" default="{0, number, 0.00}%" labelParent="{!this}" componentContext="ECO_EarnedValueFlyout" />-->
+                        <!--<nttdcore:DLabel name="DL24" default="Earned Value" labelParent="{!this}" componentContext="ECO_EarnedValueFlyout" />-->
+                        <!--<nttdcore:DLabel name="DL25" default="CPI" labelParent="{!this}" componentContext="ECO_EarnedValueFlyout" />-->
+                        <!--<nttdcore:DLabel name="DL26" default="SPI" labelParent="{!this}" componentContext="ECO_EarnedValueFlyout" />-->
+                            <apex:pageBlockTable styleclass="mainTable1EV theEVTable" value="{!values}" var="row" style="border-collapse:collapse;border:1px solid #ffffff;table-layout:fixed;width:940px" >
+                                <apex:column styleclass="nonEditableEV tableCell1EV" style="text-align:right;" headerclass="tableHeader1EV tableHeader2aEV" >
+                                    <apex:facet name="header" >
+                                        {!$Label.Week_Ending}
+                                    </apex:facet>
+                                    <apex:outputText value="{!row.periodStartDateStr}" />
+                                </apex:column>
+
+                                <apex:column styleclass="tableCell1EV" style="text-align:right;" headerclass="tableHeader1EV tableHeader2aEV" >
+                                    <apex:facet name="header" >
+                                        {!$Label.Planned_Cost}<br/>{!$Label.In_Period}
+                                    </apex:facet>
+
+                                    {!row.approvedCost}
+                                </apex:column>
+
+                                <apex:column styleclass="tableCell1EV nonEditableEV" style="text-align:right;" headerclass="tableHeader1EV tableHeader2aEV" >
+                                    <apex:facet name="header" >
+                                        {!$Label.Planned_Cost}<br/>{!$Label.Cumulative}
+                                    </apex:facet>
+
+                                    {!row.approvedCostCumulative}
+                                </apex:column>
+
+                                <apex:column styleclass="tableCell1EV nonEditableEV" style="text-align:right;" headerclass="tableHeader1EV tableHeader2aEV" >
+                                    <apex:facet name="header" >
+                                        {!$Label.Actual_Cost_EV}<br/>{!$Label.In_Period}
+                                    </apex:facet>
+
+                                    <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                                        <apex:param value="{!IF(!row.isAfterToday,row.actualCost, 0.00)}" />
+                                    </apex:outputText>  
+
+                                </apex:column>
+
+                                <apex:column styleclass="tableCell1EV nonEditableEV" style="text-align:right;" headerclass="tableHeader1EV tableHeader2aEV" >
+                                    <apex:facet name="header" >
+                                        {!$Label.Actual_Cost_EV}<br/>{!$Label.Cumulative}
+                                    </apex:facet>
+
+                                    <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                                        <apex:param value="{!IF(!row.isAfterToday,row.actualCostCumulative, 0.00)}" />
+                                    </apex:outputText>  
+
+                                </apex:column>
+
+                                <apex:column styleclass="tableCell1EV nonEditableEV" style="text-align:right;" headerclass="tableHeader1EV tableHeader2aEV" >
+                                    <apex:facet name="header" >
+                                        {!$Label.Progress_Percent}<br/>{!$Label.Complete}
+                                    </apex:facet>
+
+                                    <apex:outputText value="{0, number, 0.00}%" rendered="{!row.committed && !row.isAfterToday}" >
+                                        <apex:param value="{!row.percentComplete}" />
+                                    </apex:outputText>  
+
+                                </apex:column>
+
+                                <apex:column styleclass="tableCell1EV nonEditableEV" style="text-align:right;" headerclass="tableHeader1EV tableHeader2aEV" >
+                                    <apex:facet name="header" >
+                                        {!$Label.Earned_Value}
+                                    </apex:facet>
+
+                                    <apex:outputText value="{0, number, ###,###,###,##0.00}" rendered="{!!row.isAfterToday}" >
+                                        <apex:param value="{!row.lastCommittedEarnedValue}" />
+                                    </apex:outputText>  
+
+                                </apex:column>
+
+                                <apex:column styleclass="tableCell1EV nonEditableEV" style="text-align:right;" headerclass="tableHeader1EV tableHeader2bEV" >
+                                    <apex:facet name="header" >
+                                        {!$Label.CPI}
+                                    </apex:facet>
+
+                                    <apex:outputText value="{0, number, 0.00}" rendered="{!!row.isAfterToday}" >
+                                        <apex:param value="{!row.cpi}" />
+                                    </apex:outputText>  
+
+                                </apex:column>
+
+                                <apex:column styleclass="tableCell1EV nonEditableEV" style="text-align:right;" headerclass="tableHeader1EV tableHeader2bEV" >
+                                    <apex:facet name="header" >
+                                        {!$Label.SPI}
+                                    </apex:facet>
+
+                                    <apex:outputText value="{0, number, 0.00}" rendered="{!!row.isAfterToday}" >
+                                        <apex:param value="{!row.spi}" />
+                                    </apex:outputText>  
+
+                                </apex:column>
+                            </apex:pageBlockTable>
+                        </div>
+                    </apex:pageBlock>
+                </div>
+            </apex:outputPanel>
+        </div>
+    
+</apex:component>

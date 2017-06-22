@@ -1,0 +1,106 @@
+<apex:page showHeader="True" sidebar="true" standardController="EnrollmentPlan__c" 
+extensions="INC_AssignApproversController">
+<apex:form >
+    <apex:pageMessages >
+    </apex:pageMessages>
+        <apex:sectionHeader title="{!$Label.DTWINCAAEnrollment_Application}" subtitle="{!EnrollmentPlan__c.Name}" help="http://my.aecomnet.com/portal/site/Intranet/menuitem.4bb5ad8d27dddb3d13bd6e20c43611ca/?vgnextoid=4699bc2ceae8e410VgnVCM100000089e1bacRCRD&vgnextchannel=c7e1b267a0f9c410VgnVCM100000089e1bacRCRD&vgnextfmt=default"/>
+    <apex:outputpanel rendered="{!NOT(iShowApprover1=3)}">
+    
+    <apex:pageBlock title="{!$Label.DTWINCAAEnrollment}">
+        <apex:pageBlockSection columns="2">
+              <apex:outputField value="{!oEnrollmentPlan.IncentiveProject__r.GeographyDescription__c}"/>
+              <apex:outputField value="{!oEnrollmentPlan.CustomerName__c}"/>
+              <apex:outputField value="{!oEnrollmentPlan.IncentiveProject__r.RegionDescription__c}"/>
+        </apex:pageBlockSection>
+    </apex:pageBlock>
+   
+     <apex:pageBlock id="firstapprover" title="{!$Label.DTWINCAAFirstApprovers}" rendered="{!if(iShowApprover1 = 1,'true','false')}">
+        <apex:pageBlockButtons location="Top">
+        
+            <apex:commandButton value="{!$Label.DTWINCSAVECHANGES}" action="{!Save}" disabled="{!Not(bEdit)}"/>
+           
+            <apex:commandButton value="{!$Label.Cancel}" action="{!cancel}"/>
+        </apex:pageBlockButtons>
+        <apex:pageBlockSection columns="2">
+              
+            <apex:inputField value="{!oEnrollmentPlan.Approver1__c}" label="{!$Label.DTWINCAACurrentFirst}" rendered="{!bEdit}"/>
+             
+            <apex:outputField value="{!oEnrollmentPlan.Approver1__c}" label="{!$Label.DTWINCAACurrentFirst}" rendered="{!Not(bEdit)}" />
+        </apex:pageBlockSection>
+       
+        <apex:pageBlockSection columns="1" title="{!$Label.DTWINCAASuggested_Approvers}">
+            
+            <apex:pageBlockTable title="{!$Label.DTWINCAAFirstApprovers}" value="{!mapFirstApprovers}" var="ava1Row" columns="7" id="firstapprovers">
+                <apex:column >
+                 
+                   <apex:commandButton value="{!$Label.DTWINCAAAssign}" rerender="firstapprover" action="{!AssignApprover1}">
+                   <apex:param name="rtID"
+                        value="{!ava1Row}"
+                        assignTo="{!selectedID}"/>
+                   </apex:commandButton>
+                </apex:column>
+                
+                <apex:column headerValue="{!$Label.DTWINCAAFirstApprovers}">
+                    <apex:outputField value="{!mapFirstApprovers[ava1Row].oRoutingMember.Approver1__c}">
+                    </apex:outputField>
+                </apex:column>
+            </apex:pageBlockTable>
+        </apex:pageBlockSection>
+    </apex:pageblock> 
+    
+    <apex:pageBlock id="secondapprover" title="{!$Label.DTWINCAASecond_and_Third_Approvers}-">
+        <apex:pageBlockButtons location="{!if(iShowApprover1 =1,'Bottom','Both' )}" rendered="true">
+        
+            <apex:commandButton value="{!$Label.DTWINCSAVECHANGES}" action="{!Save}" disabled="{!Not(bEdit)}"/>
+            
+            <apex:commandButton value="{!$Label.DTWINCCancel}" action="{!cancel}"/>
+        </apex:pageBlockButtons>
+        <apex:pageBlockSection columns="2">
+         
+            <apex:inputField value="{!oEnrollmentPlan.Approver2__c}" label="{!$Label.DTWINCAACurrent_Second_Approver}" rendered="{!bEdit}"/>
+            
+            <apex:inputField id="thridApp" value="{!oEnrollmentPlan.Approver3__c}" label="{!$Label.DTWINCAACurrent_Third_Approver}" rendered="{!bEdit}"/>
+            
+            <apex:outputField value="{!oEnrollmentPlan.Approver2__c}" label="{!$Label.DTWINCAACurrent_Second_Approver}" rendered="{!Not(bEdit)}" />
+             
+            <apex:outputField value="{!oEnrollmentPlan.Approver3__c}" label="{!$Label.DTWINCAACurrent_Third_Approver}" rendered="{!Not(bEdit)}" />
+        </apex:pageBlockSection>
+         
+        <apex:pageBlockSection columns="2" title="{!$Label.DTWINCAASuggested_Approvers}">
+        
+            <apex:pageBlockTable title="{!$Label.DTWINCAASecond_Approvers}" value="{!mapSecondApprovers}" var="avaRow" columns="7" id="secondapprovers">
+                <apex:column >
+                
+                   <apex:commandButton value="{!$Label.DTWINCAAAssign}" rerender="secondapprover" action="{!AssignApprover2}">
+                   <apex:param name="rtID"
+                        value="{!avaRow}"
+                        assignTo="{!selectedID}"/>
+                   </apex:commandButton>
+                </apex:column>
+                
+                <apex:column headerValue="{!$Label.DTWINCAASecond_Approvers}">
+                    <apex:outputField value="{!mapSecondApprovers[avaRow].oRoutingMember.Approver2__c}">
+                    </apex:outputField>
+                </apex:column>
+            </apex:pageBlockTable>
+    
+            <apex:pageBlockTable value="{!mapThirdApprovers}" var="avaRow3" columns="7" id="thirdapprover">
+                <apex:column >
+                
+                   <apex:commandButton value="{!$Label.DTWINCAAAssign}" rerender="secondapprover" action="{!AssignApprover3}">
+                   <apex:param name="rtID"
+                        value="{!avaRow3}"
+                        assignTo="{!selectedID}"/>
+                   </apex:commandButton>
+                </apex:column>
+                
+                <apex:column headerValue="{!$Label.DTWINCAAThird_Approvers}">
+                    <apex:outputField value="{!mapThirdApprovers[avaRow3].oRoutingMember.Approver3__c}">
+                    </apex:outputField>
+                </apex:column>
+            </apex:pageBlockTable>
+        </apex:pageBlockSection>
+    </apex:pageBlock> 
+    </apex:outputpanel>
+</apex:form>
+</apex:page>

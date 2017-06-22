@@ -1,0 +1,42 @@
+<apex:page standardController="Project__c" showheader="false"  standardstylesheets="false" Sidebar="false" cache="true" contentType="application/msword"> 
+<style> body {
+  font: 100.1%/1.2 Arial, Helvetica, sans-serif;
+  background: #FFF; 
+  color: #000; 
+}</style>
+<apex:variable value="{!Project__c}" var="prj"/>
+<b><apex:outputField value="{!prj.Owner_Client_Output__c}"/></b><b><apex:outputText value=", "/></b>
+<b><apex:outputField value="{!prj.Name}"/></b><b><apex:outputText value=", "/></b>
+<b><apex:outputField value="{!prj.Location_Output__c}"/></b>
+<br/><b>
+<apex:outputField value="{!prj.Client_contract__c}" rendered="{!prj.RecordType.name=='Program'}"/>
+<apex:outputField value="{!prj.Program_Master_Contract_Name__r.Client_contract__c}" rendered="{!prj.RecordType.name=='Task Order'}"/>
+<apex:outputText value=", " rendered="{!prj.RecordType.name=='Task Order'}"/>
+<apex:outputField value="{!prj.DO_TO_Number__c}" rendered="{!prj.RecordType.name=='Task Order'}"/>
+</b><br></br><br/>
+<apex:outputText value="{!prj.Project_Description__c}"/>
+<br/><br/><table> <tr> 
+   <td> <b><apex:outputText value="Actual Completion:   "/></b></td> 
+         <td align="right"> <apex:outputText value="{!prj.Date_Actual_Completion__c} "/> </td>
+ </tr><tr>
+         <td><b> <apex:outputText value="Owners Total Cost:   "/></b></td>
+                                 <td align="right"> <apex:outputText value="${0,number,###,###,###,###,###}"> 
+                  <apex:param value="{!prj.Owners_Total_cost__c}"/>
+                  </apex:outputText> </td>
+</tr>   
+<tr> 
+           <td><b> <apex:outputText value="Revenue:  "/></b></td>
+           <td align="right"> <apex:outputText value="${0,number,###,###,###,###,###}">
+              <apex:param value="{!prj.SearchFee__c}"/> </apex:outputText></td>
+</tr>   
+<tr> 
+   <td> <b><apex:outputText value="Dates of Service:  "/></b></td>
+  <td align="right"> <apex:outputText value="{!prj.Date_Started__c} - {!prj.Search_Completion_Date__c}"/> </td>
+</tr>    
+</table>
+ <br/>
+<b>Project Team</b><br/><br/>
+<apex:outputText value="{!prj.Project_Mgr__c}"/>
+<apex:outputText value=" "/><apex:outputText value=", Project Manager" />
+   
+</apex:page>

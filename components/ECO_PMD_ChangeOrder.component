@@ -1,0 +1,141 @@
+<apex:component controller="ECO_PMD_ChangeOrder_Controller">
+   <apex:attribute name="projectId" description="Project Number" type="String" required="true" /> 
+
+     <div ng-controller="dashChangeOrderController"  class="panel panel-default dashbox">
+        <div class="panel-heading">
+             <!-- <a href="/apex/ECO_ProjectChangeManager?id={!projectId}">{!$Label.ECO_PMD_CO_TITTLE}</a> -->
+             <a href="/apex/ECO_BudgetHeaderSummary?id={!projectId}">{!$Label.ECO_PMD_CO_TITTLE}</a>
+        </div>
+        <div class="text-center" ng-hide="isLoaded">
+            <span class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span>
+        </div>
+        <div ng-show="isLoaded">    
+          <table class="pmd-kpi" width="100%">
+            <tr>
+              <td>
+                <div class="pmd-value"
+                     ng-bind="SFDCDATA.draftCount" />
+                <div class="pmd-label">{!$Label.ECO_PMD_CO_DRAFT}</div>
+              </td>
+              <td>
+                <div class="pmd-value"
+                     ng-bind="SFDCDATA.submitedCount" />
+                <div class="pmd-label">{!$Label.ECO_PMD_CO_SUBMITTED}</div>
+              </td>
+              <td>
+                <div class="pmd-value"
+                     ng-bind="SFDCDATA.approvedCount"/>
+                <div class="pmd-label">{!$Label.ECO_PMD_CO_APPROVED}</div>
+              </td>
+            </tr>
+          </table>
+        </div>
+        <div class="panel-body">
+          <div class="k-content">
+                  <div id="chartCO" width='100%'></div>
+          </div>
+        </div>
+        <c:ECO_PMD_PanelFooter panelId="FinSum">
+          {!$Label.ECO_PMD_CO_MORE_INFO_BODY}
+        </c:ECO_PMD_PanelFooter>
+    </div>
+
+
+     <script id="dashpanel.js">
+      (function(){
+    
+        angular
+        .module("ecopmd")
+        .controller("dashChangeOrderController",dashChangeOrderController);
+        
+        function dashChangeOrderController($scope,$locale){
+            
+          loadData($scope);
+          $scope.isCollapsed = true;
+          $scope.isLoaded = false;
+
+          var palette = [ "#99CCFF", "#FF9933", "#99CC00", "#CC33FF"];
+
+          function createChart(elSpec) {
+            
+            return $(elSpec).kendoChart({
+                resizable: true,
+                chartArea: {
+                            height: 250
+                        },
+                dataSource: {
+                    data: $scope.SFDCDATA.codata
+                },
+                legend: {
+                    visible: false
+                },
+                series: [{
+                    type: "waterfall",
+                    field: "value",
+                    categoryField: "name",
+                    summaryField: "summary",
+                    color: function(point) {
+                        var summary = point.dataItem.summary;
+                        if (summary) {
+                            return summary == "total" ? "#555" : "gray";
+                        }
+
+                        if (point.value > 0) {
+                            return "green";
+                        } else {
+                            return "red";
+                        }
+                    },
+                    labels: {
+                        visible: true,
+                        template: "#= kendo.formatK(value)#",
+                        //position: "insideEnd",
+                        position: "top",
+                        padding: {
+                            top: -20
+                        }
+                    }
+                }],
+                categoryAxis: {
+                    labels: {
+                        rotation: "auto"
+                    }
+                },
+                axisDefaults: {
+                    majorGridLines: {
+                        visible: false
+                    }
+                },
+                valueAxis: {
+                    labels: {
+                        template: "#= kendo.formatK(value)#"
+                    }
+                }
+            }).data("kendoChart");
+          }
+
+          function loadData($scope){
+            ECO_PMD_ChangeOrder_Controller.getChangeOrderDetails(
+              '{!projectId}',
+              function(result, event){
+                if(event.status) {
+                  $scope.$apply(function(){
+                      result.codata.push({name:'Anticipated', summary: 'total'});
+                      $scope.SFDCDATA = result ;
+                      $scope.isLoaded = true;
+                      var chart = createChart("#chartCO");
+                      $(window).resize(function(){chart.refresh();});
+                  });
+                }
+              });
+          }
+
+     
+        }
+    
+      })();
+
+      
+  </script>
+  
+</apex:component>

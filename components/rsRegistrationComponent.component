@@ -1,0 +1,360 @@
+<apex:component controller="rsRegistrationController" allowDML="true">
+
+    <apex:attribute name="rsProfile" assignTo="{!profile}" description="" type="rsProfile" required="true"/>
+
+    <apex:attribute name="reRender" description="" type="String" required="false"/>
+
+    <script>
+        inputFields = ['[id$=licenseIssuedDate]', '[id$=licenseExpDate]'];
+        j$ = jQuery.noConflict();
+        var states;
+        j$.getJSON("{!URLFOR($Resource.rs_libs, 'StatesAndCountries/StatesAndCountries.json')}",function(json){
+            states = json;
+        });
+
+        function setRegistrationRequiredFields() {
+            //Required fields for this component
+            requiredFields = ['[id$=license]'];
+        }
+        j$(document).ready(function() {
+            if( '{!IsSF1}' == 'true' ) {
+                j$('[id$=regAttachLink]').removeAttr('onclick href').parent().addClass('disabled');
+            }
+            helpTextSetup();
+            setRegistrationRequiredFields();
+            setUpRegParts();
+        });
+        function setUpRegParts() {
+            j$('a[id$=moveRegPartUp]').each(function() {
+                if(j$(this).hasClass('0')) {
+                    j$(this).removeAttr('onclick href').parent().addClass('disabled');
+                    j$(this).click(function(e) {
+                        e.preventDefault();
+                    });
+                }
+            });
+            j$('a[id$=moveRegPartDown]').each(function() {
+                var arr = j$(this).attr('class').split(" ");
+                if((arr.length == 1 && arr[0] == '0')) {
+                    j$(this).removeAttr('onclick href').parent().addClass('disabled');
+                    j$(this).click(function(e) {
+                        e.preventDefault();
+                    });
+                }
+                else if (arr[0] == arr[1] || (arr[0] == '0' && arr[1].length == 0)) {
+                    j$(this).removeAttr('onclick href').parent().addClass('disabled');
+                    j$(this).click(function(e) {
+                        e.preventDefault();
+                    });
+                }
+            });
+        }
+    </script>
+
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h3 class="panel-title has-spinner pull-left" id="regHeader">{!$Label.License_Registration}&nbsp;<img height="15" width="15" class="spinner" src="{!URLFOR($Resource.rs_bundle, '/images/loading.gif')}" alt="loading" title="loading"/></h3>
+            <apex:commandLink value="" styleClass="{!IF(canEdit, '','disabled')} has-spinner pull-right " reRender="{!reRender}" action="{!newPart}" onclick="if(inProgress) return false; showSectionSpinner('regHeader'); inProgress = true;" oncomplete="resetProgress(); loadCountry('licensecountry');stateChange($j('[id$=licensecountry]').val(),'licensestate','licensestateHolder');setupFields();focusField('license');" rendered="{!IsListMode && canEdit}">
+                 <span title="{!$Label.Add}" class="glyphicon glyphicon-plus"></span>
+            </apex:commandLink>
+            <div class="clearfix"/>
+        </div>
+
+        <div class="panel-body">
+
+            <div >
+                <apex:outputPanel rendered="{!IsEditMode}">
+                <apex:actionRegion >
+
+                    <table id="regTable" class="table">
+                        <tbody>
+                            <tr>
+                                <td style="border-top:none;">
+                                    <apex:outputLabel for="license" value="{!$ObjectType['rs_Profile_Part__c'].fields['License_Registration_Name__c'].Label}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['rs_Profile_Part__c'].fields['License_Registration_Name__c'].inlineHelpText}"/></apex:outputLabel>
+                                </td>
+                                <td style="border-top:none;">
+                                    <div class="rsRequired">
+                                        <div class="rsRequiredBlock"/>
+                                        <apex:inputText id="license" value="{!CurrentPart.LicenseRegistrationName}" maxlength="255"/>
+                                        <span class="rsError"><br/>{!$ObjectType['rs_Profile_Part__c'].fields['License_Registration_Name__c'].Label} {!$Label.Is_Required}</span>
+                                    </div>
+                                </td>
+                                <td style="border-top:none;">
+                                    <apex:outputLabel for="regNum" value="{!$ObjectType['rs_Profile_Part__c'].fields['Registration_Number__c'].Label}"/>
+                                </td>
+                                <td style="border-top:none;">
+                                    <apex:inputText id="regNum" value="{!CurrentPart.RegistrationNumber}" maxlength="255"/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <apex:outputLabel for="licensestate" value="{!$ObjectType['rs_Profile_Part__c'].fields['State_Province__c'].Label}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['rs_Profile_Part__c'].fields['State_Province__c'].inlineHelpText}"/></apex:outputLabel>
+                                </td>
+                                <td>
+
+                                    <!-- Salesforce security issue with select lists, it validates against a selectOptions list
+                                         but since I don't use one, instead generate one from JSON, saving always fails -->
+                                    <apex:inputHidden id="licensestateHolder" value="{!CurrentPart.StateProvince}"/>
+                                    <select id="licensestate" class="" onchange="hiddenFieldUpdate(this.value,'licensestateHolder')">
+                                        <option value="">--None--</option>
+                                    </select>
+
+                                </td>
+                                <td>
+                                    <apex:outputLabel for="licensecountry" value="{!$ObjectType['rs_Profile_Part__c'].fields['License_Registration_Country__c'].Label}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['rs_Profile_Part__c'].fields['License_Registration_Country__c'].inlineHelpText}"/></apex:outputLabel>
+                                </td>
+                                <td>
+                                    <apex:selectList id="licensecountry" size="1" styleClass="" value="{!CurrentPart.LicenseRegistrationCountry}">
+                                        <apex:actionSupport event="onchange" onsubmit="stateChange(this.value,'licensestate','licensestateHolder');" reRender=""/>
+                                        <apex:selectOption itemValue="" itemLabel="--None--"/>
+                                        <apex:selectOptions value="{!countryList}"/>
+                                    </apex:selectList>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <apex:outputLabel for="licenseIssuedDate" value="{!$ObjectType['rs_Profile_Part__c'].fields['Issued_Date__c'].Label}"/>
+                                </td>
+                                <td>
+                                    <apex:inputField id="licenseIssuedDate" value="{!CurrentPart.Obj['Issued_Date__c']}" />
+                                </td>
+                                <td>
+                                    <apex:outputLabel for="licenseExpDate" value="{!$ObjectType['rs_Profile_Part__c'].fields['Expiration_Date__c'].Label}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['rs_Profile_Part__c'].fields['Expiration_Date__c'].inlineHelpText}"/></apex:outputLabel>
+                                </td>
+                                <td style="width:250px;">
+                                    <apex:inputField id="licenseExpDate" value="{!CurrentPart.Obj['Expiration_Date__c']}" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <apex:outputLabel for="licenseOutput" value="{!$ObjectType['rs_Profile_Part__c'].fields['Output_On_Resume__c'].Label}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['rs_Profile_Part__c'].fields['Output_On_Resume__c'].inlineHelpText}"/></apex:outputLabel>
+                                </td>
+                                <td colspan="3">
+                                    <apex:inputField id="licenseOutput" value="{!CurrentPart.Obj['Output_On_Resume__c']}" />
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <br/>
+                    <div class="text-center">
+                        <apex:commandLink action="{!savePart}" value="{!$Label.Save}" styleClass="btn brandStyledBtn" reRender="{!reRender}" onclick="setRegistrationRequiredFields();if(inProgress) return false; setRegistrationRequiredFields();if(!checkRequiredFields()) return false; showSectionSpinner('regHeader'); inProgress = true;" oncomplete="resetProgress();stateChange($j('[id$=licensecountry]').val(),'licensestate','licensestateHolder');">
+                             <span class="glyphicon glyphicon-ok-circle"></span>
+                        </apex:commandLink>
+                        &nbsp;
+                        <apex:commandLink action="{!saveAndApprove}" value="{!$Label.Save_And_Approve}" styleClass="btn brandStyledBtn" reRender="{!reRender}" onclick="if(inProgress) return false; setRegistrationRequiredFields();if(!checkRequiredFields()) return false; showSectionSpinner('regHeader'); inProgress = true;" oncomplete="resetProgress();" rendered="{!isApprovable && CurrentPart.IsPendingOrInReview}">
+                            <apex:param value="{!CurrentPart.Id}" name="partId"/>
+                            <span class="glyphicon glyphicon-ok-circle"></span>
+                        </apex:commandLink>
+                        &nbsp;
+                        <apex:commandLink action="{!cancelPart}" value="{!$Label.Cancel}" styleClass="btn btn--neutral" reRender="{!reRender}" onclick="if(inProgress) return false; showSectionSpinner('regHeader'); inProgress = true; clearInputFields();" oncomplete="resetProgress();">
+                             <span class="glyphicon glyphicon-remove-circle"></span>
+                        </apex:commandLink>
+                    </div>
+                </apex:actionRegion>
+                </apex:outputPanel>
+
+            </div>
+
+            <apex:outputPanel rendered="{!IsViewMode}">
+                <div class="col-md-4 text-center">
+                        <apex:commandLink action="{!cancelPart}" immediate="true" value="{!$Label.Cancel}" styleClass="btn btn--neutral" reRender="{!reRender}" onclick="if(inProgress) return false; showSectionSpinner('regHeader'); inProgress = true;" oncomplete="resetProgress();">
+                             <span class="glyphicon glyphicon-remove-circle"></span>
+                        </apex:commandLink>
+                    </div>
+                    <br/>
+                    <table class="table">
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <apex:outputLabel value="{!$ObjectType['rs_Profile_Part__c'].fields['License_Registration_Name__c'].Label}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['rs_Profile_Part__c'].fields['License_Registration_Name__c'].inlineHelpText}"/></apex:outputLabel>
+                                </td>
+                                <td>
+                                    <apex:outputText value="{!CurrentPart.LicenseRegistrationName}"/>
+                                </td>
+                                <td>
+                                    <apex:outputLabel value="{!$ObjectType['rs_Profile_Part__c'].fields['Registration_Number__c'].Label}"/>
+                                </td>
+                                <td>
+                                    <apex:outputText value="{!CurrentPart.RegistrationNumber}"/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <apex:outputLabel value="{!$ObjectType['rs_Profile_Part__c'].fields['State_Province__c'].Label}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['rs_Profile_Part__c'].fields['State_Province__c'].inlineHelpText}"/></apex:outputLabel>
+                                </td>
+                                <td>
+                                    <apex:outputText value="{!CurrentPart.StateProvince}"/>
+                                </td>
+                                <td>
+                                    <apex:outputLabel value="{!$ObjectType['rs_Profile_Part__c'].fields['License_Registration_Country__c'].Label}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['rs_Profile_Part__c'].fields['License_Registration_Country__c'].inlineHelpText}"/></apex:outputLabel>
+                                </td>
+                                <td>
+                                    <apex:outputText value="{!CurrentPart.LicenseRegistrationCountry}"/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <apex:outputLabel value="{!$ObjectType['rs_Profile_Part__c'].fields['Issued_Date__c'].Label}"/>
+                                </td>
+                                <td>
+                                    <apex:outputText value="{!CurrentPart.IssuedDate}" />
+                                </td>
+                                <td>
+                                    <apex:outputLabel value="{!$ObjectType['rs_Profile_Part__c'].fields['Expiration_Date__c'].Label}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['rs_Profile_Part__c'].fields['Expiration_Date__c'].inlineHelpText}"/></apex:outputLabel>
+                                </td>
+                                <td>
+                                    <apex:outputText value="{!CurrentPart.ExpirationDate}" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <apex:outputLabel for="OutputOnResumeview" value="{!$ObjectType['rs_Profile_Part__c'].fields['Output_On_Resume__c'].Label}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['rs_Profile_Part__c'].fields['Output_On_Resume__c'].inlineHelpText}"/></apex:outputLabel>
+                                </td>
+                                <td colspan="3">
+                                    <apex:outputText id="OutputOnResumeview" value="{!IF(CurrentPart.OutputOnResume, 'Yes', 'No')}" />
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+            </apex:outputPanel>
+
+            <apex:outputPanel rendered="{!IsListMode}" id="registrationPanel">
+
+            <table id="regTable" class="table">
+                <thead>
+                    <tr>
+                        <th>{!$Label.Action}</th>
+                        <th>
+                            <apex:commandLink action="{!sortParts}" reRender="registrationPanel" onclick="if (inProgress) return false; inProgress = true;" oncomplete="resetProgress();sortOrderArrow(this.id);setUpRegParts();" value="{!$ObjectType['rs_Profile_Part__c'].fields['License_Registration_Name__c'].Label}">
+                                <apex:param name="sortField" value="License_Registration_Name__c"/>
+                                <span class="toggleClassDown glyphicon glyphicon-chevron-down"></span>
+                                <span class="toggleClassUp glyphicon glyphicon-chevron-up"></span>
+                            </apex:commandLink>
+                        </th>
+                        <th>
+                            <apex:commandLink action="{!sortParts}" reRender="registrationPanel" onclick="if (inProgress) return false; inProgress = true;" oncomplete="resetProgress();sortOrderArrow(this.id);setUpRegParts();" value="{!$ObjectType['rs_Profile_Part__c'].fields['State_Province__c'].Label}">
+                                <apex:param name="sortField" value="State_Province__c"/>
+                                <span class="toggleClassDown glyphicon glyphicon-chevron-down"></span>
+                                <span class="toggleClassUp glyphicon glyphicon-chevron-up"></span>
+                            </apex:commandLink>
+                        </th>
+                        <th>
+                            <apex:commandLink action="{!sortParts}" reRender="registrationPanel" onclick="if (inProgress) return false; inProgress = true;" oncomplete="resetProgress();sortOrderArrow(this.id);setUpRegParts();" value="{!$ObjectType['rs_Profile_Part__c'].fields['License_Registration_Country__c'].Label}">
+                                <apex:param name="sortField" value="Country__c"/>
+                                <span class="toggleClassDown glyphicon glyphicon-chevron-down"></span>
+                                <span class="toggleClassUp glyphicon glyphicon-chevron-up"></span>
+                            </apex:commandLink>
+                        </th>
+                        <th>
+                            <apex:commandLink action="{!sortParts}" reRender="registrationPanel" onclick="if (inProgress) return false; inProgress = true;" oncomplete="resetProgress();sortOrderArrow(this.id);setUpRegParts();" value="{!$ObjectType['rs_Profile_Part__c'].fields['Registration_Number__c'].Label}">
+                                <apex:param name="sortField" value="Registration_Number__c"/>
+                                <span class="toggleClassDown glyphicon glyphicon-chevron-down"></span>
+                                <span class="toggleClassUp glyphicon glyphicon-chevron-up"></span>
+                            </apex:commandLink>
+                        </th>
+                        <th>
+                            <apex:commandLink action="{!sortParts}" reRender="registrationPanel" onclick="if (inProgress) return false; inProgress = true;" oncomplete="resetProgress();sortOrderArrow(this.id);setUpRegParts();" value="{!$ObjectType['rs_Profile_Part__c'].fields['Expiration_Date__c'].Label}">
+                                <apex:param name="sortField" value="Expiration_Date__c"/>
+                                <span class="toggleClassDown glyphicon glyphicon-chevron-down"></span>
+                                <span class="toggleClassUp glyphicon glyphicon-chevron-up"></span>
+                            </apex:commandLink>
+                        </th>
+                        <th class="text-center">{!$Label.Attachment}</th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                    <apex:repeat value="{!ViewParts}" var="part">
+                        <tr style="background-color:{!IF(part.ProfilePart.IsPendingOrInReview, 'LightYellow', 'white')};">
+                            <td>
+                                <div class="dropdown">
+                                    <button class="wrench btn-default btn-sm dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown">
+                                        <span class="glyphicon glyphicon-wrench"></span>
+                                    </button>
+                                    <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">
+                                        <li role="presentation">
+                                            <apex:commandLink tabindex="-1" html-data-role="menuitem" action="{!viewPart}" value="{!$Label.View}" reRender="{!reRender}" onclick="if(inProgress) return false; showSectionSpinner('regHeader'); inProgress = true;" oncomplete="resetProgress();">
+                                                <apex:param value="{!part.ProfilePart.Id}" name="partId"/>
+                                            </apex:commandLink>
+                                        </li>
+                                        <apex:outputPanel rendered="{!canEdit}" layout="none">
+                                            <li role="presentation">
+                                                <apex:commandLink tabindex="-1" html-data-role="menuitem" action="{!editPart}" value="{!$Label.Edit}" reRender="{!reRender}" onclick="if(inProgress) return false; showSectionSpinner('regHeader'); inProgress = true;" oncomplete="resetProgress();setDatePickers();stateChange($j('[id$=licensecountry]').val(),'licensestate','licensestateHolder');setupFields();">
+                                                    <apex:param value="{!part.ProfilePart.Id}" name="partId"/>
+                                                </apex:commandLink>
+                                            </li>
+                                            <li role="presentation" class="divider"></li>
+                                            <li>
+                                                <apex:commandLink tabindex="-1" html-data-role="menuitem" action="{!movePartUp}" value="{!$Label.Move_Part_Up}" styleClass="{!part.ProfilePart.PartSequence}" reRender="{!reRender}" oncomplete="resetProgress();" onclick="if(inProgress) return false; showSectionSpinner('regHeader'); inProgress = true;" id="moveRegPartUp">
+                                                    <apex:param value="{!part.ProfilePart.Id}" name="partId"/>
+                                                </apex:commandLink>
+                                            </li>
+                                            <li>
+                                                <apex:commandLink tabindex="-1" html-data-role="menuitem" action="{!movePartDown}" value="{!$Label.Move_Part_Down}" styleClass="{!Parts.size - 1} {!part.ProfilePart.PartSequence}" reRender="{!reRender}" oncomplete="resetProgress();" onclick="if(inProgress) return false; showSectionSpinner('regHeader'); inProgress = true;" id="moveRegPartDown">
+                                                    <apex:param value="{!part.ProfilePart.Id}" name="partId"/>
+                                                </apex:commandLink>
+                                            </li>
+                                            <li role="presentation" class="divider"></li>
+                                            <li role="presentation">
+                                                <apex:commandLink tabindex="-1" html-data-role="menuitem" value="{!$Label.Add_Attachment}" onclick="if(inProgress) return false; showSectionSpinner('regHeader'); inProgress = true; window.top.location.href='/apex/rsAttachment?partId={!part.ProfilePart.Id}&retUrl=/_ui/core/userprofile/UserProfilePage&ownerId={!profile.Id}&tab=Skills_and_Qualifications&tab.Skills_and_Qualifications.subtab=2';" oncomplete="resetProgress();" id="regAttachLink">
+                                                    <apex:param value="{!part.ProfilePart.Id}" name="partId"/>
+                                                </apex:commandLink>
+                                            </li>
+                                            <li role="presentation">
+                                                <apex:commandLink action="{!deleteAttachment}" reRender="{!reRender}" rendered="{!part.DeleteRender}" value="{!$Label.Remove_Attachment}" onclick="if(inProgress) return false; if(!confirmDeleteAttachment()) return false; showSectionSpinner('regHeader');">
+                                                    <apex:param name="attachmentId" value="{!part.ProfilePart.AttachmentId}"/>
+                                                    <apex:param name="partId" value="{!part.ProfilePart.Id}"/>
+                                                </apex:commandLink>
+                                            </li>
+                                            <li role="presentation" class="divider"></li>
+                                            <li role="presentation">
+                                                <apex:commandLink tabindex="-1" html-data-role="menuitem" action="{!deletePart}" value="{!$Label.Delete}" reRender="{!reRender}" onclick="if(inProgress) return false; if(!confirmDeletePart()) return false; inProgress = true; showSectionSpinner('regHeader');" oncomplete="resetProgress();setUpRegParts();">
+                                                    <apex:param value="{!part.ProfilePart.Id}" name="partId"/>
+                                                </apex:commandLink>
+                                            </li>
+                                        </apex:outputPanel>
+                                        <apex:outputPanel layout="none" rendered="{!isApprovable && part.ProfilePart.IsPendingOrInReview}">
+                                            <li role="presentation" class="divider"></li>
+                                            <li role="presentation">
+                                                <apex:commandLink tabindex="-1" html-data-role="menuitem" action="{!approvePart}" value="{!$Label.Approve_Item}" reRender="{!reRender}" onclick="if(inProgress) return false; showSectionSpinner('regHeader'); inProgress = true;" oncomplete="resetProgress();">
+                                                    <apex:param value="{!part.ProfilePart.Id}" name="partId"/>
+                                                </apex:commandLink>
+                                            </li>
+                                        </apex:outputPanel>
+                                    </ul>
+                                </div>
+                            </td>
+                            <td>
+                                <apex:outputText value="{!part.ProfilePart.LicenseRegistrationName}"/>
+                            </td>
+                            <td>
+                                <apex:outputText value="{!part.ProfilePart.StateProvince}"/>
+                            </td>
+                            <td>
+                                <apex:outputText value="{!part.ProfilePart.LicenseRegistrationCountry}"/>
+                            </td>
+                            <td>
+                                <apex:outputText value="{!part.ProfilePart.RegistrationNumber}"/>
+                            </td>
+                            <td>
+                                <apex:outputText value="{!part.ProfilePart.ExpirationDate}"/>
+                            </td>
+                            <td>
+                                <div class="text-center">
+                                    <apex:outputLink value="/servlet/servlet.FileDownload?file={!part.ProfilePart.AttachmentId}" target="_blank">{!part.ProfilePart.AttachmentName}</apex:outputLink>
+                                </div>
+                            </td>
+                        </tr>
+                    </apex:repeat>
+                </tbody>
+            </table>
+
+            <c:rsPaginationComponent nextPage="{!getNextPage}" previousPage="{!getPreviousPage}" firstPage="{!getFirstPage}" lastPage="{!getLastPage}" viewIndex="{!ViewIndex}" viewLimit="{!ViewLimit}" totalParts="{!TotalParts}" pageNumber="{!PageNum}" numberOfPages="{!NumberOfPages}" rendered="{!TotalParts > ResultLimit}" reRender="{!reRender}"/>
+
+            </apex:outputPanel>
+
+             <c:rsAutoComplete field="License_Registration_Name__c" fieldId="license" sObject="rs_Profile_Part__c"/>
+
+        </div>
+    </div>
+</apex:component>

@@ -1,0 +1,20 @@
+<apex:component >
+	<apex:attribute name="width" type="Integer" description="The fixed width of the modal dialog content" />
+	<apex:attribute name="padding" type="String" description="CSS padding attribute for dialog content" />
+	<apex:attribute name="name" type="String" description="DOM name (ID) for modal dialog" />
+
+	<apex:includeScript value="{!$Resource.ECO_jQuery_1_11_2_min_js}"/>
+	<apex:includeScript value="{!URLFOR($Resource.ECO_Modal, '/modal.js')}" />
+	<apex:stylesheet value="{!URLFOR($Resource.ECO_Modal, '/modal.css')}" />
+
+	<script type="text/javascript">
+		$x(document).ready(function(){
+
+		});
+	</script>
+	<div id="{!name}" class="modalDialog">
+		<div id="modalContent-{!name}" class="modalContent" style="width: {!width}px; padding: {!padding};">
+			<apex:componentBody />
+		</div>			
+	</div>
+</apex:component>

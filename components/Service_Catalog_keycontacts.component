@@ -1,0 +1,11 @@
+<apex:component >
+    
+            <ul class="links">
+                <li class='menuTitleX' style="margin-left:0px!important"><a href="{!$Label.Service_Catalog_keycontact1_link}" target="_blank"><b>{!$Label.Service_Catalog_keycontact1_name}</b><br />{!$Label.Service_Catalog_keycontact1_title}</a></li>                    
+                <li class='menuTitleX' style="margin-left:0px!important"><a href="{!$Label.Service_Catalog_keycontact2_link}" target="_blank"><b>{!$Label.Service_Catalog_keycontact2_name}</b><br />{!$Label.Service_Catalog_keycontact2_title}</a></li>
+                <li class='menuTitleX' style="margin-left:0px!important"><a href="{!$Label.Service_Catalog_keycontact3_link}" target="_blank"><b>{!$Label.Service_Catalog_keycontact3_name}</b><br />{!$Label.Service_Catalog_keycontact3_title}</a></li>
+                <li class='menuTitleX' style="margin-left:0px!important"><a href="{!$Label.Service_Catalog_keycontact4_link}" target="_blank"><b>{!$Label.Service_Catalog_keycontact4_name}</b><br />{!$Label.Service_Catalog_keycontact4_title}</a></li>
+                <li class='menuTitleX' style="margin-left:0px!important"><a href="{!$Label.Service_Catalog_keycontact5_link}" target="_blank"><b>{!$Label.Service_Catalog_keycontact5_name}</b><br />{!$Label.Service_Catalog_keycontact5_title}</a></li>                                  
+            </ul>
+  
+</apex:component>

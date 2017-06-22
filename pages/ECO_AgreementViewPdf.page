@@ -1,0 +1,1581 @@
+<apex:page standardcontroller="Agreement__c" showheader="false" renderas="pdf" sidebar="false" doctype="html-5.0" standardstylesheets="false" applybodytag="false" applyhtmltag="false" extensions="ECO_AgreementControllerPdf,nttdcore.DLabelParentController" action="{!init}" >
+    <head>
+<style>
+            @page{
+                size:landscape;
+            }
+            body{
+                font-family:arial, sans-serif;
+                font-size:80%;
+            }
+            .headerInfo{
+                height:65px;
+                border-bottom: 2px solid #DDDDDD;
+                padding:0 0 15px 0; 
+                margin: 0 0 25px 0;
+                background-position:top right;
+                background-repeat:no-repeat;
+                background-size:5% auto !important;
+                background-image : url({!URLFOR($Resource.ECO_CustomGraphicAssets, 'PDFLogo.jpg')});
+            }
+            .headerInfo h1{
+                margin:-2px 0 0 0;
+                font-size:16px;
+                line-height:80%;
+            }
+            .headerInfo h2{
+                font-size:16px;
+                line-height:80%;
+            }
+            .headerInfo h5{
+                line-height:80%;
+                margin:0;
+            }
+            .rightHeaderInfo{
+                float:right; 
+                border-left:2px solid #ddd; 
+                height:40px;
+                vertical-align:middle; 
+                padding-left:55px;
+                position:absolute;
+                right:0;
+                top:0;
+                padding:50px 10px 0 25px;
+                width:150px;
+                
+            }
+            table{
+                border: 1px solid #ddd;
+                width:100%; 
+            }
+            table tr th {
+                vertical-align: bottom;
+                background-color: #f8f8f8;
+                
+            }
+            table>caption+thead>tr:first-child>td, table>caption+thead>tr:first-child>th, table>colgroup+thead>tr:first-child>td, table>colgroup+thead>tr:first-child>th, table>thead:first-child>tr:first-child>td, table>thead:first-child>tr:first-child>th {
+                border-top: 0;
+            }
+            table>tbody>tr>td, table>tbody>tr>th, table>tfoot>tr>td, table>tfoot>tr>th, table>thead>tr>td, table>thead>tr>th, table tr td, table tr th {
+                padding: 5px;
+                line-height: 1.42857143;
+                vertical-align: top;
+                border-top: 1px solid #ddd;
+            }
+            table tr > td > td, table tr > td > tr > td, td > td, td > span > table tr td, td > table tr td, td > span > table, td > table {
+                border:none;
+                padding:0;
+            }
+            .notificationAndAlerts > span > div > table > tbody > tr:last-child, .notificationAndAlerts > span > div > table > tbody > tr > td:first-child, .notificationAndAlerts td:first-child, .notificationAndAlerts table tr:last-child {
+                display:none;
+                border:none;
+                padding:0;
+                width:0;
+            }
+            .notificationAndAlerts table > tbody > tr > td:first-child, .notificationAndAlerts table > tbody > tr:last-child{
+                display:none;
+            }
+
+            .pbHeader > table > tbody > tr > td, .pbHeader > table, .pbHeader table td, .pbHeader table{
+                border:none !important;
+                padding: 0;
+            }
+            .pbHeader{
+                
+            }
+            .pbSubheader {
+                margin: 6px 0 0 0;
+                background-color:#008cb2;
+                color:#fff;
+                -moz-border-radius: 4px 4px 0 0;
+                -webkit-border-radius:  4px 4px 0 0;
+                border-radius:  4px 4px 0 0;
+                border-top: 3px solid #f8f8f8;
+                padding:4px 12px 4px 12px;
+            }
+            .pbSubheader h3{
+                margin:0;
+            }
+            .footer{
+                position:absolute; 
+                width:100%; 
+                height:100px; 
+                bottom:0; 
+                border-top:1px solid #4a4a56; 
+                padding-top:15px;
+                margin-top:255px;
+            }
+            .risk{
+                background:#ebebeb;
+            }
+            .notificationAndAlerts table, .notificationAndAlerts td{
+                border:none !important;
+                width:auto;
+                padding:0;
+            }
+            .mainTitle{
+                margin:15px 0 -5px 0;
+            }
+            td >span >div >table >tbody >tr >td, td >span >div >table >tbody >tr >th{
+                border:none;
+                padding:0;
+                width:auto;
+            }
+
+            table table{
+                border:0;
+                padding:0;
+            }
+        </style>    
+    </head>
+
+
+
+    <div class="headerInfo" >
+        <h5>{!agreement.Name}</h5>
+        <h2 style="line-height:80%;" ><nttdcore:DLabel name="DL299" default="Project: {{1}}" labelParent="{!this}" p1="{!project.Name}" />{!dLabel['DL299']}</h2>
+
+        <div class="rightHeaderInfo" ><nttdcore:DLabel name="DL300" default="Project ID:" labelParent="{!this}" />
+            {!dLabel['DL300']}<br/>
+            {!project.EcoSystemReferenceNumber__c}
+        </div>
+        <!-- dont need this on this page
+        <h1 style="">
+            <apex:outputLabel for="QuestionnaireSetName" value="Version: "/>
+            <apex:outputText value="{!oQuestionnaireSet.Name}" />
+        </h1>
+        -->
+
+    </div>
+
+
+    <div class="footer" ><nttdcore:DLabel name="DL301" default="{{1}} | {{2}} | {{3}} |" labelParent="{!this}" p1="{!project.EcoSystemReferenceNumber__c}" p2="{!project.Name}" p3="{!agreement.Name}" />
+        {!dLabel['DL301']} <strong><nttdcore:DLabel name="DL302" default="FOR INTERNAL USE ONLY" labelParent="{!this}" />{!dLabel['DL302']}</strong>
+    </div>
+
+
+    <apex:outputpanel rendered="{!agreementRecordType != 'Prime (MSA)' && agreementRecordType != 'Prime' && agreementRecordType != 'Sub' && agreementRecordType != 'Inter-Company' && agreementRecordType != 'Prime Task Order'}" >
+        <apex:detail relatedlist="false" title="true" inlineedit="true" />   
+        <apex:pageblock >
+            <apex:pageblocksection >
+                <apex:outputfield value="{!agreement.Name}" />
+            </apex:pageblocksection>
+        
+            <br/>
+            <br/>
+            <nttdcore:DLabel name="DL303" default="Agreement Record Type:" labelParent="{!this}" /><apex:outputtext value="{!dLabel['DL303']}" /><apex:outputtext value="{agreementRecordType}" />
+            <nttdcore:DLabel name="DL304" default="Reminder: Prior to initiating a contract review, contact the relevant Client Account Manager, Program Manager or Contract Manager to assess any account-specific procedures or lessons learned from previous contracting exercises, and to avoid potential duplicate reviews." labelParent="{!this}" /><apex:outputtext value="{!dLabel['DL304']}" />
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+    
+    
+        </apex:pageblock>
+    
+        <apex:relatedlist list="CombinedAttachments" />
+    
+        <apex:relatedlist list="PurchaseOrders__r" />
+        
+        <apex:relatedlist list="Funding__r" />
+    
+    </apex:outputpanel>
+
+    <apex:outputpanel rendered="{!agreementRecordType =='Prime'}" >
+        <apex:pageblock ><nttdcore:DLabel name="DL306" default="ePM Agreement Number" labelParent="{!this}" /><nttdcore:DLabel name="DL307" default="Ecosystem Project Reference ID" labelParent="{!this}" /><nttdcore:DLabel name="DL308" default="Agreement Status" labelParent="{!this}" /><nttdcore:DLabel name="DL309" default="Oracle Project No" labelParent="{!this}" /><nttdcore:DLabel name="DL310" default="Oracle Agreement No" labelParent="{!this}" /><nttdcore:DLabel name="DL311" default="Project Name" labelParent="{!this}" /><nttdcore:DLabel name="DL312" default="Parent Agreement" labelParent="{!this}" /><nttdcore:DLabel name="DL313" default="Agreement Owner" labelParent="{!this}" /><nttdcore:DLabel name="DL314" default="Billing Client" labelParent="{!this}" /><nttdcore:DLabel name="DL315" default="Agreement Executed By" labelParent="{!this}" /><nttdcore:DLabel name="DL316" default="Invoicing Client" labelParent="{!this}" /><nttdcore:DLabel name="DL317" default="Execution Date" labelParent="{!this}" /><nttdcore:DLabel name="DL318" default="Contract Title/Name" labelParent="{!this}" /><nttdcore:DLabel name="DL319" default="Fee Type" labelParent="{!this}" /><nttdcore:DLabel name="DL320" default="Client Contract Reference No." labelParent="{!this}" /><nttdcore:DLabel name="DL321" default="Payment Terms" labelParent="{!this}" /><nttdcore:DLabel name="DL322" default="Contract Type" labelParent="{!this}" /><nttdcore:DLabel name="DL323" default="Agreement Currency" labelParent="{!this}" /><nttdcore:DLabel name="DL324" default="The date the agreement record was created in Ecosystem (&amp; Oracle)" labelParent="{!this}" /><nttdcore:DLabel name="DL325" default="Create Date" labelParent="{!this}" /><nttdcore:DLabel name="DL326" default="Agreement Amount (confirmed)" labelParent="{!this}" /><nttdcore:DLabel name="DL327" default="Start Date" labelParent="{!this}" /><nttdcore:DLabel name="DL328" default="Agreement Amount (estimated)" labelParent="{!this}" /><nttdcore:DLabel name="DL329" default="End Date" labelParent="{!this}" /><nttdcore:DLabel name="DL330" default="Total Funding Amount" labelParent="{!this}" /><nttdcore:DLabel name="DL331" default="Prof Indemnity/Liability Amt" labelParent="{!this}" /><nttdcore:DLabel name="DL332" default="Agreement - Funding Variance" labelParent="{!this}" /><nttdcore:DLabel name="DL333" default="Public/General Liability Amt" labelParent="{!this}" /><nttdcore:DLabel name="DL334" default="Variance Reason" labelParent="{!this}" /><nttdcore:DLabel name="DL335" default="Revenue Limit" labelParent="{!this}" /><nttdcore:DLabel name="DL336" default="Action Code" labelParent="{!this}" /><nttdcore:DLabel name="DL337" default="Invoice Limit" labelParent="{!this}" /><nttdcore:DLabel name="DL338" default="Change Manager Approved For Synch" labelParent="{!this}" /><nttdcore:DLabel name="DL339" default="Change Manager Is Changed" labelParent="{!this}" /><nttdcore:DLabel name="DL340" default="Scope Package" labelParent="{!this}" /><nttdcore:DLabel name="DL341" default="Scope of Services" labelParent="{!this}" />
+        <h2><nttdcore:DLabel name="DL305" default="Prime Agreement Summary" labelParent="{!this}" />{!dLabel['DL305']}</h2>
+        <apex:pageblocksection >
+            <apex:pageblocksectionitem helptext="{!$ObjectType.Agreement__c.Fields.Name.inlineHelpText}" >
+                <apex:outputtext value="{!dLabel['DL306']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.Name}" />
+                </apex:outputpanel>
+            </apex:pageblocksectionitem>
+            <apex:pageblocksectionitem >
+                <apex:outputtext value="{!dLabel['DL307']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!project.EcoSystemReferenceNumber__c}" />              
+                </apex:outputpanel>
+            </apex:pageblocksectionitem>
+            <apex:pageblocksectionitem >
+                <apex:outputtext value="{!dLabel['DL308']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.AgreementStatus__c}" />    
+                </apex:outputpanel>         
+            </apex:pageblocksectionitem>        
+            <apex:pageblocksectionitem >
+                <apex:outputtext value="{!dLabel['DL309']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!project.OracleProjectnumber__c}" />
+                </apex:outputpanel>
+            </apex:pageblocksectionitem>        
+            <apex:pageblocksectionitem helptext="{!$ObjectType.Agreement__c.Fields.AgreementNumber__c.inlineHelpText}" >
+                <apex:outputtext value="{!dLabel['DL310']}" />
+                 <apex:outputpanel >
+                <apex:outputfield value="{!agreement.AgreementNumber__c}" />
+                </apex:outputpanel>
+            </apex:pageblocksectionitem>    
+            <apex:pageblocksectionitem >
+                <apex:outputtext value="{!dLabel['DL311']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!project.Name}" />
+                </apex:outputpanel>         
+            </apex:pageblocksectionitem>    
+            <apex:pageblocksectionitem helptext="{!$ObjectType.Agreement__c.Fields.ParentAgreement__c.inlineHelpText}" >
+                <apex:outputtext value="{!dLabel['DL312']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.ParentAgreement__c}" />        
+                </apex:outputpanel>     
+            </apex:pageblocksectionitem>            
+            <apex:pageblocksectionitem helptext="{!$ObjectType.Agreement__c.Fields.ProjectTeamMember__c.inlineHelpText}" >
+                <apex:outputtext value="{!dLabel['DL313']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.ProjectTeamMember__c}" />  
+                </apex:outputpanel>         
+            </apex:pageblocksectionitem>
+            <apex:pageblocksectionitem >
+                <apex:outputtext value="{!dLabel['DL314']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.Account__c}" />    
+                </apex:outputpanel>         
+            </apex:pageblocksectionitem>        
+            <apex:pageblocksectionitem helptext="{!$ObjectType.Agreement__c.Fields.AgreementExecutedBy__c.inlineHelpText}" >
+                <apex:outputtext value="{!dLabel['DL315']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.AgreementExecutedBy__c}" />    
+                </apex:outputpanel>         
+            </apex:pageblocksectionitem>    
+            <apex:pageblocksectionitem helptext="{!$ObjectType.Agreement__c.Fields.InvoicingClient__c.inlineHelpText}" >
+                <apex:outputtext value="{!dLabel['DL316']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.InvoicingClient__c}" />        
+                </apex:outputpanel>     
+            </apex:pageblocksectionitem>        
+            <apex:pageblocksectionitem helptext="{!$ObjectType.Agreement__c.Fields.ExecutionDate__c.inlineHelpText}" >
+                <apex:outputtext value="{!dLabel['DL317']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.ExecutionDate__c}" />  
+                </apex:outputpanel>         
+            </apex:pageblocksectionitem>    
+            <apex:pageblocksectionitem helptext="{!$ObjectType.Agreement__c.Fields.ContractTitle__c.inlineHelpText}" >
+                <apex:outputtext value="{!dLabel['DL318']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.ContractTitle__c}" />  
+                </apex:outputpanel>         
+            </apex:pageblocksectionitem>        
+            <apex:pageblocksectionitem helptext="{!$ObjectType.Agreement__c.Fields.FeeType__c.inlineHelpText}" >
+                <apex:outputtext value="{!dLabel['DL319']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.FeeType__c}" />        
+                </apex:outputpanel>     
+            </apex:pageblocksectionitem>            
+            <apex:pageblocksectionitem helptext="{!$ObjectType.Agreement__c.Fields.ClientContractReferenceNo__c.inlineHelpText}" >
+                <apex:outputtext value="{!dLabel['DL320']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.ClientContractReferenceNo__c}" />  
+                </apex:outputpanel>         
+            </apex:pageblocksectionitem>            
+            <apex:pageblocksectionitem >
+                <apex:outputtext value="{!dLabel['DL321']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.PaymentTerms__c}" />
+                </apex:outputpanel>             
+            </apex:pageblocksectionitem>    
+            <apex:pageblocksectionitem >
+                <apex:outputtext value="{!dLabel['DL322']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.AgreementType__c}" />  
+                </apex:outputpanel>         
+            </apex:pageblocksectionitem>            
+            <apex:pageblocksectionitem helptext="{!$ObjectType.Agreement__c.Fields.FundingCurrencyCode__c.inlineHelpText}" >
+                <apex:outputtext value="{!dLabel['DL323']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.FundingCurrencyCode__c}" />    
+                </apex:outputpanel>         
+            </apex:pageblocksectionitem>    
+            <apex:pageblocksectionitem helptext="{!dLabel['DL324']}" >
+                <apex:outputtext value="{!dLabel['DL325']}" />
+                <apex:outputfield value="{!agreement.CreatedDate}" />                
+            </apex:pageblocksectionitem>    
+            <apex:pageblocksectionitem helptext="{!$ObjectType.Agreement__c.Fields.Amount__c.inlineHelpText}" >
+                <apex:outputtext value="{!dLabel['DL326']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.Amount__c}" /> 
+                </apex:outputpanel>
+            </apex:pageblocksectionitem>    
+            <apex:pageblocksectionitem helptext="{!$ObjectType.Agreement__c.Fields.StartDate__c.inlineHelpText}" >
+                <apex:outputtext value="{!dLabel['DL327']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.StartDate__c}" />  
+                </apex:outputpanel>         
+            </apex:pageblocksectionitem>                                            
+            <apex:pageblocksectionitem helptext="{!$ObjectType.Agreement__c.Fields.AgreementAmountEstimated__c.inlineHelpText}" >
+                <apex:outputtext value="{!dLabel['DL328']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.AgreementAmountEstimated__c}" />
+                </apex:outputpanel>             
+            </apex:pageblocksectionitem>        
+            <apex:pageblocksectionitem helptext="{!$ObjectType.Agreement__c.Fields.ExpirationDate__c.inlineHelpText}" >
+                <apex:outputtext value="{!dLabel['DL329']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.ExpirationDate__c}" /> 
+                </apex:outputpanel>                         
+            </apex:pageblocksectionitem>    
+            <apex:pageblocksectionitem >
+                <apex:outputtext value="{!dLabel['DL330']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.TotalFundingAmount__c}" /> 
+                </apex:outputpanel>         
+            </apex:pageblocksectionitem>        
+            <apex:pageblocksectionitem helptext="{!$ObjectType.Agreement__c.Fields.ProfIndemnityLiabilityAmt__c.inlineHelpText}" >
+                <apex:outputtext value="{!dLabel['DL331']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.ProfIndemnityLiabilityAmt__c}" />
+                </apex:outputpanel>                                         
+            </apex:pageblocksectionitem>    
+            <apex:pageblocksectionitem >
+                <apex:outputtext value="{!dLabel['DL332']}" />
+                <apex:outputfield value="{!agreement.AgreementFundingVariance__c}" />                
+            </apex:pageblocksectionitem>            
+            <apex:pageblocksectionitem helptext="{!$ObjectType.Agreement__c.Fields.PublicGeneralLiabilityAmt__c.inlineHelpText}" >
+                <apex:outputtext value="{!dLabel['DL333']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.PublicGeneralLiabilityAmt__c}" />      
+                </apex:outputpanel>     
+            </apex:pageblocksectionitem>
+            <apex:pageblocksectionitem >
+                    <apex:outputtext value="{!dLabel['DL334']}" />
+                    <apex:outputpanel >
+                        <apex:outputfield value="{!agreement.VarianceReason__c}" /> 
+                    </apex:outputpanel>                                                 
+            </apex:pageblocksectionitem>   
+                 
+            <apex:pageblocksectionitem >
+            	<apex:outputtext value="{!dLabel['DL335']}" />
+                <apex:outputpanel >
+                        <apex:outputfield value="{!agreement.RevenueLimitFlag__c}" />                 
+                </apex:outputpanel>     
+            </apex:pageblocksectionitem>    
+            
+            <apex:pageblocksectionitem >
+                <apex:outputtext value="{!dLabel['DL336']}" />
+                <apex:outputpanel >
+                <apex:outputfield value="{!agreement.ActionCode__c}" />   
+                </apex:outputpanel>           	           
+            </apex:pageblocksectionitem>
+                
+            <apex:pageblocksectionitem >
+            	<apex:outputtext value="{!dLabel['DL337']}" />
+                <apex:outputpanel >
+                        <apex:outputfield value="{!agreement.InvoiceLimitFlag__c}" />                 
+                </apex:outputpanel>     
+            </apex:pageblocksectionitem>    
+
+            <apex:pageblocksectionitem >    
+                <apex:outputtext value="{!dLabel['DL338']}" />  
+               <apex:outputpanel >          
+                	<apex:outputfield value="{!agreement.ChangeManagerApprovedForSynch__c}" />  
+                </apex:outputpanel>
+            </apex:pageblocksectionitem>
+            
+            <apex:pageblocksectionitem >    
+                <apex:outputtext value="{!dLabel['DL339']}" />      
+                <apex:outputpanel >      
+                	<apex:outputfield value="{!agreement.ChangeManagerIsChanged__c}" />  
+                </apex:outputpanel>
+            </apex:pageblocksectionitem>
+                                                                                                                                   
+        </apex:pageblocksection>
+        
+        <apex:pageblocksection columns="2" >
+            <apex:pageblocksectionitem helptext="{!$ObjectType.Agreement__c.Fields.ScopePackage__c.inlineHelpText}" >
+                <apex:outputtext value="{!dLabel['DL340']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.ScopePackage__c}" />
+                </apex:outputpanel>
+            </apex:pageblocksectionitem>    
+                
+			<apex:pageblocksectionitem helptext="{!$ObjectType.Agreement__c.Fields.ScopeOfServices__c.inlineHelpText}" >
+                <apex:outputtext value="{!dLabel['DL341']}" />
+                <apex:outputpanel id="primeScope" >
+                    <apex:outputfield value="{!agreement.ScopeOfServices__c}" rendered="{!mode == '' && agreement.ScopePackage__c == null}" />
+                    <apex:outputfield value="{!agreement.ScopePackage__r.Scope_Details__c}" rendered="{!agreement.ScopePackage__c != null}" />
+                </apex:outputpanel>             
+            </apex:pageblocksectionitem>    
+        </apex:pageblocksection>        
+        </apex:pageblock>
+        
+        <nttdcore:DLabel name="DL342" default="Funding" labelParent="{!this}" /><apex:pageblock title="{!dLabel['DL342']}" >
+            <apex:outputpanel rendered="{!fundings.size > 0}" ><nttdcore:DLabel name="DL343" default="Date Allocated" labelParent="{!this}" /><nttdcore:DLabel name="DL344" default="Allocated Amount" labelParent="{!this}" />
+            <apex:pageblocktable value="{!fundings}" var="funding" >
+                <apex:column headervalue="{!dLabel['DL343']}" >
+                    <apex:outputfield value="{!funding.CreatedDate}" rendered="{!funding.DateAllocatedDate__c == null}" />
+                    <apex:outputfield value="{!funding.DateAllocatedDate__c}" rendered="{!funding.DateAllocatedDate__c != null}" />                    
+                </apex:column>                  
+                <apex:column headervalue="{!dLabel['DL344']}" >
+                    <apex:outputfield value="{!funding.TotalBaselinedAmount__c}" rendered="{!funding.AllocatedAmount__c==null}" />
+                    <apex:outputfield value="{!funding.AllocatedAmount__c}" rendered="{!funding.AllocatedAmount__c!=null}" />
+                </apex:column>
+        </apex:pageblocktable>      
+        </apex:outputpanel>
+        
+        <apex:outputpanel rendered="{!fundings.size == 0}" >
+            <nttdcore:DLabel name="DL345" default="No records to display" labelParent="{!this}" /><apex:outputtext value="{!dLabel['DL345']}" />
+        </apex:outputpanel> 
+        </apex:pageblock>     
+<!--         <c:ECO_MSAFlyout MSAId="{!agreement.MSAReference__c}" rendered="{!agreement.MSAReference__c != null}" id="primeMSAFlyout"/>  -->
+<!--  TODO: check these 2 components      
+        <c:ECO_RiskFlyout ProjectId="{!project.Id}" rendered="{!project != null}" PlanElement="" />
+        <c:ECO_AssumptionFlyout ProjectId="{!project.Id}" rendered="{!project != null}" PlanElement="" />
+-->
+
+    <apex:relatedlist list="ContractReviews__r" />
+    <apex:relatedlist list="CombinedAttachments" />   
+    </apex:outputpanel> 
+
+    <!-- Sub -->    
+    <apex:outputpanel rendered="{!agreementRecordType =='Sub'}" >
+        <apex:pageblock ><nttdcore:DLabel name="DL347" default="ePM Agreement Number" labelParent="{!this}" /><nttdcore:DLabel name="DL348" default="Ecosystem Project Reference ID" labelParent="{!this}" /><nttdcore:DLabel name="DL349" default="Agreement Status" labelParent="{!this}" /><nttdcore:DLabel name="DL350" default="Oracle Project No" labelParent="{!this}" /><nttdcore:DLabel name="DL351" default="MSA Reference" labelParent="{!this}" /><nttdcore:DLabel name="DL352" default="Project Name" labelParent="{!this}" /><nttdcore:DLabel name="DL353" default="Parent Agreement" labelParent="{!this}" /><nttdcore:DLabel name="DL354" default="Agreement Owner" labelParent="{!this}" /><nttdcore:DLabel name="DL355" default="Sub Name" labelParent="{!this}" /><nttdcore:DLabel name="DL356" default="Agreement Executed By" labelParent="{!this}" /><nttdcore:DLabel name="DL357" default="Contract Title/Name" labelParent="{!this}" /><nttdcore:DLabel name="DL358" default="Execution Date" labelParent="{!this}" /><nttdcore:DLabel name="DL359" default="Enter the Subs reference number (if applicable)" labelParent="{!this}" /><nttdcore:DLabel name="DL360" default="Vendor/Sub Contract Reference No." labelParent="{!this}" /><nttdcore:DLabel name="DL361" default="Fee Type" labelParent="{!this}" /><nttdcore:DLabel name="DL362" default="Contract Type" labelParent="{!this}" /><nttdcore:DLabel name="DL363" default="Payment Terms" labelParent="{!this}" /><nttdcore:DLabel name="DL364" default="Back-To-Back with Prime" labelParent="{!this}" /><nttdcore:DLabel name="DL365" default="Agreement Currency" labelParent="{!this}" /><nttdcore:DLabel name="DL366" default="The date the agreement record was created in Ecosystem (&amp; Oracle)" labelParent="{!this}" /><nttdcore:DLabel name="DL367" default="Create Date" labelParent="{!this}" /><nttdcore:DLabel name="DL368" default="Agreement Amount (confirmed)" labelParent="{!this}" /><nttdcore:DLabel name="DL369" default="Start Date" labelParent="{!this}" /><nttdcore:DLabel name="DL370" default="Agreement Amount (estimated)" labelParent="{!this}" /><nttdcore:DLabel name="DL371" default="End Date" labelParent="{!this}" /><nttdcore:DLabel name="DL372" default="Total Purchase Orders Raised" labelParent="{!this}" /><nttdcore:DLabel name="DL373" default="Prof Indemnity/Liability Amt" labelParent="{!this}" /><nttdcore:DLabel name="DL374" default="Total Invoiced" labelParent="{!this}" /><nttdcore:DLabel name="DL375" default="Public/General Liability Amt" labelParent="{!this}" /><nttdcore:DLabel name="DL376" default="Total Paid" labelParent="{!this}" /><nttdcore:DLabel name="DL377" default="Scope Package" labelParent="{!this}" /><nttdcore:DLabel name="DL378" default="Scope of Services" labelParent="{!this}" />
+        <h2><nttdcore:DLabel name="DL346" default="Sub Agreement Summary" labelParent="{!this}" />{!dLabel['DL346']}</h2>
+        <apex:pageblocksection >
+            <apex:pageblocksectionitem helptext="{!$ObjectType.Agreement__c.Fields.Name.inlineHelpText}" >
+                <apex:outputtext value="{!dLabel['DL347']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.Name}" />
+                </apex:outputpanel>
+            </apex:pageblocksectionitem>
+            <apex:pageblocksectionitem >
+                <apex:outputtext value="{!dLabel['DL348']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!project.EcoSystemReferenceNumber__c}" />
+                </apex:outputpanel>
+            </apex:pageblocksectionitem>
+            <apex:pageblocksectionitem >
+                <apex:outputtext value="{!dLabel['DL349']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.AgreementStatus__c}" />
+                </apex:outputpanel>
+            </apex:pageblocksectionitem>        
+            <apex:pageblocksectionitem >
+                <apex:outputtext value="{!dLabel['DL350']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!project.OracleProjectnumber__c}" />
+                </apex:outputpanel>
+            </apex:pageblocksectionitem>        
+
+            <apex:pageblocksectionitem helptext="{!$ObjectType.Agreement__c.Fields.MSAReference__c.inlineHelpText}" >
+                <apex:outputtext value="{!dLabel['DL351']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.MSAReference__c}" />
+                </apex:outputpanel>
+            </apex:pageblocksectionitem>    
+
+            <apex:pageblocksectionitem >
+                <apex:outputtext value="{!dLabel['DL352']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!project.Name}" />
+                </apex:outputpanel>
+            </apex:pageblocksectionitem>    
+            <apex:pageblocksectionitem helptext="{!$ObjectType.Agreement__c.Fields.ParentAgreement__c.inlineHelpText}" >
+                <apex:outputtext value="{!dLabel['DL353']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.ParentAgreement__c}" />
+                </apex:outputpanel>
+            </apex:pageblocksectionitem>    
+            <apex:pageblocksectionitem helptext="{!$ObjectType.Agreement__c.Fields.ProjectTeamMember__c.inlineHelpText}" >
+                <apex:outputtext value="{!dLabel['DL354']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.ProjectTeamMember__c}" />
+                </apex:outputpanel>
+            </apex:pageblocksectionitem>
+            <apex:pageblocksectionitem helptext="{!$ObjectType.Agreement__c.Fields.VendorName__c.inlineHelpText}" >
+                <apex:outputtext value="{!dLabel['DL355']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.VendorName__c}" />
+                </apex:outputpanel>
+            </apex:pageblocksectionitem>            
+            <apex:pageblocksectionitem helptext="{!$ObjectType.Agreement__c.Fields.AgreementExecutedBy__c.inlineHelpText}" >
+                <apex:outputtext value="{!dLabel['DL356']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.AgreementExecutedBy__c}" />
+                </apex:outputpanel>
+            </apex:pageblocksectionitem>    
+            <apex:pageblocksectionitem helptext="{!$ObjectType.Agreement__c.Fields.ContractTitle__c.inlineHelpText}" >
+                <apex:outputtext value="{!dLabel['DL357']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.ContractTitle__c}" />
+                </apex:outputpanel>
+            </apex:pageblocksectionitem>        
+            <apex:pageblocksectionitem helptext="{!$ObjectType.Agreement__c.Fields.ExecutionDate__c.inlineHelpText}" >
+                <apex:outputtext value="{!dLabel['DL358']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.ExecutionDate__c}" />
+                </apex:outputpanel>
+            </apex:pageblocksectionitem>    
+            <apex:pageblocksectionitem helptext="{!dLabel['DL359']}" >
+                <apex:outputtext value="{!dLabel['DL360']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.ClientContractReferenceNo__c}" />
+                </apex:outputpanel>
+            </apex:pageblocksectionitem>    
+            <apex:pageblocksectionitem helptext="{!$ObjectType.Agreement__c.Fields.FeeType__c.inlineHelpText}" >
+                <apex:outputtext value="{!dLabel['DL361']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.FeeType__c}" />
+                </apex:outputpanel>
+            </apex:pageblocksectionitem>            
+            <apex:pageblocksectionitem >
+                <apex:outputtext value="{!dLabel['DL362']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.AgreementType__c}" />      
+                </apex:outputpanel>         
+            </apex:pageblocksectionitem>
+            <apex:pageblocksectionitem >
+                <apex:outputtext value="{!dLabel['DL363']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.PaymentTerms__c}" />
+                </apex:outputpanel>
+            </apex:pageblocksectionitem>    
+            <apex:pageblocksectionitem >
+                <apex:outputtext value="{!dLabel['DL364']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.BacktoBackwithPrime__c}" />    
+                </apex:outputpanel>         
+            </apex:pageblocksectionitem>        
+            <apex:pageblocksectionitem helptext="{!$ObjectType.Agreement__c.Fields.FundingCurrencyCode__c.inlineHelpText}" >
+                <apex:outputtext value="{!dLabel['DL365']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.FundingCurrencyCode__c}" />
+                </apex:outputpanel>
+            </apex:pageblocksectionitem>    
+            <apex:pageblocksectionitem helptext="{!dLabel['DL366']}" >
+                <apex:outputtext value="{!dLabel['DL367']}" />
+                <apex:outputfield value="{!agreement.CreatedDate}" />                
+            </apex:pageblocksectionitem>
+            <apex:pageblocksectionitem helptext="{!$ObjectType.Agreement__c.Fields.Amount__c.inlineHelpText}" >
+                <apex:outputtext value="{!dLabel['DL368']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.Amount__c}" />
+                </apex:outputpanel>             
+            </apex:pageblocksectionitem>    
+            <apex:pageblocksectionitem helptext="{!$ObjectType.Agreement__c.Fields.StartDate__c.inlineHelpText}" >
+                <apex:outputtext value="{!dLabel['DL369']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.StartDate__c}" />  
+                </apex:outputpanel>         
+            </apex:pageblocksectionitem>                                                
+            <apex:pageblocksectionitem helptext="{!$ObjectType.Agreement__c.Fields.AgreementAmountEstimated__c.inlineHelpText}" >
+                <apex:outputtext value="{!dLabel['DL370']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.AgreementAmountEstimated__c}" />   
+                </apex:outputpanel>         
+            </apex:pageblocksectionitem>        
+            <apex:pageblocksectionitem helptext="{!$ObjectType.Agreement__c.Fields.ExpirationDate__c.inlineHelpText}" >
+                <apex:outputtext value="{!dLabel['DL371']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.ExpirationDate__c}" /> 
+                </apex:outputpanel>         
+            </apex:pageblocksectionitem>    
+            <apex:pageblocksectionitem >
+                <apex:outputtext value="{!dLabel['DL372']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.TotalFundingAmount__c}" />
+                </apex:outputpanel>             
+            </apex:pageblocksectionitem>        
+            <apex:pageblocksectionitem helptext="{!$ObjectType.Agreement__c.Fields.ProfIndemnityLiabilityAmt__c.inlineHelpText}" >
+                <apex:outputtext value="{!dLabel['DL373']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.ProfIndemnityLiabilityAmt__c}" />  
+                </apex:outputpanel>         
+            </apex:pageblocksectionitem>        
+            <apex:pageblocksectionitem >
+                <apex:outputtext value="{!dLabel['DL374']}" />
+                <apex:outputfield value="{!agreement.Total_Invoiced__c}" />              
+            </apex:pageblocksectionitem>            
+            <apex:pageblocksectionitem helptext="{!$ObjectType.Agreement__c.Fields.PublicGeneralLiabilityAmt__c.inlineHelpText}" >
+                <apex:outputtext value="{!dLabel['DL375']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.PublicGeneralLiabilityAmt__c}" />      
+                </apex:outputpanel>     
+            </apex:pageblocksectionitem>            
+            <apex:pageblocksectionitem >
+                <apex:outputtext value="{!dLabel['DL376']}" />
+                <apex:outputfield value="{!agreement.TotalPaid__c}" />              
+            </apex:pageblocksectionitem>        
+            </apex:pageblocksection>
+            <apex:pageblocksection columns="2" >
+                <apex:pageblocksectionitem helptext="{!$ObjectType.Agreement__c.Fields.ScopePackage__c.inlineHelpText}" >
+                    <apex:outputtext value="{!dLabel['DL377']}" />
+                    <apex:outputpanel >
+                        <apex:outputfield value="{!agreement.ScopePackage__c}" />
+                    </apex:outputpanel>
+                </apex:pageblocksectionitem>    
+                
+                <apex:pageblocksectionitem helptext="{!$ObjectType.Agreement__c.Fields.ScopeOfServices__c.inlineHelpText}" >
+                    <apex:outputtext value="{!dLabel['DL378']}" />
+                    <apex:outputpanel id="subScope" >
+                        <apex:outputfield value="{!agreement.ScopeOfServices__c}" />
+                        <apex:outputfield value="{!agreement.ScopePackage__r.Scope_Details__c}" />          
+                    </apex:outputpanel>         
+                </apex:pageblocksectionitem>                                  
+                                                                                                                            
+            </apex:pageblocksection>
+        
+        </apex:pageblock>   
+        <!-- <c:ECO_MSAFlyout MSAId="{!agreement.MSAReference__c}" rendered="{!agreement.MSAReference__c != null}"/>  -->
+        <!--  TODO: check these 2 components     
+        <c:ECO_RiskFlyout ProjectId="{!project.Id}" rendered="{!project != null}" PlanElement="" />
+        <c:ECO_AssumptionFlyout ProjectId="{!project.Id}" rendered="{!project != null}" PlanElement="" />
+        -->
+		<nttdcore:DLabel name="DL379" default="Purchase Orders" labelParent="{!this}" /><apex:pageblock title="{!dLabel['DL379']}" ><nttdcore:DLabel name="DL380" default="Purchase Order Number" labelParent="{!this}" /><nttdcore:DLabel name="DL381" default="Project" labelParent="{!this}" /><nttdcore:DLabel name="DL382" default="PO Date" labelParent="{!this}" /><nttdcore:DLabel name="DL383" default="PO Type" labelParent="{!this}" /><nttdcore:DLabel name="DL384" default="Requestor" labelParent="{!this}" /><nttdcore:DLabel name="DL385" default="Status" labelParent="{!this}" /><nttdcore:DLabel name="DL386" default="Total" labelParent="{!this}" /><nttdcore:DLabel name="DL387" default="Created Date" labelParent="{!this}" /><nttdcore:DLabel name="DL388" default="Created By" labelParent="{!this}" />
+			<apex:pageblocktable value="{!PurchaseOrders}" var="po" rendered="{!PurchaseOrders != null}" >
+				<apex:column headervalue="{!dLabel['DL380']}" ><apex:outputfield value="{!po.Name}" /></apex:column>				
+				<apex:column headervalue="{!dLabel['DL381']}" ><apex:outputfield value="{!po.Project__c}" /></apex:column>				
+				<apex:column headervalue="{!dLabel['DL382']}" ><apex:outputfield value="{!po.PO_Date__c}" /></apex:column>				
+				<apex:column headervalue="{!dLabel['DL383']}" ><apex:outputfield value="{!po.POType__c}" /></apex:column>				
+				<apex:column headervalue="{!dLabel['DL384']}" ><apex:outputfield value="{!po.Requestor__c}" /></apex:column>				
+				<apex:column headervalue="{!dLabel['DL385']}" ><apex:outputfield value="{!po.Status__c}" /></apex:column>				
+				<apex:column headervalue="{!dLabel['DL386']}" ><apex:outputfield value="{!po.Total__c}" /></apex:column>				
+				<apex:column headervalue="{!dLabel['DL387']}" ><apex:outputfield value="{!po.CreatedDate}" /></apex:column>				
+				<apex:column headervalue="{!dLabel['DL388']}" ><apex:outputfield value="{!po.CreatedById}" /></apex:column>				
+
+			</apex:pageblocktable>
+			<apex:outputpanel rendered="{!PurchaseOrders == null}" >
+            	<nttdcore:DLabel name="DL389" default="No records to display" labelParent="{!this}" /><apex:outputtext value="{!dLabel['DL389']}" />
+        	</apex:outputpanel> 
+		</apex:pageblock>
+    
+    <apex:relatedlist list="ContractReviews__r" />
+    <apex:relatedlist list="CombinedAttachments" />
+    
+    </apex:outputpanel> 
+    
+    <!-- Inter-Company -->  
+    <apex:outputpanel rendered="{!agreementRecordType =='Inter-Company'}" >
+		<apex:pageblock ><nttdcore:DLabel name="DL391" default="ePM Agreement Number" labelParent="{!this}" /><nttdcore:DLabel name="DL392" default="Ecosystem Project Reference ID" labelParent="{!this}" /><nttdcore:DLabel name="DL393" default="Agreement Status" labelParent="{!this}" /><nttdcore:DLabel name="DL394" default="Oracle Project No" labelParent="{!this}" /><nttdcore:DLabel name="DL395" default="Select if any parent agreement is applicable (e.g. standing contract, JV, prime contract for back-to-back with subs)" labelParent="{!this}" /><nttdcore:DLabel name="DL396" default="Prime Agreement" labelParent="{!this}" /><nttdcore:DLabel name="DL397" default="Project Name" labelParent="{!this}" /><nttdcore:DLabel name="DL398" default="Project Billing Client" labelParent="{!this}" /><nttdcore:DLabel name="DL399" default="Agreement Owner" labelParent="{!this}" /><nttdcore:DLabel name="DL400" default="Inter-Company Project" labelParent="{!this}" /><nttdcore:DLabel name="DL401" default="Agreement Executed By" labelParent="{!this}" /><nttdcore:DLabel name="DL402" default="Intercompany Subconsultant" labelParent="{!this}" /><nttdcore:DLabel name="DL403" default="Execution Date" labelParent="{!this}" /><nttdcore:DLabel name="DL404" default="Team Leader (Name)" labelParent="{!this}" /><nttdcore:DLabel name="DL405" default="Payment Terms" labelParent="{!this}" /><nttdcore:DLabel name="DL406" default="Team Leader (Title)" labelParent="{!this}" /><nttdcore:DLabel name="DL407" default="Agreement Currency" labelParent="{!this}" /><nttdcore:DLabel name="DL408" default="Select the type of fee structure to be used." labelParent="{!this}" /><nttdcore:DLabel name="DL409" default="Interco Fee Type" labelParent="{!this}" /><nttdcore:DLabel name="DL410" default="Agreement Amount (confirmed)" labelParent="{!this}" /><nttdcore:DLabel name="DL411" default="Back-To-Back with Prime" labelParent="{!this}" /><nttdcore:DLabel name="DL412" default="Agreement Amount (estimated)" labelParent="{!this}" /><nttdcore:DLabel name="DL413" default="The date the agreement record was created in Ecosystem (&amp; Oracle)" labelParent="{!this}" /><nttdcore:DLabel name="DL414" default="Create Date" labelParent="{!this}" /><nttdcore:DLabel name="DL415" default="Purchase Order (only applicable if not using Cross-Charging)" labelParent="{!this}" /><nttdcore:DLabel name="DL416" default="Start Date" labelParent="{!this}" /><nttdcore:DLabel name="DL417" default="Total Purchase Orders Raised" labelParent="{!this}" /><nttdcore:DLabel name="DL418" default="End Date" labelParent="{!this}" /><nttdcore:DLabel name="DL419" default="Total Invoiced" labelParent="{!this}" /><nttdcore:DLabel name="DL420" default="Total Paid" labelParent="{!this}" /><nttdcore:DLabel name="DL421" default="AECOM General Conditions for Inter-Company Subcontracts" labelParent="{!this}" /><nttdcore:DLabel name="DL422" default="1.0 Application of Main Contract Conditions" labelParent="{!this}" /><nttdcore:DLabel name="DL423" default="The Subconsultant shall be bound by the conditions of the Main Contract, which the Subconsultant is deemed to have reviewed and accepted at proposal stage, to the extent that they are" labelParent="{!this}" /><nttdcore:DLabel name="DL424" default="applicable to the Subconsultancy Services (as defined in Section A Below)." labelParent="{!this}" /><nttdcore:DLabel name="DL425" default="2.0 Responsibility" labelParent="{!this}" /><nttdcore:DLabel name="DL426" default="The Subconsultant shall be responsible for the professional quality, technical accuracy, coordination and timely completion (in accordance with the program requirements set forth" labelParent="{!this}" /><nttdcore:DLabel name="DL427" default="in the scope below) of the Subconsultancy Services, shall correct any errors or deficiencies therein at its own cost, and shall indemnify the Lead Consultant against any resultant costs or liabilities." labelParent="{!this}" /><nttdcore:DLabel name="DL428" default="3.0 Payment" labelParent="{!this}" /><nttdcore:DLabel name="DL429" default="Unless stipulated to the contrary in Section B, the Subconsultant shall invoice the Lead Consultant on the basis of the Main Contract payment schedule.  Payments shall be made by the Lead-Consultant" labelParent="{!this}" /><nttdcore:DLabel name="DL430" default="within 30 days from the date of the submitted invoice.  In the event that all or part of a payment is withheld by the Client for reasons attributable to the Lead-Consultant, the Lead Consultant shall pay the Subconsultant?s invoice in full." labelParent="{!this}" /><nttdcore:DLabel name="DL431" default="4.0 Change Orders" labelParent="{!this}" /><nttdcore:DLabel name="DL432" default="In the event that the Lead Consultant instructs the Subconsultant to proceed with additional or varied work, approval for which is subsequently withheld by the Client, the Lead Consultant shall nonetheless" labelParent="{!this}" /><nttdcore:DLabel name="DL433" default="pay the Subconsultant?s invoice for such work within 30 days of invoice date." labelParent="{!this}" /><nttdcore:DLabel name="DL434" default="5.0 Dispute Resolution" labelParent="{!this}" /><nttdcore:DLabel name="DL435" default="Any dispute which cannot be resolved between the Lead Consultant?s Project Manager and the Subconsultant?s Team Leader shall be referred to the Presidents / Regional Chief Executives of the two companies, and" labelParent="{!this}" /><nttdcore:DLabel name="DL436" default="if still not agreed, shall be finally decided on by the Group Chief Executive(s) concerned." labelParent="{!this}" /><nttdcore:DLabel name="DL437" default="Section A - Scope of Services" labelParent="{!this}" /><nttdcore:DLabel name="DL438" default="Scope Package" labelParent="{!this}" /><nttdcore:DLabel name="DL439" default="Scope of Services" labelParent="{!this}" /><nttdcore:DLabel name="DL440" default="Section B - Commercial Terms" labelParent="{!this}" /><nttdcore:DLabel name="DL441" default="In accordance with the AECOM Transfer Pricing Policy, the Lead Consultant will be charged FBLR+5% on all labour inputs by the Subconsultant." labelParent="{!this}" /><nttdcore:DLabel name="DL442" default="Other (please describe below)" labelParent="{!this}" /><nttdcore:DLabel name="DL443" default="Section C - Special Conditions" labelParent="{!this}" />
+        <h2><nttdcore:DLabel name="DL390" default="Inter-Company Agreement Summary" labelParent="{!this}" />{!dLabel['DL390']}</h2>         
+        <apex:pageblocksection >
+            <apex:pageblocksectionitem helptext="{!$ObjectType.Agreement__c.Fields.Name.inlineHelpText}" >
+                <apex:outputtext value="{!dLabel['DL391']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.Name}" />
+                </apex:outputpanel>
+            </apex:pageblocksectionitem>
+            <apex:pageblocksectionitem >
+                <apex:outputtext value="{!dLabel['DL392']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!project.EcoSystemReferenceNumber__c}" />
+                </apex:outputpanel>
+            </apex:pageblocksectionitem>
+            <apex:pageblocksectionitem >
+                <apex:outputtext value="{!dLabel['DL393']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.AgreementStatus__c}" />
+                </apex:outputpanel>
+            </apex:pageblocksectionitem>        
+            <apex:pageblocksectionitem >
+                <apex:outputtext value="{!dLabel['DL394']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!project.OracleProjectnumber__c}" />
+                </apex:outputpanel>
+            </apex:pageblocksectionitem>        
+
+            <apex:pageblocksectionitem helptext="{!dLabel['DL395']}" >
+                <apex:outputtext value="{!dLabel['DL396']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.ParentAgreement__c}" />
+                </apex:outputpanel>
+            </apex:pageblocksectionitem>    
+
+            <apex:pageblocksectionitem >
+                <apex:outputtext value="{!dLabel['DL397']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!project.Name}" />
+                </apex:outputpanel>
+            </apex:pageblocksectionitem>    
+            <apex:pageblocksectionitem helptext="{!$ObjectType.Agreement__c.Fields.ParentAgreement__c.inlineHelpText}" >
+                <apex:outputtext value="{!dLabel['DL398']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.Account__c}" />
+                </apex:outputpanel>
+            </apex:pageblocksectionitem>    
+            <apex:pageblocksectionitem helptext="{!$ObjectType.Agreement__c.Fields.ProjectTeamMember__c.inlineHelpText}" >
+                <apex:outputtext value="{!dLabel['DL399']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.ProjectTeamMember__c}" />
+                </apex:outputpanel>
+            </apex:pageblocksectionitem>
+
+            <apex:pageblocksectionitem helptext="{!$ObjectType.Agreement__c.Fields.Intercompany_Project__c.inlineHelpText}" >
+                <apex:outputtext value="{!dLabel['DL400']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.Intercompany_Project__c}" />
+                </apex:outputpanel>
+            </apex:pageblocksectionitem>
+            
+            <apex:pageblocksectionitem helptext="{!$ObjectType.Agreement__c.Fields.AgreementExecutedBy__c.inlineHelpText}" >
+                <apex:outputtext value="{!dLabel['DL401']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.AgreementExecutedBy__c}" />
+                </apex:outputpanel>
+            </apex:pageblocksectionitem>            
+            
+            <apex:pageblocksectionitem helptext="{!$ObjectType.Agreement__c.Fields.VendorName__c.inlineHelpText}" >
+                <apex:outputtext value="{!dLabel['DL402']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.IntercompanySubconsultant__c}" />
+                </apex:outputpanel>
+            </apex:pageblocksectionitem>        
+
+            <apex:pageblocksectionitem helptext="{!$ObjectType.Agreement__c.Fields.ExecutionDate__c.inlineHelpText}" >
+                <apex:outputtext value="{!dLabel['DL403']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.ExecutionDate__c}" />
+                </apex:outputpanel>
+            </apex:pageblocksectionitem>                    
+    
+            <apex:pageblocksectionitem helptext="{!$ObjectType.Agreement__c.Fields.TeamLeaderName__c.inlineHelpText}" >
+                <apex:outputtext value="{!dLabel['DL404']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.TeamLeaderName__c}" />
+                </apex:outputpanel>
+            </apex:pageblocksectionitem>
+
+            <apex:pageblocksectionitem helptext="" >
+                <apex:outputtext value="{!dLabel['DL405']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.PaymentTerms__c}" />
+                </apex:outputpanel>
+            </apex:pageblocksectionitem>                    
+
+            <apex:pageblocksectionitem >
+                <apex:outputtext value="{!dLabel['DL406']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.TeamLeaderTitle__c}" />
+                </apex:outputpanel>
+            </apex:pageblocksectionitem>    
+
+            <apex:pageblocksectionitem helptext="{!$ObjectType.Agreement__c.Fields.FundingCurrencyCode__c.inlineHelpText}" >
+                <apex:outputtext value="{!dLabel['DL407']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.FundingCurrencyCode__c}" />
+                </apex:outputpanel>
+            </apex:pageblocksectionitem>            
+            
+            <apex:pageblocksectionitem helptext="{!dLabel['DL408']}" >
+                <apex:outputtext value="{!dLabel['DL409']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.FeeType__c}" />        
+                </apex:outputpanel>         
+            </apex:pageblocksectionitem>
+            <apex:pageblocksectionitem helptext="{!$ObjectType.Agreement__c.Fields.Amount__c.inlineHelpText}" >
+                <apex:outputtext value="{!dLabel['DL410']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.Amount__c}" />
+                </apex:outputpanel>             
+            </apex:pageblocksectionitem>            
+    
+            <apex:pageblocksectionitem >
+                <apex:outputtext value="{!dLabel['DL411']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.BacktoBackwithPrime__c}" />    
+                </apex:outputpanel>         
+            </apex:pageblocksectionitem>        
+    
+            <apex:pageblocksectionitem helptext="{!$ObjectType.Agreement__c.Fields.AgreementAmountEstimated__c.inlineHelpText}" >
+                <apex:outputtext value="{!dLabel['DL412']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.AgreementAmountEstimated__c}" />   
+                </apex:outputpanel>         
+            </apex:pageblocksectionitem>
+            
+            <apex:pageblocksectionitem helptext="{!dLabel['DL413']}" >
+                <apex:outputtext value="{!dLabel['DL414']}" />
+                <apex:outputfield value="{!agreement.CreatedDate}" />                
+            </apex:pageblocksectionitem>
+
+            <apex:pageblocksectionitem >
+                <apex:outputtext value="{!dLabel['DL415']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.TotalFundingAmount__c}" />
+                </apex:outputpanel>             
+            </apex:pageblocksectionitem>            
+
+            <apex:pageblocksectionitem helptext="{!$ObjectType.Agreement__c.Fields.StartDate__c.inlineHelpText}" >
+                <apex:outputtext value="{!dLabel['DL416']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.StartDate__c}" />  
+                </apex:outputpanel>         
+            </apex:pageblocksectionitem>        
+            
+            <apex:pageblocksectionitem >
+                <apex:outputtext value="{!dLabel['DL417']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.TotalFundingAmount__c}" />
+                </apex:outputpanel>             
+            </apex:pageblocksectionitem>                                                    
+        
+            <apex:pageblocksectionitem helptext="{!$ObjectType.Agreement__c.Fields.ExpirationDate__c.inlineHelpText}" >
+                <apex:outputtext value="{!dLabel['DL418']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.ExpirationDate__c}" /> 
+                </apex:outputpanel>         
+            </apex:pageblocksectionitem>    
+                
+            <apex:pageblocksectionitem >
+                <apex:outputtext value="{!dLabel['DL419']}" />
+                <apex:outputfield value="{!agreement.Total_Invoiced__c}" />              
+            </apex:pageblocksectionitem>            
+                    
+            <apex:pageblocksectionitem >
+                <apex:outputtext value="{!dLabel['DL420']}" />
+                <apex:outputfield value="{!agreement.TotalPaid__c}" />              
+            </apex:pageblocksectionitem>        
+            </apex:pageblocksection>
+            
+            <apex:pageblocksection columns="2" title="{!dLabel['DL421']}" >
+            <div class="infoTable" >
+                <table cellpadding="0" cellspacing="0" >
+                    <tr>
+                        <td><b>{!dLabel['DL422']}</b><br/>
+                        {!dLabel['DL423']} <br/>{!dLabel['DL424']}</td>
+                    </tr>   
+                    <tr>
+                        <td><b>{!dLabel['DL425']}</b><br/>
+                        {!dLabel['DL426']} <br/>{!dLabel['DL427']}</td>
+                    </tr>
+                    <tr>
+                        <td><b>{!dLabel['DL428']}</b><br/>
+                        {!dLabel['DL429']}<br/> {!dLabel['DL430']}   
+                        </td>   
+                    </tr>   
+                    <tr>
+                        <td><b>{!dLabel['DL431']}</b><br/>
+                        {!dLabel['DL432']}<br/> {!dLabel['DL433']}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><b>{!dLabel['DL434']}</b><br/>
+                        {!dLabel['DL435']}<br/> {!dLabel['DL436']}</td>
+                    </tr>                   
+                                                                                                                                                                                                        
+                </table>
+            </div>          
+            </apex:pageblocksection>
+            
+            <apex:pageblocksection columns="2" title="{!dLabel['DL437']}" >
+                <apex:pageblocksectionitem helptext="{!$ObjectType.Agreement__c.Fields.ScopePackage__c.inlineHelpText}" >
+                    <apex:outputtext value="{!dLabel['DL438']}" />
+                    <apex:outputpanel >
+                        <apex:outputfield value="{!agreement.ScopePackage__c}" />
+                    </apex:outputpanel>
+                </apex:pageblocksectionitem>    
+                
+                <apex:pageblocksectionitem helptext="{!$ObjectType.Agreement__c.Fields.ScopeOfServices__c.inlineHelpText}" >
+                    <apex:outputtext value="{!dLabel['DL439']}" />
+                    <apex:outputpanel id="subScope" >
+                        <apex:outputfield value="{!agreement.ScopeOfServices__c}" />
+                        <apex:outputfield value="{!agreement.ScopePackage__r.Scope_Details__c}" />          
+                    </apex:outputpanel>         
+                </apex:pageblocksectionitem>                                 
+            </apex:pageblocksection>
+            
+            <apex:pageblocksection columns="2" title="{!dLabel['DL440']}" >
+                    <apex:pageblocksectionitem >
+                        <apex:outputtext value="{!dLabel['DL441']}" />
+                        <apex:outputpanel >
+                        <apex:outputfield value="{!agreement.CommericialTerms__c}" />
+                        </apex:outputpanel>                     
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem >
+                        <apex:outputtext value="{!dLabel['DL442']}" />
+                        <apex:outputpanel >                     
+                        <apex:outputfield value="{!agreement.CommericialTerms__c}" />
+                        </apex:outputpanel>
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem >
+                        <apex:outputpanel >
+                            <apex:outputfield value="{!agreement.CommericialTermsDescription__c}" />                       
+                        </apex:outputpanel>
+                    </apex:pageblocksectionitem>    
+            </apex:pageblocksection>
+            
+            <apex:pageblocksection columns="2" title="{!dLabel['DL443']}" >          
+                <apex:outputfield value="{!agreement.SpecialConditions__c}" />                     
+            </apex:pageblocksection>
+        
+        </apex:pageblock>  
+		<nttdcore:DLabel name="DL444" default="Purchase Orders" labelParent="{!this}" /><apex:pageblock title="{!dLabel['DL444']}" ><nttdcore:DLabel name="DL445" default="Purchase Order Number" labelParent="{!this}" /><nttdcore:DLabel name="DL446" default="Project" labelParent="{!this}" /><nttdcore:DLabel name="DL447" default="PO Date" labelParent="{!this}" /><nttdcore:DLabel name="DL448" default="PO Type" labelParent="{!this}" /><nttdcore:DLabel name="DL449" default="Requestor" labelParent="{!this}" /><nttdcore:DLabel name="DL450" default="Status" labelParent="{!this}" /><nttdcore:DLabel name="DL451" default="Total" labelParent="{!this}" /><nttdcore:DLabel name="DL452" default="Created Date" labelParent="{!this}" /><nttdcore:DLabel name="DL453" default="Created By" labelParent="{!this}" />
+			<apex:pageblocktable value="{!PurchaseOrders}" var="po" rendered="{!PurchaseOrders != null}" >
+				<apex:column headervalue="{!dLabel['DL445']}" ><apex:outputfield value="{!po.Name}" /></apex:column>				
+				<apex:column headervalue="{!dLabel['DL446']}" ><apex:outputfield value="{!po.Project__c}" /></apex:column>				
+				<apex:column headervalue="{!dLabel['DL447']}" ><apex:outputfield value="{!po.PO_Date__c}" /></apex:column>				
+				<apex:column headervalue="{!dLabel['DL448']}" ><apex:outputfield value="{!po.POType__c}" /></apex:column>				
+				<apex:column headervalue="{!dLabel['DL449']}" ><apex:outputfield value="{!po.Requestor__c}" /></apex:column>				
+				<apex:column headervalue="{!dLabel['DL450']}" ><apex:outputfield value="{!po.Status__c}" /></apex:column>				
+				<apex:column headervalue="{!dLabel['DL451']}" ><apex:outputfield value="{!po.Total__c}" /></apex:column>				
+				<apex:column headervalue="{!dLabel['DL452']}" ><apex:outputfield value="{!po.CreatedDate}" /></apex:column>				
+				<apex:column headervalue="{!dLabel['DL453']}" ><apex:outputfield value="{!po.CreatedById}" /></apex:column>				
+
+			</apex:pageblocktable>
+			<apex:outputpanel rendered="{!PurchaseOrders == null}" >
+            	<nttdcore:DLabel name="DL454" default="No records to display" labelParent="{!this}" /><apex:outputtext value="{!dLabel['DL454']}" />
+        	</apex:outputpanel> 
+		</apex:pageblock>
+         
+      <!--   <c:ECO_MSAFlyout MSAId="{!agreement.MSAReference__c}" rendered="{!agreement.MSAReference__c != null}"/>  -->
+      <!--  TODO: check these 2 components     
+        <c:ECO_RiskFlyout ProjectId="{!project.Id}" rendered="{!project != null}" PlanElement="" />
+        <c:ECO_AssumptionFlyout ProjectId="{!project.Id}" rendered="{!project != null}" PlanElement="" />
+        -->
+    <apex:relatedlist list="ContractReviews__r" />
+    <apex:relatedlist list="CombinedAttachments" />
+    
+    </apex:outputpanel>     
+
+    <!-- Prime Task Order -->   
+    <apex:outputpanel rendered="{!agreementRecordType =='Prime Task Order'}" id="primeTaskOrder" >
+        <apex:pageblock ><nttdcore:DLabel name="DL456" default="ePM Agreement Number" labelParent="{!this}" /><nttdcore:DLabel name="DL457" default="Ecosystem Project Reference ID" labelParent="{!this}" /><nttdcore:DLabel name="DL458" default="Agreement Status" labelParent="{!this}" /><nttdcore:DLabel name="DL459" default="Oracle Project No" labelParent="{!this}" /><nttdcore:DLabel name="DL460" default="Oracle Agreement No" labelParent="{!this}" /><nttdcore:DLabel name="DL461" default="Project Name" labelParent="{!this}" /><nttdcore:DLabel name="DL462" default="Search and select the MSA that applies to the contract. " labelParent="{!this}" /><nttdcore:DLabel name="DL463" default="MSA Reference" labelParent="{!this}" /><nttdcore:DLabel name="DL464" default="Agreement Owner" labelParent="{!this}" /><nttdcore:DLabel name="DL465" default="Search and select the MSA that applies to the contract. " labelParent="{!this}" /><nttdcore:DLabel name="DL466" default="MSA Period" labelParent="{!this}" /><nttdcore:DLabel name="DL467" default=" - " labelParent="{!this}" /><nttdcore:DLabel name="DL468" default="Agreement Executed By" labelParent="{!this}" /><nttdcore:DLabel name="DL469" default="End Client" labelParent="{!this}" /><nttdcore:DLabel name="DL470" default="Execution Date" labelParent="{!this}" /><nttdcore:DLabel name="DL471" default="Invoicing Client" labelParent="{!this}" /><nttdcore:DLabel name="DL472" default="Fee Type" labelParent="{!this}" /><nttdcore:DLabel name="DL473" default="Enter a Title or Name of the Contract" labelParent="{!this}" /><nttdcore:DLabel name="DL474" default="Task Order Title/Name" labelParent="{!this}" /><nttdcore:DLabel name="DL475" default="Payment Terms" labelParent="{!this}" /><nttdcore:DLabel name="DL476" default="Enter the Clients reference number (if applicable)" labelParent="{!this}" /><nttdcore:DLabel name="DL477" default="Task Order Reference No." labelParent="{!this}" /><nttdcore:DLabel name="DL478" default="Agreement Currency" labelParent="{!this}" /><nttdcore:DLabel name="DL479" default="Contract Type" labelParent="{!this}" /><nttdcore:DLabel name="DL480" default="Agreement Amount (confirmed)" labelParent="{!this}" /><nttdcore:DLabel name="DL481" default="The date the agreement record was created in Ecosystem (&amp; Oracle)" labelParent="{!this}" /><nttdcore:DLabel name="DL482" default="Create Date" labelParent="{!this}" /><nttdcore:DLabel name="DL483" default="Agreement Amount (estimated)" labelParent="{!this}" /><nttdcore:DLabel name="DL484" default="Start Date" labelParent="{!this}" /><nttdcore:DLabel name="DL485" default="Total Funding Amount" labelParent="{!this}" /><nttdcore:DLabel name="DL486" default="End Date" labelParent="{!this}" /><nttdcore:DLabel name="DL487" default="Agreement - Funding Variance" labelParent="{!this}" /><nttdcore:DLabel name="DL488" default="Prof Indemnity/Liability Amt" labelParent="{!this}" /><nttdcore:DLabel name="DL489" default="Variance Reason" labelParent="{!this}" /><nttdcore:DLabel name="DL490" default="Public/General Liability Amt" labelParent="{!this}" /><nttdcore:DLabel name="DL491" default="Scope Package" labelParent="{!this}" /><nttdcore:DLabel name="DL492" default="Scope of Services" labelParent="{!this}" />
+        <h2><nttdcore:DLabel name="DL455" default="Prime Task Order Agreement Summary" labelParent="{!this}" />{!dLabel['DL455']}</h2>
+        <apex:pageblocksection >
+            <apex:pageblocksectionitem helptext="{!$ObjectType.Agreement__c.Fields.Name.inlineHelpText}" >
+                <apex:outputtext value="{!dLabel['DL456']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.Name}" />
+                </apex:outputpanel>
+            </apex:pageblocksectionitem>
+            <apex:pageblocksectionitem >
+                <apex:outputtext value="{!dLabel['DL457']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!project.EcoSystemReferenceNumber__c}" />              
+                </apex:outputpanel>
+            </apex:pageblocksectionitem>
+            <apex:pageblocksectionitem >
+                <apex:outputtext value="{!dLabel['DL458']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.AgreementStatus__c}" />    
+                </apex:outputpanel>         
+            </apex:pageblocksectionitem>        
+            <apex:pageblocksectionitem >
+                <apex:outputtext value="{!dLabel['DL459']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!project.OracleProjectnumber__c}" />
+                </apex:outputpanel>
+            </apex:pageblocksectionitem>        
+            <apex:pageblocksectionitem helptext="{!$ObjectType.Agreement__c.Fields.AgreementNumber__c.inlineHelpText}" >
+                <apex:outputtext value="{!dLabel['DL460']}" />
+                <apex:outputfield value="{!agreement.AgreementNumber__c}" />
+            </apex:pageblocksectionitem>    
+            <apex:pageblocksectionitem >
+                <apex:outputtext value="{!dLabel['DL461']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!project.Name}" />
+                </apex:outputpanel>         
+            </apex:pageblocksectionitem>    
+            <apex:pageblocksectionitem helptext="{!dLabel['DL462']}" >
+                <apex:outputtext value="{!dLabel['DL463']}" />
+                <apex:outputpanel id="testPanel" >
+                    <apex:outputfield value="{!agreement.MSAReference__c}" />       
+                </apex:outputpanel>     
+            </apex:pageblocksectionitem>
+                        
+            <apex:pageblocksectionitem helptext="{!$ObjectType.Agreement__c.Fields.ProjectTeamMember__c.inlineHelpText}" >
+                <apex:outputtext value="{!dLabel['DL464']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.ProjectTeamMember__c}" />  
+                </apex:outputpanel>         
+            </apex:pageblocksectionitem>
+            <apex:pageblocksectionitem helptext="{!dLabel['DL465']}" >
+                <apex:outputtext value="{!dLabel['DL466']}" />
+                <apex:outputpanel rendered="{!agreement.MSAReference__c != null}" >
+                    <apex:outputfield value="{!agreement.MSAReference__r.OrderingPeriodStart__c}" html-placeholder="Start Date" />
+                    <apex:outputtext value="{!dLabel['DL467']}" />
+                    <apex:outputfield value="{!agreement.MSAReference__r.OrderingPeriodEnd__c}" html-placeholder="End Date" />          
+                </apex:outputpanel>     
+            </apex:pageblocksectionitem>        
+
+            <apex:pageblocksectionitem helptext="{!$ObjectType.Agreement__c.Fields.AgreementExecutedBy__c.inlineHelpText}" >
+                <apex:outputtext value="{!dLabel['DL468']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.AgreementExecutedBy__c}" />    
+                </apex:outputpanel>         
+            </apex:pageblocksectionitem>
+            
+            <apex:pageblocksectionitem >
+                <apex:outputtext value="{!dLabel['DL469']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.Account__c}" />    
+                </apex:outputpanel>                     
+            </apex:pageblocksectionitem>
+                            
+            <apex:pageblocksectionitem helptext="{!$ObjectType.Agreement__c.Fields.ExecutionDate__c.inlineHelpText}" >
+                <apex:outputtext value="{!dLabel['DL470']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.ExecutionDate__c}" />  
+                </apex:outputpanel>         
+            </apex:pageblocksectionitem>
+
+            <apex:pageblocksectionitem helptext="{!$ObjectType.Agreement__c.Fields.InvoicingClient__c.inlineHelpText}" >
+                <apex:outputtext value="{!dLabel['DL471']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.InvoicingClient__c}" />        
+                </apex:outputpanel> 
+            </apex:pageblocksectionitem>        
+
+            <apex:pageblocksectionitem helptext="{!$ObjectType.Agreement__c.Fields.FeeType__c.inlineHelpText}" >
+                <apex:outputtext value="{!dLabel['DL472']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.FeeType__c}" />        
+                </apex:outputpanel>     
+            </apex:pageblocksectionitem>    
+            
+            <apex:pageblocksectionitem helptext="{!dLabel['DL473']}" >
+                <apex:outputtext value="{!dLabel['DL474']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.ContractTitle__c}" />  
+                </apex:outputpanel>         
+            </apex:pageblocksectionitem>        
+
+            <apex:pageblocksectionitem id="termId" >
+                <apex:outputtext value="{!dLabel['DL475']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.PaymentTerms__c}" />
+                </apex:outputpanel> 
+            </apex:pageblocksectionitem>
+            
+            <apex:pageblocksectionitem helptext="{!dLabel['DL476']}" >
+                <apex:outputtext value="{!dLabel['DL477']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.ClientContractReferenceNo__c}" />  
+                </apex:outputpanel>         
+            </apex:pageblocksectionitem>            
+
+            <apex:pageblocksectionitem helptext="{!$ObjectType.Agreement__c.Fields.FundingCurrencyCode__c.inlineHelpText}" >
+                <apex:outputtext value="{!dLabel['DL478']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.FundingCurrencyCode__c}" />    
+                </apex:outputpanel>         
+            </apex:pageblocksectionitem>    
+    
+            <apex:pageblocksectionitem >
+                <apex:outputtext value="{!dLabel['DL479']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.AgreementType__c}" />  
+                </apex:outputpanel>         
+            </apex:pageblocksectionitem>            
+
+            <apex:pageblocksectionitem helptext="{!$ObjectType.Agreement__c.Fields.Amount__c.inlineHelpText}" >
+                <apex:outputtext value="{!dLabel['DL480']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.Amount__c}" /> 
+                </apex:outputpanel>
+            </apex:pageblocksectionitem>
+
+            <apex:pageblocksectionitem helptext="{!dLabel['DL481']}" >
+                <apex:outputtext value="{!dLabel['DL482']}" />
+                <apex:outputfield value="{!agreement.CreatedDate}" />                
+            </apex:pageblocksectionitem>    
+            
+            <apex:pageblocksectionitem helptext="{!$ObjectType.Agreement__c.Fields.AgreementAmountEstimated__c.inlineHelpText}" >
+                <apex:outputtext value="{!dLabel['DL483']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.AgreementAmountEstimated__c}" />
+                </apex:outputpanel>             
+            </apex:pageblocksectionitem>            
+    
+            <apex:pageblocksectionitem helptext="{!$ObjectType.Agreement__c.Fields.StartDate__c.inlineHelpText}" >
+                <apex:outputtext value="{!dLabel['DL484']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.StartDate__c}" />  
+                </apex:outputpanel>         
+            </apex:pageblocksectionitem>                    
+            
+            <apex:pageblocksectionitem >
+                <apex:outputtext value="{!dLabel['DL485']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.TotalFundingAmount__c}" /> 
+                </apex:outputpanel>         
+            </apex:pageblocksectionitem>                                        
+        
+            <apex:pageblocksectionitem helptext="{!$ObjectType.Agreement__c.Fields.ExpirationDate__c.inlineHelpText}" >
+                <apex:outputtext value="{!dLabel['DL486']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.ExpirationDate__c}" /> 
+                </apex:outputpanel>                         
+            </apex:pageblocksectionitem>    
+
+            <apex:pageblocksectionitem >
+                <apex:outputtext value="{!dLabel['DL487']}" />
+                <apex:outputfield value="{!agreement.AgreementFundingVariance__c}" />                
+            </apex:pageblocksectionitem>    
+    
+            <apex:pageblocksectionitem helptext="{!$ObjectType.Agreement__c.Fields.ProfIndemnityLiabilityAmt__c.inlineHelpText}" >
+                <apex:outputtext value="{!dLabel['DL488']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.ProfIndemnityLiabilityAmt__c}" />
+                </apex:outputpanel>                                         
+            </apex:pageblocksectionitem>    
+            
+            <apex:pageblocksectionitem >
+                    <apex:outputtext value="{!dLabel['DL489']}" />
+                    <apex:outputpanel >
+                        <apex:outputfield value="{!agreement.VarianceReason__c}" /> 
+                    </apex:outputpanel>                                                 
+            </apex:pageblocksectionitem>            
+        
+            <apex:pageblocksectionitem helptext="{!$ObjectType.Agreement__c.Fields.PublicGeneralLiabilityAmt__c.inlineHelpText}" >
+                <apex:outputtext value="{!dLabel['DL490']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.PublicGeneralLiabilityAmt__c}" />      
+                </apex:outputpanel>     
+            </apex:pageblocksectionitem>
+
+            </apex:pageblocksection>
+
+            <apex:pageblocksection columns="2" >
+            <apex:pageblocksectionitem helptext="{!$ObjectType.Agreement__c.Fields.ScopePackage__c.inlineHelpText}" >
+                <apex:outputtext value="{!dLabel['DL491']}" />
+                <apex:outputpanel >
+                    <apex:outputfield value="{!agreement.ScopePackage__c}" />
+                </apex:outputpanel>
+            </apex:pageblocksectionitem>    
+            
+            <apex:pageblocksectionitem helptext="{!$ObjectType.Agreement__c.Fields.ScopeOfServices__c.inlineHelpText}" >
+                    <apex:outputtext value="{!dLabel['DL492']}" />
+                    <apex:outputpanel id="subScope" >
+                        <apex:outputfield value="{!agreement.ScopeOfServices__c}" />
+                        <apex:outputfield value="{!agreement.ScopePackage__r.Scope_Details__c}" />          
+                    </apex:outputpanel>         
+            </apex:pageblocksectionitem> 
+                                                                                                                                
+        </apex:pageblocksection>
+                        
+        </apex:pageblock>   
+
+        <nttdcore:DLabel name="DL493" default="Funding" labelParent="{!this}" /><apex:pageblock title="{!dLabel['DL493']}" >
+            <apex:outputpanel rendered="{!fundings.size > 0}" ><nttdcore:DLabel name="DL494" default="Date Allocated" labelParent="{!this}" /><nttdcore:DLabel name="DL495" default="Allocated Amount" labelParent="{!this}" />
+	            <apex:pageblocktable value="{!fundings}" var="funding" >
+	                <apex:column headervalue="{!dLabel['DL494']}" >
+	                    <apex:outputfield value="{!funding.CreatedDate}" rendered="{!funding.DateAllocatedDate__c == null}" />
+	                    <apex:outputfield value="{!funding.DateAllocatedDate__c}" rendered="{!funding.DateAllocatedDate__c != null}" />                    
+	                </apex:column>                  
+	                <apex:column headervalue="{!dLabel['DL495']}" >
+	                    <apex:outputfield value="{!funding.TotalBaselinedAmount__c}" rendered="{!funding.AllocatedAmount__c==null}" />
+	                    <apex:outputfield value="{!funding.AllocatedAmount__c}" rendered="{!funding.AllocatedAmount__c!=null}" />
+	                </apex:column>
+	        	</apex:pageblocktable>      
+        	</apex:outputpanel>
+        
+	        <apex:outputpanel rendered="{!fundings.size == 0}" >
+	            <nttdcore:DLabel name="DL496" default="No records to display" labelParent="{!this}" /><apex:outputtext value="{!dLabel['DL496']}" />
+	        </apex:outputpanel> 
+        </apex:pageblock>       
+        
+        <nttdcore:DLabel name="DL497" default="MSA DOA Conditions of Approval" labelParent="{!this}" /><apex:pageblock title="{!dLabel['DL497']}" >
+            <apex:outputpanel rendered="{!msaDOAConditions != null && msaDOAConditions.size > 0}" ><nttdcore:DLabel name="DL498" default="Name" labelParent="{!this}" /><nttdcore:DLabel name="DL499" default="Mitigation Plan" labelParent="{!this}" /><nttdcore:DLabel name="DL500" default="DOA Approval Request" labelParent="{!this}" /><nttdcore:DLabel name="DL501" default="DOA Trigger Number" labelParent="{!this}" /><nttdcore:DLabel name="DL502" default="DOA Register" labelParent="{!this}" /><nttdcore:DLabel name="DL503" default="Compliance Status" labelParent="{!this}" /><nttdcore:DLabel name="DL504" default="Compliance Date" labelParent="{!this}" /><nttdcore:DLabel name="DL505" default="Completed" labelParent="{!this}" /><nttdcore:DLabel name="DL506" default="Level" labelParent="{!this}" /><nttdcore:DLabel name="DL507" default="Trigger Description" labelParent="{!this}" />
+            <apex:pageblocktable value="{!msaDOAConditions}" var="conditions" >
+                <apex:column headervalue="{!dLabel['DL498']}" ><apex:outputfield value="{!conditions.Name}" /></apex:column>                   
+                <apex:column headervalue="{!dLabel['DL499']}" ><apex:outputfield value="{!conditions.Mitigation_Plan__c}" /></apex:column>                   
+                <apex:column headervalue="{!dLabel['DL500']}" ><apex:outputfield value="{!conditions.DOAApprovalRequest__c}" /></apex:column>                   
+                <apex:column headervalue="{!dLabel['DL501']}" ><apex:outputfield value="{!conditions.DoATriggerNo__c}" /></apex:column>                   
+                <apex:column headervalue="{!dLabel['DL502']}" ><apex:outputfield value="{!conditions.DOARegister__c}" /></apex:column>                   
+                <apex:column headervalue="{!dLabel['DL503']}" ><apex:outputfield value="{!conditions.ComplianceStatus__c}" /></apex:column>                   
+                <apex:column headervalue="{!dLabel['DL504']}" ><apex:outputfield value="{!conditions.ComplianceDate__c}" /></apex:column>                   
+                <apex:column headervalue="{!dLabel['DL505']}" ><apex:outputfield value="{!conditions.Completed__c}" /></apex:column>                   
+                <apex:column headervalue="{!dLabel['DL506']}" ><apex:outputfield value="{!conditions.Level__c}" /></apex:column>                   
+                <apex:column headervalue="{!dLabel['DL507']}" ><apex:outputfield value="{!conditions.TriggerDescription__c}" /></apex:column>                   
+            </apex:pageblocktable>
+            </apex:outputpanel>
+            <apex:outputpanel rendered="{!msaDOAConditions == null || msaDOAConditions.size == 0}" >
+                <nttdcore:DLabel name="DL508" default="No records to display" labelParent="{!this}" /><apex:outputtext value="{!dLabel['DL508']}" />
+            </apex:outputpanel> 
+        </apex:pageblock>   
+        
+        <nttdcore:DLabel name="DL509" default="MSA Management Team Members" labelParent="{!this}" /><apex:pageblock title="{!dLabel['DL509']}" >
+            <apex:outputpanel rendered="{!msaManagementTeamMembers != null && msaManagementTeamMembers.size > 0}" ><nttdcore:DLabel name="DL510" default="Role" labelParent="{!this}" /><nttdcore:DLabel name="DL511" default="Name" labelParent="{!this}" /><nttdcore:DLabel name="DL512" default="Phone" labelParent="{!this}" /><nttdcore:DLabel name="DL513" default="Email" labelParent="{!this}" />
+            <apex:pageblocktable value="{!msaManagementTeamMembers}" var="managementTeamMember" >
+                <apex:column headervalue="{!dLabel['DL510']}" ><apex:outputfield value="{!managementTeamMember.Role__c}" /></apex:column>                   
+                <apex:column headervalue="{!dLabel['DL511']}" ><apex:outputfield value="{!managementTeamMember.TeamMember__r.Name}" /></apex:column>
+                <apex:column headervalue="{!dLabel['DL512']}" ><apex:outputfield value="{!managementTeamMember.TeamMember__r.Phone}" /></apex:column>                  
+                <apex:column headervalue="{!dLabel['DL513']}" ><apex:outputfield value="{!managementTeamMember.TeamMember__r.Email}" /></apex:column>
+            </apex:pageblocktable>
+            </apex:outputpanel>
+            <apex:outputpanel rendered="{!msaManagementTeamMembers == null || msaManagementTeamMembers.size == 0}" >
+                <nttdcore:DLabel name="DL514" default="No records to display" labelParent="{!this}" /><apex:outputtext value="{!dLabel['DL514']}" />
+            </apex:outputpanel>             
+        </apex:pageblock>           
+        
+        <!--  TODO: check these 2 components     
+        <c:ECO_RiskFlyout ProjectId="{!project.Id}" PlanElement="" rendered="{!project != null}"/>
+        <c:ECO_AssumptionFlyout ProjectId="{!project.Id}" PlanElement="" rendered="{!project != null}"/>
+        -->
+       <!--  <c:ECO_MSABillRateFlyout ProjectId="{!Agreement__c.Project__c}" rendered="{!Agreement__c.Project__c != null}" />  -->
+        
+       <!--  <c:ECO_MSAFlyout MSAId="{!agreement.Id}" />  -->
+
+    <apex:relatedlist list="ContractReviews__r" />
+    <apex:relatedlist list="CombinedAttachments" />
+    
+    </apex:outputpanel> 
+
+<!-- MSA -->    
+    <apex:outputpanel rendered="{!agreementRecordType =='Prime (MSA)'}" >
+        <apex:pageblock >
+        <h2><nttdcore:DLabel name="DL515" default="Master Service Agreement Summary" labelParent="{!this}" />{!dLabel['DL515']}</h2>      
+                <div class="halfWidthWrapper" ><nttdcore:DLabel name="DL516" default="Contract Details" labelParent="{!this}" /><nttdcore:DLabel name="DL517" default="Ordering Period" labelParent="{!this}" /><nttdcore:DLabel name="DL518" default=" - " labelParent="{!this}" /><nttdcore:DLabel name="DL519" default="Agreement Currency" labelParent="{!this}" /><nttdcore:DLabel name="DL520" default="Ordering Period" labelParent="{!this}" /><nttdcore:DLabel name="DL521" default=" - " labelParent="{!this}" /><nttdcore:DLabel name="DL522" default="Agreement Currency" labelParent="{!this}" />
+                    <apex:pageblocksection columns="2" title="{!dLabel['DL516']}" collapsible="false" >
+                        <apex:outputfield value="{!agreement.Account__c}" />
+                        <apex:outputfield value="{!agreement.ContractTitle__c}" />
+                        <apex:outputfield value="{!agreement.Description__c}" style="width: 400px; height: 40px" />
+                        <apex:outputfield value="{!agreement.AgreementNumber__c}" />
+                        <apex:pageblocksectionitem >
+                            <apex:outputlabel value="{!dLabel['DL517']}" />
+                            <apex:outputpanel >
+                                <apex:outputfield value="{!agreement.OrderingPeriodStart__c}" html-placeholder="Start Date" />
+                                <apex:outputtext value="{!dLabel['DL518']}" rendered="{!mode!=''}" />
+                                <apex:outputfield value="{!agreement.OrderingPeriodEnd__c}" html-placeholder="End Date" />
+                            </apex:outputpanel>
+                        </apex:pageblocksectionitem>
+                        <apex:outputfield value="{!agreement.ContractingAgency__c}" />
+                        <apex:outputfield value="{!agreement.AgreementType__c}" />
+                        <apex:outputfield value="{!agreement.TotalContractValue__c}" />
+             			<apex:pageblocksectionitem helptext="{!$ObjectType.Agreement__c.Fields.FundingCurrencyCode__c.inlineHelpText}" >
+                			<apex:outputtext value="{!dLabel['DL519']}" />
+               					 <apex:outputpanel >
+                    				<apex:outputfield value="{!agreement.FundingCurrencyCode__c}" />
+                				</apex:outputpanel>         
+            			</apex:pageblocksectionitem> 
+                         <apex:outputtext value="{!agreement.ScopeOfServices__c}" style="width: 400px; height: 40px" /> 
+                        
+                        <apex:outputfield value="{!agreement.Account__c}" />                      
+                        <apex:outputfield value="{!agreement.ContractTitle__c}" />
+                        <apex:outputfield value="{!agreement.Description__c}" style="width: 400px; height: 40px" />
+                        <apex:outputfield value="{!agreement.AgreementNumber__c}" />
+                        <apex:pageblocksectionitem >
+                            <apex:outputlabel value="{!dLabel['DL520']}" />
+                            <apex:outputpanel >
+                                <apex:outputfield value="{!agreement.OrderingPeriodStart__c}" html-placeholder="Start Date" />
+                                <apex:outputtext value="{!dLabel['DL521']}" />
+                                <apex:outputfield value="{!agreement.OrderingPeriodEnd__c}" html-placeholder="End Date" />
+                            </apex:outputpanel>
+                        </apex:pageblocksectionitem>
+                        <apex:outputfield value="{!agreement.ContractingAgency__c}" />
+                        <apex:outputfield value="{!agreement.AgreementType__c}" />
+                        <apex:outputfield value="{!agreement.TotalContractValue__c}" />
+             			<apex:pageblocksectionitem helptext="{!$ObjectType.Agreement__c.Fields.FundingCurrencyCode__c.inlineHelpText}" >
+                			<apex:outputtext value="{!dLabel['DL522']}" />
+               					 <apex:outputpanel >
+                    				<apex:outputfield value="{!agreement.FundingCurrencyCode__c}" />    
+                				</apex:outputpanel>         
+            			</apex:pageblocksectionitem> 
+                         <apex:outputfield value="{!agreement.ScopeOfServices__c}" style="width: 400px; height: 40px" />                            
+                    </apex:pageblocksection>
+                </div>
+                <div id="notifications" >
+                <apex:outputpanel ><nttdcore:DLabel name="DL523" default="Management Team Members" labelParent="{!this}" /><nttdcore:DLabel name="DL524" default="Role" labelParent="{!this}" /><nttdcore:DLabel name="DL525" default="Name" labelParent="{!this}" /><nttdcore:DLabel name="DL526" default="Phone" labelParent="{!this}" /><nttdcore:DLabel name="DL527" default="Email" labelParent="{!this}" /><nttdcore:DLabel name="DL528" default="No records to display" labelParent="{!this}" />
+                    <apex:pageblocksection columns="2" title="{!dLabel['DL523']}" collapsible="false" >
+                    	<c:ECO_HelpIcon helptext="Use this section to list the contract management team, such as the AECOM Program Manager, Contract Manager, Deputy Program Manager, Contracts Administrator.  This section could also be used to capture the client contact details." />
+						<!-- <div class="customHelpText">
+ 							<img src="../img/icon/forecasts24.png" class="customHelpIcon"/> 
+							<div class="customHelpBody">
+							
+							</div>
+            			</div> -->        
+                        <apex:outputpanel rendered="{!managementTeamMembers.size > 0}" >
+                        <apex:pageblocktable value="{!managementTeamMembers}" var="managementTeamMember" >
+                            <apex:column headervalue="{!dLabel['DL524']}" ><apex:outputfield value="{!managementTeamMember.Role__c}" /></apex:column>                   
+                            <apex:column headervalue="{!dLabel['DL525']}" ><apex:outputfield value="{!managementTeamMember.TeamMember__r.Name}" /></apex:column>
+                            <apex:column headervalue="{!dLabel['DL526']}" ><apex:outputfield value="{!managementTeamMember.TeamMember__r.Phone}" /></apex:column>                  
+                            <apex:column headervalue="{!dLabel['DL527']}" ><apex:outputfield value="{!managementTeamMember.TeamMember__r.Email}" /></apex:column>
+                        </apex:pageblocktable>
+                        </apex:outputpanel>
+                        <apex:outputpanel rendered="{!managementTeamMembers.size == 0}" >
+                            <apex:outputtext value="{!dLabel['DL528']}" />
+                        </apex:outputpanel>     
+                    </apex:pageblocksection>
+
+                </apex:outputpanel>
+                </div>
+                <div style="clear:both;" /><br/>
+        <!--    </apex:panelGrid> -->
+        </apex:pageblock>
+                
+        <nttdcore:DLabel name="DL529" default="List of Projects/Task Orders" labelParent="{!this}" /><apex:pageblock title="{!dLabel['DL529']}" >
+            <apex:outputpanel rendered="{!relatedAgreements.size > 0}" ><nttdcore:DLabel name="DL530" default="Oracle Project Number" labelParent="{!this}" /><nttdcore:DLabel name="DL531" default="Project Name" labelParent="{!this}" /><nttdcore:DLabel name="DL532" default="Project Manager" labelParent="{!this}" /><nttdcore:DLabel name="DL533" default="Contract Value (Confirmed)" labelParent="{!this}" /><nttdcore:DLabel name="DL534" default="Approved Cost Budget" labelParent="{!this}" /><nttdcore:DLabel name="DL535" default="% Cost Complete" labelParent="{!this}" /><nttdcore:DLabel name="DL536" default="Billed To Date" labelParent="{!this}" />
+            <apex:pageblocktable value="{!relatedAgreements}" var="relatedAgreement" >
+                <apex:column headervalue="{!dLabel['DL530']}" ><apex:outputfield value="{!relatedAgreement.Project__r.OracleProjectnumber__c}" /></apex:column>                   
+                <apex:column headervalue="{!dLabel['DL531']}" ><apex:outputfield value="{!relatedAgreement.Project__r.Name}" /></apex:column>
+                <apex:column headervalue="{!dLabel['DL532']}" ><apex:outputfield value="{!relatedAgreement.Project__r.pse__Project_Manager__c}" /></apex:column>
+                <apex:column headervalue="{!dLabel['DL533']}" ><apex:outputfield value="{!relatedAgreement.Amount__c}" /></apex:column>                   
+                <apex:column headervalue="{!dLabel['DL534']}" ><apex:outputfield value="{!relatedAgreement.Project__r.TotalApprovedCost__c}" /></apex:column>                 
+                <apex:column headervalue="{!dLabel['DL535']}" ><apex:outputfield value="{!relatedAgreement.Project__r.CostComplete__c}" /></apex:column>               
+                <apex:column headervalue="{!dLabel['DL536']}" ><apex:outputfield value="{!relatedAgreement.Project__r.pse__Billing_Eligible_Last_Updated__c}" /></apex:column>
+        	</apex:pageblocktable>      
+        </apex:outputpanel>
+        
+        <apex:outputpanel rendered="{!relatedAgreements.size == 0}" >
+            <nttdcore:DLabel name="DL537" default="No records to display" labelParent="{!this}" /><apex:outputtext value="{!dLabel['DL537']}" />
+        </apex:outputpanel> 
+        </apex:pageblock>
+        
+        <!--apex:pageBlock title="Project Portfolio Performance" >
+            <apex:chart height="400" width="1000" data="{!data}">
+                  <apex:axis type="Numeric" position="left" fields="data1" 
+                    title="Y Axis" grid="true"/>
+                  <apex:axis type="Category" position="bottom" fields="name" 
+                    title="X Axis">
+                </apex:axis>
+                <apex:lineSeries axis="left" fill="true" xField="name" yField="data1"
+                  markerType="cross" markerSize="4" markerFill="#FF0000"/>
+           </apex:chart>
+        </apex:pageBlock-->       
+        
+        <nttdcore:DLabel name="DL538" default="Contract Documents" labelParent="{!this}" /><apex:pageblock title="{!dLabel['DL538']}" >
+                <apex:outputpanel rendered="{!AttachedContractFiles.size > 0}" >
+                    <div class="fileList" ><nttdcore:DLabel name="DL539" default="Document Type" labelParent="{!this}" /><nttdcore:DLabel name="DL540" default="File Name" labelParent="{!this}" /><nttdcore:DLabel name="DL541" default="Comments" labelParent="{!this}" />
+                    <apex:pageblocktable value="{!AttachedContractFiles}" var="attachedContractFile" style="width: 825px;" rendered="{!agreement.ContractAttachment__c != null}" >
+						<apex:column headervalue="{!dLabel['DL539']}" value="{!attachedContractFile.attachmentType}" />    
+                        <apex:column headervalue="{!dLabel['DL540']}" >
+                            <apex:outputlink value="{!URLFOR($Action.Attachment.Download, attachedContractFile.attachmentId)}" target="_blank" >
+                                <apex:outputtext value="{!attachedContractFile.attachment.Name}" />
+                            </apex:outputlink>
+                        </apex:column>
+                        <apex:column headervalue="{!dLabel['DL541']}" value="{!attachedContractFile.comments}" />
+                        <apex:column value="{!attachedContractFile.attachment.ContentType}" /> 
+                        <apex:column value="{!attachedContractFile.attachment.LastModifiedDate}" />    
+                        <apex:column value="{!attachedContractFile.attachment.LastModifiedById}" />
+                    </apex:pageblocktable>
+                    </div>      
+                </apex:outputpanel>
+                <apex:outputpanel rendered="{!AttachedContractFiles.size == 0}" >
+                    <nttdcore:DLabel name="DL542" default="No records to display" labelParent="{!this}" /><apex:outputtext value="{!dLabel['DL542']}" /><br/><br/>
+                </apex:outputpanel>      
+        		<apex:outputpanel >
+	        		<apex:outputtext value="{!contractDocumentType}" />
+	       			<apex:outputtext value="{!contractDocumentComments}" />
+	                <apex:outputtext value="{!overrideContractAttachmentName}" />
+	           </apex:outputpanel>
+               
+        
+        </apex:pageblock>               
+
+        <nttdcore:DLabel name="DL543" default="Program Plans" labelParent="{!this}" /><apex:pageblock title="{!dLabel['DL543']}" >
+		<div class="customHelpText" >
+ 			<img src="../img/icon/forecasts24.png" class="customHelpIcon" /> 
+			<div class="customHelpBody" ><nttdcore:DLabel name="DL544" default="Plans may include any document prepared to help manage the contract, such as Program Management Plans, Program Health and Safety Plans, Program QA/QC Plans or Communication Plans." labelParent="{!this}" />
+				{!dLabel['DL544']}
+			</div>
+		</div>	        
+            <apex:outputpanel rendered="{!AttachedProgramPlanFiles.size > 0}" >
+                <div class="fileList" ><nttdcore:DLabel name="DL545" default="File Name" labelParent="{!this}" /><nttdcore:DLabel name="DL546" default="Comments" labelParent="{!this}" />
+                <apex:pageblocktable value="{!AttachedProgramPlanFiles}" var="attachedProgramPlanFile" style="width: 825px;" rendered="{!agreement.ProgramPlanAttachment__c != null}" >
+                    <apex:column headervalue="{!dLabel['DL545']}" >
+                        <apex:outputlink value="{!URLFOR($Action.Attachment.Download, attachedProgramPlanFile.Attachment.Id)}" target="_blank" >
+                            <apex:outputtext value="{!attachedProgramPlanFile.Attachment.Name}" />
+                        </apex:outputlink>
+                    </apex:column>
+                    <apex:column headervalue="{!dLabel['DL546']}" value="{!attachedProgramPlanFile.Comments}" /> 
+                    <apex:column value="{!attachedProgramPlanFile.Attachment.ContentType}" />  
+                    <apex:column value="{!attachedProgramPlanFile.Attachment.LastModifiedDate}" /> 
+                    <apex:column value="{!attachedProgramPlanFile.Attachment.LastModifiedById}" />
+                </apex:pageblocktable>
+                </div>
+            </apex:outputpanel> 
+            <apex:outputpanel rendered="{!AttachedProgramPlanFiles.size == 0}" >
+                <nttdcore:DLabel name="DL547" default="No records to display" labelParent="{!this}" /><apex:outputtext value="{!dLabel['DL547']}" /><br/><br/>
+            </apex:outputpanel> 
+            <apex:outputpanel >
+            	<apex:outputtext value="{!programPlanAttachmentComments}" />
+            	<apex:outputtext value="{!overrideProgramPlanAttachmentName}" />
+			</apex:outputpanel>
+
+        </apex:pageblock>
+        
+        <nttdcore:DLabel name="DL548" default="Guidance Documents" labelParent="{!this}" /><apex:pageblock title="{!dLabel['DL548']}" >
+		<div class="customHelpText" >
+ 			<img src="../img/icon/forecasts24.png" class="customHelpIcon" /> 
+			<div class="customHelpBody" ><nttdcore:DLabel name="DL549" default="Program-type documents may include presentation templates/examples, regulatory guidance documents, document control requirements or project proposal templates." labelParent="{!this}" />
+				{!dLabel['DL549']}
+			</div>
+		</div>	        
+            <apex:outputpanel rendered="{!AttachedGuidanceFiles.size > 0}" >
+                <div class="fileList" ><nttdcore:DLabel name="DL550" default="File Name" labelParent="{!this}" /><nttdcore:DLabel name="DL551" default="Comments" labelParent="{!this}" />
+                <apex:pageblocktable value="{!AttachedGuidanceFiles}" var="attachedGuidanceFile" style="width: 825px;" rendered="{!agreement.GuidanceAttachment__c != null}" >
+                    <apex:column headervalue="{!dLabel['DL550']}" >
+                        <apex:outputlink value="{!URLFOR($Action.Attachment.Download, attachedGuidanceFile.Attachment.Id)}" target="_blank" >
+                            <apex:outputtext value="{!attachedGuidanceFile.Attachment.Name}" />
+                        </apex:outputlink>
+                    </apex:column>
+                    <apex:column headervalue="{!dLabel['DL551']}" value="{!attachedGuidanceFile.comments}" />
+                    <apex:column value="{!attachedGuidanceFile.Attachment.ContentType}" /> 
+                    <apex:column value="{!attachedGuidanceFile.Attachment.LastModifiedDate}" />    
+                    <apex:column value="{!attachedGuidanceFile.Attachment.LastModifiedById}" />
+                </apex:pageblocktable>
+                </div>
+            </apex:outputpanel>         
+            <apex:outputpanel rendered="{!AttachedGuidanceFiles.size == 0}" >
+                <nttdcore:DLabel name="DL552" default="No records to display" labelParent="{!this}" /><apex:outputtext value="{!dLabel['DL552']}" /><br/><br/>
+            </apex:outputpanel> 
+            
+            <apex:outputpanel >
+            	<apex:outputtext value="{!guidanceAttachmentComments}" />
+            	<apex:outputtext value="{!overrideGuidanceAttachmentName}" />
+				</apex:outputpanel>
+        
+        </apex:pageblock>   
+        
+        <nttdcore:DLabel name="DL553" default="Business Development" labelParent="{!this}" /><apex:pageblock title="{!dLabel['DL553']}" >
+		<div class="customHelpText" >
+ 			<img src="../img/icon/forecasts24.png" class="customHelpIcon" /> 
+			<div class="customHelpBody" ><nttdcore:DLabel name="DL554" default="Business development documents may include contract cut sheets or brochures, client surveys or evaluations (e.g., CPARs), client commendation letters or awards, or program-level presentations." labelParent="{!this}" />
+				{!dLabel['DL554']}			</div>
+			</div>
+            <apex:outputpanel rendered="{!AttachedBusinessDevelopmentFiles.size > 0}" >
+            <div class="fileList" ><nttdcore:DLabel name="DL555" default="File Name" labelParent="{!this}" /><nttdcore:DLabel name="DL556" default="Comments" labelParent="{!this}" />
+            <apex:pageblocktable value="{!AttachedBusinessDevelopmentFiles}" var="attachedBusinessDevelopmentFile" style="width: 825px;" rendered="{!agreement.BusinessDevelopmentAttachment__c != null}" >
+                <apex:column headervalue="{!dLabel['DL555']}" >
+                    <apex:outputlink value="{!URLFOR($Action.Attachment.Download, attachedBusinessDevelopmentFile.Attachment.Id)}" target="_blank" >
+                        <apex:outputtext value="{!attachedBusinessDevelopmentFile.Attachment.Name}" />
+                    </apex:outputlink>
+                </apex:column>
+                <apex:column headervalue="{!dLabel['DL556']}" value="{!attachedBusinessDevelopmentFile.Comments}" />  
+                <apex:column value="{!attachedBusinessDevelopmentFile.Attachment.ContentType}" />  
+                <apex:column value="{!attachedBusinessDevelopmentFile.Attachment.LastModifiedDate}" /> 
+                <apex:column value="{!attachedBusinessDevelopmentFile.Attachment.LastModifiedById}" />
+            </apex:pageblocktable>
+            </div>          
+            </apex:outputpanel>
+            <apex:outputpanel rendered="{!AttachedBusinessDevelopmentFiles.size == 0}" >
+                <nttdcore:DLabel name="DL557" default="No records to display" labelParent="{!this}" /><apex:outputtext value="{!dLabel['DL557']}" /><br/><br/>
+            </apex:outputpanel> 
+            
+            <apex:outputpanel >
+            	<apex:outputtext value="{!businessDevelopmentAttachmentComments}" />
+            	<apex:outputtext value="{!overrideBusinessDevelopmentAttachmentName}" />
+            </apex:outputpanel>
+        </apex:pageblock>   
+
+        <nttdcore:DLabel name="DL558" default="Approved Subs" labelParent="{!this}" /><apex:pageblock title="{!dLabel['DL558']}" >
+            <apex:outputpanel rendered="{!approvedSubs.size > 0}" ><nttdcore:DLabel name="DL559" default="Name" labelParent="{!this}" /><nttdcore:DLabel name="DL560" default="Role" labelParent="{!this}" /><nttdcore:DLabel name="DL561" default="Contact Name" labelParent="{!this}" /><nttdcore:DLabel name="DL562" default="Phone" labelParent="{!this}" /><nttdcore:DLabel name="DL563" default="Email" labelParent="{!this}" /><nttdcore:DLabel name="DL564" default="Comments" labelParent="{!this}" />
+            <apex:pageblocktable value="{!approvedSubs}" var="approvedSub" >
+                <apex:column headervalue="{!dLabel['DL559']}" ><apex:outputfield value="{!approvedSub.Account__r.Name}" /></apex:column>                    
+                <apex:column headervalue="{!dLabel['DL560']}" ><apex:outputfield value="{!approvedSub.Role__c}" /></apex:column>
+                <apex:column headervalue="{!dLabel['DL561']}" ><apex:outputfield value="{!approvedSub.Contact_Name__c}" /></apex:column>                    
+                <apex:column headervalue="{!dLabel['DL562']}" ><apex:outputfield value="{!approvedSub.Phone__c}" /></apex:column>
+                <apex:column headervalue="{!dLabel['DL563']}" ><apex:outputfield value="{!approvedSub.Email__c}" /></apex:column>
+                <apex:column headervalue="{!dLabel['DL564']}" ><apex:outputfield value="{!approvedSub.Comments__c}" /></apex:column>
+            </apex:pageblocktable>      
+            </apex:outputpanel>
+            <apex:outputpanel rendered="{!approvedSubs.size == 0}" >
+                <nttdcore:DLabel name="DL565" default="No records to display" labelParent="{!this}" /><apex:outputtext value="{!dLabel['DL565']}" />
+            </apex:outputpanel>         
+        </apex:pageblock>
+        
+        <nttdcore:DLabel name="DL566" default="MSA Teaming Partners" labelParent="{!this}" /><apex:pageblock title="{!dLabel['DL566']}" >
+            <apex:outputpanel rendered="{!msaTeamingPartners.size > 0}" ><nttdcore:DLabel name="DL567" default="Name" labelParent="{!this}" /><nttdcore:DLabel name="DL568" default="Role" labelParent="{!this}" /><nttdcore:DLabel name="DL569" default="Contact Name" labelParent="{!this}" /><nttdcore:DLabel name="DL570" default="Phone" labelParent="{!this}" /><nttdcore:DLabel name="DL571" default="Email" labelParent="{!this}" />
+	            <apex:pageblocktable value="{!msaTeamingPartners}" var="msaTeamingPartner" >
+	                <apex:column headervalue="{!dLabel['DL567']}" ><apex:outputfield value="{!msaTeamingPartner.Account__r.Name}" /></apex:column>                  
+	                <apex:column headervalue="{!dLabel['DL568']}" ><apex:outputfield value="{!msaTeamingPartner.Role__c}" /></apex:column>
+	                <apex:column headervalue="{!dLabel['DL569']}" ><apex:outputfield value="{!msaTeamingPartner.Contact_Name__c}" /></apex:column>                  
+	                <apex:column headervalue="{!dLabel['DL570']}" ><apex:outputfield value="{!msaTeamingPartner.Phone__c}" /></apex:column>
+	                <apex:column headervalue="{!dLabel['DL571']}" ><apex:outputfield value="{!msaTeamingPartner.Email__c}" /></apex:column>
+	        	</apex:pageblocktable>      
+        	</apex:outputpanel>
+        
+        <apex:outputpanel rendered="{!msaTeamingPartners.size == 0}" >
+            <nttdcore:DLabel name="DL572" default="No records to display" labelParent="{!this}" /><apex:outputtext value="{!dLabel['DL572']}" />
+        </apex:outputpanel> 
+        </apex:pageblock>   
+        
+        <nttdcore:DLabel name="DL573" default="Contract Billing Rates" labelParent="{!this}" /><apex:pageblock title="{!dLabel['DL573']}" >
+            <apex:outputpanel rendered="{!billingRates.size > 0}" ><nttdcore:DLabel name="DL574" default="Labor Category" labelParent="{!this}" /><nttdcore:DLabel name="DL575" default="Bill Rate Start" labelParent="{!this}" /><nttdcore:DLabel name="DL576" default="Bill Rate End" labelParent="{!this}" /><nttdcore:DLabel name="DL577" default="Bill Rate" labelParent="{!this}" />
+            <apex:pageblocktable value="{!billingRates}" var="billingRate" >
+                <!-- <apex:column headervalue="Action"></apex:column> -->
+                <apex:column headervalue="{!dLabel['DL574']}" ><apex:outputfield value="{!billingRate.LaborCategory__c}" /></apex:column>
+                <apex:column headervalue="{!dLabel['DL575']}" ><apex:outputfield value="{!billingRate.BillRatePeriod__r.BillRateStart__c}" /></apex:column>
+                <apex:column headervalue="{!dLabel['DL576']}" ><apex:outputfield value="{!billingRate.BillRatePeriod__r.BillRateEnd__c}" /></apex:column>
+                <apex:column headervalue="{!dLabel['DL577']}" ><apex:outputfield value="{!billingRate.BillRate__c}" /></apex:column>
+        </apex:pageblocktable>      
+        </apex:outputpanel>
+        
+        <apex:outputpanel rendered="{!billingRates.size == 0}" >
+            <nttdcore:DLabel name="DL578" default="No records to display" labelParent="{!this}" /><apex:outputtext value="{!dLabel['DL578']}" />
+        </apex:outputpanel> 
+        </apex:pageblock>           
+                
+        <nttdcore:DLabel name="DL579" default="Other Direct Costs" labelParent="{!this}" /><apex:pageblock title="{!dLabel['DL579']}" >
+            <apex:outputpanel rendered="{!otherDirectCosts.size > 0}" ><nttdcore:DLabel name="DL580" default="Type" labelParent="{!this}" /><nttdcore:DLabel name="DL581" default="Description" labelParent="{!this}" /><nttdcore:DLabel name="DL582" default="Markup" labelParent="{!this}" /><nttdcore:DLabel name="DL583" default="Allowable" labelParent="{!this}" /><nttdcore:DLabel name="DL584" default="Comments" labelParent="{!this}" />
+                <apex:pageblocktable value="{!otherDirectCosts}" var="otherDirectCost" >
+                    <apex:column headervalue="{!dLabel['DL580']}" ><apex:outputfield value="{!otherDirectCost.Type__c}" /></apex:column>
+                    <apex:column headervalue="{!dLabel['DL581']}" ><apex:outputfield value="{!otherDirectCost.Description__c}" /></apex:column>                  
+                    <apex:column headervalue="{!dLabel['DL582']}" ><apex:outputfield value="{!otherDirectCost.Markup__c}" /></apex:column> 
+                    <apex:column headervalue="{!dLabel['DL583']}" ><apex:outputfield value="{!otherDirectCost.Allowable__c}" /></apex:column>
+                    <apex:column headervalue="{!dLabel['DL584']}" ><apex:outputfield value="{!otherDirectCost.Comments__c}" /></apex:column>                    
+                </apex:pageblocktable>
+            </apex:outputpanel>
+        <apex:outputpanel rendered="{!otherDirectCosts.size == 0}" >
+                <nttdcore:DLabel name="DL585" default="No records to display" labelParent="{!this}" /><apex:outputtext value="{!dLabel['DL585']}" />
+        </apex:outputpanel>     
+        </apex:pageblock>
+        
+       <nttdcore:DLabel name="DL586" default="Meeting Minutes" labelParent="{!this}" /><apex:pageblock title="{!dLabel['DL586']}" >
+            <apex:outputpanel rendered="{!AttachedMeetingMinutesFiles.size > 0}" >
+                <div class="fileList" ><nttdcore:DLabel name="DL587" default="File Name" labelParent="{!this}" /><nttdcore:DLabel name="DL588" default="Content Type" labelParent="{!this}" /><nttdcore:DLabel name="DL589" default="Content Type" labelParent="{!this}" /><nttdcore:DLabel name="DL590" default="Last Modified Date" labelParent="{!this}" /><nttdcore:DLabel name="DL591" default="Last Modified By" labelParent="{!this}" />
+                <apex:pageblocktable value="{!AttachedMeetingMinutesFiles}" var="attachedMeetingMinutesFile" style="width: 825px;" >
+                    <apex:column headervalue="{!dLabel['DL587']}" >
+                        <apex:outputlink value="{!URLFOR($Action.Attachment.Download, attachedMeetingMinutesFile.Attachment.Id)}" target="_blank" >
+                            <apex:outputtext value="{!attachedMeetingMinutesFile.Attachment.Name}" />
+                        </apex:outputlink>
+                    </apex:column>
+                    <apex:column value="{!attachedMeetingMinutesFile.Comments}" headervalue="{!dLabel['DL588']}" /> 
+                    <apex:column value="{!attachedMeetingMinutesFile.Attachment.ContentType}" headervalue="{!dLabel['DL589']}" /> 
+                    <apex:column value="{!attachedMeetingMinutesFile.Attachment.LastModifiedDate}" headervalue="{!dLabel['DL590']}" />  
+                    <apex:column value="{!attachedMeetingMinutesFile.Attachment.LastModifiedById}" headervalue="{!dLabel['DL591']}" />
+                </apex:pageblocktable>
+                </div>          
+            </apex:outputpanel>
+            <apex:outputpanel rendered="{!AttachedMeetingMinutesFiles.size == 0}" >
+                <nttdcore:DLabel name="DL592" default="No records to display" labelParent="{!this}" /><apex:outputtext value="{!dLabel['DL592']}" /><br/><br/>
+            </apex:outputpanel> 
+            
+            <apex:outputpanel >
+            	<apex:outputtext value="{!meetingMinutesAttachmentComments}" />
+            	<apex:outputtext value="{!overrideMeetingMinutesAttachmentName}" />
+           </apex:outputpanel>
+
+        
+        </apex:pageblock>  
+        
+        <nttdcore:DLabel name="DL593" default="Program Notes" labelParent="{!this}" /><apex:pageblock title="{!dLabel['DL593']}" >
+            <apex:outputpanel rendered="{!notes.size > 0}" ><nttdcore:DLabel name="DL594" default="Title" labelParent="{!this}" /><nttdcore:DLabel name="DL595" default="Body" labelParent="{!this}" />         
+                <apex:pageblocktable value="{!notes}" var="note" >
+                    <apex:column headervalue="{!dLabel['DL594']}" value="{!note.Title}" />
+                    <apex:column headervalue="{!dLabel['DL595']}" value="{!note.Body}" />      
+                </apex:pageblocktable>
+            </apex:outputpanel>
+            <apex:outputpanel rendered="{!notes.size == 0}" >
+                <nttdcore:DLabel name="DL596" default="No records to display" labelParent="{!this}" /><apex:outputtext value="{!dLabel['DL596']}" /><br/><br/>
+            </apex:outputpanel> 
+        </apex:pageblock>       
+    
+		<apex:relatedlist list="DOAConditions__r" />
+       	<apex:relatedlist list="ContractReviews__r" />
+        <apex:relatedlist list="OpenActivities" /> 
+        
+    </apex:outputpanel>
+
+
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

@@ -1,0 +1,198 @@
+<apex:component controller="rsGlobalMobilityController" allowDML="true">
+    <apex:attribute name="rsProfile" assignTo="{!profile}" description="" type="rsProfile" required="true"/>
+    <apex:attribute name="reRender" description="" type="String" required="false"/>
+
+    <script type="text/javascript">
+        var j$ = jQuery.noConflict();
+        j$(document).ready(function() {
+            helpTextSetup();
+        });
+    </script>
+
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h5 class="panel-title has-spinner" id="globalHeader">{!$Label.Global_Mobility} <img height="15" width="15" class="spinner" src="{!URLFOR($Resource.rs_bundle, '/images/loading.gif')}" alt="loading" title="loading"/></h5>
+            <apex:commandLink rendered="{!IsListMode && canEdit}" value="" styleClass="pull-right {!IF(canEdit, '','disabled')}" reRender="{!reRender}" action="{!editPart}" onclick="if(!inProgress)showSectionSpinner('globalHeader');if (inProgress) return false; inProgress = true;" oncomplete="resetProgress(); "> <!-- add focusField to oncomplete-->
+                <span title="{!$Label.Edit}" class="glyphicon glyphicon-plus"></span>
+            </apex:commandLink>
+        </div>
+        <apex:outputPanel layout="none" rendered="{!IsEditMode}">
+            <table class="table">
+                <tr>
+                    <td width="50%">
+                        <apex:outputLabel for="locationCountryCurrent" value="{!$Label.Global_Mobility_Relocate_Different_City}"></apex:outputLabel>
+                    </td>
+                    <td>
+                        <apex:selectRadio layout="pageDirection" value="{!profile.InterestRelocatingCurrentCountry}">
+                            <apex:selectOptions value="{!locationRelocateCurr}"/>
+                        </apex:selectRadio>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <apex:outputLabel value="{!$Label.Global_Mobility_Relocate_Different_Country}"></apex:outputLabel>
+                    </td>
+                    <td>
+                        <apex:selectRadio layout="pageDirection" value="{!profile.InterestRelocatingDifferentCountry}">
+                            <apex:selectOptions value="{!locationRelocateDiff}"/>
+                        </apex:selectRadio>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <apex:outputLabel value="{!$Label.Global_Mobility_Relocate_Time_Abroad}"></apex:outputLabel>
+                    </td>
+                    <td>
+                        <apex:selectList value="{!profile.LengthOfTimeAbroad}" size="1" multiselect="false">
+                            <apex:selectOption itemValue="" itemLabel="--{!$Label.None}--"></apex:selectOption>
+                            <apex:selectOptions value="{!lengthOfTimeAbroad}"></apex:selectOptions>
+                        </apex:selectList>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <apex:outputLabel value="{!$Label.Global_Mobility_Relocate_Interested_Regions}"></apex:outputLabel>
+                    </td>
+                    <td>
+                        <c:rsMultiSelectPickListComponent availableOptions="{!availableInterestRegions}" chosenOptions="{!InterestRegionsSel}" section="interestRegions"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <apex:outputLabel value="{!$Label.Global_Mobility_Relocate_Interested_Countries}"></apex:outputLabel>
+                    </td>
+                    <td>
+                        <c:rsMultiSelectPickListComponent availableOptions="{!availableInterestCountries}" chosenOptions="{!InterestCountriesSel}" section="interestCountries"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <apex:outputLabel value="{!$Label.Global_Mobility_Relocate_Not_Interested_Regions}"></apex:outputLabel>
+                    </td>
+                    <td>
+                        <c:rsMultiSelectPickListComponent availableOptions="{!availableNoInterestRegions}" chosenOptions="{!NoInterestRegionsSel}" section="noInterestRegions"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <apex:outputLabel value="{!$Label.Global_Mobility_Relocate_Not_Interested_Countries}"></apex:outputLabel>
+                    </td>
+                    <td>
+                        <c:rsMultiSelectPickListComponent availableOptions="{!availableNoInterestcountries}" chosenOptions="{!NoInterestCountriesSel}" section="noInterestCountries"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <apex:outputLabel value="{!$Label.Global_Mobility_Time_To_Relocate}"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['User'].fields['rs_Time_To_Relocate__c'].inlineHelpText}"/></apex:outputLabel>
+                    </td>
+                    <td>
+                        <apex:selectList value="{!profile.TimeToRelocate}" size="1" multiselect="false">
+                            <apex:selectOption itemValue="" itemLabel="--{!$Label.None}--"></apex:selectOption>
+                            <apex:selectOptions value="{!timeToRelocate}"></apex:selectOptions>
+                        </apex:selectList>
+                    </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <apex:outputLabel value="{!$Label.Global_Mobility_Family_Relocation}"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['User'].fields['rs_Accompanied_Status__c'].inlineHelpText}"/></apex:outputLabel>
+                        </td>
+                        <td>
+                            <apex:selectList value="{!profile.AccompaniedStatus}" size="1" multiselect="false">
+                            <apex:selectOption itemValue="" itemLabel="--{!$Label.None}--"></apex:selectOption>
+                            <apex:selectOptions value="{!accompaniedStatus}"></apex:selectOptions>
+                        </apex:selectList>
+                        </td>
+                    </tr>
+            </table>
+            <div class="col-md-4 text-center" style="padding-top:15px; padding-bottom:15px;">
+               <apex:commandLink styleClass="btn brandStyledBtn" style="text-decoration:none;" action="{!savePart}" value="{!$Label.Save}" reRender="{!reRender}" onclick="if(!inProgress) showSectionSpinner('globalHeader'); if (inProgress) return false; inProgress = true;" oncomplete="resetProgress();">
+                    <span class="glyphicon glyphicon-ok-circle"></span>
+                </apex:commandLink>
+                &nbsp;
+                <apex:commandLink immediate="true" styleClass="btn btn--neutral" style="text-decoration:none;" action="{!cancelPart}" value="{!$Label.Cancel}" onclick="if(!inProgress) showSectionSpinner('globalHeader'); if (inProgress) return false; inProgress = true;" oncomplete="resetProgress();"  reRender="{!reRender}">
+                    <span class="glyphicon glyphicon-remove-circle"></span>
+                </apex:commandLink>
+            </div>
+        </apex:outputPanel>
+
+        <apex:outputPanel layout="none" rendered="{!IsListMode}">
+            <table id="globalTable" class="table" width="100%">
+                <tbody>
+                    <tr>
+                        <td width="50%">
+                            <apex:outputLabel value="{!$Label.Global_Mobility_Relocate_Different_City}"></apex:outputLabel>
+                        </td>
+                        <td>
+                            <apex:outputText value="{!profile.InterestRelocatingCurrentCountry}"></apex:outputText>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <apex:outputLabel value="{!$Label.Global_Mobility_Relocate_Different_Country}"></apex:outputLabel>
+                        </td>
+                        <td>
+                            <apex:outputText value="{!profile.InterestRelocatingDifferentCountry}"></apex:outputText>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <apex:outputLabel value="{!$Label.Global_Mobility_Relocate_Time_Abroad}"></apex:outputLabel>
+                        </td>
+                        <td>
+                            <apex:outputText value="{!profile.LengthOfTimeAbroad}"></apex:outputText>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <apex:outputLabel value="{!$Label.Global_Mobility_Relocate_Interested_Regions}"></apex:outputLabel>
+                        </td>
+                        <td>
+                            <apex:outputText value="{!profile.InterestRegions}"></apex:outputText>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <apex:outputLabel value="{!$Label.Global_Mobility_Relocate_Interested_Countries}"></apex:outputLabel>
+                        </td>
+                        <td>
+                            <apex:outputText value="{!profile.InterestCountries}"></apex:outputText>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <apex:outputLabel value="{!$Label.Global_Mobility_Relocate_Not_Interested_Regions}"></apex:outputLabel>
+                        </td>
+                        <td>
+                            <apex:outputText value="{!profile.NoInterestRegions}"></apex:outputText>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <apex:outputLabel value="{!$Label.Global_Mobility_Relocate_Not_Interested_Countries}"></apex:outputLabel>
+                        </td>
+                        <td>
+                            <apex:outputText value="{!profile.NoInterestCountries}"></apex:outputText>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <apex:outputLabel value="{!$Label.Global_Mobility_Time_To_Relocate}"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['User'].fields['rs_Time_To_Relocate__c'].inlineHelpText}"/></apex:outputLabel>
+                        </td>
+                        <td>
+                            <apex:outputText value="{!profile.TimeToRelocate}"></apex:outputText>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <apex:outputLabel value="{!$Label.Global_Mobility_Family_Relocation}"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['User'].fields['rs_Accompanied_Status__c'].inlineHelpText}"/></apex:outputLabel>
+                        </td>
+                        <td>
+                            <apex:outputText value="{!profile.AccompaniedStatus}"></apex:outputText>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </apex:outputPanel>
+    </div>
+
+</apex:component>

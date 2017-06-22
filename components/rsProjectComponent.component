@@ -1,0 +1,616 @@
+<apex:component allowDML="true">
+    <style type="text/css">
+    .hidefalse {
+        display: none;
+    }
+    </style>
+    <script>
+        var inputFields = ['[id$=ProjectIdin]', '[id$=DateInvolvementStarted]', '[id$=DateInvolvementEnded]',
+                            '[id$=ProjectRole]', '[id$=WorkHistory]'];
+        var j$ = jQuery.noConflict();
+
+        j$(function () {
+            if({!ProjectController.isExistingAECOMProject}) {
+                setProjRequiredFields();
+            } else if ({!ProjectController.isNewAECOMProject}) {
+                setNewProjRequiredFields();
+            } else if({!ProjectController.isNonAECOMProject}) {
+                setNonProjRequiredFields();
+            }
+            var j$ = jQuery.noConflict();
+            j$('[id$=WorkHistory_lkold]').on('input change focus blur paste',function() {
+                var placeHolder = j$('[id$=workHistoryNamePlaceHolder]');
+                var oldName = j$('[id$=WorkHistory_lkold]');
+                if(placeHolder.val() != oldName.val() && oldName.val().indexOf('PP-') < 0 && oldName.val() != 'null') {
+                    placeHolder.val(oldName.val());
+                }
+            });
+            j$(window).focus(function() {
+                j$('[id$=WorkHistory_lkold]').trigger('change');
+            });
+            helpTextSetup();
+            removeSpacesFromId();
+            setDatePickers();
+            checkRadioAfterRerender();
+            projectTypeRadioOnChangeSetup();
+        });
+
+        function projectTypeRadioOnChangeSetup() {
+            j$("input[name=projectType]").change(function () {
+                if(inProgress) return false;
+                showSectionSpinner("projectsHeader");
+                inProgress = true;
+                action_changeProjectTypeView(this.value);
+            });
+        }
+
+        function checkRadioAfterRerender(SelectedProjectType) {
+            if (SelectedProjectType === 'EXIST') {
+                document.getElementById('Existing_AECOM_Lookup').checked=true;
+            }
+            else if (SelectedProjectType === 'NEW') {
+                document.getElementById('New_AECOM_Project').checked=true;
+            }
+            else if (SelectedProjectType === 'NON') {
+                document.getElementById('Non_AECOM_Project').checked=true;
+            }
+            else if (document.getElementById('Existing_AECOM_Lookup') && SelectedProjectType === undefined) {
+                document.getElementById('Existing_AECOM_Lookup').checked=true;
+            }
+        }
+
+        function openLookup(baseURL, width, modified, searchParam) {
+            var originalbaseURL = baseURL;
+            var originalwidth = width;
+            var originalmodified = modified;
+            var originalsearchParam = searchParam;
+            var lookupType = baseURL.substr(baseURL.length-3, 3);
+            if (modified == '1') baseURL += searchParam;
+
+            // Following "001" is the lookup type for Account object so change this as per your standard or custom object
+            if(lookupType == "{!ProjectController.projectKeyPrefix}" || lookupType == "{!ProjectController.profilePartKeyPrefix}" ){
+                var urlArr = baseURL.split("&");
+                var txtId = '';
+                if(urlArr.length > 2) {
+                    urlArr = urlArr[1].split('=');
+                    txtId = urlArr[1];
+                }
+
+                if(txtId.indexOf('ProjectIdin') > -1) {
+                    baseURL = "/apex/rsProjectLookup?txt=" + txtId;
+                    baseURL += "&frm=" + escapeUTF("projectForm");
+                    if (modified == '1') {
+                        baseURL += "&lksearch=" + searchParam;
+                    }
+                } else if (txtId.indexOf('WorkHistory') > -1) {
+                    baseURL = "/apex/rsWorkHistoryLookup?txt=" + txtId;
+                    baseURL += "&frm=" + escapeUTF("projectForm");
+                    baseURL += "&userId={!ProjectController.profile.Id}";
+                    if (modified == '1') {
+                        baseURL += "&lksearch=" + searchParam;
+                    }
+                }
+
+                openPopup(baseURL, "lookup", 350, 480, "width="+width+",height=480,toolbar=no,status=no,directories=no,menubar=no,resizable=yes,scrollbars=yes", true);
+            }
+
+        }
+
+        function removeFloatover() {
+            j$('[id$="ProjectIdout"]').children().removeAttr('onblur onclick onmouseover onmouseout onfocus');
+            j$('[id$="ProjectIdout"]').children().attr("target","_blank");
+        }
+        function setProjRequiredFields() {
+            //Required fields for this component
+            requiredFields = ['[id$=ProjectIdin]','[id$=RoleDescription]'];
+        }
+        function setNewProjRequiredFields() {
+            requiredFields = ['[id$=projectNameEdit]','[id$=RoleDescription]',
+                              '[id$=clientNameEditable]','[id$=locationCountryEdit]'];
+        }
+        function setNonProjRequiredFields() {
+            requiredFields = ['[id$=projectNameEdit]','[id$=RoleDescription]',
+                              '[id$=clientNameEditable]','[id$=locationCountryEdit]'];
+        }
+
+        function confirmArchive() {
+            return confirm("{!$Label.confirmArchive}");
+        }
+        function confirmRestore() {
+            return confirm("{!$Label.confirmRestore}");
+        }
+        function updateWorkHistoryName() {
+            j$('[id$=WorkHistory]').hide();
+            j$('[id$=workHistoryNamePlaceHolder]').val('{!ProjectController.CurrentProject.WorkHistoryName}');
+        }
+        function hidePlaceHolder() {
+            j$('[id$=workHistoryNamePlaceHolder]').hide();
+        }
+
+        j$(document).ready(function() {
+            removeFloatover();
+        });
+
+        j$(function() {
+            var usersProjectGroups = [{!ProjectController.projectGroupsAutoComplete}];
+            j$( '[id$="projectGroupEdit"]' ).autocomplete({
+                source: usersProjectGroups
+            });
+        });
+    </script>
+    <apex:attribute name="ProjectController" description="" type="rsProjectController" required="true"/>
+    <apex:attribute name="reRender" description="" type="String" required="false"/>
+    <apex:attribute name="FilterStat" assignTo="{!ProjectController.FilterStatus}" description="" type="String" required="false"/>
+    <apex:attribute name="Filter" assignTo="{!ProjectController.Filter}" description="" type="rsFilterManager" required="false" />
+
+    <apex:actionFunction action="{!ProjectController.changeProjectTypeView}" reRender="{!reRender}" name="action_changeProjectTypeView" oncomplete="resetProgress();checkRadioAfterRerender('{!ProjectController.SelectedProjectType}');hidePlaceHolder();loadCountry('locationCountryEdit');stateChange(j$('[id$=locationCountryEdit]').val(),'State','locationStateEdit');">
+        <apex:param name="node" assignTo="{!ProjectController.SelectedProjectType}" value="" />
+    </apex:actionFunction>
+
+    <apex:outputPanel layout="none" id="headerPnl">
+    <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title has-spinner pull-left" id="projectsHeader"><apex:outputText value="{!$Label.Add_New_Project}" rendered="{!ProjectController.IsEditMode && ProjectController.CurrentProject.Id == null}"/>&nbsp;<img height="15" width="15" class="spinner" src="{!URLFOR($Resource.rs_bundle, '/images/loading.gif')}" alt="loading" title="loading"/></h3>
+                <br/>
+            </div>
+        <div class="panel-body">
+
+            <!-- Edit Mode Start -->
+            <apex:outputPanel layout="none" rendered="{!ProjectController.IsEditMode}" id="editPnl">
+                <apex:outputPanel layout="none" rendered="{!ProjectController.CurrentProject.Id == null}" id="projectTypePnl">
+                    <div class="projectType__Container">
+                        <fieldset class="projectType__Group">
+                            <input id="Existing_AECOM_Lookup" class="projectType__Radio" type="radio" name="projectType" value="{!ProjectController.EXISTING_PROJECT}"/>
+                            <label for="Existing_AECOM_Lookup" class="projectType__Label">{!$Label.Existing_AECOM_Lookup}
+                            <img src="/s.gif" class="helpOrb" title="{!$Label.Existing_AECOM_Lookup_HelpTip}"/></label>
+
+                            <input id="New_AECOM_Project" class="projectType__Radio" type="radio" name="projectType" value="{!ProjectController.NEW_PROJECT}"/>
+                            <label for="New_AECOM_Project" class="projectType__Label">{!$Label.New_AECOM_Project}
+                            <img src="/s.gif" class="helpOrb" title="{!$Label.New_AECOM_Project_HelpTip}"/></label>
+
+                            <input id="Non_AECOM_Project" class="projectType__Radio" type="radio" name="projectType" value="{!ProjectController.NON_PROJECT}"/>
+                            <label for="Non_AECOM_Project" class="projectType__Label">{!$Label.Non_AECOM_Project}
+                            <img src="/s.gif" class="helpOrb" title="{!$Label.Non_AECOM_Project_HelpTip}"/></label>
+                        </fieldset>
+                    </div>
+                </apex:outputPanel>
+
+                <apex:outputPanel layout="none" rendered="{!ProjectController.CurrentProject.Id != null}" id="projectTypeAndStatusPnl">
+                    <div class="projectHeader--typeAndStatus clearfix">
+                        <div class="pull-left">
+                            {!$Label.Project_Type}:&nbsp;
+                            <apex:outputField value="{!ProjectController.CurrentProject.PrObj.RecordTypeId}"></apex:outputField>
+                        </div>
+                        <div class="pull-right">
+                            {!$ObjectType['PR_Team_Employee__c'].fields['Status__c'].Label}:&nbsp;
+                            {!ProjectController.CurrentProject.PrObj.Status__c}
+                        </div>
+                    </div>
+                </apex:outputPanel>
+                <table class="table newEditProjectTable">
+                    <tr>
+                        <td>
+                            <apex:outputLabel for="ProjectId" value="{!$ObjectType['PR_Team_Employee__c'].fields['Project_Id__c'].Label}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['PR_Team_Employee__c'].fields['Project_Id__c'].inlineHelpText}"/></apex:outputLabel>
+                        </td>
+                        <td>
+                            <div class="rsRequired">
+                                <div class="rsRequiredBlock"/>
+                                <apex:inputField rendered="{!!ProjectController.isNewAECOMProject && !ProjectController.isNonAECOMProject}" id="ProjectIdin" value="{!ProjectController.CurrentProject.PRObj.Project_ID__c}" styleClass="aecom-lookup" />
+                                <apex:inputText rendered="{!ProjectController.isNewAECOMProject || ProjectController.isNonAECOMProject}" value="{!ProjectController.CurrentProject.ProjectNameEditable}" id="projectNameEdit" styleClass="aecom-input" />
+                                <span class="rsError"><br/>{!$ObjectType['PR_Team_Employee__c'].fields['Project_Id__c'].Label} {!$Label.Is_Required}</span>
+                            </div>
+                        </td>
+                        <td>
+                            <apex:outputLabel for="ProjectRole" value="{!$ObjectType['PR_Team_Employee__c'].fields['Project_Role__c'].Label}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['PR_Team_Employee__c'].fields['Project_Role__c'].inlineHelpText}"/></apex:outputLabel>
+                        </td>
+                        <td>
+                            <apex:inputField value="{!ProjectController.CurrentProject.PrObj.Project_Role__c}" id="ProjectRole" styleClass="aecom-select"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <apex:outputLabel for="clientNameEditable" value="{!$Label.Client_Name}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['PR_Team_Employee__c'].fields['Client_Name_Editable__c'].inlineHelpText}"/></apex:outputLabel>
+                        </td>
+                        <td>
+                            <apex:outputText styleClass="calculatedLabel" value="{!$Label.Automatically_Calculated}" rendered="{!ProjectController.CurrentProject.ProjectId == null && ProjectController.isExistingAECOMProject}"/>
+                            <apex:outputText value="{!ProjectController.CurrentProject.ClientName}" id="clientNameEditOut" rendered="{!ProjectController.CurrentProject.ProjectId != null}"/>
+                            <div class="rsRequired">
+                                <div class="rsRequiredBlock"/>
+                                <apex:inputText value="{!ProjectController.CurrentProject.ClientNameEditable}" id="clientNameEditable" rendered="{!ProjectController.CurrentProject.ProjectId == null && !ProjectController.isExistingAECOMProject}" styleClass="aecom-input"/>
+                                <span class="rsError"><br/>{!$Label.Client_Name} {!$Label.Is_Required}</span>
+                            </div>
+                        </td>
+                        <td width="25%">
+                            <apex:outputLabel for="projectGroupEdit" value="{!$Label.Project_Group}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['PR_Team_Employee__c'].fields['Project_Group_Editable__c'].inlineHelpText}"/></apex:outputLabel>
+                        </td>
+                        <td width="25%">
+                            <apex:inputText value="{!ProjectController.CurrentProject.ProjectGroup}" id="projectGroupEdit" styleClass="aecom-input" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td width="25%">
+                            <apex:outputLabel for="locationCountryEdit" value="{!$Label.Location_Country}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['PR_Team_Employee__c'].fields['Location_Country_Editable__c'].inlineHelpText}"/></apex:outputLabel>
+                        </td>
+                        <td width="25%">
+                            <apex:outputText styleClass="calculatedLabel" value="{!$Label.Automatically_Calculated}" rendered="{!ProjectController.CurrentProject.ProjectId == null && ProjectController.isExistingAECOMProject}"/>
+                            <apex:outputText value="{!ProjectController.CurrentProject.LocationCountry}" id="locationCountryEditOut" rendered="{!ProjectController.CurrentProject.ProjectId != null}" />
+                            <div class="rsRequired">
+                                <div class="rsRequiredBlock"/>
+                                <apex:selectList id="locationCountryEdit" value="{!ProjectController.CurrentProject.LocationCountryEditable}" multiselect="false" size="1" rendered="{!ProjectController.CurrentProject.ProjectId == null && !ProjectController.isExistingAECOMProject}" styleClass="aecom-select">
+                                    <apex:actionSupport event="onchange" onsubmit="stateChange($j('[id$=locationCountryEdit]').val(),'State','locationStateEdit');" reRender=""/>
+                                    <apex:selectOption itemValue="" itemLabel="--None--"/>
+                                    <apex:selectOptions value="{!ProjectController.countryList}"/>
+                                </apex:selectList>
+                                <span class="rsError"><br/>{!$Label.Location_Country} {!$Label.Is_Required}</span>
+                            </div>
+                        </td>
+                        <td >
+                            <apex:outputLabel for="DateInvolvementStarted" value="{!$Label.Date_Involvement_Started}" styleClass="longLabelAdjustment helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['PR_Team_Employee__c'].fields['Date_Involvement_Started__c'].inlineHelpText}"/></apex:outputLabel>
+                        </td>
+                        <td style="width:250px;">
+                            <apex:inputText id="DateInvolvementStarted" styleClass="aecom-input date" value="{!ProjectController.CurrentProject.DateInvolvementStarted}" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <apex:outputLabel for="locationStateEdit" value="{!$Label.Location_State_Province} " styleClass="longLabelAdjustment helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['PR_Team_Employee__c'].fields['Location_State_Prov_Emirate_Editable__c'].inlineHelpText}"/></apex:outputLabel>
+                        </td>
+
+                        <td>
+                            <apex:outputText styleClass="calculatedLabel" value="{!$Label.Automatically_Calculated}" rendered="{!ProjectController.CurrentProject.ProjectId == null && ProjectController.isExistingAECOMProject}"/>
+                            <apex:outputPanel rendered="{!ProjectController.CurrentProject.ProjectId == null && !ProjectController.isExistingAECOMProject}" >
+                                <apex:inputHidden value="{!ProjectController.CurrentProject.LocationStateProvinceEditable}" id="locationStateEdit" />
+                                <select id="State" class="aecom-select" onchange="hiddenFieldUpdate(this.value,'locationStateEdit')">
+                                    <option value="">--None--</option>
+                                </select>
+                            </apex:outputPanel>
+                            <apex:outputText value="{!ProjectController.CurrentProject.LocationStateProvince}" id="locationStateEditOut" rendered="{!ProjectController.CurrentProject.ProjectId != null}" />
+                        </td>
+                        <td>
+                            <apex:outputLabel for="DateInvolvementEnded" value="{!$Label.Date_Involvement_Ended}" styleClass="longLabelAdjustment helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['PR_Team_Employee__c'].fields['Date_Involvement_Ended__c'].inlineHelpText}"/></apex:outputLabel>
+                        </td>
+                        <td>
+                            <apex:inputText id="DateInvolvementEnded" styleClass="aecom-input date" value="{!ProjectController.CurrentProject.DateInvolvementEnded}" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <apex:outputLabel for="locationCityEdit" value="{!$Label.Location_City}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['PR_Team_Employee__c'].fields['Location_City_Editable__c'].inlineHelpText}"/></apex:outputLabel>
+                        </td>
+                        <td>
+                            <apex:outputText styleClass="calculatedLabel" value="{!$Label.Automatically_Calculated}" rendered="{!ProjectController.CurrentProject.ProjectId == null && ProjectController.isExistingAECOMProject}"/>
+                            <apex:inputText styleClass="aecom-input" value="{!ProjectController.CurrentProject.LocationCityEditable}" id="locationCityEdit" rendered="{!ProjectController.CurrentProject.ProjectId == null && !ProjectController.isExistingAECOMProject}"/>
+                            <apex:outputText styleClass="" value="{!ProjectController.CurrentProject.LocationCity}" id="locationCityEditOut" rendered="{!ProjectController.CurrentProject.ProjectId != null && NOT(ISBLANK(ProjectController.CurrentProject.LocationCity))}" />
+                        </td>
+
+                        <td>
+                            <apex:outputLabel for="OutputOnResume" value="{!$ObjectType['PR_Team_Employee__c'].fields['Output_On_Resume__c'].Label}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['PR_Team_Employee__c'].fields['Output_on_Resume__c'].inlineHelpText}"/></apex:outputLabel>
+                        </td>
+                        <td colspan="3">
+                            <apex:inputCheckbox id="OutputOnResume" value="{!ProjectController.CurrentProject.OutputOnResume}" />
+                        </td>
+
+                    </tr>
+                    <tr>
+                        <apex:outputPanel layout="none" rendered="{!!ProjectController.isNonAECOMProject}">
+                            <td>
+                                <apex:outputLabel for="projectNumberEdit" value="{!$Label.Project_Number}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['PR_Team_Employee__c'].fields['Project_Number_Editable__c'].inlineHelpText}"/></apex:outputLabel>
+                            </td>
+                            <td>
+                                <apex:outputText styleClass="calculatedLabel" value="{!$Label.Automatically_Calculated}" rendered="{!ProjectController.CurrentProject.ProjectId == null && ProjectController.isExistingAECOMProject}"/>
+                                <apex:inputText styleClass="aecom-input" value="{!ProjectController.CurrentProject.ProjectNumberEditable}" id="projectNumberEdit" rendered="{!ProjectController.CurrentProject.ProjectId == null && !ProjectController.isExistingAECOMProject}" />
+                                <apex:outputText styleClass="" value="{!ProjectController.CurrentProject.ProjectNumber}" id="projectNumberEditOut" rendered="{!ProjectController.CurrentProject.ProjectId != null && NOT(ISBLANK(ProjectController.CurrentProject.ProjectNumber))}" />
+                            </td>
+                        </apex:outputPanel>
+                        <apex:outputPanel layout="none" rendered="{!ProjectController.isNonAECOMProject}">
+                            <td>
+                                <apex:outputLabel for="WorkHistory" value="Work History" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['PR_Team_Employee__c'].fields['Work_History__c'].inlineHelpText}"/></apex:outputLabel>
+                            </td>
+                            <td>
+                                <div class="relative">
+                                    <input type="text" readonly="readonly" class="aecom-lookup" id="workHistoryNamePlaceHolder"></input>
+                                    <apex:inputField styleClass="aecom-lookup" value="{!ProjectController.CurrentProject.PrObj.Work_History__c}" id="WorkHistory" />
+                                </div>
+                            </td>
+                        </apex:outputPanel>
+                        <td colspan="3">
+                            &nbsp;
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <apex:outputLabel for="RoleDescription" value="{!$ObjectType['PR_Team_Employee__c'].fields['Description__c'].Label}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['PR_Team_Employee__c'].fields['Description__c'].inlineHelpText}"/></apex:outputLabel>
+                        </td>
+                        <td colspan="3">
+                            <div class="rsRequired">
+                                <div class="rsRequiredBlock"/>
+                                <apex:inputTextArea styleClass="aecom-input" style="width:100%;" rows="3" id="RoleDescription" value="{!ProjectController.CurrentProject.RoleDescription}" />
+                                <span class="rsError"><br/>{!$ObjectType['PR_Team_Employee__c'].fields['Description__c'].Label} {!$Label.Is_Required}</span>
+                            </div>
+                        </td>
+                    </tr>
+                    <apex:outputPanel layout="none" rendered="{!(ProjectController.Project == null) && ProjectController.IsExistingAECOMProject}">
+                    <tr>
+                        <td colspan="4">
+                            <apex:commandLink action="{!ProjectController.newAECOMProjectView}" style="font-size:0.9em" onclick="if(inProgress) return false; clearInputFields(); showSectionSpinner('projectsHeader');" oncomplete="resetProgress(); focusField('projectNameEdit'); setupFields('save');loadCountry('locationCountryEdit');stateChange($j('[id$=locationCountryEdit]').val(),'State','locationStateEdit');removeSpacesFromId();checkRadioAfterRerender('{!ProjectController.NEW_PROJECT}');" reRender="{!reRender}">
+                                {!$Label.Project_Not_In_System}
+                            </apex:commandLink>
+                        </td>
+                    </tr>
+                    </apex:outputPanel>
+                </table>
+                <div class="text-center" style="padding-bottom:18px;">
+                    <apex:commandLink styleClass="btn brandStyledBtn" action="{!ProjectController.savePart}" value="{!$Label.Save}" reRender="{!reRender}" onclick="if(inProgress) return false; if(!checkRequiredFields()) return false; inProgress = true; showSectionSpinner('projectsHeader');" oncomplete="resetProgress();removeSpacesFromId();restoreCollapsedSections();" >
+                        <span class="glyphicon glyphicon-ok-circle"></span>
+                        <apex:param name="pageRerender" value="true"/>
+                    </apex:commandLink>
+                    &nbsp;
+                    <apex:commandLink styleClass="btn brandStyledBtn" action="{!ProjectController.saveAndApprove}" value="{!$Label.Save_And_Approve}" reRender="{!reRender}" onclick="if(inProgress) return false; if(!checkRequiredFields()) return false; inProgress = true; showSectionSpinner('projectsHeader');" oncomplete="resetProgress();removeSpacesFromId();restoreCollapsedSections();" rendered="{!ProjectController.isApprovable && ProjectController.CurrentProject.IsPendingOrInReview}">
+                        <apex:param value="{!ProjectController.CurrentProject.Id}" name="partId"/>
+                        <apex:param name="pageRerender" value="true"/>
+                        <span class="glyphicon glyphicon-ok-circle"></span>
+                    </apex:commandLink>
+                    &nbsp;
+                    <apex:commandLink styleClass="btn btn--neutral" action="{!ProjectController.cancelPart}" value="{!$Label.Cancel}" reRender="{!reRender}" onclick="if(inProgress) return false; showSectionSpinner('projectsHeader'); inProgress = true; clearInputFields();" oncomplete="resetProgress();removeSpacesFromId();restoreCollapsedSections();">
+                        <span class="glyphicon glyphicon-remove-circle"></span>
+                        <apex:param name="pageRerender" value="true"/>
+                    </apex:commandLink>
+                </div>
+            </apex:outputPanel>
+            <!-- Edit Mode End -->
+
+            <!-- View Mode Start -->
+            <apex:outputPanel layout="none" rendered="{!ProjectController.IsViewMode}">
+
+                <div class="projectHeader--typeAndStatus clearfix">
+                    <div class="pull-left">
+                        {!$Label.Project_Type}:&nbsp;
+                        <apex:outputField value="{!ProjectController.CurrentProject.PrObj.RecordTypeId}"></apex:outputField>
+                    </div>
+                    <div class="pull-right">
+                        {!$ObjectType['PR_Team_Employee__c'].fields['Status__c'].Label}:&nbsp;
+                        {!ProjectController.CurrentProject.PrObj.Status__c}
+                    </div>
+                </div>
+                <table class="table">
+                    <tr>
+                        <td>
+                            <apex:outputLabel for="ProjectIdOutOut" value="{!$ObjectType['PR_Team_Employee__c'].fields['Project_Id__c'].Label}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['PR_Team_Employee__c'].fields['Project_Id__c'].inlineHelpText}"/></apex:outputLabel>
+                        </td>
+                        <td>
+                            <apex:outputText value="{!ProjectController.CurrentProject.ProjectName}" id="projectNameEditOut" />
+                        </td>
+                        <td>
+                            <apex:outputLabel for="ProjectRoleOut" value="{!$ObjectType['PR_Team_Employee__c'].fields['Project_Role__c'].Label}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['PR_Team_Employee__c'].fields['Project_Role__c'].inlineHelpText}"/></apex:outputLabel>
+                        </td>
+                        <td>
+                            <apex:outputText value="{!ProjectController.CurrentProject.PrObj.Project_Role__c}" id="projectRoleNonOut" styleClass=""/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <apex:outputLabel for="clientNameEditableOut" value="{!$Label.Client_Name}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['PR_Team_Employee__c'].fields['Client_Name_Editable__c'].inlineHelpText}"/></apex:outputLabel>
+                        </td>
+                        <td>
+                            <apex:outputText value="{!ProjectController.CurrentProject.ClientName}" id="clientNameOut" />
+                        </td>
+                        <td width="25%">
+                            <apex:outputLabel for="projectGroup1Out" value="{!$Label.Project_Group}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['PR_Team_Employee__c'].fields['Project_Group_Editable__c'].inlineHelpText}"/></apex:outputLabel>
+                        </td>
+                        <td width="25%">
+                            <apex:outputText value="{!ProjectController.CurrentProject.ProjectGroup}" id="projectGroup1Out" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td width="25%">
+                            <apex:outputLabel for="locationCountryOut" value="{!$Label.Location_Country}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['PR_Team_Employee__c'].fields['Location_Country__c'].inlineHelpText}"/></apex:outputLabel>
+                        </td>
+                        <td width="25%">
+                            <apex:outputText value="{!ProjectController.CurrentProject.LocationCountry}" id="locationCountryOut" />
+                        </td>
+                        <td >
+                            <apex:outputLabel for="DateInvolvementStartedOut" value="{!$Label.Date_Involvement_Started}" styleClass="longLabelAdjustment helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['PR_Team_Employee__c'].fields['Date_Involvement_Started__c'].inlineHelpText}"/></apex:outputLabel>
+                        </td>
+                        <td style="width:250px;">
+                            <apex:outputText id="DateInvolvementStartedOut" value="{!ProjectController.CurrentProject.DateInvolvementStarted}" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <apex:outputLabel for="locationStateViewOut" value="{!$Label.Location_State_Province} " styleClass="longLabelAdjustment helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['PR_Team_Employee__c'].fields['Location_State_Prov_Emirate__c'].inlineHelpText}"/></apex:outputLabel>
+                        </td>
+
+                        <td>
+                            <apex:outputText value="{!ProjectController.CurrentProject.LocationStateProvince}" id="locationStateViewOut" />
+                        </td>
+                        <td>
+                            <apex:outputLabel for="DateInvolvementEndedOut" value="{!$Label.Date_Involvement_Ended}" styleClass="longLabelAdjustment helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['PR_Team_Employee__c'].fields['Date_Involvement_Ended__c'].inlineHelpText}"/></apex:outputLabel>
+                        </td>
+                        <td>
+                            <apex:outputText id="DateInvolvementEndedOut" value="{!ProjectController.CurrentProject.DateInvolvementEnded}" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <apex:outputLabel for="locationCityViewOut" value="{!$Label.Location_City}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['PR_Team_Employee__c'].fields['Location_City_Editable__c'].inlineHelpText}"/></apex:outputLabel>
+                        </td>
+                        <td>
+                            <apex:outputText value="{!ProjectController.CurrentProject.LocationCity}" id="locationCityViewOut" />
+                        </td>
+                        <td>
+                            <apex:outputLabel for="OutputOnResumeOut" value="{!$ObjectType['PR_Team_Employee__c'].fields['Output_On_Resume__c'].Label}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['PR_Team_Employee__c'].fields['Output_on_Resume__c'].inlineHelpText}"/></apex:outputLabel>
+                        </td>
+                        <td colspan="3">
+                            <img src="{!IF(ProjectController.CurrentProject.OutputOnResume, '/img/checkbox_checked.gif', '/img/checkbox_unchecked.gif')}" title="{!IF(ProjectController.CurrentProject.OutputOnResume, 'True', 'False')}" ></img>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <apex:outputLabel for="projectNumberViewOut" value="{!$Label.Project_Number}" styleClass="helpButton" rendered="{!!ProjectController.CurrentProject.isNonAECOMProject}"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['PR_Team_Employee__c'].fields['Project_Number_Editable__c'].inlineHelpText}"/></apex:outputLabel>
+                            <apex:outputLabel for="WorkHistory" value="Work History" styleClass="helpButton" rendered="{!ProjectController.CurrentProject.isNonAECOMProject}"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['PR_Team_Employee__c'].fields['Work_History__c'].inlineHelpText}"/></apex:outputLabel>
+                        </td>
+                        <td colspan="3">
+                            <apex:outputText value="{!ProjectController.CurrentProject.ProjectNumber}" id="projectNumberViewOut" rendered="{!!ProjectController.CurrentProject.isNonAECOMProject}"/>
+                            <apex:outputText value="{!ProjectController.CurrentProject.WorkHistoryName}" rendered="{!ProjectController.CurrentProject.isNonAECOMProject}"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <apex:outputLabel for="RoleDescriptionOut" value="{!$ObjectType['PR_Team_Employee__c'].fields['Description__c'].Label}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['PR_Team_Employee__c'].fields['Description__c'].inlineHelpText}"/></apex:outputLabel>
+                        </td>
+                        <td colspan="3">
+                            <apex:outputText style="width:100%;" id="RoleDescriptionOut" value="{!ProjectController.CurrentProject.RoleDescription}" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <apex:outputLabel for="LastModifiedOut" value="{!$Label.Last_Modified_By}" />
+                        </td>
+                        <td>
+                            <apex:outputText id="LastModifiedOut" value="{!ProjectController.CurrentProject.LastModifiedName}" />
+                        </td>
+                        <td>
+                            <apex:outputLabel for="LastModifiedDateOut" value="{!$Label.Last_Modified_Date}" />
+                        </td>
+                        <td>
+                            <apex:outputText id="LastModifiedDateOut" value="{!ProjectController.CurrentProject.LastModifedDate}" />
+                        </td>
+                    </tr>
+
+                </table>
+                <br />
+                <div class="col-md-4 text-center">
+                    <apex:commandLink action="{!ProjectController.cancelPart}" immediate="true" value="{!$Label.Cancel}" styleClass="btn btn--neutral" reRender="{!reRender}" onclick="if(inProgress) return false; showSectionSpinner('projectsHeader'); inProgress = true; clearInputFields();" oncomplete="resetProgress();restoreCollapsedSections();">
+                         <span class="glyphicon glyphicon-remove-circle"></span>
+                         <apex:param name="pageChange" value="firstPage"/>
+                    </apex:commandLink>
+                </div>
+            </apex:outputPanel>
+            <!-- View Mode End -->
+
+            <!-- List Mode Start -->
+            <apex:outputPanel layout="none" rendered="{!ProjectController.IsListMode}" id="projectPanel">
+                <apex:outputPanel layout="none" rendered="{!ProjectController.AllProjects.size>0}" >
+                    <div class="tableFrame">
+                    <table class="table projectTable">
+                        <thead>
+                            <tr>
+                                <!-- NOTE: These columns are mirrored on rsProjectExcelExport -->
+                                <th width="11%"> </th>
+                                <th width="8%">
+                                    <apex:commandLink action="{!ProjectController.sortParts}" reRender="{!reRender}" onclick="if(inProgress) return false; inProgress = true;" oncomplete="resetProgress();" value="{!$ObjectType['PR_Team_Employee__c'].fields['Output_On_Resume__c'].Label}">
+                                        <apex:param name="sortField" value="Output_On_Resume__c"/>
+                                    </apex:commandLink>
+                                </th>
+                                <th>
+                                    <apex:commandLink action="{!ProjectController.sortParts}" reRender="{!reRender}" onclick="if(inProgress) return false; inProgress = true;" oncomplete="resetProgress();" value="{!$ObjectType['PR_Team_Employee__c'].fields['Project_ID__c'].Label}">
+                                        <apex:param name="sortField" value="Project_Name__c"/>
+                                    </apex:commandLink>
+                                </th>
+                                <th>
+                                    <apex:commandLink action="{!ProjectController.sortParts}" reRender="{!reRender}" onclick="if(inProgress) return false; inProgress = true;" oncomplete="resetProgress();" value="{!$ObjectType['PR_Team_Employee__c'].fields['Project_Number__c'].Label}">
+                                        <apex:param name="sortField" value="Project_Number_Calculated__c"/>
+                                    </apex:commandLink>
+                                </th>
+                                <th>
+                                    <apex:commandLink action="{!ProjectController.sortParts}" reRender="{!reRender}" onclick="if(inProgress) return false; inProgress = true;" oncomplete="resetProgress();" value="{!$Label.Location_Country}">
+                                        <apex:param name="sortField" value="Location_Country__c"/>
+                                    </apex:commandLink>
+                                </th>
+                                <th>
+                                    <apex:commandLink action="{!ProjectController.sortParts}" reRender="{!reRender}" onclick="if(inProgress) return false; inProgress = true;" oncomplete="resetProgress();" value="{!$Label.Location_City}">
+                                        <apex:param name="sortField" value="Location_City__c"/>
+                                    </apex:commandLink>
+                                </th>
+                                <th>
+                                    <apex:commandLink action="{!ProjectController.sortParts}" reRender="{!reRender}" onclick="if(inProgress) return false; inProgress = true;" oncomplete="resetProgress();" value="{!$Label.Client_Name}">
+                                        <apex:param name="sortField" value="Client__c"/>
+                                    </apex:commandLink>
+                                </th>
+                                <th>
+                                    <apex:commandLink action="{!ProjectController.sortParts}" reRender="{!reRender}" onclick="if(inProgress) return false; inProgress = true;" oncomplete="resetProgress();" value="{!$ObjectType['PR_Team_Employee__c'].fields['Project_Group__c'].Label}">
+                                        <apex:param name="sortField" value="Project_Group_Editable__c"/>
+                                    </apex:commandLink>
+                                </th>
+                                <th width="10%">
+                                    <apex:commandLink action="{!ProjectController.sortParts}" reRender="{!reRender}" onclick="if(inProgress) return false; inProgress = true;" oncomplete="resetProgress();" value="{!$Label.Date_Involvement_Ended}">
+                                        <apex:param name="sortField" value="Date_Involvement_Ended__c"/>
+                                    </apex:commandLink>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        <apex:repeat value="{!ProjectController.ProjectViewParts}" var="project">
+                            <tr style="background-color:{!IF(project.Obj.IsPendingOrInReview, 'LightYellow', 'white')};">
+                                <td>
+                                    <div class="iconGroup--spread">
+
+                                            <apex:commandLink action="{!ProjectController.viewPart}" value="" styleClass="" reRender="{!reRender}" onclick="if(inProgress) return false; showSectionSpinner('projectsHeader'); inProgress = true;" oncomplete="resetProgress(); scrollToHeader('projectsHeader');" title="{!$Label.View}">
+                                                <!-- Preview -->
+                                                <apex:param value="{!project.Obj.Id}" name="projectId"/>
+                                                <apex:param name="pageChange" value="firstPage"/>
+                                                <svg width="52" height="52" viewBox="0 0 52 52"><g fill="#000"><path d="m51.8 25.1c-4.7-9.5-14.5-16.1-25.8-16.1s-21.1 6.6-25.8 16.1c-0.3 0.6-0.3 1.3 0 1.8 4.7 9.5 14.5 16.1 25.8 16.1s21.1-6.6 25.8-16.1c0.3-0.6 0.3-1.2 0-1.8z m-25.8 11.9c-6.1 0-11-4.9-11-11s4.9-11 11-11 11 4.9 11 11-4.9 11-11 11z m0-18c-3.9 0-7 3.1-7 7s3.1 7 7 7 7-3.1 7-7-3.1-7-7-7z"></path></g></svg>
+                                            </apex:commandLink>
+
+                                        <apex:commandLink action="{!ProjectController.editPart}" value="" rendered="{!ProjectController.CanEdit}" styleClass="" reRender="{!reRender}" onclick="if(inProgress) return false; showSectionSpinner('projectsHeader'); inProgress = true;" oncomplete="resetProgress(); setupFields('edit');stateChange($j('[id$=locationCountryEdit]').val(),'State','locationStateEdit');scrollToHeader('projectsHeader');updateWorkHistoryName();" title="{!$Label.Edit}">
+                                            <!-- Edit -->
+                                            <apex:param value="{!project.Obj.Id}" name="projectId"/>
+                                            <apex:param name="pageChange" value="firstPage"/>
+                                            <svg width="52" height="52" viewBox="0 0 52 52"><g fill="#000"><path d="m9.5 33.4l8.9 8.9c0.4 0.4 1 0.4 1.4 0l22.2-22.3c0.4-0.4 0.4-1 0-1.4l-8.8-8.8c-0.4-0.4-1-0.4-1.4 0l-22.3 22.3c-0.4 0.4-0.4 1 0 1.3z m26.6-27.7c-0.4 0.4-0.4 1 0 1.4l8.8 8.8c0.4 0.4 1 0.4 1.4 0l2.5-2.5c1.6-1.5 1.6-3.9 0-5.5l-4.7-4.7c-1.6-1.6-4.1-1.6-5.7 0l-2.3 2.5z m-34 42.5c-0.2 1 0.7 1.9 1.7 1.7l10.9-2.6c0.4-0.1 0.7-0.3 0.9-0.5l0.2-0.2c0.2-0.2 0.3-0.9-0.1-1.3l-9-9c-0.4-0.4-1.1-0.3-1.3-0.1l-0.2 0.2c-0.3 0.3-0.4 0.6-0.5 0.9l-2.6 10.9z"></path></g></svg>
+                                        </apex:commandLink>
+                                        <apex:commandLink action="{!ProjectController.deletePart}" value="" rendered="{!ProjectController.CanEdit}" styleClass="" reRender="{!reRender}" onclick="if(inProgress) return false; if(!confirmDeletePart()) return false; showSectionSpinner('projectsHeader');  inProgress = true;" oncomplete="resetProgress();" title="{!$Label.Delete}">
+                                            <!-- Delete -->
+                                            <apex:param value="{!project.Obj.Id}" name="projectId"/>
+                                            <apex:param name="pageRerender" value="true"/>
+                                            <apex:param value="{!project.Obj.RecordTypeId}" name="recordType" />
+                                            <svg width="52" height="52" viewBox="0 0 52 52"><g fill="#000"><path d="m45.5 10h-12.5v-4c0-2.2-1.8-4-4-4h-6c-2.2 0-4 1.8-4 4v4h-12.5c-0.8 0-1.5 0.7-1.5 1.5v3c0 0.8 0.7 1.5 1.5 1.5h39c0.8 0 1.5-0.7 1.5-1.5v-3c0-0.8-0.7-1.5-1.5-1.5z m-22.5-3c0-0.6 0.4-1 1-1h4c0.6 0 1 0.4 1 1v3h-6v-3z m18.5 13h-31c-0.8 0-1.5 0.7-1.5 1.5v23.5c0 2.8 2.2 5 5 5h24c2.8 0 5-2.2 5-5v-23.5c0-0.8-0.7-1.5-1.5-1.5z m-18.5 22c0 0.6-0.4 1-1 1h-2c-0.6 0-1-0.4-1-1v-14c0-0.6 0.4-1 1-1h2c0.6 0 1 0.4 1 1v14z m10 0c0 0.6-0.4 1-1 1h-2c-0.6 0-1-0.4-1-1v-14c0-0.6 0.4-1 1-1h2c0.6 0 1 0.4 1 1v14z"></path></g></svg>
+                                        </apex:commandLink>
+                                        <!-- Why not put it in the rendered attribute you might ask
+                                             For some reason {!project.Obj.IsApproved} being in the rendered
+                                             attribute refuses to reRender -->
+                                        <span class="hide{!project.Obj.IsApproved} hide{!ProjectController.CanEdit}">
+                                            <apex:commandLink action="{!ProjectController.archivePart}" value="" styleClass="" reRender="{!reRender}" onclick="if(inProgress) return false; if(!confirmArchive()) return false; showSectionSpinner('projectsHeader'); inProgress = true;" oncomplete="resetProgress();" title="{!$Label.IconButton_Archive_HelpText}">
+                                                <!-- Archive -->
+                                               <apex:param value="{!project.Obj.Id}" name="projectId"/>
+                                               <apex:param name="pageRerender" value="true"/>
+                                               <svg width="52" height="52" viewBox="0 0 52 52"><g fill="#000"><path d="m46 14h-22.7c-1.4 0-2.7-0.8-3.5-2l-3.5-6c-0.7-1.2-2-2-3.5-2h-6.8c-2.2 0-4 1.8-4 4v36c0 2.2 1.8 4 4 4h40c2.2 0 4-1.8 4-4v-26c0-2.2-1.8-4-4-4z m0-8h-24.1c-0.4 0-0.6 0.4-0.4 0.7l1.6 2.7c0.2 0.4 0.5 0.6 0.9 0.6h22c1.1 0 2.2 0.2 3.1 0.6 0.4 0.2 0.9-0.1 0.9-0.6 0-2.2-1.8-4-4-4z"></path></g></svg>
+                                           </apex:commandLink>
+                                        </span>
+                                        <span class="hide{!project.Obj.IsArchived} hide{!ProjectController.CanEdit}">
+                                            <apex:commandLink action="{!ProjectController.restorePart}" value="" styleClass="" reRender="{!reRender}" onclick="if(inProgress) return false; if(!confirmRestore()) return false; showSectionSpinner('projectsHeader'); inProgress = true;" rendered="{!ProjectController.CanEdit}" oncomplete="resetProgress();" title="{!$Label.IconButton_Restore_HelpText}">
+                                                <!-- Restore -->
+                                                <apex:param value="{!project.Obj.Id}" name="projectId"/>
+                                                <apex:param name="pageRerender" value="true"/>
+                                                <svg width="52" height="52" viewBox="0 0 52 52"><path fill="#000" d="m20 37.5c0-0.8-0.7-1.5-1.5-1.5h-15c-0.8 0-1.5 0.7-1.5 1.5v11c0 0.8 0.7 1.5 1.5 1.5h15c0.8 0 1.5-0.7 1.5-1.5v-11z m-11.9-15.5h-4.9c-1 0-1.5 0.9-0.9 1.4l8 8.3c0.4 0.3 1 0.3 1.4 0l8-8.3c0.6-0.6 0.1-1.4-0.9-1.4h-4.7c0-5 4.9-10 9.9-10v-6c-9 0-15.9 7-15.9 16z m33.7-1.7c-0.4-0.3-1-0.3-1.4 0l-8 8.3c-0.6 0.6-0.1 1.4 0.9 1.4h4.8c0 6-4.1 10-10.1 10v6c9 0 16.1-7 16.1-16h4.9c1 0 1.5-0.9 0.9-1.4l-8.1-8.3z m8.2-16.8c0-0.8-0.7-1.5-1.5-1.5h-15c-0.8 0-1.5 0.7-1.5 1.5v11c0 0.8 0.7 1.5 1.5 1.5h15c0.8 0 1.5-0.7 1.5-1.5v-11z"></path></svg>
+                                            </apex:commandLink>
+                                        </span>
+                                    </div>
+                                </td>
+                                <td class="checkboxTD">
+                                    <apex:inputCheckbox value="{!project.Obj.OutputOnResume}">
+                                        <apex:actionSupport event="onclick" action="{!project.Obj.save}" status="checkBoxStatus" reRender=""/>
+                                    </apex:inputCheckbox>
+                                </td>
+                                <td>
+                                    <apex:outputText rendered="{!ISBLANK(project.Obj.ProjectId)}" value="{!project.Obj.ProjectName}"/>
+                                    <apex:outputLink rendered="{!!ISBLANK(project.Obj.ProjectId)}" value="/{!project.Obj.ProjectId}" target="_blank">{!project.Obj.ProjectName}</apex:outputLink>
+                                </td>
+                                <td>{!project.Obj.ProjectNumber}</td>
+                                <td>{!project.Obj.LocationCountry}</td>
+                                <td>{!project.Obj.LocationCity}</td>
+                                <td>{!project.Obj.ClientName}</td>
+                                <td>{!project.Obj.ProjectGroup}</td>
+                                <td>{!project.Obj.DateInvolvementEnded}</td>
+                            </tr>
+                        </apex:repeat>
+                        </tbody>
+                    </table>
+                    </div>
+                </apex:outputPanel>
+                <c:rsPaginationComponent nextPage="{!ProjectController.getNextPage}" previousPage="{!ProjectController.getPreviousPage}" firstPage="{!ProjectController.getFirstPage}" lastPage="{!ProjectController.getLastPage}" viewIndex="{!ProjectController.ViewIndex}" viewLimit="{!ProjectController.ViewLimit}" totalParts="{!ProjectController.TotalParts}" pageNumber="{!ProjectController.PageNum}" numberOfPages="{!ProjectController.NumberOfPages}" rendered="{!ProjectController.TotalParts > ProjectController.ResultLimit}" reRender="{!reRender}"/>
+            </apex:outputPanel>
+            <!-- List Mode End -->
+        </div>
+    </div>
+    </apex:outputPanel>
+</apex:component>

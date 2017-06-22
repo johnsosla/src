@@ -1,0 +1,75 @@
+<apex:page showHeader="true" sidebar="true" standardController="GFA_Template__c" extensions="GFA_TemplateTreeEditController" id="GFA_Page">
+<!-- <apex:stylesheet value="{!URLFOR($Resource.GFA, 'bootstrap/css/bootstrap.min.css')}"/> -->
+<apex:stylesheet value="{!URLFOR($Resource.GFA, 'bootstrap/css/bootstrap.css')}"/>
+<apex:stylesheet value="{!URLFOR($Resource.GFA, 'custom/css/GFA_app.css')}"/>
+<apex:stylesheet value="{!URLFOR($Resource.GFA, 'font-awesome/css/font-awesome.min.css')}"/>
+<apex:stylesheet value="{!URLFOR($Resource.GFA, 'custom/css/GFA_app2.css')}"/>
+
+<script src="{!URLFOR($Resource.GFA, 'jQuery/jquery-1.12.1.min.js')}" type="text/javascript" charset="utf-8"></script>
+<script src="{!URLFOR($Resource.GFA, 'bootstrap/js/bootstrap.min.js')}" type="text/javascript" charset="utf-8"></script>
+<script src="{!URLFOR($Resource.GFA, 'custom/js/GFA_app.js')}" type="text/javascript" charset="utf-8"></script>
+<script type="text/javascript">
+
+</script>
+<div class="GFA">
+
+<div class="bPageTitle">
+    <div class="ptBody">
+        <div class="content">
+            <img src="{!URLFOR($Resource.GFA, 'icons/tree-view.png')}" alt="Template Tree Edit" title="Template Tree Edit" class="GFA_pageTitleIcon"/>
+            <h1 class="pageType">Template Tree Edit
+                <span class="titleSeparatingColon">:</span>
+            </h1>
+            <h2 class="pageDescription">{!template.TemplateName}</h2>
+            <div class="blank">&nbsp;</div>
+        </div>
+    </div>
+</div>
+
+<div class="pageContainer">
+    <apex:form id="form">
+        <div class="centerButtonsGroup p10">
+            <apex:actionStatus id="actionButtonsStatus">
+                <apex:facet name="stop">
+                    <apex:outputPanel id="btnPanel">
+                        <apex:commandButton value="Add Phase" styleClass="mainButton AE_Blue" reRender="addPhasePanel" oncomplete="openModal('#addPhaseModal');" status="addPhaseButtonStatus"/>
+                        <apex:commandButton value="Quick Save" action="{!saveAndContinue}" styleClass="mainButton AE_Blue" status="actionButtonsStatus" reRender="form" oncomplete="setupExpandAndCollapse();"/>
+                        <apex:commandButton value="Save" action="{!save}" styleClass="mainButton AE_Blue" status="actionButtonsStatus" reRender="form"/>
+                        <apex:commandButton value="Cancel" action="{!cancel}" styleClass="mainButton AE_Green" status="actionButtonsStatus" reRender="form"/>
+                    </apex:outputPanel>
+                </apex:facet>
+                <apex:facet name="start">
+                    <apex:image styleClass="actionButtonSpinner" value="/img/loading.gif"/>
+                </apex:facet>
+            </apex:actionStatus>
+        </div>
+
+        <c:GFA_TemplateTreeComponent template="{!template}"
+                                     editMode="true"
+                                     AvailableLibraryPhases="{!AvailableLibraryPhases}"
+                                     AddLibraryPhase="{!addLibraryPhase}"
+                                     RemoveTemplatePhase="{!removeTemplatePhase}"
+                                     SelectedPhase="{!SelectedPhase}"
+                                     SelectedTask="{!SelectedTask}"
+                                     SelectedPhaseName="{!SelectedPhaseName}"
+                                     SelectedTaskName="{!SelectedTaskName}"
+                                     AvailableLibraryTasks="{!AvailableLibraryTasks}"
+                                     AddLibraryTask="{!addLibraryTask}"
+                                     RemoveTemplateTask="{!removeTemplateTask}"
+                                     AvailableLibrarySubtasks="{!AvailableLibrarySubtasks}"
+                                     AddLibrarySubtask="{!addLibrarySubtask}"
+                                     RemoveTemplateSubtask="{!removeTemplateSubtask}"
+                                     Filter="{!Filter}"
+                                     RefreshAvailableLibrarySubtasks="{!RefreshAvailableLibrarySubtasks}"
+                                     ClearFilter="{!clearFilter}"
+                                     CheckAllAction="{!checkAllAction}"
+                                     CheckAll="{!CheckAll}"
+                                     PreviousPage="{!previousPage}"
+                                     SwitchToPage="{!switchToPage}"
+                                     NextPage="{!nextPage}"
+                                     PageNumbers="{!pageNumbers}"
+                                     DisplayPage="{!displayPage}"/>
+    </apex:form>
+</div>
+</div>
+</apex:page>

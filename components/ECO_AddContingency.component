@@ -1,0 +1,56 @@
+<apex:component controller="ECO_AddContingencyController" allowdml="true" extensions="nttdcore.DLabelChildController" >
+    <apex:attribute name="parentCon" description="Parent Controller" type="IBudgetSave" required="true" assignto="{!parentController}" />
+    <apex:attribute name="budgetHeader" description="The Budget Header ID" type="String" required="true" assignto="{!budgetHeaderId}" />
+
+    <apex:attribute name="refreshPage" description="The refresh page" type="String" required="true" assignto="{!refresh}" />
+
+    <apex:includeScript value="{!$Resource.ECO_jQuery_1_11_2_min_js}" />
+    <apex:includeScript value="{!URLFOR($Resource.ECO_jQueryUI_1_11_2, 'jquery-ui.min.js')}" />
+
+    <apex:stylesheet value="{!URLFOR($Resource.ECO_jQueryUI_1_11_2_Themes, 'themes/smoothness/jquery-ui.css')}" />
+
+    <script type="text/javascript" >
+        $z = jQuery.noConflict();
+
+        function loading(val) {
+            if (val) {
+              document.getElementById('spinner1').style.display = 'block';
+            }
+            else {
+              document.getElementById('spinner1').style.display = 'none';
+            }
+          }
+
+        $z(document).ready(function () {
+        });
+    </script>
+
+    <style>
+    </style>
+
+    <apex:actionStatus id="loading" onstart="loading(true)" onstop="loading(false)" />
+
+
+        <span style="font-size:14pt;font-weight:bold;" ><nttdcore:DLabel name="DL1" default="Add Resource to Budget" labelParent="{!this}" componentContext="ECO_AddContingency" />{!dlRoot.dLabel['DL1']}</span>
+
+        <div style="display:none; float: right;" id="spinner1" >
+            <img height="15" width="15" class="spinner" src="{!$Resource.loading}" alt="loading" title="loading" />
+        </div>
+
+        <div style="clear:both;" />
+
+
+        <div id="tabs" class="tabsForResource tabs" style="height:400px; margin-top:20px" >
+         <td style="text-align:right;" ><nttdcore:DLabel name="DL2" default="Contingency Name:" labelParent="{!this}" componentContext="ECO_AddContingency" />{!dlRoot.dLabel['DL2']}&nbsp;</td>
+            <apex:inputText value="{!jobName}" />
+        </div>
+
+                <div style="float: right;" >
+                    <nttdcore:DLabel name="DL3" default="Add Resource(s)" labelParent="{!this}" componentContext="ECO_AddContingency" /><apex:commandButton value="{!dlRoot.dLabel['DL3']}" action="{!addExistingResource}" status="loading" onclick="return disableButtons()" style="font-size:11px !important; font-family: Arial;" />
+                    
+                    <nttdcore:DLabel name="DL4" default="Cancel" labelParent="{!this}" componentContext="ECO_AddContingency" /><apex:commandButton value="{!dlRoot.dLabel['DL4']}" onclick="closeModal('modalDialog0');return false;" style="font-size:11px !important; font-family: Arial;" />
+                </div>
+
+                <div style="clear: both;" />
+
+</apex:component>

@@ -1,0 +1,117 @@
+<apex:component controller="rsPersonalController" allowDML="true">
+    <apex:attribute name="rsProfile" assignTo="{!profile}" description="" type="rsProfile" required="true"/>
+    <apex:attribute name="reRender" description="" type="String" required="false"/>
+
+    <script type="text/javascript">
+        var $j = jQuery.noConflict();
+        var tdArray = [];
+        var startingInt = 0;
+        $j(document).ready(function() {
+            $j( "#pInfoTabs").tabs({active: getTab('pInfoSubTab')});
+            //Function to reorder table caused by hidden td's in HR Data
+            $j('#hrDataTable > tbody > tr').each(function() {
+                $j(this).children().each(function() {
+                    if($j(this).children().first().css('display') != 'none') {
+                        tdArray.push($j(this));
+                    }
+                    $j(this).remove();
+                });
+                $j(this).remove();
+            });
+            if(tdArray.length % 4 != 0) {
+                tdArray[tdArray.length-1].attr('colspan',3);
+            }
+            for(var i = 0; i < tdArray.length; i += 4) {
+                var tr = $j('<tr></tr>');
+                tr.append(tdArray[i]);
+                if(i == 0) {
+                    tdArray[i].attr('width','20%');
+                }
+                if(tdArray[i+1]) {
+                    tr.append(tdArray[i+1]);
+                    if(i+1 == 1) {
+                        tdArray[i+1].attr('width','30%');
+                    }
+                }
+                if(tdArray[i+2]) {
+                    tr.append(tdArray[i+2]);
+                    if(i+2 == 1) {
+                        tdArray[i+2].attr('width','20%');
+                    }
+                }
+                if(tdArray[i+3]) {
+                    tr.append(tdArray[i+3]);
+                    if(i+3 == 1) {
+                        tdArray[i+3].attr('width','30%');
+                    }
+                }
+                tr.appendTo('#hrDataTable > tbody');
+            }
+            helpTextSetup();
+        });
+     </script>
+
+     <div class="panel panel-default" >
+        <div class="panel-heading">
+            <h5 class="panel-title">{!$Label.HR_Data}</h5>
+        </div>
+
+         <table id="hrDataTable" class="table" width="100%">
+            <tbody>
+                <tr>
+                    <td width="25%" style="border-top: 0px" ><apex:outputLabel for="hrFullName" value="{!$ObjectType['User'].fields['HR_Full_Name__c'].Label}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['User'].fields['HR_Full_Name__c'].inlineHelpText}"/></apex:outputLabel></td>
+                    <td width="25%" style="border-top: 0px"><apex:outputText id="hrFullName" value="{!CurrentUser.HR_Full_Name__c}"/></td>
+                    <td width="25%" style="border-top: 0px"><apex:outputLabel rendered="{!IsOwnerOrContentManager || $ObjectType['User'].fields['TrackingId__c'].Accessible}" for="trackingId" value="{!$ObjectType['User'].fields['TrackingId__c'].Label}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['User'].fields['TrackingId__c'].inlineHelpText}"/></apex:outputLabel></td>
+                    <td width="25%" style="border-top: 0px"><apex:outputText rendered="{!IsOwnerOrContentManager || $ObjectType['User'].fields['TrackingId__c'].Accessible}" id="trackingId" value="{!profile.TrackingId}"/></td>
+                </tr>
+                <tr>
+                    <td><apex:outputLabel for="hrJobTitle" value="{!$ObjectType['User'].fields['HR_Job_Title__c'].Label}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['User'].fields['HR_Job_Title__c'].inlineHelpText}"/></apex:outputLabel></td>
+                    <td><apex:outputText id="hrJobTitle" value="{!CurrentUser.HR_Job_Title__c}"/></td>
+                    <td><apex:outputLabel rendered="{!IsOwnerOrContentManager || $ObjectType['User'].fields['Employee_Category__c'].Accessible}" for="employeeCategory" value="{!$ObjectType['User'].fields['Employee_Category__c'].Label}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['User'].fields['Employee_Category__c'].inlineHelpText}"/></apex:outputLabel></td>
+                    <td><apex:outputText rendered="{!IsOwnerOrContentManager || $ObjectType['User'].fields['Employee_Category__c'].Accessible}" id="employeeCategory" value="{!profile.EmployeeCategory}"/></td>
+                </tr>
+                <tr>
+                    <td><apex:outputLabel rendered="{!IsOwnerOrContentManager || $ObjectType['User'].fields['Original_Hire_Date__c'].Accessible}" for="originalHireDate" value="{!$ObjectType['User'].fields['Original_Hire_Date__c'].Label}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['User'].fields['Original_Hire_Date__c'].inlineHelpText}"/></apex:outputLabel></td>
+                    <td>
+                        <apex:outputText rendered="{!IsOwnerOrContentManager || $ObjectType['User'].fields['Original_Hire_Date__c'].Accessible}" id="originalHireDate" value="{!profile.OriginalHireDate}"/>
+                    </td>
+                    <td><apex:outputLabel rendered="{!IsOwnerOrContentManager || $ObjectType['User'].fields['Assignment_Status__c'].Accessible}" for="assignmentStatus" value="{!$ObjectType['User'].fields['Assignment_Status__c'].Label}" /> </td>
+                    <td><apex:outputText rendered="{!IsOwnerOrContentManager || $ObjectType['User'].fields['Assignment_Status__c'].Accessible}" id="assignmentStatus" value="{!profile.AssignmentStatus}"/></td>
+                </tr>
+                <tr>
+                    <td><apex:outputLabel rendered="{!IsOwnerOrContentManager || $ObjectType['User'].fields['Rehire_Date__c'].Accessible}" for="rehireDate" value="{!$ObjectType['User'].fields['Rehire_Date__c'].Label}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['User'].fields['Rehire_Date__c'].inlineHelpText}"/></apex:outputLabel></td>
+                    <td>
+                        <apex:outputText rendered="{!IsOwnerOrContentManager || $ObjectType['User'].fields['Rehire_Date__c'].Accessible}" id="rehireDate" value="{!profile.RehireDate}"/>
+                    </td>
+                    <td>
+                        <apex:outputLabel for="hrEmployeeNumber" rendered="{!IsOwnerOrContentManager || $ObjectType['User'].fields['EmployeeNumber'].Accessible}" value="{!$ObjectType['User'].fields['EmployeeNumber'].Label}"></apex:outputLabel>
+                    </td>
+                    <td >
+                        <apex:outputText id="hrEmployeeNumber" rendered="{!IsOwnerOrContentManager || $ObjectType['User'].fields['EmployeeNumber'].Accessible}" value="{!profile.EmployeeNumber}"></apex:outputText>
+                    </td>
+                </tr>
+                <tr>
+                    <td><apex:outputLabel rendered="{!IsOwnerOrContentManager || $ObjectType['User'].fields['Adjusted_Service_Date__c'].Accessible}" for="adjustedServiceDate" value="{!$ObjectType['User'].fields['Adjusted_Service_Date__c'].Label}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['User'].fields['Adjusted_Service_Date__c'].inlineHelpText}"/></apex:outputLabel></td>
+                    <td>
+                        <apex:outputText rendered="{!IsOwnerOrContentManager || $ObjectType['User'].fields['Adjusted_Service_Date__c'].Accessible}" id="adjustedServiceDate" value="{!profile.AdjustedServiceDate}"/>
+                    </td>
+                    <td>
+                    </td>
+                    <td >
+                    </td>
+                </tr>
+                <tr>
+                    <td><apex:outputLabel rendered="{!IsOwnerOrContentManager || $ObjectType['User'].fields['Term_Date__c'].Accessible}" for="termDate" value="{!$ObjectType['User'].fields['Term_Date__c'].Label}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['User'].fields['Term_Date__c'].inlineHelpText}"/></apex:outputLabel></td>
+                    <td>
+                        <apex:outputText rendered="{!IsOwnerOrContentManager || $ObjectType['User'].fields['Term_Date__c'].Accessible}" id="termDate" value="{!profile.TermDate}"/>
+                    </td>
+                    <td>
+                    </td>
+                    <td >
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+</apex:component>

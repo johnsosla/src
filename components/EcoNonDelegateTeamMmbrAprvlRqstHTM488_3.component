@@ -1,0 +1,46 @@
+<apex:component language="{!theLanguage}" controller="nttdcore.DLabelChildController" access="global" ><nttdcore:DLabel name="DL1" default="Dear {{1}},   
+A non delegated team member ({{2}}) has been added to the project team of {{3}} project for {{4}} role.  Please review and approve the below. 
+
+ 
+ 
+The project team approval request for {{5}}  has been recalled from approval. 
+
+  
+ Project Name:  {{6}}
+ 
+ Opportunity Name:  {{7}} 
+ 
+ Project Manager:  {{8}} 
+ 
+ Net Services Revenue:  {{9}} 
+ 
+ Weighted NSR:  {{10}} 
+ 
+ Primary End Client:  {{11}} 
+ 
+ Primary Billing Client:  {{12}} 
+ 
+ Owner:  {{13}} 
+ 
+ Estimated AECOM Gross Fee:  {{14}} 
+ 
+ Carrying Out Organization:  {{15}} 
+ 
+ Percentage Margin:  {{16}} 
+ 
+ Total Margin:  {{17}} 
+ 
+ Total Bid Budget:  {{18}} 
+ 
+ Estimated Start Date:" labelParent="{!this}" componentContext="EcoNonDelegateTeamMmbrAprvlRqstHTM488_3" p1="{!theRelatedTo.Unfiltered_Delegate_Approver__r.Name}" p2="{!theRelatedTo.Name}" p3="{!theRelatedTo.ProjectName__c}" p4="{!theRelatedTo.ProjectRoleName__c}" p5="{!theRelatedTo.Name}" p6="{!theRelatedTo.Project__r.Name}" p7="{!theRelatedTo.Project__r.pse__Opportunity__r.Name}" p8="{!theRelatedTo.Project__r.pse__Project_Manager__r.Name}" p9="{!theRelatedTo.Project__r.NetServicesRevenue__c}" p10="{!theRelatedTo.Project__r.WeightedNSR__c}" p11="{!theRelatedTo.Primary_End_Client__c}" p12="{!theRelatedTo.Primary_Billing_Client__c}" p13="{!theRelatedTo.Project__r.Owner.Name }" p14="{!theRelatedTo.Project__r.EstimatedContractValue__c}" p15="{!theRelatedTo.Project__r.CarryingOutOrganizationFormula__c}" p16="{!theRelatedTo.Project__r.PercentageMargin__c}" p17="{!theRelatedTo.Project__r.TotalMargin__c}" p18="{!theRelatedTo.Project__r.TotalBidBudget__c}" /><nttdcore:DLabel name="DL2" default="Approval Link:" labelParent="{!this}" componentContext="EcoNonDelegateTeamMmbrAprvlRqstHTM488_3" /><nttdcore:DLabel name="DL3" default="Project Team Member Link: {{1}}{{2}}
+  
+Please approve or reject this item via clicking on the link below or replying to this email with the words 'approve • approved • yes • reject • rejected • no'. Any additional comments to be recorded can be added in a second line of the email reply." labelParent="{!this}" componentContext="EcoNonDelegateTeamMmbrAprvlRqstHTM488_3" p1="{!LEFT($Api.Partner_Server_URL_290,FIND('services',$Api.Partner_Server_URL_290)-1)}" p2="{!theRelatedTo.Id}" /><apex:attribute name="theLanguage" type="String" required="true" description="language" access="global" /><apex:attribute name="theRecipient" type="User" required="true" description="recipient" access="global" /><apex:attribute name="theRelatedTo" type="ProjectTeamMember__c" required="true" description="related to" access="global" />
+{!dlRoot.dLabel['DL1']} <apex:outputtext value="{0,date,EEE MMM dd yyyy}" >
+                                       <apex:param value="{!theRelatedTo.Project__r.EstimatedStartDate__c}" />
+                          </apex:outputtext>
+ 
+
+ {!dlRoot.dLabel['DL2']} <c:ECO_ApprovalRequestURL relatedtoid="{!theRelatedTo.Id}" texttype="PlainText" />
+ 
+ {!dlRoot.dLabel['DL3']}
+<nttdcore:DLabelInit language="{!theLanguage}" labelParentInit="{!this}" /></apex:component>

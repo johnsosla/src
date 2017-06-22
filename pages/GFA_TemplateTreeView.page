@@ -1,0 +1,65 @@
+<apex:page showHeader="true" sidebar="true" standardController="GFA_Template__c" extensions="GFA_TemplateTreeViewController" id="GFA_Page">
+<!-- <apex:stylesheet value="{!URLFOR($Resource.GFA, 'bootstrap/css/bootstrap.min.css')}"/> -->
+<apex:stylesheet value="{!URLFOR($Resource.GFA, 'bootstrap/css/bootstrap.css')}"/>
+<apex:stylesheet value="{!URLFOR($Resource.GFA, 'custom/css/GFA_app.css')}"/>
+<apex:stylesheet value="{!URLFOR($Resource.GFA, 'font-awesome/css/font-awesome.min.css')}"/>
+<apex:stylesheet value="{!URLFOR($Resource.GFA, 'custom/css/GFA_app2.css')}"/>
+
+<script src="{!URLFOR($Resource.GFA, 'jQuery/jquery-1.12.1.min.js')}" type="text/javascript" charset="utf-8"></script>
+<script src="{!URLFOR($Resource.GFA, 'bootstrap/js/bootstrap.min.js')}" type="text/javascript" charset="utf-8"></script>
+<script src="{!URLFOR($Resource.GFA, 'custom/js/GFA_app.js')}" type="text/javascript" charset="utf-8"></script>
+<div class="GFA">
+
+<div class="bPageTitle">
+    <div class="ptBody">
+        <div class="content">
+            <img src="{!URLFOR($Resource.GFA, 'icons/tree-view.png')}" alt="Tree View" title="Tree View" class="GFA_pageTitleIcon"/>
+            <h1 class="pageType">Template Tree View
+                <span class="titleSeparatingColon">:</span>
+            </h1>
+            <h2 class="pageDescription">{!template.TemplateName}</h2>
+            <div class="blank">&nbsp;</div>
+        </div>
+    </div>
+</div>
+
+<div class="pageContainer">
+    <apex:form id="form">
+        <div class="btn-group pull-right">
+            <button type="button" class="btn disabled menuButton-left AE_Blue">
+                <img src="{!URLFOR($Resource.GFA, 'icons/dark/tree-view-dark.png')}" alt="Tree View" title="Tree View" class="GFA_menuIcon"/>
+                Tree View
+            </button>
+            <a href="/apex/GFA_TemplateFramework?id={!template.Id}" class="btn menuButton">
+                <img src="{!URLFOR($Resource.GFA, 'icons/swim-lane.png')}" alt="Swim Lane" title="Swim Lane" class="GFA_menuIcon"/>
+                Swim Lane View
+            </a>
+            <a href="/{!template.Id}" class="btn menuButton-right">
+                <img src="{!URLFOR($Resource.GFA, 'icons/detail-view.png')}" alt="Detail View" title="Detail View" class="GFA_menuIcon"/>
+                Template Detail
+            </a>
+        </div>
+        <div class="clearfix"></div>
+
+        <div class="centerButtonsGroup p10">
+            <apex:actionStatus id="actionButtonsStatus">
+                <apex:facet name="stop">
+                    <apex:outputPanel id="btnPanel">
+                        <apex:commandButton value="Edit" action="{!editTemplate}" rendered="{!canEditTemplate}" status="actionButtonsStatus" reRender="form" styleClass="mainButton AE_Blue"/>
+                        <apex:commandButton value="Publish" action="{!publishTemplate}" rendered="{!CanPublishTemplate}" status="actionButtonsStatus" reRender="form" styleClass="mainButton AE_Green" oncomplete="setupExpandAndCollapse();"/>
+                        <apex:commandButton value="Withdraw" action="{!withdrawTemplate}" rendered="{!CanWithdrawTemplate}" status="actionButtonsStatus" reRender="form" styleClass="mainButton AE_Green" oncomplete="setupExpandAndCollapse();"/>
+                    </apex:outputPanel>
+                </apex:facet>
+                <apex:facet name="start">
+                    <apex:image styleClass="actionButtonSpinner" value="/img/loading.gif"/>
+                </apex:facet>
+            </apex:actionStatus>
+        </div>
+
+        <c:GFA_TemplateTreeComponent template="{!template}" editMode="false"/>
+
+    </apex:form>
+</div>
+
+</div>
+</apex:page>

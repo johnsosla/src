@@ -1,0 +1,26 @@
+<apex:page controller="ECO_FFLicenseAssignmentReport_Controller" contentType="application/vnd.ms-excel#FFLicenseAssignmentReport_{!TODAY()}.xls" readOnly="true">
+
+	<apex:dataTable value="{!ffList}" var="ff">
+		<apex:column >
+			<apex:facet name="header">Salesforce Id</apex:facet>
+			<apex:outputText value="{!ff.Id}"/>
+		</apex:column>
+		<apex:column >
+			<apex:facet name="header">Full Name</apex:facet>
+			<apex:outputText value="{!ff.frm_Name__c}"/>
+		</apex:column>
+		<apex:column >
+			<apex:facet name="header">Organization Name</apex:facet>
+			<apex:outputText value="{!ff.ECO_OrganizationName__c}"/>
+		</apex:column>
+		<apex:column >
+			<apex:facet name="header">Active?</apex:facet>
+			<apex:outputText value="{!IF(ff.IsActive, "Yes", "No")}"/>
+		</apex:column>
+		<apex:column >
+			<apex:facet name="header">Manager</apex:facet>
+			<apex:outputText value="{!ff.Manager_Name__c}"/>
+		</apex:column>
+	</apex:dataTable>
+
+</apex:page>

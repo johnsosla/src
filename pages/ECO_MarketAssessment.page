@@ -1,0 +1,358 @@
+<apex:page tabstyle="MarketAssessment__c" standardcontroller="MarketAssessment__c" extensions="ECO_MarketAssessmentController,nttdcore.DLabelParentController" showheader="true" sidebar="false" >
+    <style>
+
+        /* TABLE */
+        /*======================================*/
+        .questionnaire .table th {
+          font-size: 1.05em;
+          font-weight: 600;
+          border-bottom: 2px solid rgba(0, 0, 0, 0.14);
+        }
+        .questionnaire .table td {
+          border-top: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        .questionnaire .table table td{
+            border:none !important;
+        }
+        .questionnaire .table.table-vcenter th,
+        .questionnaire .table.table-vcenter td {
+          vertical-align: middle;
+        }
+        .questionnaire .table .min-width {
+          width: 1%;
+          white-space: nowrap;
+          padding-left: 15px !important;
+          padding-right: 15px !important;
+        }
+        .questionnaire .table-bordered td,
+        .questionnaire .table-bordered th {
+          border-color: rgba(0, 0, 0, 0.11);
+        }
+        .questionnaire .table-striped > tbody > tr:nth-child(2n+1) {
+          background-color: #f9f9f9;
+        }
+        .questionnaire .table-hover > tbody > tr:hover {
+          background-color: #e3f3ff;
+        }
+        .questionnaire textarea{
+            margin:5px 0 15px 0;
+        }
+        .questionnaire td{
+            padding:8px 0 5px 15px;
+        }
+        table.list table tr td{
+            border:none !important;
+        }
+        table.list .headerRow th{
+            font-size:1.1em !important;
+        }
+        body .pbBody table.list tr th, body .pbBody table.list tr td{
+            border-left:none !important;
+            border-top:none !important;
+            border-right:1px solid #ededed;
+        }
+        /* CUSTOM HELP / GUIDANCE TEXT BOX*/
+        .customHelpText{
+            padding:7px;
+            border:1px solid #85B3CE;
+            min-height:30px;
+            display:block;
+            width:auto;
+            margin:0;
+            background-repeat:no-repeat;
+            border-radius:4px;
+            background-color:#A2D3F1;
+        }
+        .customHelpBody{
+            display:inline-block;
+            color:#;
+            max-width:95%;
+            //margin-left:28px;
+        }
+        td.padded {
+            padding-top:0px;
+            padding-bottom:0px;
+            height:6px;
+        }
+                
+    </style>
+    <apex:includeScript value="{!$Resource.ECO_jQuery_1_11_2_min_js}" />
+    <script type="text/javascript" >
+        function setInner(variable)
+        {
+            var selected = variable.value;
+
+            if(selected == "No" || selected == "False"){
+                document.getElementById("j_id0:j_id11:j_id15:Staff:1").checked = true;
+                document.getElementById("j_id0:j_id11:j_id15:Expert:1").checked = true;
+                document.getElementById("j_id0:j_id11:j_id15:JVInvolve:1").checked = true;
+                document.getElementById("j_id0:j_id11:j_id15:PMService:1").checked = true;
+                document.getElementById("j_id0:j_id11:j_id15:RFP:1").checked = true;
+            }
+        }
+    
+        function setOuter(variable){
+            var selected = variable.value;
+            if(selected == "Yes" || selected == "True"){
+                document.getElementById("j_id0:j_id11:j_id15:COI:0").checked = true;
+            }
+            if(selected == "No" || selected == "False"){
+                if(document.getElementById("j_id0:j_id11:j_id15:Staff:1").checked
+                  && document.getElementById("j_id0:j_id11:j_id15:Expert:1").checked
+                  && document.getElementById("j_id0:j_id11:j_id15:JVInvolve:1").checked
+                  && document.getElementById("j_id0:j_id11:j_id15:PMService:1").checked
+                  && document.getElementById("j_id0:j_id11:j_id15:RFP:1").checked){
+                    document.getElementById("j_id0:j_id11:j_id15:COI:1").checked = true;
+                }
+            }
+        }
+    </script>
+    <nttdcore:DLabel name="DL1" default="Market Assessment" labelParent="{!this}" /><nttdcore:DLabel name="DL2" default="Editing {{1}}" labelParent="{!this}" p1="{!MarketAssessment__c.Name}" /><apex:sectionHeader title="{!dLabel['DL1']}" subtitle="{!dLabel['DL2']}" />
+    <apex:pageMessages id="pageMessages" />
+    <c:ECO_CollapsibleSection sectiontitle="General Guidance Information" ><nttdcore:DLabel name="DL3" default="A Market Assessment helps guide our decision to pursue a project and evaluate our probability of success through a series of questions that consider our position in the market, our relationship with the client(s) and our ability to execute successfully." labelParent="{!this}" /><nttdcore:DLabel name="DL4" default="Complete the following section to assess the project opportunity against the strategic business plan for your operations or business line, our experience on similar projects, our technical strength and resource availability, our relationship with the client(s) and our competitive position, including any potential conflicts of interest (COI) that may exist.  If a potential COI exists, click on the &ldquo;COI Guidance&rdquo; link to learn more about assessing the potential conflict and steps to take." labelParent="{!this}" />  
+            {!dLabel['DL3']} 
+            <br/><br/>
+            {!dLabel['DL4']}
+    </c:ECO_CollapsibleSection>
+    <br/>
+    <apex:form >
+
+        <apex:inputField value="{!MarketAssessment__c.QuestionnaireSet__r.ApprovalStatus__c}" rendered="false" />
+
+        <div style="position:relative;" >
+            <apex:outputPanel layout="block" styleclass="questionnaire" >
+                <nttdcore:DLabel name="DL5" default="{{1}} Details" labelParent="{!this}" p1="{!MarketAssessment__c.Name}" /><apex:pageBlock title="{!dLabel['DL5']}" >
+                    <apex:pageBlockButtons location="both" >
+                        <!--<apex:commandButton action="{!save}" value="Save" disabled="{!oMarketAssessment.QuestionnaireSet__r.ApprovalStatus__c !='Pending Approval'}" />
+                        <apex:commandButton action="{!SaveNext}" value="Save & Next" immediate="false"/>-->
+                        <nttdcore:DLabel name="DL6" default="Save" labelParent="{!this}" /><apex:commandButton action="{!save}" value="{!dLabel['DL6']}" disabled="true" />
+                        <nttdcore:DLabel name="DL7" default="Save &amp; Next" labelParent="{!this}" /><apex:commandButton action="{!SaveNext}" value="{!dLabel['DL7']}" immediate="false" disabled="true" />
+                        <!-- <apex:commandButton action="{!SaveNext}" value="Save & Next" disabled="{!oMarketAssessment.QuestionnaireSet__r.ApprovalStatus__c !='Pending Approval'}" /> -->
+                        <nttdcore:DLabel name="DL8" default="Return to Summary" labelParent="{!this}" /><apex:commandButton action="{!ReturnToSummary}" value="{!dLabel['DL8']}" />
+                    </apex:pageBlockButtons>
+                    <table class="table-hover list" width="80%" cellpadding="0" cellspacing="0" >
+                        <!--<tr class="headerRow">
+                            <th>Question</th>
+                            <th width="205px">Answer</th>
+                        </tr>-->
+                        <tr>
+                            <td class="cell" ><nttdcore:DLabel name="DL9" default="This work is consistent with our documented business plan, strategic business aims and corporate values." labelParent="{!this}" />
+                                {!dLabel['DL9']}
+                                 <br/>
+                                <apex:inputField value="{!MarketAssessment__c.FreeFormDocumentedBusinessPlan__c}" html-placeholder="additional information. . ." style="width:75%;" />
+                            </td>
+                            <td class="cell" valign="top" >
+                                <apex:selectRadio value="{!MarketAssessment__c.DocumentedBusinessPlan__c}" >
+                                    <apex:selectOptions value="{!lAnswerValuesBoolean}" />
+                                </apex:selectRadio>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="cell" ><nttdcore:DLabel name="DL10" default="This is a documented key account or a client from whom we anticipate significant long term revenues." labelParent="{!this}" />
+                                {!dLabel['DL10']}
+                                 <br/>
+                                <apex:inputField value="{!MarketAssessment__c.FreeFormDocumentedKeyAccount__c}" html-placeholder="additional information. . ." style="width:75%;" />
+                            </td>
+                            <td class="cell" valign="top" >
+                                <apex:selectRadio value="{!MarketAssessment__c.DocumentedKeyAccount__c}" >
+                                    <apex:selectOptions value="{!lAnswerValuesBoolean}" />
+                                </apex:selectRadio>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="cell" ><nttdcore:DLabel name="DL11" default="We have a strong relationship with this client." labelParent="{!this}" />
+                                {!dLabel['DL11']}
+                                 <br/>
+                                <apex:inputField value="{!MarketAssessment__c.FreeFormStrongClientRelationship__c}" html-placeholder="additional information. . ." style="width:75%;" />
+                            </td>
+                            <td class="cell" valign="top" >
+                                <apex:selectRadio value="{!MarketAssessment__c.StrongClientRelationship__c}" >
+                                    <apex:selectOptions value="{!lAnswerValuesBoolean}" />
+                                </apex:selectRadio>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="cell" ><nttdcore:DLabel name="DL12" default="We have the required and recent project experience to do this project." labelParent="{!this}" />
+                                {!dLabel['DL12']}
+                                 <br/>
+                                <apex:inputField value="{!MarketAssessment__c.FreeFormRecentProjectExperience__c}" html-placeholder="additional information. . ." style="width:75%;" />
+                            </td>
+                            <td class="cell" valign="top" >
+                                <apex:selectRadio value="{!MarketAssessment__c.RecentProjectExperience__c}" >
+                                    <apex:selectOptions value="{!lAnswerValuesBoolean}" />
+                                </apex:selectRadio>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="cell" ><nttdcore:DLabel name="DL13" default="We have the required technical personnel available with the right and recent experience to do this project." labelParent="{!this}" />
+                                {!dLabel['DL13']}
+                                 <br/>
+                                <apex:inputField value="{!MarketAssessment__c.FreeFormRequiredTechnicalPersonnel__c}" html-placeholder="additional information. . ." style="width:75%;" />
+                            </td>
+                            <td class="cell" valign="top" >
+                                <apex:selectRadio value="{!MarketAssessment__c.RequiredTechnicalPersonnel__c}" >
+                                    <apex:selectOptions value="{!lAnswerValuesBoolean}" />
+                                </apex:selectRadio>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="cell" ><nttdcore:DLabel name="DL14" default="We are in a strong position to win and deliver this project relative to our competitors." labelParent="{!this}" />
+                                {!dLabel['DL14']}
+                                 <br/>
+                                <apex:inputField value="{!MarketAssessment__c.FreeFormStrongPositiveWin__c}" html-placeholder="additional information. . ." style="width:75%;" />
+                            </td>
+                            <td class="cell" valign="top" >
+                                <apex:selectRadio value="{!MarketAssessment__c.StrongPositiveWin__c}" >
+                                    <apex:selectOptions value="{!lAnswerValuesBoolean}" />
+                                </apex:selectRadio>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="cell" ><nttdcore:DLabel name="DL15" default="We were aware of this opportunity prior to the RFP being issued and have pre-positioned for this work." labelParent="{!this}" />
+                                {!dLabel['DL15']}
+                                 <br/>
+                                <apex:inputField value="{!MarketAssessment__c.FreeFormAwareofOpportunity__c}" html-placeholder="additional information. . ." style="width:75%;" />
+                            </td>
+                            <td class="cell" valign="top" >
+                                <apex:selectRadio value="{!MarketAssessment__c.AwareofOpportunity__c}" >
+                                    <apex:selectOptions value="{!lAnswerValuesBoolean}" />
+                                </apex:selectRadio>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="cell" ><nttdcore:DLabel name="DL16" default="We have sufficient time and the right resources (both technical and marketing) to prepare a winning bid." labelParent="{!this}" />
+                                {!dLabel['DL16']}
+                                 <br/>
+                                <apex:inputField value="{!MarketAssessment__c.FreeFormSufficientTimeandResources__c}" html-placeholder="additional information. . ." style="width:75%;" />
+                            </td>
+                            <td class="cell" valign="top" >
+                                <apex:selectRadio value="{!MarketAssessment__c.SufficientTimeandResources__c}" >
+                                    <apex:selectOptions value="{!lAnswerValuesBoolean}" />
+                                </apex:selectRadio>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="cell" ><nttdcore:DLabel name="DL17" default="There is no incumbent or AECOM is the incumbent." labelParent="{!this}" />
+                                {!dLabel['DL17']}
+                                 <br/>
+                                <apex:inputField value="{!MarketAssessment__c.FreeFormIncumbent__c}" html-placeholder="additional information. . ." style="width:75%;" />
+                            </td>
+                            <td class="cell" valign="top" >
+                                <apex:selectRadio value="{!MarketAssessment__c.Incumbent__c}" >
+                                    <apex:selectOptions value="{!lAnswerValuesBoolean}" />
+                                </apex:selectRadio>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="cell" ><nttdcore:DLabel name="DL18" default="We know who will be making the decision on the client&rsquo;s behalf." labelParent="{!this}" />
+                                {!dLabel['DL18']}
+                                 <br/>
+                                <apex:inputField value="{!MarketAssessment__c.FreeFormDecisionMaker__c}" html-placeholder="additional information. . ." style="width:75%;" />
+                            </td>
+                            <td class="cell" valign="top" >
+                                <apex:selectRadio value="{!MarketAssessment__c.DecisionMaker__c}" >
+                                    <apex:selectOptions value="{!lAnswerValuesBoolean}" />
+                                </apex:selectRadio>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="cell" ><nttdcore:DLabel name="DL19" default="The client&rsquo;s decision to appoint will predominantly be made on factors other than price." labelParent="{!this}" />
+                                {!dLabel['DL19']}
+                                 <br/>
+                                <apex:inputField value="{!MarketAssessment__c.FreeFormDecisiontoAppoint__c}" html-placeholder="additional information. . ." style="width:75%;" />
+                            </td>
+                            <td class="cell" valign="top" >
+                                <apex:selectRadio value="{!MarketAssessment__c.DecisiontoAppoint__c}" id="Parent" >
+                                    <apex:selectOptions value="{!lAnswerValuesBoolean}" />
+                                </apex:selectRadio>
+                            </td>
+                            
+                        </tr>
+                        <tr>
+                            <td class="cell" ><nttdcore:DLabel name="DL20" default="Market Assessment Information" labelParent="{!this}" />
+                                {!dLabel['DL20']}
+                                 <br/>
+                                <apex:inputField value="{!MarketAssessment__c.AdditionalInformation__c}" html-placeholder="additional information. . ." style="width:75%;" />
+                            </td>
+                            <td class="cell" valign="bottom" >
+                                &nbsp;
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="cell" ><nttdcore:DLabel name="DL21" default="Potential conflict of interest issues exist" labelParent="{!this}" />
+                                {!dLabel['DL21']}
+                                &nbsp;&nbsp;&nbsp;
+                                <apex:outputLink target="_blank" value="{!URLFOR($Resource.GoNoGoConflictofInterestGuidanceSteps)}" ><nttdcore:DLabel name="DL22" default="COI Guidance" labelParent="{!this}" />{!dLabel['DL22']}</apex:outputLink>
+                                 <br/>
+                                <apex:outputPanel id="Inner" >
+                                <table>
+                                    <tr>
+                                        <td class="padded" ><nttdcore:DLabel name="DL23" default="Expert Witness or Litigation Support." labelParent="{!this}" />{!dLabel['DL23']}</td>
+                                        <td class="padded" >
+                                            <apex:selectRadio value="{!MarketAssessment__c.ExpertWitnessorLitigationSupport__c}" id="Expert" onchange="setOuter(this)" >
+                                                <apex:selectOptions value="{!lAnswerValuesBoolean}" />
+                                            </apex:selectRadio>
+                                        </td>
+                                    </tr>                               
+                                    <tr>
+                                        <td class="padded" ><nttdcore:DLabel name="DL24" default="JV Involvement." labelParent="{!this}" />{!dLabel['DL24']}</td>
+                                        <td class="padded" >
+                                            <apex:selectRadio value="{!MarketAssessment__c.JVinvolvement__c}" id="JVInvolve" onchange="setOuter(this)" >
+                                                <apex:selectOptions value="{!lAnswerValuesBoolean}" />
+                                            </apex:selectRadio>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="padded" ><nttdcore:DLabel name="DL25" default="Program Management Services." labelParent="{!this}" />{!dLabel['DL25']}</td>
+                                        <td class="padded" >
+                                            <apex:selectRadio value="{!MarketAssessment__c.ProgramManagementServices__c}" id="PMService" onchange="setOuter(this)" >
+                                                <apex:selectOptions value="{!lAnswerValuesBoolean}" />
+                                            </apex:selectRadio>
+                                        </td>
+                                    </tr>   
+                                    <tr>
+                                        <td class="padded" ><nttdcore:DLabel name="DL26" default="RFP Development Services." labelParent="{!this}" />{!dLabel['DL26']}</td>
+                                        <td class="padded" >
+                                            <apex:selectRadio value="{!MarketAssessment__c.RFPDevelopmentServices__c}" id="RFP" onchange="setOuter(this)" >
+                                                <apex:selectOptions value="{!lAnswerValuesBoolean}" />
+                                            </apex:selectRadio>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <apex:actionRegion >
+                                        <td class="padded" ><nttdcore:DLabel name="DL27" default="Staff Augmentation or embedded workforce." labelParent="{!this}" />{!dLabel['DL27']}</td>
+                                        <td class="padded" >
+                                            <apex:selectRadio value="{!MarketAssessment__c.StaffAugmentationorembeddedworkforce__c}" id="Staff" onchange="setOuter(this)" >
+                                                <apex:selectOptions value="{!lAnswerValuesBoolean}" />
+                                                <apex:actionSupport event="onchange" />
+                                            </apex:selectRadio>
+                                        </td>
+                                        </apex:actionRegion>
+                                    </tr>                                                                                                                           
+                                </table>
+                                </apex:outputPanel>
+                                <br/>                                
+                                <apex:inputField value="{!MarketAssessment__c.FreeFormPotentialConflictofInterest__c}" html-placeholder="additional information. . ." style="width:75%;" />
+                            </td>
+                            <apex:actionRegion >
+                            <td class="cell" valign="top" >
+                                <!--<apex:selectRadio value="{!MarketAssessment__c.Potentialconflictofinterestissues__c}" onselect="setInner(this)">-->
+                                <apex:selectRadio value="{!MarketAssessment__c.Potentialconflictofinterestissues__c}" onchange="setInner(this)" id="COI" >
+                                    <apex:selectOptions value="{!lAnswerValuesBoolean}" />
+                                    <!--<apex:actionSupport event="onchange" action="{!DefaultChildToNo}" reRender="if({!MarketAssessment__c.Potentialconflictofinterestissues__c=='False'},Inner,Outer)"/>-->
+                                    <apex:actionSupport event="onchange" />
+                                    <!--<apex:actionSupport event="onchange" action="{!DefaultChildToNo}" reRender="Inner"/>-->
+                                </apex:selectRadio>
+                            </td>
+                            </apex:actionRegion>
+                        </tr>
+
+
+                        
+                    </table>
+                </apex:pageBlock>
+            </apex:outputPanel>
+        </div>
+    </apex:form>
+
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

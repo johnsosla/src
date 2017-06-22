@@ -1,0 +1,101 @@
+<apex:page controller="rsProfileController" showHeader="false" sidebar="false" docType="html-5.0">
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1,minimum-scale=1, maximum-scale=1, user-scalable=no"/>
+
+    <apex:stylesheet value="{!URLFOR($Resource.rs_libs, 'bootstrap/css/bootstrap.min.css')}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.rs_libs, 'qtip/jquery.qtip.min.css')}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.rs_bundle, 'css/profilescommon.css')}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.rs_bundle, 'css/buttonSection.css')}"/>
+
+    <script src="{!URLFOR($Resource.rs_libs, 'jquery/jquery.js')}" type="text/javascript" charset="utf-8"></script>
+    <script src="{!URLFOR($Resource.rs_libs, 'jqueryui/jquery-ui.js')}" type="text/javascript" charset="utf-8"></script>
+    <script>
+        var $j = jQuery.noConflict();
+    </script>
+
+    <apex:form >
+    <div class="pageContainer">
+    <apex:outputPanel rendered="{!!IsReadOnly}" styleClass="pageContainer">
+        <div id="tabs">
+            <ul id="nav">
+                <li><a style="outline: none;" href="#profileSummary" onclick="setSubTabCookies(0,'pSubTab')">{!$Label.Profile_Status}</a></li>
+                <li style="outline: none; padding-left: 18px;"><a href="#personalInfo" onclick="setSubTabCookies(1,'pSubTab')">{!$Label.Personal_Info}</a></li>
+                <li style="outline: none; padding-left: 18px;"><a href="#organizational" onclick="setSubTabCookies(2,'pSubTab')">Organizational Info</a></li>
+                <apex:outputPanel rendered="{!IsOwnerOrContentManager}" layout="none">
+                    <li style="outline: none; padding-left: 18px;"><a href="#hrData" onclick="setSubTabCookies(3,'pSubTab')">HR Data</a></li>
+                </apex:outputPanel>
+                <li style="outline: none; padding-left: 18px;"><a href="#profileproxy" id="profileProxyLink" onclick="setSubTabCookies(4,'pSubTab')">{!$Label.Profile_Proxy}</a></li>
+                <apex:outputPanel rendered="{!CanSeeGlobalMobility}" layout="none">
+                    <li style="outline: none; padding-left: 18px;"><a href="#globalMobility" id="globalMobilityLink" onclick="setSubTabCookies(5,'pSubTab')">{!$Label.Global_Mobility}</a></li>
+                </apex:outputPanel>
+
+                <li style="outline: none; padding-left: 18px;"><a href="#generateResume">{!$Label.Generate_CV_Resume}</a></li>
+            </ul>
+            <br/>
+            <apex:outputPanel id="messages">
+                <apex:outputPanel rendered="{!showMessages}">
+                </apex:outputPanel>
+                <apex:outputPanel rendered="{!ShowNoteToEmployee}">
+                </apex:outputPanel>
+                <div class="pull-left">
+                    <apex:pageMessages escape="false" />
+                </div>
+            </apex:outputPanel>
+            <div class="clearfix"/>
+            <div id="profileSummary">
+                <c:rsSummaryComponent rsProfile="{!Profile}" id="summary" />
+            </div>
+            <div id="personalInfo">
+                <c:rsPersonalComponent rsProfile="{!Profile}" id="personal" reRender="personal,messages"/>
+                <c:rsUpdateHREmailLink isPersonal="true" />
+            </div>
+            <div id="organizational">
+                <c:rsOrganizationalComponent rsProfile="{!Profile}" id="organ" reRender="organ,messages"/>
+                <c:rsDirectReportAndPeersComponent rsProfile="{!Profile}" id="report" reRender="report,messsages"/>
+                <c:rsUpdateHREmailLink />
+            </div>
+            <apex:outputPanel rendered="{!IsOwnerOrContentManager}" layout="none">
+                <div id="hrData">
+                    <apex:pageMessage severity="info" summary="{!$Label.Confidential_Info_Disclaimer}"/>
+                    <c:rsHRDataComponent rsProfile="{!Profile}" id="hr" reRender="hr,messages"/>
+                    <c:rsUpdateHREmailLink />
+                </div>
+            </apex:outputPanel>
+            <div id="profileproxy">
+                <c:rsProfileProxyComponent rsProfile="{!Profile}" id="proxy" reRender="proxy,messages"/>
+            </div>
+            <apex:outputPanel rendered="{!CanSeeGlobalMobility}" layout="none">
+                <div id="globalMobility">
+                    <apex:pageMessage severity="info" summary="{!$Label.Confidential_Info_Disclaimer}"/>
+                    <c:rsGlobalMobility rsProfile="{!Profile}" id="global" reRender="global,messages"/>
+                </div>
+            </apex:outputPanel>
+            <div id="generateResume">
+                <c:rsGenerateResumeComponent userIdList="{!UserIdList}"/>
+            </div>
+        </div>
+        <c:rsPeopleProfileChatterGroup /> <br/>
+        <c:rsPolicyGuidance />
+    </apex:outputPanel>
+    <apex:outputPanel rendered="{!IsReadOnly}">
+    <apex:pageMessage summary="{!$Label.Read_Only_Profile_Message}" severity="info"/>
+    </apex:outputPanel>
+    </div>
+    </apex:form>
+
+    <script src="{!URLFOR($Resource.rs_libs, 'bootstrap/js/bootstrap.min.js')}" type="text/javascript" charset="utf-8"></script>
+    <script src="{!URLFOR($Resource.rs_libs, 'qtip/jquery.qtip.min.js')}" type="text/javascript" charset="utf-8"></script>
+    <script src="/canvas/sdk/js/publisher.js" type="text/javascript" charset="utf-8"></script>
+    <script src="{!URLFOR($Resource.rs_bundle, 'js/profiles.js')}" type="text/javascript"></script>
+
+    <script type="text/javascript">
+        $j(document).ready(function() {
+            if( ( typeof sforce != 'undefined' ) && sforce && sforce.one ) {
+            //AECR-698, known issue with Salesforce, workaround is to open a child window
+            // and add a parameter so we still know it's in SF1
+            sforce.one.back();
+            window.open('/apex/rsProfile?sfone=true');
+            }
+        });
+    </script>
+</apex:page>

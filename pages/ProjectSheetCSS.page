@@ -1,0 +1,50 @@
+<apex:page standardController="Project__c" showheader="false"  cache="true" contentType="application/msword"> 
+<apex:Stylesheet value="{!$Resource.NewOutput}"/>
+<apex:variable value="{!Project__c}" var="prj"/>
+ <BrandHead1> <apex:outputField value="{!prj.Name}"/></BrandHead1> 
+<p><apex:outputField value="{!prj.Project_Description__c}"/></p>
+<p1>      
+<table>    
+<tr> 
+   <td> <b><apex:outputText value="Actual Completion:   "/></b></td> 
+         <td align="right"> <apex:outputText value="{!prj.Date_Actual_Completion__c} "/> </td>
+ </tr><tr>
+   <td><b> <apex:outputText value="Owners Total Cost:   "/></b></td>
+ <td align="right"> <apex:outputText value="{!prj.Owners_Total_cost__c}"/> </td>
+</tr>   
+<tr> 
+   <td><b> <apex:outputText value="Revenue:  "/></b></td>
+<td align="right"> <apex:outputText value="{!prj.SearchFee__c}"/> </td>
+</tr>   
+<tr> 
+   <td> <b><apex:outputText value="Dates of Service:  "/></b></td>
+  <td align="right"> <apex:outputText value="{!prj.Date_Started__c} - {!prj.Search_Completion_Date__c}"/> </td>
+</tr>    
+</table></p1>
+        <BrandHead2>
+       <b>Project Team</b>
+      </BrandHead2><p1>       
+                      <apex:outputField value="{!prj.Project_Manager_User__c}"/>,  <apex:outputField value="{!prj.Project_Manager_Status__c}" />
+       <apex:outputText value="    Project Manager"/>
+
+       </p1>
+<p>
+<apex:datatable value="{!Project__c.PR_Team_Employees__r}" var="pt" cellspacing="0">  
+<apex:column value="{!pt.ProjectSort__c}"/>    
+ <apex:column value="{!pt.Project_Role__c}"/>   
+
+</apex:datatable>   </p> 
+
+          <p>  
+    <b>References</b>   
+    </p><p1>
+        <apex:datatable value="{!Project__c.PR_Contacts__r}" var="ref" cellspacing="0"> 
+<apex:column value="{!ref.ContactsDsp__c}  "/>
+    
+<apex:column value="{!ref.Contact_Project_Role__c}  "/>   
+<apex:column value="{!ref.Contact_Reference_Quality__c}  "/>   
+<apex:column value="{!ref.Date_Contact_Last_Checked__c}  "/>   
+
+</apex:datatable> </p1>
+     
+</apex:page>

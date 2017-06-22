@@ -1,0 +1,3 @@
+<apex:page standardController="account" showHeader="true" sidebar="true" action="{!URLFOR($Action.SharedServicesRequest__c.new, null, [retURL=$CurrentPage.parameters.retURL])}">
+	
+</apex:page>

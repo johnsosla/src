@@ -1,0 +1,80 @@
+<apex:component controller="rsAttachmentController" allowDML="true">
+
+    <style>
+        .customPopup{
+            background-color: white;
+            border-style: solid;
+            border-width: 4px;
+            left: 50%;
+            /*top: auto;*/
+            padding:10px;
+            position: absolute;
+            z-index: 9999;
+            width: 500px;
+            margin-left: -250px;
+            /*top:100px;*/
+            visibility: hidden;
+        }
+    </style>
+
+    <script type="text/javascript">
+
+        $ = jQuery.noConflict();
+
+        var attachmentBody;
+
+        function Attachment(){
+            this.Body = null;
+            this.ParentId = null;
+            this.Name = null;
+        }
+
+        function uploadFile(){
+            rsAttachmentController.uploadFile(targetId, function(result, event){
+                if(event.type == 'exception') {
+                    alert(event.message);
+                } else {
+                    console.log(result);
+                    response(result);
+                }
+            });
+        }
+
+        function handleFileSelect(evt){
+            var files = evt.target.files;
+
+            var reader = new FileReader();
+
+            reader.onload = function(e) {
+                attachmentBody = e.target.result;
+            };
+            reader.onerror = function(e){
+                alert("Error reading file: "+e.target.result);
+                return false;
+            };
+
+            reader.readAsDataURL(files[0]);
+
+        }
+
+    </script>
+    <apex:outputPanel id="popup">
+        <apex:outputPanel layout="block" id="innerPopup" styleClass="customPopup">
+            <h3><strong>Select File to Upload</strong></h3>
+
+            <apex:outputLabel value="File" for="file"/>
+            <apex:inputFile value="{!attachment.body}" filename="{!attachment.name}"/>
+            <br/>
+            <div class="col-md-4 text-center">
+                <apex:commandLink value="Upload" styleClass="btn btn-success btn-sm" onclick="uploadFile()">
+                    <span class="glyphicon glyphicon-cloud-upload"></span>
+                </apex:commandLink>
+                &nbsp;
+                <apex:commandLink value="Cancel" styleClass="btn btn-danger btn-sm" onclick="document.getElementsByClassName('customPopup')[0].style.visibility='hidden'; return false;">
+                    <span class="glyphicon glyphicon-remove-circle"></span>
+                </apex:commandLink>
+            </div>
+
+        </apex:outputPanel>
+    </apex:outputPanel>
+</apex:component>

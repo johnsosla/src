@@ -1,0 +1,2442 @@
+<apex:page showheader="false" renderas="pdf" sidebar="false" standardstylesheets="false" applybodytag="false" applyhtmltag="false" standardcontroller="pse__Proj__c" extensions="ECO_ProjectPlanControllerPdf,nttdcore.DLabelParentController" >
+    <head>
+        
+        <apex:includeScript value="{!$Resource.ECO_jQuery_1_11_2_min_js}" />
+        
+        <style type="text/css" media="print" >
+            @page{
+                size:landscape;
+                padding-top:60px;
+                @top-center {
+                    content: element(header);
+                }
+
+                @bottom-right {
+                    content: "Page " counter(page) " of " counter(pages);
+                    font-family: sans-serif;
+                    font-size: 80%;
+                }
+            }
+            @page :first {
+                @bottom-right {
+                 /* Nothing */
+                }
+            }
+            body{
+                font-family:arial, sans-serif;
+                font-size:80%;
+            }
+
+            .header{
+                display:block;
+                padding-bottom: 40px;
+                position: running(header);
+            }
+
+            .headerInline{
+                height:75px;
+                border-bottom: 2px solid #DDDDDD;
+                padding:0 0 15px 0; 
+                margin: 10px 0 25px 0;
+                background-position:top right;
+                background-repeat:no-repeat;
+                background-size:5% auto !important;
+                background-image : url({!URLFOR($Resource.ECO_CustomGraphicAssets, 'PDFLogo.jpg')});
+            }
+            .headerInline h1{
+                margin:-2px 0 0 0;
+                font-size:16px;
+                line-height:80%;
+            }
+            .headerInline h2{
+                font-size:16px;
+                line-height:80%;
+            }
+            .headerInline h5{
+                line-height:80%;
+                margin:0;
+            }
+            .rightHeaderInfo{
+                float:right; 
+                border-left:2px solid #ddd; 
+                height:40px;
+                vertical-align:middle; 
+                padding-left:55px;
+                position:absolute;
+                right:0;
+                top:0;
+                padding:50px 10px 0 25px;
+                margin-top:10px;
+                width:150px;
+            }
+
+            table{
+                border: 1px solid #ddd;
+                width:100%; 
+            }
+            table tr th {
+                vertical-align: bottom;
+                background-color: #f8f8f8;
+                
+            }
+            table>caption+thead>tr:first-child>td, table>caption+thead>tr:first-child>th, table>colgroup+thead>tr:first-child>td, table>colgroup+thead>tr:first-child>th, table>thead:first-child>tr:first-child>td, table>thead:first-child>tr:first-child>th {
+                border-top: 0;
+            }
+            table>tbody>tr>td, table>tbody>tr>th, table>tfoot>tr>td, table>tfoot>tr>th, table>thead>tr>td, table>thead>tr>th, table tr td, table tr th {
+                padding: 5px;
+                line-height: 1.42857143;
+                vertical-align: top;
+                border-top: 1px solid #ddd;
+            }
+            table tr > td > td, table tr > td > tr > td, td > td, td > span > table tr td, td > table tr td, td > span > table, td > table {
+                border:none;
+                padding:0;
+            }
+            .notificationAndAlerts > span > div > table > tbody > tr:last-child, .notificationAndAlerts > span > div > table > tbody > tr > td:first-child, .notificationAndAlerts td:first-child, .notificationAndAlerts table tr:last-child {
+                display:none;
+                border:none;
+                padding:0;
+                width:0;
+            }
+            .notificationAndAlerts table > tbody > tr > td:first-child, .notificationAndAlerts table > tbody > tr:last-child{
+                display:none;
+            }
+
+            .pbHeader > table > tbody > tr > td, .pbHeader > table, .pbHeader table td, .pbHeader table{
+                border:none !important;
+                padding: 0;
+            }
+            .pbHeader{
+                
+            }
+            .pbSubheader {
+                margin: 6px 0 0 0;
+                background-color:#008cb2;
+                color:#fff;
+                -moz-border-radius: 4px 4px 0 0;
+                -webkit-border-radius:  4px 4px 0 0;
+                border-radius:  4px 4px 0 0;
+                border-top: 3px solid #f8f8f8;
+                padding:4px 12px 4px 12px;
+            }
+            .pbSubheader h3{
+                margin:0;
+            }
+            .footer{
+                position:absolute; width:100%; height:100px; bottom:0; border-top:1px solid #4a4a56; padding-top:15px;
+            }
+            .risk{
+                background:#ebebeb;
+            }
+            .notificationAndAlerts table, .notificationAndAlerts td{
+                border:none !important;
+                width:auto;
+                padding:0;
+            }
+            .mainTitle{
+                margin:15px 0 -5px 0;
+            }
+
+            .relatedListIcon{
+                display: none;
+            }
+
+            .budgetFrameWrapper th, .budgetFrameWrapper td {
+                border-top: 1px solid black;
+                border-bottom: 1px solid black;
+                border-left: 1px solid black;
+                border-right: 1px solid black;
+                border-collapse: collapse;        
+                padding: 5px;
+                text-align: left;
+            }
+            .budgetFrameWrapper table {
+                border: none;
+                border-collapse: collapse;
+                font-size:8px;
+            }
+            
+            .budgetFrameWrapper .dollarAmount {
+                text-align:right;
+            }
+            
+            .budgetFrameWrapper .percentAmount {
+                text-align:center;
+            }
+            
+            .budgetFrameWrapper .rightBlue {
+                background-color:#0070C0;color:white;text-align:right
+            }
+            
+            .budgetFrameWrapper .centerBlue {
+                background-color:#0070C0;color:white;text-align:center
+            }
+            
+            .budgetFrameWrapper .rightGreen {
+                background-color:#76933C;color:white;text-align:right
+            }
+            
+            .budgetFrameWrapper .centerGreen {
+                background-color:#76933C;color:white;text-align:center
+            }
+            
+            .budgetFrameWrapper .rightPurple {
+                background-color:#60497A;color:white;text-align:right
+            }
+            
+            .budgetFrameWrapper .centerPurple {
+                background-color:#60497A;color:white;text-align:center
+            }
+            
+            .budgetFrameWrapper .rightOrange {
+                background-color:#FF9900;color:white;text-align:right
+            }
+            
+            .budgetFrameWrapper .centerOrange {
+                background-color:#FF9900;color:white;text-align:center
+            }
+            
+            .budgetFrameWrapper .lightBlue {
+                background-color:#DCE6F1;
+            }
+            
+            .budgetFrameWrapper .lightGreen {
+                background-color:#EBF1DE;
+            }
+            
+            .budgetFrameWrapper .lightPurple {
+                background-color:#E4DFEC;
+            }
+            
+            .budgetFrameWrapper .lightOrange {
+                background-color:#FDE9D9;
+            }
+            
+            .budgetFrameWrapper .bold {
+                font-weight:bold;
+            }        
+        </style>
+
+    </head>
+        <div class="header" >
+            <div class="headerInline" >
+                <h5><nttdcore:DLabel name="DL1" default="Project Plan" labelParent="{!this}" />{!dLabel['DL1']}</h5>
+                <h2 style="line-height:80%;" ><nttdcore:DLabel name="DL2" default="Project: {{1}}" labelParent="{!this}" p1="{!theProject.Name}" />{!dLabel['DL2']}</h2>
+                <!--<h2 style="line-height:80%;">Date: {!now()}</h2>-->
+                <h2 style="line-height:80%;" ><nttdcore:DLabel name="DL3" default="Date: {{1}}" labelParent="{!this}" p1="{!userDateString}" />{!dLabel['DL3']}</h2>
+                
+                            
+                <div class="rightHeaderInfo" ><nttdcore:DLabel name="DL4" default="Project ID:" labelParent="{!this}" />
+                    {!dLabel['DL4']}<br/>
+                    {!theProject.ProjectNumber__c}
+                </div>
+            </div>
+        </div>
+
+        <h2 style="line-height:80%;" ><nttdcore:DLabel name="DL5" default="Project: {{1}}" labelParent="{!this}" p1="{!theProject.Name}" />{!dLabel['DL5']}</h2>
+        <h1><nttdcore:DLabel name="DL6" default="PROJECT PLAN" labelParent="{!this}" />{!dLabel['DL6']}</h1>
+        <br/>
+        <h2 style="line-height:80%;" ><nttdcore:DLabel name="DL7" default="Client: {{1}}" labelParent="{!this}" p1="{!theProject.PrimaryEndClient__c}" />{!dLabel['DL7']}</h2>
+        <h2 style="line-height:80%;" ><nttdcore:DLabel name="DL8" default="Project Number: {{1}}" labelParent="{!this}" p1="{!theProject.OracleProjectnumber__c}" />{!dLabel['DL8']}</h2>
+        <h2 style="line-height:80%;" ><nttdcore:DLabel name="DL9" default="Date: {{1}}" labelParent="{!this}" p1="{!userDateString}" />{!dLabel['DL9']}</h2>
+        <h2 style="line-height:80%;" ><nttdcore:DLabel name="DL10" default="Project ID: {{1}}" labelParent="{!this}" p1="{!theProject.ProjectNumber__c}" />{!dLabel['DL10']}</h2>
+                        
+        <apex:pageMessages id="pageMessages" />
+       
+        <apex:relatedList list="ProcessSteps" />
+       
+        <p style="page-break-after:always;" />
+
+        <nttdcore:DLabel name="DL11" default="Project Information" labelParent="{!this}" /><apex:pageBlock title="{!dLabel['DL11']}" ><nttdcore:DLabel name="DL12" default="Project Information" labelParent="{!this}" />
+            <apex:pageBlockSection title="{!dLabel['DL12']}" collapsible="true" columns="4" >
+                <apex:repeat value="{!$ObjectType.pse__Proj__c.FieldSets.ECO_ProjectPlanPdf}" var="f" >
+                    <apex:outputField value="{!pse__Proj__c[f]}" /><br/>
+                </apex:repeat>
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+        
+        <br/>
+        <h2><nttdcore:DLabel name="DL13" default="Project Description" labelParent="{!this}" />{!dLabel['DL13']}</h2>
+        <br/>
+        <apex:outputText value="{!theProject.ProjectDescription__c}" /><br/>
+        <p style="page-break-after:always;" />
+        
+        <nttdcore:DLabel name="DL14" default="Project Scope" labelParent="{!this}" /><apex:pageBlock title="{!dLabel['DL14']}" ><nttdcore:DLabel name="DL15" default="Project Scope Detail" labelParent="{!this}" />
+            <apex:pageBlockSection title="{!dLabel['DL15']}" columns="2" collapsible="false" >
+                <apex:outputText value="{!oProjectPackage.PackageTitle__c}" />
+                <apex:outputField id="first" value="{!oProjectPackage.Scope_Owner__c}" />
+                <apex:outputField value="{!oProjectPackage.Status__c}" />
+                <apex:outputField value="{!oProjectPackage.CancelledReason__c}" />
+            </apex:pageBlockSection>
+            <apex:pageBlockSection columns="1" >
+                <apex:pageblockSectionItem helptext="{!$ObjectType.Packages__c.Fields.Scope_Details__c.inlineHelpText}" >
+                    <apex:outputText value="{!$ObjectType.Packages__c.Fields.Scope_Details__c.Label}" />
+                    <apex:outputField value="{!oProjectPackage.Scope_Details__c}" />
+                </apex:pageblockSectionItem>
+            </apex:pageBlockSection>
+            <apex:pageBlockSection columns="1" >
+                <apex:pageblockSectionItem helptext="{!$ObjectType.Packages__c.Fields.Scope_Approach__c.inlineHelptext}" >
+                    <apex:outputText value="{!$ObjectType.Packages__c.Fields.Scope_Approach__c.Label}" />
+                    <apex:outputField value="{!oProjectPackage.Scope_Approach__c}" />
+                </apex:pageblockSectionItem>
+            
+            </apex:pageBlockSection>
+            
+            <br/><br/>
+            <div style="font-weight:bold;padding:20px 10px 4px 10px;" ><nttdcore:DLabel name="DL16" default="BIM" labelParent="{!this}" />{!dLabel['DL16']}</div>
+            <div style="padding:10px" ><nttdcore:DLabel name="DL17" default="This project will use Digital Production Tools, or manage information in a common Data Environment." labelParent="{!this}" />
+                {!dLabel['DL17']}
+                <c:ECO_HelpIcon helptext="{!$ObjectType.Packages__c.fields.Utilize_BMI_Technology__c.inlineHelpText}" />                
+                &nbsp;&nbsp;
+                <apex:outputField value="{!oProjectPackage.Utilize_BMI_Technology__c}" label="" />
+
+                <br/><br/>
+                <apex:outputLink value="https://jonanunson.typeform.com/to/Fovnuf" target="_blank" ><nttdcore:DLabel name="DL18" default="BIM intake form" labelParent="{!this}" />{!dLabel['DL18']}</apex:outputLink>
+            </div>
+            
+            <div style="font-weight:bold;padding:20px 10px 4px 10px;" ><nttdcore:DLabel name="DL19" default="Safety in Design" labelParent="{!this}" />{!dLabel['DL19']}</div>
+            <div style="padding:10px" ><nttdcore:DLabel name="DL20" default="Project scope includes design where we need to incorporate Safety in Design (SiD)." labelParent="{!this}" />
+                {!dLabel['DL20']}
+                <c:ECO_HelpIcon helptext="Safety in Design (SiD) legislation generally requires all parties to do ‘what is practicable’ to reduce health and safety risks and applies to all designers and design activities regardless of discipline. This implies a duty on clients to participate in, or provide information for, design activities relevant to identifying and reducing safety risks at the planning and design stage. It is implicit that staff, at all levels, take action to design out safety and health risks that are readily identifiable.<br/><br/> 
+                                          “Design” includes drawings, design details, specifications and bills of quantities (including specification of articles or substances) relating to a structure, and calculations prepared for the purpose of a design.<br/><br/> 
+                                          “Designer” means any person (including a client, contractor or other person referred to in these Regulations) who in the course or furtherance of a business - (a) prepares or modifies a design; or (b) arranges for, or instructs, any person under their control to do so, relating to a structure, or to a product or mechanical or electrical system intended for a particular structure, and a person is deemed to prepare a design where a design is prepared by a person under their control." />                
+                &nbsp;&nbsp;
+                <apex:outputField value="{!oProjectPackage.SafetyInDesign__c}" label="" />
+
+                <br/><br/>
+            </div>            
+
+            <div style="font-weight:bold;padding:20px 10px 4px 10px;" ><nttdcore:DLabel name="DL21" default="Package Attachments" labelParent="{!this}" />{!dLabel['DL21']}</div>
+            <apex:outputPanel rendered="{!oProjectPackage.Attachments.size == 0}" layout="block" style="padding:10px" >
+                <nttdcore:DLabel name="DL22" default="Package has no attachments" labelParent="{!this}" /><apex:pageMessage severity="info" summary="{!dLabel['DL22']}" />
+            </apex:outputPanel>
+            <div style="padding:10px" ><nttdcore:DLabel name="DL23" default="View" labelParent="{!this}" />
+                <apex:pageBlockTable rendered="{!oProjectPackage.Attachments.size > 0}" value="{!oProjectPackage.Attachments}" var="attachment" >
+                    <apex:column width="60px" >
+                        <a href="/servlet/servlet.FileDownload?file={!attachment.Id}" >{!dLabel['DL23']}</a>
+                    </apex:column>
+                    <apex:column value="{!attachment.Name}" />
+                    <apex:column value="{!attachment.ContentType}" />
+                </apex:pageBlockTable>
+            </div>
+            
+            <apex:outputPanel rendered="{!IF(oProjectPackage.Id ==null, false, true)}" >
+
+            <apex:variable value="{!lstMapAssignedDeliverables[oProjectPackage.Id]}" var="myMap" />
+
+            <apex:outputPanel >
+
+
+                <div style="font-weight:bold;padding:20px 10px 4px 10px;" >
+                <nttdcore:DLabel name="DL24" default="Deliverables cannot be assigned until all packages are saved" labelParent="{!this}" /><apex:pageMessage severity="info" summary="{!dLabel['DL24']}" rendered="{!booNewProjectInPlay}" />
+                </div>
+
+                <apex:outputPanel ><nttdcore:DLabel name="DL25" default="Assigned Deliverables" labelParent="{!this}" /><nttdcore:DLabel name="DL26" default="Assigned Deliverables" labelParent="{!this}" /><nttdcore:DLabel name="DL27" default="No Results Were Found." labelParent="{!this}" /><nttdcore:DLabel name="DL28" default="Name" labelParent="{!this}" /><nttdcore:DLabel name="DL29" default="Assigned Scope" labelParent="{!this}" />
+
+                    <apex:pageblocksection title="{!dLabel['DL25']}" columns="1" collapsible="false" >
+                            <apex:facet name="header" >
+                                <apex:outputPanel >
+                                    {!dLabel['DL26']}
+                                    <c:ECO_HelpIcon helptext="A list of Project Deliverables will appear here once added to the project.  Select the Scope Package to which the deliverable belongs to add the deliverable to that scope package." />
+                                </apex:outputPanel>
+                            </apex:facet>
+
+                        
+                        <apex:outputText value="{!dLabel['DL27']}" rendered="{!IF(myMap.size > 0, false, true)}" />
+
+                        <apex:pageBlockTable value="{!lstMapAssignedDeliverables[oProjectPackage.Id]}" var="aRow" rendered="{!IF(myMap.size > 0, true, false)}" >
+                            <apex:column headervalue="{!dLabel['DL28']}" >
+                                <apex:outputfield value="{!aRow.oDeliverable.name}" />
+                            </apex:column>
+                            <apex:column headervalue="{!dLabel['DL29']}" >
+                                <apex:outputField value="{!aRow.oDeliverable.Project_Scope__c}" />            
+                            </apex:column>
+                            <apex:repeat value="{!$ObjectType.Deliverable__c.FieldSets.Scope_Assigned_View}" var="Field" >
+                                <apex:column headervalue="{!Field.Label}" >
+                                    <apex:outputfield value="{!aRow.oDeliverable[Field]}" />
+                                </apex:column>
+                            </apex:repeat>
+                        </apex:pageBlockTable>
+                    </apex:pageblocksection>
+                    <BR/><BR/>
+
+                </apex:outputPanel>
+
+            </apex:outputPanel>
+            </apex:outputPanel>
+        </apex:pageBlock>
+    
+                <apex:repeat value="{!lstPackages}" var="ScopePackage" >
+                <apex:pageBlock title="{!IF(ScopePackage.PackageTitle__c=='', 'New Scope Package', ScopePackage.PackageTitle__c)}" >
+
+                <apex:pageBlockSection title="{!IF(ScopePackage.PackageTitle__c=='', 'New Scope Package', ScopePackage.PackageTitle__c)} " columns="2" collapsible="false" >
+    
+                    <apex:outputField value="{!ScopePackage.PackageTitle__c}" />
+                    <apex:outputField value="{!ScopePackage.Scope_Owner__c}" />
+                    <apex:outputField value="{!ScopePackage.Status__c}" />
+                    <apex:outputField value="{!ScopePackage.CancelledReason__c}" />
+                </apex:pageBlockSection>
+                <apex:pageBlockSection columns="1" >
+                    <apex:pageblockSectionItem helptext="{!$ObjectType.Packages__c.Fields.Scope_Details__c.inlineHelpText}" >
+                        <apex:outputText value="{!$ObjectType.Packages__c.Fields.Scope_Details__c.Label}" />
+                        <apex:outputField value="{!ScopePackage.Scope_Details__c}" />
+                    </apex:pageblockSectionItem>
+                </apex:pageBlockSection>
+
+
+                <br/>
+                <apex:pageBlockSection columns="1" >
+                    <apex:pageblockSectionItem helptext="{!$ObjectType.Packages__c.Fields.Scope_Approach__c.inlineHelpText}" >
+                        <apex:outputText value="{!$ObjectType.Packages__c.Fields.Scope_Approach__c.Label}" />
+                        <apex:outputField value="{!ScopePackage.Scope_Approach__c}" />
+                    </apex:pageblockSectionItem>
+                </apex:pageBlockSection>
+                <br/><br/>
+
+
+                <div style="font-weight:bold;padding:20px 10px 20px 10px;" ><nttdcore:DLabel name="DL30" default="Package Attachments" labelParent="{!this}" />{!dLabel['DL30']}</div>
+                <apex:outputPanel rendered="{!ScopePackage.Attachments.size == 0}" layout="block" style="padding:10px" >
+                    <nttdcore:DLabel name="DL31" default="Package has no attachments" labelParent="{!this}" /><apex:pageMessage severity="info" summary="{!dLabel['DL31']}" />
+                </apex:outputPanel>
+
+                <div style="padding:10px" ><nttdcore:DLabel name="DL32" default="View" labelParent="{!this}" />
+                    <apex:pageBlockTable rendered="{!ScopePackage.Attachments.size > 0}" value="{!ScopePackage.Attachments}" var="attachment" >
+                        <apex:column width="60px" >
+                            <a href="/servlet/servlet.FileDownload?file={!attachment.Id}" >{!dLabel['DL32']}</a>
+                        </apex:column>
+                        <apex:column value="{!attachment.Name}" />
+                        <apex:column value="{!attachment.ContentType}" />
+                    </apex:pageBlockTable>
+                </div>
+
+                <apex:outputPanel rendered="{!IF(ScopePackage.Id ==null, false, true)}" >
+                <apex:outputPanel >
+
+                      <apex:outputPanel ><nttdcore:DLabel name="DL33" default="Assigned Deliverables" labelParent="{!this}" /><nttdcore:DLabel name="DL34" default="No Results Were Found." labelParent="{!this}" /><nttdcore:DLabel name="DL35" default="Name" labelParent="{!this}" /><nttdcore:DLabel name="DL36" default="Assigned Scope" labelParent="{!this}" />
+
+                            <apex:pageblocksection columns="1" collapsible="false" >
+                            <apex:facet name="header" >
+                                <apex:outputPanel >
+                                    {!dLabel['DL33']}
+                                    <c:ECO_HelpIcon helptext="A list of Project Deliverables will appear here once added to the project.  Select the Scope Package to which the deliverable belongs to add the deliverable to that scope package." />
+                                </apex:outputPanel>
+                            </apex:facet>
+                                <apex:outputpanel rendered="true" >
+                                </apex:outputpanel>
+                                <apex:outputText value="{!dLabel['DL34']}" rendered="{!IF(MapRenderAssigned[ScopePackage.Id], false, true)}" />
+
+                                <apex:pageBlockTable value="{!lstMapAssignedDeliverables[ScopePackage.Id]}" var="aRow" rendered="{!IF(MapRenderAssigned[ScopePackage.Id], true, false)}" >
+                                    <apex:column headervalue="{!dLabel['DL35']}" >
+                                        <apex:outputfield value="{!aRow.oDeliverable.name}" />
+                                    </apex:column>
+                                    <apex:column headervalue="{!dLabel['DL36']}" >
+                                        <apex:outputField value="{!aRow.oDeliverable.Project_Scope__c}" />                      
+                                    </apex:column>
+                                    <apex:repeat value="{!$ObjectType.Deliverable__c.FieldSets.Scope_Assigned_View}" var="Field" >
+                                        <apex:column headervalue="{!Field.Label}" >
+                                            <apex:outputfield value="{!aRow.oDeliverable[Field]}" />
+                                        </apex:column>
+                                    </apex:repeat>
+                                </apex:pageBlockTable>
+                            </apex:pageblocksection>
+                            <BR/><BR/>
+
+                        </apex:outputPanel>
+
+                </apex:outputPanel>
+                </apex:outputPanel>
+                    </apex:pageBlock>
+            </apex:repeat>
+     
+     <p style="page-break-after:always;" />
+     <br/>       
+     <h2 style="line-height:80%;" ><nttdcore:DLabel name="DL37" default="Deliverables and Technical Quality Review" labelParent="{!this}" />{!dLabel['DL37']}</h2>
+     <br/>
+     
+     <apex:pageBlock ><nttdcore:DLabel name="DL38" default="Deliverables" labelParent="{!this}" /><nttdcore:DLabel name="DL39" default="Deliverable Name" labelParent="{!this}" /><nttdcore:DLabel name="DL40" default="Current Status" labelParent="{!this}" /><nttdcore:DLabel name="DL41" default="Deliverable Owner" labelParent="{!this}" /><nttdcore:DLabel name="DL42" default="Delivery Type" labelParent="{!this}" /><nttdcore:DLabel name="DL43" default="Due Date" labelParent="{!this}" /><nttdcore:DLabel name="DL44" default="Submitted Date" labelParent="{!this}" /><nttdcore:DLabel name="DL45" default="No deliverables to display" labelParent="{!this}" />
+        <apex:pageBlockSection title="{!dLabel['DL38']}" columns="1" collapsible="false" >
+            <apex:pageBlockTable value="{!Deliverables}" rendered="{!Deliverables.size > 0}" var="deliverlist" rowclasses="even,odd" >
+                <apex:column headerclass="centerAlign" styleclass="leftAlign" ><apex:facet name="header" >{!dLabel['DL39']}</apex:facet><apex:outputField value="{!deliverlist.Name}" /></apex:column>
+                <apex:column headerclass="centerAlign" headervalue="{!dLabel['DL40']}" styleclass="centerAlign" ><apex:outputField value="{!deliverlist.Status__c}" /></apex:column>
+                <apex:column headerclass="centerAlign" styleclass="centerAlign" headervalue="{!dLabel['DL41']}" ><apex:outputField value="{!deliverlist.DeliverablesOwner__r.Name}" /></apex:column>
+                <apex:column headerclass="centerAlign" styleclass="centerAlign" headervalue="{!dLabel['DL42']}" ><apex:outputField value="{!deliverlist.DeliverableType__c}" /></apex:column>
+                <apex:column headerclass="centerAlign" styleclass="centerAlign" headervalue="{!dLabel['DL43']}" ><apex:outputField value="{!deliverlist.DueDate__c}" /></apex:column>
+                <apex:column headerclass="centerAlign" styleclass="centerAlign" headervalue="{!dLabel['DL44']}" ><apex:outputField value="{!deliverlist.DateSubmitted__c}" /></apex:column>
+            </apex:pageBlockTable>
+            
+            <apex:outputPanel rendered="{!Deliverables.size == 0}" >
+                <apex:outputText value="{!dLabel['DL45']}" />
+            </apex:outputPanel> 
+        </apex:pageBlockSection>
+    </apex:pageBlock>    
+    
+    <!-- 
+       For each of the deliverables, repeat
+       show the deliverable detail in pageblocksection
+       then show the team in a pageblock table
+     -->
+    <p style="page-break-after:always;" />
+    <br/>
+     <h2 style="line-height:80%;" ><nttdcore:DLabel name="DL46" default="List Of Deliverable Details" labelParent="{!this}" />{!dLabel['DL46']}</h2>
+     <br/>
+     <apex:repeat value="{!Deliverables}" var="d" >
+        <apex:pageBlock ><nttdcore:DLabel name="DL47" default="Deliverable Detail" labelParent="{!this}" /><nttdcore:DLabel name="DL48" default="Technical QualityTeam" labelParent="{!this}" /><nttdcore:DLabel name="DL49" default="Technical Quality Team #" labelParent="{!this}" /><nttdcore:DLabel name="DL50" default="Role" labelParent="{!this}" /><nttdcore:DLabel name="DL51" default="Technical Quality Team Member" labelParent="{!this}" /><nttdcore:DLabel name="DL52" default="Review Date" labelParent="{!this}" /><nttdcore:DLabel name="DL53" default="Status" labelParent="{!this}" />
+            <apex:pageBlockSection title="{!dLabel['DL47']}" columns="2" collapsible="false" >
+                <apex:outputField value="{!d.Name}" />
+                <apex:outputField value="{!d.Status__c}" />
+                <apex:outputField value="{!d.Project__c}" />
+                <apex:outputField value="{!d.DeliverablesOwner__c}" />
+                <apex:outputField value="{!d.Project_Scope__c}" />
+                <apex:outputField value="{!d.DeliverableType__c}" />
+                <apex:outputField value="{!d.DueDate__c}" />
+                <apex:outputField value="{!d.DateSubmitted__c}" />
+                <apex:outputField value="{!d.Description__c}" />
+                <apex:outputField value="{!d.PracticeArea__c}" />                
+            </apex:pageBlockSection>
+            <br/>
+            <apex:pageBlockSection title="{!dLabel['DL48']}" >
+                 <apex:pageBlockTable value="{!d.Technical_Quality_Team__r}" rendered="{!d.Technical_Quality_Team__r.size > 0}" var="tqTeam" rowclasses="even,odd" >
+                    <apex:column headerclass="centerAlign" styleclass="leftAlign" ><apex:facet name="header" >{!dLabel['DL49']}</apex:facet><apex:outputField value="{!tqTeam.Name}" /></apex:column>
+                    <apex:column headerclass="centerAlign" headervalue="{!dLabel['DL50']}" styleclass="centerAlign" ><apex:outputField value="{!tqTeam.Role__c}" /></apex:column>
+                    <apex:column headerclass="centerAlign" styleclass="centerAlign" headervalue="{!dLabel['DL51']}" ><apex:outputField value="{!tqTeam.TechnicalQualityTeamMember__c}" /></apex:column>
+                    <apex:column headerclass="centerAlign" styleclass="centerAlign" headervalue="{!dLabel['DL52']}" ><apex:outputField value="{!tqTeam.RequiredDate__c}" /></apex:column>
+                    <apex:column headerclass="centerAlign" styleclass="centerAlign" headervalue="{!dLabel['DL53']}" ><apex:outputField value="{!tqTeam.Status__c}" /></apex:column>
+                </apex:pageBlockTable>
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+        <br/>
+        <br/>
+        
+    </apex:repeat>
+    
+    <p style="page-break-after:always;" />
+    <nttdcore:DLabel name="DL54" default="Project Key Members" labelParent="{!this}" /><apex:pageBlock title="{!dLabel['DL54']}" ><nttdcore:DLabel name="DL55" default="One or more of this project&#39;s active Key Member roles is vacant." labelParent="{!this}" /><nttdcore:DLabel name="DL56" default="Role" labelParent="{!this}" /><nttdcore:DLabel name="DL57" default="Name" labelParent="{!this}" /><nttdcore:DLabel name="DL58" default="Start Date" labelParent="{!this}" /><nttdcore:DLabel name="DL59" default="End Date" labelParent="{!this}" /><nttdcore:DLabel name="DL60" default="Phone" labelParent="{!this}" /><nttdcore:DLabel name="DL61" default="Email" labelParent="{!this}" />
+    <br/>
+        <apex:pageBlockSection columns="1" collapsible="false" >
+                <apex:pageMessage severity="info" rendered="{!showVacantKeyMemberNote}" summary="{!dLabel['DL55']}" />
+                <apex:pageBlockTable value="{!lActiveMembersKey}" var="item" width="100%" id="ActiveKeysTable" >
+                    <apex:column >
+                        <apex:facet name="header" >{!dLabel['DL56']}</apex:facet>
+                        <apex:outputLabel value="{!item.RoleName}" rendered="{!if(item.RoleName != null, true, false)}" />
+                    </apex:column>
+                    <apex:column >
+                        <apex:facet name="header" >{!dLabel['DL57']}</apex:facet>
+                        <apex:outputField value="{!item.oPTM.Contact__c}" /> 
+                    </apex:column>
+                    <apex:column >
+                        <apex:facet name="header" >{!dLabel['DL58']}</apex:facet>
+                        <apex:outputField value="{!item.oPTM.StartDate__c}" />
+                    </apex:column>
+                    <apex:column >
+                        <apex:facet name="header" >{!dLabel['DL59']}</apex:facet>
+                        <apex:outputField value="{!item.oPTM.EndDate__c}" />
+                    </apex:column>
+                    <apex:column >
+                        <apex:facet name="header" >{!dLabel['DL60']}</apex:facet>
+                        <apex:outputField value="{!item.oPTM.Phone__c}" />
+                    </apex:column>
+                    <apex:column >
+                        <apex:facet name="header" >{!dLabel['DL61']}</apex:facet>
+                        <apex:outputField value="{!item.oPTM.Email__c}" />
+                    </apex:column>
+                </apex:pageBlockTable>
+        </apex:pageBlockSection>
+    </apex:pageBlock>
+  
+    <nttdcore:DLabel name="DL62" default="Project Active Team Members (AECOM)" labelParent="{!this}" /><apex:pageBlock title="{!dLabel['DL62']}" ><nttdcore:DLabel name="DL63" default="Role Type" labelParent="{!this}" /><nttdcore:DLabel name="DL64" default="Name" labelParent="{!this}" /><nttdcore:DLabel name="DL65" default="Project Role Title" labelParent="{!this}" /><nttdcore:DLabel name="DL66" default="Phone" labelParent="{!this}" /><nttdcore:DLabel name="DL67" default="Email" labelParent="{!this}" />
+    <br/>
+        <apex:pageBlockSection columns="1" collapsible="false" >
+            <apex:outputPanel id="ProjectTeamTable" >
+                <apex:pageBlockTable value="{!lMembersTeam}" var="item" width="100%" columnswidth="60px" >
+                    <apex:column >
+                        <apex:facet name="header" >{!dLabel['DL63']}</apex:facet>
+                        <apex:outputText value="{!item.RoleName}" />
+                    </apex:column>
+                    <apex:column >
+                        <apex:facet name="header" >{!dLabel['DL64']}</apex:facet>
+                        <apex:outputField value="{!item.oPTM.Contact__c}" />
+                    </apex:column>
+                    <apex:column >
+                        <apex:facet name="header" >{!dLabel['DL65']}</apex:facet>
+                        <apex:outputField value="{!item.oPTM.ProjectRoleTitle__c}" />
+                    </apex:column>
+                    <apex:column >
+                        <apex:facet name="header" >{!dLabel['DL66']}</apex:facet>
+                        <apex:outputField value="{!item.oPTM.Phone__c}" />
+                    </apex:column>
+                    <apex:column >
+                        <apex:facet name="header" >{!dLabel['DL67']}</apex:facet>
+                        <apex:outputField value="{!item.oPTM.Email__c}" />
+                    </apex:column>
+                </apex:pageBlockTable>
+            </apex:outputPanel>
+        </apex:pageBlockSection>
+    </apex:pageBlock>       
+    
+    <p style="page-break-after:always;" />
+    <br/>
+    <h2 style="line-height:80%;" ><nttdcore:DLabel name="DL68" default="Subcontractors and Vendors" labelParent="{!this}" />{!dLabel['DL68']}</h2>
+    <br/>
+     
+     <apex:pageBlock ><nttdcore:DLabel name="DL69" default="Subs and Vendors" labelParent="{!this}" /><nttdcore:DLabel name="DL70" default="No Subs and Vendors to display" labelParent="{!this}" />
+        <apex:pageBlockSection title="{!dLabel['DL69']}" columns="1" collapsible="false" >
+            <apex:pageBlockTable value="{!VendorSites}" var="Site" rendered="{!if(VendorSites.size > 0, true, false)}" >
+                <apex:repeat value="{!$ObjectType.VendorSite__c.FieldSets.VendorFinder_Display_Fieldset}" var="SearchField" >
+                    <apex:column value="{!Site[SearchField]}" />
+                </apex:repeat>
+            </apex:pageBlockTable>
+            
+            <apex:outputPanel rendered="{!VendorSites.size == 0}" >
+                <apex:outputText value="{!dLabel['DL70']}" />
+            </apex:outputPanel> 
+        </apex:pageBlockSection>
+    </apex:pageBlock>    
+    
+    <p style="page-break-after:always;" />
+    <br/>
+    <h2 style="line-height:80%;" ><nttdcore:DLabel name="DL71" default="Stakeholders" labelParent="{!this}" />{!dLabel['DL71']}</h2>
+    <br/>
+         
+    <apex:pageBlock ><nttdcore:DLabel name="DL73" default="Clients" labelParent="{!this}" /><nttdcore:DLabel name="DL74" default="Billing Client" labelParent="{!this}" /><nttdcore:DLabel name="DL75" default="Primary Billing" labelParent="{!this}" /><nttdcore:DLabel name="DL76" default="End Client" labelParent="{!this}" /><nttdcore:DLabel name="DL77" default="Primary End" labelParent="{!this}" /><nttdcore:DLabel name="DL78" default="Others" labelParent="{!this}" /><nttdcore:DLabel name="DL79" default="Stakeholder Type" labelParent="{!this}" /><nttdcore:DLabel name="DL80" default="Organization" labelParent="{!this}" /><nttdcore:DLabel name="DL81" default="Contact Name" labelParent="{!this}" /><nttdcore:DLabel name="DL82" default="Contact Phone" labelParent="{!this}" /><nttdcore:DLabel name="DL83" default="Interest" labelParent="{!this}" /><nttdcore:DLabel name="DL84" default="AECOM Contact" labelParent="{!this}" />
+        <nttdcore:DLabel name="DL72" default="
+                1. Engage with the appropriate Client Account or Program Manager when completing this section to ensure all appropriate client-related stakeholders are recognized and any client or account-specific communication strategies or gift and entertainment policies are identified and followed.&lt;br/&gt;
+                2. Risks are inherent when the client contact or other stakeholders change during project execution.  Consider adding
+                potential risks to the project Risk Register with proposed mitigation strategies when a new stakeholder
+                is introduced to the project, such as holding a project review or kickoff meeting with the new contact.
+                " labelParent="{!this}" /><apex:pageMessage severity="info" escape="false" summary="{!dLabel['DL72']}" />
+
+        <apex:pageBlockSection title="{!dLabel['DL73']}" columns="1" collapsible="false" >
+            <apex:pageBlockTable value="{!lProjectSites}" var="item" width="100%" id="ClientsTable" columnswidth="60px" rendered="{!if(lProjectSites.size > 0, true, false)}" >
+                <apex:repeat value="{!$ObjectType.Project_Site__c.FieldSets.pse_ClientFinder_Display_Fieldset}" var="SearchField" >
+                    <apex:column value="{!item[SearchField]}" />
+                </apex:repeat>
+                <apex:column headervalue="{!dLabel['DL74']}" >
+                    <apex:outputField value="{!item.Is_Billing__c}" />
+                </apex:column>
+                <apex:column headervalue="{!dLabel['DL75']}" >
+                    <apex:outputField value="{!item.Is_Default_Top_Task__c}" />
+                </apex:column>
+                <apex:column headervalue="{!dLabel['DL76']}" >
+                    <apex:outputField value="{!item.Is_End__c}" />
+                </apex:column>
+                <apex:column headervalue="{!dLabel['DL77']}" >
+                    <apex:outputField value="{!item.Is_Primary_End__c}" />
+                </apex:column>
+            </apex:pageBlockTable>
+            <!--  <apex:pageMessage severity="info" rendered="{!if(lAccounts.size = 0, true, false)}" summary="No Clients/Project Sites have been defined." /> -->
+        </apex:pageBlockSection>
+
+        <apex:pageBlockSection title="{!dLabel['DL78']}" columns="1" collapsible="false" >
+            <!--   <apex:outputField value="{!pse__Proj__c.MediaInvolvement__c}" />  -->
+            <apex:pageBlockTable value="{!lStakeholders}" var="item" width="100%" columnswidth="60px" id="StakeholderTable" >
+                <apex:column >
+                    <apex:facet name="header" >{!dLabel['DL79']}</apex:facet>
+                    <apex:outputField value="{!item.StakeholderType__c}" />
+                </apex:column>
+                <apex:column >
+                    <apex:facet name="header" >{!dLabel['DL80']}</apex:facet>
+                    <apex:outputField value="{!item.Organization__c}" />
+                </apex:column>
+                <apex:column >
+                    <apex:facet name="header" >{!dLabel['DL81']}</apex:facet>
+                    <apex:outputField value="{!item.ContactName__c}" />
+                </apex:column>
+                <apex:column >
+                    <apex:facet name="header" >{!dLabel['DL82']}</apex:facet>
+                    <apex:outputField value="{!item.ContactPhone__c}" />
+                </apex:column>
+                <apex:column >
+                    <apex:facet name="header" >{!dLabel['DL83']}</apex:facet>
+                    <apex:outputField value="{!item.Interest__c}" />
+                </apex:column>
+                <apex:column >
+                    <apex:facet name="header" >{!dLabel['DL84']}</apex:facet>
+                    <apex:outputField value="{!item.AECOMContact__c}" />
+                </apex:column>
+            </apex:pageBlockTable>
+        </apex:pageBlockSection>
+        
+    </apex:pageBlock>
+
+    <p style="page-break-after:always;" />
+    <br/>
+     <h2 style="line-height:80%;" ><nttdcore:DLabel name="DL85" default="Communication Activities" labelParent="{!this}" />{!dLabel['DL85']}</h2>
+     <br/>
+     
+    <apex:pageBlock ><nttdcore:DLabel name="DL86" default="test" labelParent="{!this}" /><nttdcore:DLabel name="DL87" default="Activity" labelParent="{!this}" /><nttdcore:DLabel name="DL88" default="Audience" labelParent="{!this}" /><nttdcore:DLabel name="DL89" default="Responsible Person" labelParent="{!this}" /><nttdcore:DLabel name="DL90" default="How" labelParent="{!this}" /><nttdcore:DLabel name="DL91" default="When" labelParent="{!this}" /><nttdcore:DLabel name="DL92" default="Frequency" labelParent="{!this}" /><nttdcore:DLabel name="DL93" default="Generate Task" labelParent="{!this}" />
+        <apex:pageBlockSection columns="1" collapsible="false" >
+            <apex:pageBlockTable value="{!lCommPlans}" var="item" width="100%" columnswidth="60px" id="CommTable" >
+                <apex:column title="{!dLabel['DL86']}" >
+                    <apex:facet name="header" >{!dLabel['DL87']}</apex:facet>
+                    <apex:outputField value="{!item.Activity__c}" />
+                </apex:column>
+                <apex:column >
+                    <apex:facet name="header" >{!dLabel['DL88']}</apex:facet>
+                    <apex:outputField value="{!item.Audience__c}" />
+                </apex:column>
+                <apex:column >
+                    <apex:facet name="header" >{!dLabel['DL89']}</apex:facet>
+                    <apex:outputField value="{!item.ResponsiblePTM__c}" />
+                </apex:column>
+                <apex:column >
+                    <apex:facet name="header" >{!dLabel['DL90']}</apex:facet>
+                    <apex:outputField value="{!item.How__c}" />
+                </apex:column>
+                <apex:column >
+                    <apex:facet name="header" >{!dLabel['DL91']}</apex:facet>
+                    <apex:outputField value="{!item.When__c}" />
+                </apex:column>
+                <apex:column >
+                    <apex:facet name="header" >{!dLabel['DL92']}</apex:facet>
+                    <apex:outputField value="{!item.Frequency__c}" />
+                </apex:column>
+                <apex:column >
+                    <apex:facet name="header" >{!dLabel['DL93']}</apex:facet>
+                    <apex:outputField value="{!item.GenerateTask__c}" />
+                </apex:column>
+            </apex:pageBlockTable>
+        </apex:pageBlockSection>
+    </apex:pageBlock>
+    
+    <p style="page-break-after:always;" />
+    <br/>
+     <h2 style="line-height:80%;" ><nttdcore:DLabel name="DL94" default="Project Surveys" labelParent="{!this}" />{!dLabel['DL94']}</h2>
+     <br/>
+    <apex:pageBlock ><nttdcore:DLabel name="DL95" default="Project surveys measure the client&rsquo;s overall satisfaction with AECOMs performance on a specific project. AECOM conducts monthly surveys on a 2% random sample of projects over 20% complete (of budget).   &lt;br /&gt;&lt;br /&gt;
+Complete this section if the Project Manager wants to request a survey of the project, schedule a survey around a specific project event (e.g., completion of key milestone or deliverable) or schedule survey intervals for long term projects (e.g., annual survey).  The request will be provided to the Client Care Management team to action the project survey on the dates requested.   &lt;br /&gt;&lt;br /&gt;
+Projects with no dates identified below will be automatically subjected to the random selection process. " labelParent="{!this}" /><nttdcore:DLabel name="DL96" default="Scheduled Date" labelParent="{!this}" /><nttdcore:DLabel name="DL97" default="Comments" labelParent="{!this}" /><nttdcore:DLabel name="DL98" default="Client" labelParent="{!this}" /><nttdcore:DLabel name="DL99" default="Contact" labelParent="{!this}" />
+        <apex:pageBlockSection columns="1" collapsible="false" >
+            <apex:pageMessage severity="info" escape="false" summary="{!dLabel['DL95']}" />
+            <apex:pageBlockTable value="{!lstSSW}" var="item" width="100%" columnswidth="60px" id="SurveyScheduleTable" >
+                <apex:column >
+                    <apex:facet name="header" >{!dLabel['DL96']}</apex:facet>
+                    <apex:outputField value="{!item.ss.ScheduledDate__c}" />
+                </apex:column>
+                <apex:column >
+                    <apex:facet name="header" >{!dLabel['DL97']}</apex:facet>
+                    <apex:outputField value="{!item.ss.Comments__c}" style="width: 825px; height: 12px" />
+                </apex:column>
+                <apex:column headervalue="{!dLabel['DL98']}" >
+                    <apex:outputField value="{!item.ss.Client__c}" />
+                </apex:column>
+                <apex:column headervalue="{!dLabel['DL99']}" >
+                        <apex:outputField value="{!item.ss.Contact__c}" />
+                        <span style="visibility: hidden;" >
+                        <apex:outputField value="{!item.ss.Site_Account__c}" />
+                        </span>
+                </apex:column>  
+            </apex:pageBlockTable>
+        </apex:pageBlockSection>
+    </apex:pageBlock>
+                    
+    <p style="page-break-after:always;" />
+    <br/>
+     <h2 style="line-height:80%;" ><nttdcore:DLabel name="DL100" default="Project Location(s)" labelParent="{!this}" />{!dLabel['DL100']}</h2>
+     <br/>                  
+    <apex:pageBlock ><nttdcore:DLabel name="DL101" default="Selected Locations" labelParent="{!this}" /><nttdcore:DLabel name="DL102" default="No Cities have been selected." labelParent="{!this}" /><nttdcore:DLabel name="DL103" default="Project Location" labelParent="{!this}" /><nttdcore:DLabel name="DL104" default="State/Province" labelParent="{!this}" /><nttdcore:DLabel name="DL105" default="Country" labelParent="{!this}" /><nttdcore:DLabel name="DL106" default="Security Rating" labelParent="{!this}" /><nttdcore:DLabel name="DL107" default="Business Risk" labelParent="{!this}" /><nttdcore:DLabel name="DL108" default="Detention &amp; Discrimination" labelParent="{!this}" /><nttdcore:DLabel name="DL109" default="Kidnap &amp; Ransom" labelParent="{!this}" /><nttdcore:DLabel name="DL110" default="Property" labelParent="{!this}" /><nttdcore:DLabel name="DL111" default="Project Location Risk: " labelParent="{!this}" />
+        <apex:pageBlockSection title="{!dLabel['DL101']}" columns="1" collapsible="false" >
+            <apex:pageMessage severity="INFO" rendered="{!if(lstProjectCities.size > 0, false, true)}" summary="{!dLabel['DL102']}" /> 
+            <apex:outputPanel >
+            <apex:pageBlockTable value="{!lstProjectCities}" var="ProjectCity" rendered="{!if(lstProjectCities.size > 0, true, false)}" >
+                     <apex:column headervalue="{!dLabel['DL103']}" value="{!ProjectCity.CityName__c}" />
+                     <apex:column headervalue="{!dLabel['DL104']}" value="{!ProjectCity.State_Name__c}" />
+                     <apex:column headervalue="{!dLabel['DL105']}" value="{!ProjectCity.ProjectCountryRisk__r.CountryName__c}" />
+                     <apex:column headervalue="{!dLabel['DL106']}" value="{!ProjectCity.ProjectCountryRisk__r.Safety_Rating__c}" />
+                     <apex:column headervalue="{!dLabel['DL107']}" value="{!ProjectCity.ProjectCountryRisk__r.BusinessRisk__c}" />
+                     <apex:column headervalue="{!dLabel['DL108']}" value="{!ProjectCity.ProjectCountryRisk__r.DetentionDiscrimination__c}" />
+                     <apex:column headervalue="{!dLabel['DL109']}" value="{!ProjectCity.ProjectCountryRisk__r.KidnapRansom__c}" />
+                     <apex:column headervalue="{!dLabel['DL110']}" value="{!ProjectCity.ProjectCountryRisk__r.Property__c}" />
+                     <apex:column value="{!ProjectCity.Type__c}" />
+            </apex:pageBlockTable>
+            <BR/><BR/><BR/>
+            <div style="text-align:center;font-size: 20px;font-weight: bold;padding:0 0 5px 10px;" >
+                <apex:outputLabel value="{!dLabel['DL111']}" />
+                <apex:outputText value="{!projectRisk}" />
+             </div>
+             </apex:outputPanel>
+        </apex:pageBlockSection>
+    </apex:pageBlock>
+                    
+    <p style="page-break-after:always;" />
+    <br/>                        
+    <h2 style="line-height:80%;" ><nttdcore:DLabel name="DL112" default="Resilience Planning" labelParent="{!this}" />{!dLabel['DL112']}</h2>
+    <br/>                           
+    <apex:pageBlock ><nttdcore:DLabel name="DL113" default="Travel Security" labelParent="{!this}" />
+
+        <apex:pageBlockSection title="{!dLabel['DL113']}" columns="1" collapsible="false" />
+
+        <nttdcore:DLabel name="DL114" default="Project Location must be selected to support resilience planning." labelParent="{!this}" /><apex:pageMessage severity="INFO" rendered="{!if(lstProjectCities.size > 0, false, true)}" summary="{!dLabel['DL114']}" /> 
+        <apex:outputPanel rendered="{!if(lstProjectCities.size > 0, true, false)}" ><nttdcore:DLabel name="DL118" default="Electronic Assets Security" labelParent="{!this}" /><nttdcore:DLabel name="DL122" default="Project Location Security" labelParent="{!this}" />
+            <apex:outputPanel rendered="{!AND(( projectRisk >= 0 ), ( projectRisk <= 1.9) )}" ><nttdcore:DLabel name="DL115" default="Based on the country risk rating for this project, no further action is required when project team members book project travel." labelParent="{!this}" />
+                    {!dLabel['DL115']}
+            </apex:outputPanel>
+
+            <apex:outputPanel rendered="{!AND(( projectRisk >= 2 ), ( projectRisk <= 2.9) )}" ><nttdcore:DLabel name="DL116" default="Based on the country risk rating, project team members are required to complete and submit Section 1.0 of the Travel Security Information Document prior to booking project travel.  Further information and guidance is available on the Global Resilience Group website." labelParent="{!this}" />
+                {!dLabel['DL116']}
+                <BR/><BR/>
+            </apex:outputPanel>
+
+            <apex:outputPanel rendered="{!projectRisk >= 3}" ><nttdcore:DLabel name="DL117" default="Based on the country risk rating, project team members are required to complete and submit Section 1.0, 2.0 and 3.0 (as applicable) of the Travel Security Information Document and receive concurrence from the Global Resilience Group prior to booking travel. Further information and guidance is available on the Global Resilience Group website." labelParent="{!this}" />
+                {!dLabel['DL117']}
+            </apex:outputPanel>
+
+            <apex:pageBlockSection title="{!dLabel['DL118']}" columns="1" collapsible="false" />
+                <table><tr>
+                <td class="questionCol" >
+                    <nttdcore:DLabel name="DL119" default="Will any AECOM employee be carrying or transporting AECOM-owned computer, network, other devices and/or electronics?" labelParent="{!this}" /><apex:outputText value="{!dLabel['DL119']}" />
+                    </td>
+                    <td>
+                        <apex:outputField value="{!theProject.ResilienceElectronicAssets__c}" />
+                    </td>
+                </tr></table>       
+
+            <apex:outputPanel rendered="{!theProject.ResilienceElectronicAssets__c == 'No'}" ><nttdcore:DLabel name="DL120" default="No further action is required." labelParent="{!this}" />
+                <BR/><BR/>
+                {!dLabel['DL120']}
+            </apex:outputPanel>         
+
+            <apex:outputPanel rendered="{!theProject.ResilienceElectronicAssets__c == 'Yes'}" ><nttdcore:DLabel name="DL121" default="Completion of Section 1.8 of the Operational Security Plan is required for review by the IT Information Security team and the Global Resilience Group.  Further information and guidance is available on the Global Resilience Group website." labelParent="{!this}" />
+                <BR/><BR/>
+                {!dLabel['DL121']}
+                <BR/><BR/>
+            </apex:outputPanel>
+
+            <apex:pageBlockSection title="{!dLabel['DL122']}" columns="1" collapsible="false" />
+            <apex:outputPanel rendered="{!AND(( projectRisk >= 0 ), ( projectRisk <= 1.9) )}" ><nttdcore:DLabel name="DL123" default="Based on the country risk rating for this project, the project team is required to complete and submit Section 1.0 of the Operational Security Plan.  Security requirements for the project can be reviewed in the Physical Resilience Standard.  Further information and guidance is available on the Global Resilience Group website." labelParent="{!this}" />
+                {!dLabel['DL123']}
+                <BR/><BR/>
+            </apex:outputPanel>
+
+            <apex:outputPanel rendered="{!AND(( projectRisk >= 2 ), ( projectRisk <= 2.9) )}" ><nttdcore:DLabel name="DL124" default="Based on the country risk rating for this project, the project team is required to complete the following documentation for review and approval by the Global Resilience Group:" labelParent="{!this}" /><nttdcore:DLabel name="DL127" default="Costs to complete the Operational Security Plan and implement identified security measures, security training, staff and/or materials should be estimated and included in AECOM&rsquo;s proposal and Project Plan." labelParent="{!this}" /><nttdcore:DLabel name="DL128" default="Further information and guidance is available on the Global Resilience Group website.  Security requirements can be viewed in the Physical Resilience and Country Security Standards." labelParent="{!this}" />
+                {!dLabel['DL124']}
+                <BR/><BR/>
+                <ul>
+                    <li><nttdcore:DLabel name="DL125" default="Project Pre-Bid Security Risk Assessment (opportunity phase)" labelParent="{!this}" />{!dLabel['DL125']}</li>
+                    <li><nttdcore:DLabel name="DL126" default="Operational Security Plan (contracted phase; Sections 1.0 and 2.0 only)" labelParent="{!this}" />{!dLabel['DL126']}</li>
+                </ul>
+                <BR/><BR/>
+                {!dLabel['DL127']} 
+                <BR/><BR/>
+                {!dLabel['DL128']}   
+                <BR/><BR/>
+            </apex:outputPanel>
+
+            <apex:outputPanel rendered="{!projectRisk >= 3}" ><nttdcore:DLabel name="DL129" default="Based on the country risk rating for this project, the project team is required to complete the following documentation for review and approval by the Global Resilience Group:" labelParent="{!this}" /><nttdcore:DLabel name="DL132" default="Costs to complete the Operational Security Plan and implement identified security measures, security training, staff and/or materials should be estimated and included in AECOM&rsquo;s proposal and Project Plan." labelParent="{!this}" /><nttdcore:DLabel name="DL133" default="Further information and guidance is available on the Global Resilience Group website.  Security requirements can be viewed in the Physical Resilience and Country Security Standards." labelParent="{!this}" />
+                {!dLabel['DL129']}
+                <BR/><BR/>
+                <ul>
+                    <li><nttdcore:DLabel name="DL130" default="Project Pre-Bid Security Risk Assessment (opportunity phase)" labelParent="{!this}" />{!dLabel['DL130']}</li>
+                    <li><nttdcore:DLabel name="DL131" default="Operational Security Plan (contracted phase)" labelParent="{!this}" />{!dLabel['DL131']}</li>
+                </ul>
+                <BR/><BR/>
+                {!dLabel['DL132']} 
+                <BR/><BR/>
+                {!dLabel['DL133']} 
+                <BR/><BR/>
+                          
+            </apex:outputPanel> 
+        </apex:outputPanel>
+    </apex:pageBlock>
+    
+    <p style="page-break-after:always;" />
+    <br/>
+    <h2 style="line-height:80%;" ><nttdcore:DLabel name="DL134" default="Safety, Health and Environment" labelParent="{!this}" />{!dLabel['DL134']}</h2>
+    <br/>
+    <apex:pageBlock ><nttdcore:DLabel name="DL135" default="Safety &amp; Health" labelParent="{!this}" /><nttdcore:DLabel name="DL136" default="Does the project consists of work outside of an office environment (e.g., field/construction work)?" labelParent="{!this}" /><nttdcore:DLabel name="DL137" default="Will members of the project team undertake work at project or client sites or offices?" labelParent="{!this}" /><nttdcore:DLabel name="DL138" default="Project team members who will be working at the client or project offices may be required to undergo a safety induction(s) (i.e., site-specific training).  Click the &ldquo;New Induction&rdquo; button to create a register of all required inductions for the project.  Once each induction record has been created and added to the register, add the required project team member(s) and relevant document(s) by clicking &ldquo;Add&rdquo; within each record line.   Relevant documents may include application forms, induction location information or completed induction certificates." labelParent="{!this}" /><nttdcore:DLabel name="DL139" default="Name of Induction" labelParent="{!this}" /><nttdcore:DLabel name="DL140" default="Required By" labelParent="{!this}" /><nttdcore:DLabel name="DL141" default="Project Team Members" labelParent="{!this}" /><nttdcore:DLabel name="DL142" default="Location of Induction" labelParent="{!this}" /><nttdcore:DLabel name="DL143" default="Frequency" labelParent="{!this}" /><nttdcore:DLabel name="DL144" default="Fee" labelParent="{!this}" /><nttdcore:DLabel name="DL145" default="Notes" labelParent="{!this}" /><nttdcore:DLabel name="DL146" default="Attachments" labelParent="{!this}" /><nttdcore:DLabel name="DL147" default="No records to display" labelParent="{!this}" /><nttdcore:DLabel name="DL148" default="Does the project involve site inspections and/or field tasks?" labelParent="{!this}" /><nttdcore:DLabel name="DL149" default="All field activities require a Task Risk Analysis to be undertaken. Complete the required analysis per your geography safety standard (e.g., Job Safety Analysis, Safe Work Method Statement, Task Hazard Analysis) and upload the completed documents for access and reference by the project team unless a project-specific
+                         health and safety plan is prepared for the project." labelParent="{!this}" /><nttdcore:DLabel name="DL150" default="File Name" labelParent="{!this}" /><nttdcore:DLabel name="DL151" default="Are there client specific safety and health requirements for this project?" labelParent="{!this}" /><nttdcore:DLabel name="DL152" default="Identify below any additional safety requirements which may apply to the project." labelParent="{!this}" /><nttdcore:DLabel name="DL153" default="Is a detailed standalone project-specific health and safety plan required?" labelParent="{!this}" /><nttdcore:DLabel name="DL154" default="Work directly with your regional SH{{1}}E manager to compile the detailed safety plan and upload the signed and approved document." labelParent="{!this}" p1="{!'&'}" /><nttdcore:DLabel name="DL155" default="File Name" labelParent="{!this}" /><nttdcore:DLabel name="DL156" default="Does the project require domestic travel to a remote or austere location, or international travel?" labelParent="{!this}" /><nttdcore:DLabel name="DL157" default="A Travel Security Identification Document (TSID) is required for international travel.  Go to the Locations and Resilience section for direction based on the project location." labelParent="{!this}" /><nttdcore:DLabel name="DL158" default="Contact your local SH&amp;E Manager to determine if a Journey Management Plan is required for travel to remote or austere locations." labelParent="{!this}" /><nttdcore:DLabel name="DL159" default="Environment" labelParent="{!this}" /><nttdcore:DLabel name="DL160" default="Where your region is certified to ISO 14001, Environmental Management, a Project Environmental Review must be completed.&nbsp; Where your region is not certified, it is recommended that a Project Environmental Review is completed demonstrating AECOM&rsquo;s commitment to work in an environmentally responsible manner. &lt;br /&gt;&lt;br /&gt;
+In completing the Environmental Review within the Project Plan it is not intended that all of the &lsquo;normal&rsquo; environmental impacts should be listed and commented on, but rather that any &lsquo;unusual or particularly significant&rsquo; activities or requirements should be highlighted by exception and assessed." labelParent="{!this}" /><nttdcore:DLabel name="DL161" default="To complete the Environmental Review:" labelParent="{!this}" /><nttdcore:DLabel name="DL162" default="Subjectively rank the significance of each impact as high medium or low" labelParent="{!this}" /><nttdcore:DLabel name="DL163" default="Note whether AECOM can either control or influence each identified potential impact" labelParent="{!this}" /><nttdcore:DLabel name="DL164" default="For impacts that have been identified as being of high or medium significant and where AECOM can control or influence then, set out our proposed actions to manage these issues; and" labelParent="{!this}" /><nttdcore:DLabel name="DL165" default="At each project review, update this assessment and note action taken (if applicable)" labelParent="{!this}" /><nttdcore:DLabel name="DL166" default="If there are no environmental impacts, please note &ldquo;none&rdquo; to highlight that a review has been undertaken" labelParent="{!this}" /><nttdcore:DLabel name="DL167" default="List of Project Activities and Impacts" labelParent="{!this}" /><nttdcore:DLabel name="DL168" default="Impact on the Environment" labelParent="{!this}" /><nttdcore:DLabel name="DL169" default="Significance" labelParent="{!this}" /><nttdcore:DLabel name="DL170" default="Control" labelParent="{!this}" /><nttdcore:DLabel name="DL171" default="Proposed Action" labelParent="{!this}" /><nttdcore:DLabel name="DL172" default="Action Taken" labelParent="{!this}" /><nttdcore:DLabel name="DL173" default="Additional Guidance" labelParent="{!this}" /><nttdcore:DLabel name="DL174" default="The Project Environmental Review is compliant by:" labelParent="{!this}" /><nttdcore:DLabel name="DL175" default="Identifying and assessing the environmental impacts relating to our projects and the services we provide;" labelParent="{!this}" /><nttdcore:DLabel name="DL176" default="Using this assessment to assist in controlling significant environmental issues i.e. to adopt a proactive approach, and;" labelParent="{!this}" /><nttdcore:DLabel name="DL177" default="Ensuring that we work within the framework of legislation and good practice guidelines." labelParent="{!this}" /><nttdcore:DLabel name="DL178" default="The requirement to undertake environmental reviews is limited to our ability to influence or control the Environmental Impacts (either positive or negative) of a Project.&nbsp; In turn our ability to influence or control is determined by our brief.
+            The principles of Environmental Review are generic across the business, although the particular issues are likely to differ between Business Lines.&nbsp; The following table identifies a range of typical environmental impacts related to construction projects.&nbsp; It is not intended to be exhaustive." labelParent="{!this}" /><nttdcore:DLabel name="DL179" default="Emissions to Air" labelParent="{!this}" /><nttdcore:DLabel name="DL180" default="Releases to Water" labelParent="{!this}" /><nttdcore:DLabel name="DL181" default="Carbon dioxide emissions from energy use during building lifetime (global impact)" labelParent="{!this}" /><nttdcore:DLabel name="DL182" default="Green house gas depletion from refrigerants and insulants" labelParent="{!this}" /><nttdcore:DLabel name="DL183" default="NOx emissions from burners (global - leading to acid rain)" labelParent="{!this}" /><nttdcore:DLabel name="DL184" default="Indoor environment (local)" labelParent="{!this}" /><nttdcore:DLabel name="DL185" default="Release of hazardous materials to air (global and local)" labelParent="{!this}" /><nttdcore:DLabel name="DL186" default="During Construction &ndash; Dust, noise, light, VOC&rsquo;s , Ash/Particulates, Litter, Steam, Methane" labelParent="{!this}" /><nttdcore:DLabel name="DL187" default="Contamination of ground water (global and local)" labelParent="{!this}" /><nttdcore:DLabel name="DL188" default="Contamination of surface water (global and local)" labelParent="{!this}" /><nttdcore:DLabel name="DL189" default="Storm water" labelParent="{!this}" /><nttdcore:DLabel name="DL190" default="Silt" labelParent="{!this}" /><nttdcore:DLabel name="DL191" default="Oil/Fuel Spillage" labelParent="{!this}" /><nttdcore:DLabel name="DL192" default="Chemicals" labelParent="{!this}" /><nttdcore:DLabel name="DL193" default="Hot Water (to natural rivers, ponds or other sensitive water courses)" labelParent="{!this}" /><nttdcore:DLabel name="DL194" default="Process Effluent" labelParent="{!this}" /><nttdcore:DLabel name="DL195" default="Fire Dowsing" labelParent="{!this}" /><nttdcore:DLabel name="DL196" default="Waste leaching" labelParent="{!this}" /><nttdcore:DLabel name="DL197" default="Sewage" labelParent="{!this}" /><nttdcore:DLabel name="DL198" default="Detergents" labelParent="{!this}" /><nttdcore:DLabel name="DL199" default="Materials and Waste Management" labelParent="{!this}" /><nttdcore:DLabel name="DL200" default="Local Environment and Community Issues" labelParent="{!this}" /><nttdcore:DLabel name="DL201" default="Materials extraction, manufacture, use and transportation" labelParent="{!this}" /><nttdcore:DLabel name="DL202" default="Waste disposal - land use, transport etc (global and local)" labelParent="{!this}" /><nttdcore:DLabel name="DL203" default="Possible waste by-products (wood, concrete, brick/aggregates, plastic, metal," labelParent="{!this}" /><nttdcore:DLabel name="DL204" default="paper, batteries, electrical items, clinical, asbestos, copper, garden waste, fluorescent lights)" labelParent="{!this}" /><nttdcore:DLabel name="DL205" default="Managing / cleaning up contamination" labelParent="{!this}" /><nttdcore:DLabel name="DL206" default="Embodied energy, material selection, the use of recycled materials" labelParent="{!this}" /><nttdcore:DLabel name="DL207" default="Nuisance to neighbours (local impact)" labelParent="{!this}" /><nttdcore:DLabel name="DL208" default="Noise" labelParent="{!this}" /><nttdcore:DLabel name="DL209" default="Vibration" labelParent="{!this}" /><nttdcore:DLabel name="DL210" default="Dust" labelParent="{!this}" /><nttdcore:DLabel name="DL211" default="Light" labelParent="{!this}" /><nttdcore:DLabel name="DL212" default="Transport" labelParent="{!this}" /><nttdcore:DLabel name="DL213" default="Effect on local ecology (global and local)" labelParent="{!this}" /><nttdcore:DLabel name="DL214" default="Mud/litter on the road" labelParent="{!this}" /><nttdcore:DLabel name="DL215" default="Litter" labelParent="{!this}" /><nttdcore:DLabel name="DL216" default="Consequences of Population growth, positive (improvements in population, employment)" labelParent="{!this}" />
+        <apex:pageBlockSection title="{!dLabel['DL135']}" columns="1" id="safetyAndHealth" >
+            <apex:outputPanel id="safetyAndHealth1" >
+            <apex:outputPanel >
+            
+            <table><tr>                         
+            <td width="800px" ><apex:outputText style="font-weight: bold;" ><b><br/>{!dLabel['DL136']}</b></apex:outputText></td>
+            <td><apex:outputField value="{!theProject.SafetyHealthOutsideOfficeEnvironment__c}" /></td>
+            </tr></table>
+ 
+            </apex:outputPanel>
+            
+            <apex:outputPanel id="outsideOfficeEnvironment" rendered="{!theProject.SafetyHealthOutsideOfficeEnvironment__c =='Yes'}" > 
+            <apex:outputPanel id="undertakeWork" >   
+                <table><tr>
+                    <td width="800px" >
+                        <apex:outputText style="font-weight: bold;" ><b><br/>{!dLabel['DL137']}</b></apex:outputText>
+                    </td>
+                    <td><apex:outputField value="{!theProject.SafetyHealthUndertakeWork__c}" /></td>                    
+                </tr></table>
+
+                <apex:outputPanel rendered="{!theProject.SafetyHealthUndertakeWork__c == 'Yes'}" >
+                <div class="ouputPanelSep" >
+                    <div class="customHelpText" >
+                        <div class="customHelpBody" >
+                            {!dLabel['DL138']}
+                        </div>                                                                      
+                    </div>
+                    <br/>
+
+                    <apex:outputPanel >
+
+                        <apex:pageBlockTable value="{!inductionRegistrations}" var="induction" rendered="{!inductionRegistrations.size > 0}" >
+
+                            <apex:column headervalue="{!dLabel['DL139']}" >
+                                <apex:outputText value="{!induction.Name}" />
+                            </apex:column>
+                            <apex:column headervalue="{!dLabel['DL140']}" value="{!induction.RequiredBy__c}" />
+                            <apex:column headervalue="{!dLabel['DL141']}" >
+                                <table class="teamMemberGrid" width="100%" >
+                                <TR>
+
+                                <TD style="border:none" >
+                                <table class="teamMemberGrid" >
+                                    <apex:repeat value="{!inductedProjectTeamMembersMap[induction.Id]}" var="inductionTeamMember" >
+                                    <tr><td style="border:none" ><apex:outputText value="{!inductionTeamMember.TeamMember__c}" /></td></tr>
+                                    </apex:repeat>
+                                </table>
+                                </TD>
+
+                                </TR>
+                                </table>
+                            </apex:column>
+                     
+                            <apex:column headervalue="{!dLabel['DL142']}" value="{!induction.LocationofInduction__c}" />
+                            <apex:column headervalue="{!dLabel['DL143']}" value="{!induction.Frequency__c}" />
+                            <apex:column headervalue="{!dLabel['DL144']}" >
+                                <apex:outputtext value="{0, number, ###,###,##0.00}" >
+                                    <apex:param value="{!induction.Fee__c}" />
+                                </apex:outputtext>  
+                            </apex:column>               
+                            <apex:column headervalue="{!dLabel['DL145']}" value="{!induction.Notes__c}" />
+                            <apex:column headervalue="{!dLabel['DL146']}" >
+                                <table class="teamMemberGrid" width="100%" >
+                                <TR>
+
+                                <TD style="border:none" >
+                                <table class="teamMemberGrid" >
+                                    <apex:repeat value="{!inductionAttachmentsMap[induction.Id]}" var="attachment" >
+                                    <tr><td style="border:none" ><apex:outputLink value="{!URLFOR($Action.Attachment.Download, attachment.Id)}" target="_blank" ><apex:outputText value="{!attachment.Name}" /></apex:outputLink></td></tr>
+                                    </apex:repeat>
+                                </table>
+                                </TD>
+
+                                </TR>
+                                </table>
+
+                            </apex:column>          
+                        </apex:pageBlockTable>
+                    </apex:outputPanel> 
+                <apex:outputPanel rendered="{!inductionRegistrations.size == 0}" >
+                    <apex:outputText value="{!dLabel['DL147']}" />
+                </apex:outputPanel><br/><br/>                                       
+                </div></apex:outputPanel>
+            </apex:outputPanel>
+            
+            <apex:outputPanel id="siteInspections" >
+            
+            <apex:outputPanel rendered="{!theProject.SafetyHealthOutsideOfficeEnvironment__c =='Yes'}" >
+            
+            <table><tr>
+            <td width="800px" ><apex:outputText ><b><br/>{!dLabel['DL148']}</b></apex:outputText></td>
+            <td><apex:outputField value="{!theProject.SafetyHealthSiteInspections__c}" /></td>
+            </tr></table>
+                    
+            <apex:outputPanel rendered="{!theProject.SafetyHealthSiteInspections__c=='Yes'}" >
+
+            <div class="ouputPanelSep" >
+                <div class="customHelpText" >
+                    <div class="customHelpBody" >
+                        {!dLabel['DL149']}
+                    </div>                                                                      
+                </div>
+                <br/>
+                
+                <div class="fileList" >
+                    <apex:pageBlockTable value="{!SafetyHealthInspectionFiles}" var="attachedSafetyInspectionFile" style="width: 825px;" rendered="{!theProject.SafetyHealthInspectionAttachments__c != null}" >
+                        <apex:column headervalue="{!dLabel['DL150']}" >
+                            <apex:outputLink value="{!URLFOR($Action.Attachment.Download, attachedSafetyInspectionFile.Id)}" target="_blank" >
+                                <apex:outputText value="{!attachedSafetyInspectionFile.Name}" />
+                            </apex:outputLink>
+                        </apex:column>
+                        <apex:column value="{!attachedSafetyInspectionFile.ContentType}" /> 
+                        <apex:column value="{!attachedSafetyInspectionFile.LastModifiedDate}" />    
+                        <apex:column value="{!attachedSafetyInspectionFile.LastModifiedById}" />
+                    </apex:pageBlockTable></div>
+                    <apex:outputText value="{!overrideSafetyHealthInspectionName}" />
+                    
+                <br/></div></apex:outputPanel></apex:outputPanel>
+
+            </apex:outputPanel>
+            
+            <apex:outputPanel id="healthRequirements" >      
+                <table><tr>
+                    <td width="800px" ><apex:outputText ><b><br/>{!dLabel['DL151']}</b></apex:outputText></td>
+                    <td><apex:outputField value="{!theProject.SafetyHealthSpecificRequirements__c}" /></td>
+                </tr></table>
+                <apex:outputPanel rendered="{!theProject.SafetyHealthSpecificRequirements__c == 'Yes'}" >
+                    <div class="ouputPanelSep" >
+                    <div class="customHelpText" >
+                        <div class="customHelpBody" >
+                            {!dLabel['DL152']}
+                        </div>
+                    </div><br/>
+                    <apex:outputField style="width: 800px;" value="{!theProject.SafetyHealthRequirementDescription__c}" html-placeholder="Reach out to Client Account Manager or Client Safety Lead for client specific safety and health requirements." /><br/><br/>
+                    </div>
+                </apex:outputPanel> 
+            </apex:outputPanel>
+            
+            <apex:outputPanel id="healthPlan" >  
+            <table>
+                <tr><td width="800px" >                          
+                    <apex:outputText ><b><br/>{!dLabel['DL153']}</b></apex:outputText>
+                </td>
+                    <td>
+                    <apex:outputField value="{!theProject.SafetyHealthSafetyPlan__c}" />
+                    </td>
+                </tr>
+            </table>
+            <apex:outputPanel rendered="{!theProject.SafetyHealthSafetyPlan__c =='Yes'}" >
+                <div class="ouputPanelSep" >
+                    <div class="customHelpText" >
+                        <div class="customHelpBody" >
+                {!dLabel['DL154']}
+                        </div>
+                    </div><br/>
+                <div class="fileList" >
+                    <apex:pageBlockTable value="{!SafetyHealthPlanFiles}" var="attachedSafetyPlanFile" style="width: 825px;" rendered="{!theProject.SafetyHealthPlanAttachments__c != null}" >
+                        <apex:column headervalue="{!dLabel['DL155']}" >
+                            <apex:outputLink value="{!URLFOR($Action.Attachment.Download, attachedSafetyPlanFile.Id)}" target="_blank" >
+                                <apex:outputText value="{!attachedSafetyPlanFile.Name}" />
+                            </apex:outputLink>
+                        </apex:column>
+                        <apex:column value="{!attachedSafetyPlanFile.ContentType}" />   
+                        <apex:column value="{!attachedSafetyPlanFile.LastModifiedDate}" />  
+                        <apex:column value="{!attachedSafetyPlanFile.LastModifiedById}" />
+                    </apex:pageBlockTable></div>
+                    
+                    <apex:outputText value="{!overrideSafetyHealthPlanName}" />
+               
+                <br/></div>
+            </apex:outputPanel>
+        
+            </apex:outputPanel>
+            
+            <apex:outputPanel id="travelRequired" >
+            <apex:outputPanel > 
+            <table><tr><td width="800px" >
+            <apex:outputText ><b><br/>{!dLabel['DL156']}</b></apex:outputText> 
+            </td>
+                <td><apex:outputField value="{!theProject.SafetyHealthTravelRequired__c}" /></td>
+            </tr>
+            </table>                                                                        
+            </apex:outputPanel> <br/>
+            <apex:outputPanel rendered="{!theProject.SafetyHealthTravelRequired__c =='Yes'}" >
+                <div class="customHelpText" >
+                    <div class="customHelpBody" >
+                        {!dLabel['DL157']} <br/>                                           
+                        {!dLabel['DL158']}
+                    </div>
+                </div><br/><br/>
+                </apex:outputPanel>
+            </apex:outputPanel>
+        </apex:outputPanel>
+        </apex:outputPanel>                                                     
+        </apex:pageBlockSection>
+        
+        <apex:pageBlockSection title="{!dLabel['DL159']}" columns="1" id="environmentImpact" >
+            <apex:pageMessage severity="info" escape="false" summary="{!dLabel['DL160']}" />     
+
+            {!dLabel['DL161']}<br/><br/>
+            <ul>
+            <li>{!dLabel['DL162']}</li>
+            <li>{!dLabel['DL163']}</li>
+            <li>{!dLabel['DL164']}</li>
+            <li>{!dLabel['DL165']}</li>
+            <li>{!dLabel['DL166']}</li>
+            </ul>
+
+
+            <apex:outputPanel id="projectact" >
+                <apex:outputLabel style="font-weight: bold" value="{!dLabel['DL167']}" />
+                <apex:pageBlockTable value="{!ProjActivities}" var="PA" >
+                                   
+                        <apex:column headervalue="{!dLabel['DL168']}" >
+                            <apex:outputField value="{!PA.ImpactonEnv__c}" />
+                        </apex:column>
+                        <apex:column headervalue="{!dLabel['DL169']}" >
+                            <apex:outputField value="{!PA.Significance__c}" />
+                        </apex:column>
+                        <apex:column headervalue="{!dLabel['DL170']}" >
+                            <apex:outputField value="{!PA.Control__c}" />
+                        </apex:column>
+                        <apex:column headervalue="{!dLabel['DL171']}" >
+                            <apex:outputField value="{!PA.ProposedAction__c}" />
+                        </apex:column>
+                        <apex:column headervalue="{!dLabel['DL172']}" >
+                            <apex:outputField value="{!PA.ActionTaken__c}" />                   
+                        </apex:column>
+                </apex:pageBlockTable>
+                <br/><br/>
+            </apex:outputPanel>                              
+        
+            <b>{!dLabel['DL173']} </b><br/><br/>
+            {!dLabel['DL174']}<br/><br/>
+            <ol type="a" >
+            <li>{!dLabel['DL175']}</li>
+            <li>{!dLabel['DL176']}</li>
+            <li>{!dLabel['DL177']}</li>
+            </ol>
+            {!dLabel['DL178']}
+
+            <br/><br/>
+
+            <div>
+                <table class="infoTable" border="1" cellpadding="0" cellspacing="0" >
+                    <tr>
+                        <th>{!dLabel['DL179']}</th>
+                        <th>{!dLabel['DL180']}</th>
+                    </tr>
+                    <TR>
+                        <TD>
+                            <P>
+                            <ul>
+                                <li>{!dLabel['DL181']}</li>
+                                <li>{!dLabel['DL182']}</li>
+                                <li>{!dLabel['DL183']}</li>
+                                <li>{!dLabel['DL184']}</li>
+                                <li>{!dLabel['DL185']}</li>
+                                <li>{!dLabel['DL186']}</li>
+                            </ul>
+                            </P>
+                        </TD>
+                        <TD>
+                            <P>
+                            <ul>
+                                <li>{!dLabel['DL187']}</li>
+                                <li>{!dLabel['DL188']}</li>
+                                <li>{!dLabel['DL189']}</li>
+                                <li>{!dLabel['DL190']}</li>
+                                <li>{!dLabel['DL191']}</li>
+                                <li>{!dLabel['DL192']}</li>
+                                <li>{!dLabel['DL193']}</li>
+                                <li>{!dLabel['DL194']}</li>
+                                <li>{!dLabel['DL195']}</li>
+                                <li>{!dLabel['DL196']}</li>
+                                <li>{!dLabel['DL197']}</li>
+                                <li>{!dLabel['DL198']}</li>
+                            </ul>
+                            </P>
+                        </TD>
+                    </TR>   
+                    <tr>
+                        <th>{!dLabel['DL199']}</th>
+                        <th>{!dLabel['DL200']}</th>
+                    </tr>
+                    <TR>
+                        <TD>
+                            <P>
+                            <ul>
+                                <li>{!dLabel['DL201']}</li>
+                                <li>{!dLabel['DL202']}</li>
+                                <li>{!dLabel['DL203']} <br/> {!dLabel['DL204']}</li>
+                                <li>{!dLabel['DL205']}</li>
+                                <li>{!dLabel['DL206']}</li>                     
+                            </ul>
+                            </P>
+                        </TD>
+                        <TD>
+                            <P>
+                            <ul>
+                                <li>{!dLabel['DL207']}</li>
+                                <li>{!dLabel['DL208']}</li>
+                                <li>{!dLabel['DL209']}</li>
+                                <li>{!dLabel['DL210']}</li>
+                                <li>{!dLabel['DL211']}</li>
+                                <li>{!dLabel['DL212']}</li>
+                                <li>{!dLabel['DL213']}</li>
+                                <li>{!dLabel['DL214']}</li>
+                                <li>{!dLabel['DL215']}</li>
+                                <li>{!dLabel['DL216']}</li>                 
+                            </ul>
+                            </P>
+                        </TD>
+                    </TR>                                                                                                                                                                                                                                                                                                                                                 
+                </table>
+            </div>
+            </apex:pageBlockSection>        
+    </apex:pageBlock>      
+
+    <p style="page-break-after:always;" />
+    <nttdcore:DLabel name="DL217" default="Document Management" labelParent="{!this}" /><apex:pageBlock mode="edit" id="pageBlock" title="{!dLabel['DL217']}" ><nttdcore:DLabel name="DL218" default="Guidance" labelParent="{!this}" /><nttdcore:DLabel name="DL219" default="Planning document management and control protocols to be utilized throughout the project inform the project team on the correct procedures to follow for all project documents, not just deliverables.  This ensures compliance with local AECOM procedures and/or contractual requirements mandated by the client." labelParent="{!this}" /><nttdcore:DLabel name="DL220" default="Document management procedures typically fall within one of the following categories.  Complete this section of the Project Plan accordingly to summarize the required procedures for the project." labelParent="{!this}" /><nttdcore:DLabel name="DL221" default="Adopt standard AECOM processes throughout your project (click on the button below to adopt the AECOM standard)" labelParent="{!this}" /><nttdcore:DLabel name="DL222" default="Adopt the standard process, though modified to suit client/project requirements (please outline the the variances to be implemented on this project." labelParent="{!this}" /><nttdcore:DLabel name="DL223" default="Adopt a client/project specific system, in which case outline the key features of the system and attach any documentation available (e.g. guidelines, user manuals etc)." labelParent="{!this}" /><nttdcore:DLabel name="DL224" default="Document Management Element" labelParent="{!this}" /><nttdcore:DLabel name="DL225" default="Document Control System" labelParent="{!this}" /><nttdcore:DLabel name="DL226" default="Will standard AECOM or client/project-specific document management and control protocols be utilized for the project?" labelParent="{!this}" /><nttdcore:DLabel name="DL227" default="File Name" labelParent="{!this}" /><nttdcore:DLabel name="DL228" default="Document Naming Conventions" labelParent="{!this}" /><nttdcore:DLabel name="DL229" default="Will standard AECOM or client/project-specific document management and control protocols be utilized for the project?" labelParent="{!this}" /><nttdcore:DLabel name="DL230" default="File Name" labelParent="{!this}" /><nttdcore:DLabel name="DL231" default="File Management Structure" labelParent="{!this}" /><nttdcore:DLabel name="DL232" default="Will standard AECOM or client/project-specific document management and control protocols be utilized for the project?" labelParent="{!this}" /><nttdcore:DLabel name="DL233" default="File Name" labelParent="{!this}" /><nttdcore:DLabel name="DL234" default="Document Transmittals" labelParent="{!this}" /><nttdcore:DLabel name="DL235" default="Will standard AECOM or client/project-specific document management and control protocols be utilized for the project?" labelParent="{!this}" /><nttdcore:DLabel name="DL236" default="File Name" labelParent="{!this}" /><nttdcore:DLabel name="DL237" default="Document Records / Archiving" labelParent="{!this}" /><nttdcore:DLabel name="DL238" default="Will standard AECOM or client/project-specific document management and control protocols be utilized for the project?" labelParent="{!this}" /><nttdcore:DLabel name="DL239" default="File Name" labelParent="{!this}" /><nttdcore:DLabel name="DL240" default="Document Other Comments / Notes" labelParent="{!this}" /><nttdcore:DLabel name="DL241" default="Will standard AECOM or client/project-specific document management and control protocols be utilized for the project?" labelParent="{!this}" /><nttdcore:DLabel name="DL242" default="File Name" labelParent="{!this}" />
+        <br/>
+        <apex:pageBlockSection title="{!dLabel['DL218']}" collapsible="false" columns="1" >
+            {!dLabel['DL219']}
+            <br/><br/>{!dLabel['DL220']}
+            <br/><br/>
+            <li>{!dLabel['DL221']} </li>
+            <li>{!dLabel['DL222']} </li>
+            <li>{!dLabel['DL223']}</li>
+        </apex:pageBlockSection>
+    
+        <apex:pageBlockSection title="{!dLabel['DL224']}" collapsible="false" columns="2" id="dme" >
+        <apex:outputPanel id="outputPanelDocumentControlSystem" >
+            <apex:outputText value="{!dLabel['DL225']}" styleclass="dmeOutput" /><br/>      
+            <apex:outputPanel id="panelDocumentControlSystem" >
+            <apex:outputField value="{!pse__Proj__c.DocumentControlSystem__c}" style="width: 825px; height: 40px;" rendered="{!pse__Proj__c.DocumentControlSystemType__c == null}" />
+            <apex:outputField value="{!pse__Proj__c.DocumentControlSystem__c}" style="width: 825px; height: 40px;" rendered="{!pse__Proj__c.DocumentControlSystemType__c == 'AECOM'}" html-placeholder="Enter the local AECOM system used for document control.  This may be a specific software  or simply the  local area network. Specialized procedures for technical deliverables, such as GIS or BIM file management, should be included as appropriate.  Attach any relevant document control or file management documents for reference." />
+            <apex:outputField value="{!pse__Proj__c.DocumentControlSystem__c}" style="width: 825px; height: 40px;" rendered="{!pse__Proj__c.DocumentControlSystemType__c == 'Client/Project'}" html-placeholder="Enter the project or client specific document control system, such as Projectwise , that may be part of our service offering or a project requirement for a secure data room to protect sensitive or confidential information.  Client or project reference documents may be attached for reference." />
+            </apex:outputPanel><br/>
+            <table><tr>
+            <td class="questionCol" >
+                <apex:outputText value="{!dLabel['DL226']}" />
+                </td>
+                <td><apex:outputField value="{!pse__Proj__c.DocumentControlSystemType__c}" /></td>
+            </tr></table>   
+            <div class="fileList" >
+            <apex:pageBlockTable value="{!AttachedDocumentControlSystemFiles}" var="attachedDocumentControlSystemFile" style="width: 825px;" rendered="{!pse__Proj__c.DocumentControlSystemAttachment__c != null}" >
+                <apex:column headervalue="{!dLabel['DL227']}" >
+                    <apex:outputLink value="{!URLFOR($Action.Attachment.Download, attachedDocumentControlSystemFile.Id)}" target="_blank" >
+                        <apex:outputText value="{!attachedDocumentControlSystemFile.Name}" />
+                    </apex:outputLink>
+                </apex:column>
+                <apex:column value="{!attachedDocumentControlSystemFile.ContentType}" />    
+                <apex:column value="{!attachedDocumentControlSystemFile.LastModifiedDate}" />   
+                <apex:column value="{!attachedDocumentControlSystemFile.LastModifiedById}" />
+            </apex:pageBlockTable>
+            </div>          
+        </apex:outputPanel>
+        <apex:outputPanel ><br/></apex:outputPanel> 
+        
+        <apex:outputPanel id="outputDocumentNamingConventions" ><br/>
+            <apex:outputText value="{!dLabel['DL228']}" styleclass="dmeOutput" /><br/>
+            <apex:outputPanel id="panelNameConventions" >
+            <apex:outputField value="{!pse__Proj__c.DocumentNamingConventions__c}" style="width: 825px; height: 40px" rendered="{!pse__Proj__c.DocumentNamingConventionsType__c == null}" />             
+            <apex:outputField value="{!pse__Proj__c.DocumentNamingConventions__c}" style="width: 825px; height: 40px" rendered="{!pse__Proj__c.DocumentNamingConventionsType__c == 'AECOM'}" html-placeholder="Enter the local AECOM  document naming conventions protocol. This could include conventions around version control (e.g., V1, Draft, Draft Final), as well as file naming conventions.  These  are likely defined by the local administrative team , technical practice or business line. Attach any relevant document control or file management documents for reference." />            
+            <apex:outputField value="{!pse__Proj__c.DocumentNamingConventions__c}" style="width: 825px; height: 40px" rendered="{!pse__Proj__c.DocumentNamingConventionsType__c == 'Client/Project'}" html-placeholder="Enter the project or client specific document naming conventions. This may be a requirement by your client or in your contract includes submittal of electronic deliverables or files. Client or project reference documents may be attached for reference" />           
+        </apex:outputPanel><br/>
+            <table><tr>
+            <td class="questionCol" >
+                <apex:outputText value="{!dLabel['DL229']}" />
+                </td>
+                <td><apex:outputField value="{!pse__Proj__c.DocumentNamingConventionsType__c}" /></td>
+            </tr></table>                       
+            <div class="fileList" >
+            <apex:pageBlockTable value="{!AttachedDocumentNamingConventionsFiles}" var="attachedDocumentNamingConventionFile" style="width: 825px;" rendered="{!pse__Proj__c.DocumentNamingConventionsAttachment__c != null}" >
+                <apex:column headervalue="{!dLabel['DL230']}" >
+                    <apex:outputLink value="{!URLFOR($Action.Attachment.Download, attachedDocumentNamingConventionFile.Id)}" target="_blank" >
+                        <apex:outputText value="{!attachedDocumentNamingConventionFile.Name}" />
+                    </apex:outputLink>
+                </apex:column>
+                <apex:column value="{!attachedDocumentNamingConventionFile.ContentType}" /> 
+                <apex:column value="{!attachedDocumentNamingConventionFile.LastModifiedDate}" />    
+                <apex:column value="{!attachedDocumentNamingConventionFile.LastModifiedById}" />
+            </apex:pageBlockTable></div>
+        </apex:outputPanel>
+        
+        <apex:outputPanel ><br/>
+    
+        </apex:outputPanel>
+        
+        <apex:outputPanel ><br/>
+            <apex:outputText value="{!dLabel['DL231']}" styleclass="dmeOutput" /><br/>
+            <apex:outputPanel id="panelFileManagement" >
+            <apex:outputField id="inputFileManagement" value="{!pse__Proj__c.FileManagementStructure__c}" rendered="{!pse__Proj__c.FileManagementStructureType__c == null}" style="width: 825px; height: 40px" />
+            <apex:outputField id="inputFileManagementAECOM" value="{!pse__Proj__c.FileManagementStructure__c}" rendered="{!pse__Proj__c.FileManagementStructureType__c == 'AECOM'}" style="width: 825px; height: 40px" html-placeholder="Enter the local AECOM  file management structure.  This includes where and how electronic and hard copy documents are filed and maintained. These  are likely defined by your local IT department or administrative team but may be business line or practice area specific. Attach any relevant document control or file management documents for reference." />
+            <apex:outputField id="inputFileManagementOther" value="{!pse__Proj__c.FileManagementStructure__c}" rendered="{!pse__Proj__c.FileManagementStructureType__c == 'Client/Project'}" style="width: 825px; height: 40px" html-placeholder="Enter the project or client specific file management structure. This may be a requirement by your client or in your contract includes submittal of electronic deliverables or files. Client or project reference documents may be attached for reference." />
+            </apex:outputPanel><br/>
+            <table><tr>
+            <td class="questionCol" >
+                <apex:outputText value="{!dLabel['DL232']}" />
+                </td>
+                <td><apex:outputField value="{!pse__Proj__c.FileManagementStructureType__c}" />
+                </td>
+            </tr></table>               
+            <div class="fileList" >
+            <apex:pageBlockTable value="{!AttachedFileManagementStructureFiles}" var="attachedFileManagmentStructureFile" style="width: 825px;" rendered="{!pse__Proj__c.FileManagementStructureAttachment__c != null}" >
+                <apex:column headervalue="{!dLabel['DL233']}" >
+                    <apex:outputLink value="{!URLFOR($Action.Attachment.Download, attachedFileManagmentStructureFile.Id)}" target="_blank" >
+                        <apex:outputText value="{!attachedFileManagmentStructureFile.Name}" />
+                    </apex:outputLink>                  
+                </apex:column>
+                <apex:column value="{!attachedFileManagmentStructureFile.ContentType}" />   
+                <apex:column value="{!attachedFileManagmentStructureFile.LastModifiedDate}" />  
+                <apex:column value="{!attachedFileManagmentStructureFile.LastModifiedById}" />
+            </apex:pageBlockTable></div>
+        </apex:outputPanel>     
+        <apex:outputPanel ><br/>
+        </apex:outputPanel>
+        
+        <apex:outputPanel ><br/>
+            <apex:outputText value="{!dLabel['DL234']}" styleclass="dmeOutput" /><br/>
+            <apex:outputPanel id="panelTransmittals" >
+            <apex:outputField id="inputTransmittals" value="{!pse__Proj__c.DocumentTransmittals__c}" rendered="{!pse__Proj__c.DocumentTransmittalsType__c == null}" style="width: 825px; height: 40px" />
+            <apex:outputField id="inputTransmittalsAECOM" value="{!pse__Proj__c.DocumentTransmittals__c}" rendered="{!pse__Proj__c.DocumentTransmittalsType__c == 'AECOM'}" style="width: 825px; height: 40px" html-placeholder="Enter the local AECOM document transmittals protocol. This could include how to track transmittals and/or the format the use of transmittal logs or cover sheets.  These are likely defined by your administrative team, business line or practice area. Attach any relevant document control or file management documents for reference." />
+            <apex:outputField id="inputTransmittalsOther" value="{!pse__Proj__c.DocumentTransmittals__c}" rendered="{!pse__Proj__c.DocumentTransmittalsType__c == 'Client/Project'}" style="width: 825px; height: 40px" html-placeholder="Enter the project or client specific document transmittals protocols.  This may be a requirement by your client or in your contract on how deliverables will be transmitted to the client or other stakeholders. Client or project reference documents may be attached for reference." />
+            </apex:outputPanel><br/>
+            <table><tr>
+            <td class="questionCol" >
+                <apex:outputText value="{!dLabel['DL235']}" />
+                </td>
+                <td><apex:outputField value="{!pse__Proj__c.DocumentTransmittalsType__c}" />
+                </td>
+            </tr></table>               
+            <div class="fileList" >
+            <apex:pageBlockTable value="{!AttachedDocumentTransmittalsFiles}" var="attachedDocumentTransmittalsFile" style="width: 825px;" rendered="{!pse__Proj__c.DocumentTransmittalsAttachment__c != null }" >
+                <apex:column headervalue="{!dLabel['DL236']}" >
+                    <apex:outputLink value="{!URLFOR($Action.Attachment.Download, attachedDocumentTransmittalsFile.Id)}" target="_blank" >
+                        <apex:outputText value="{!attachedDocumentTransmittalsFile.Name}" />
+                    </apex:outputLink>                      
+                </apex:column>
+                <apex:column value="{!attachedDocumentTransmittalsFile.ContentType}" /> 
+                <apex:column value="{!attachedDocumentTransmittalsFile.LastModifiedDate}" />    
+                <apex:column value="{!attachedDocumentTransmittalsFile.LastModifiedById}" />
+            </apex:pageBlockTable></div>
+        </apex:outputPanel>     
+        
+        <apex:outputPanel ><br/>
+        </apex:outputPanel>
+        
+        <apex:outputPanel ><br/>
+            <apex:outputPanel id="panelArchiving" >
+            <apex:outputText value="{!dLabel['DL237']}" styleclass="dmeOutput" /><br/>     
+            <apex:outputField id="inputArchiving" value="{!pse__Proj__c.DocumentRecordsArchiving__c}" rendered="{!pse__Proj__c.DocumentRecordsArchivingType__c == null}" style="width: 825px; height: 40px" />
+            <apex:outputField id="inputArchivingAECOM" value="{!pse__Proj__c.DocumentRecordsArchiving__c}" rendered="{!pse__Proj__c.DocumentRecordsArchivingType__c == 'AECOM'}" style="width: 825px; height: 40px" html-placeholder="Enter the local AECOM record retention or archiving protocol. This includes the location (on site or off site) and archive duration. These are likely defined by your administrative team, business line or practice area. Attach any relevant document control or file management documents, such as directions on how to request document archiving services, for reference." />
+            <apex:outputField id="inputArchivingOther" value="{!pse__Proj__c.DocumentRecordsArchiving__c}" rendered="{!pse__Proj__c.DocumentRecordsArchivingType__c == 'Client/Project'}" style="width: 825px; height: 40px" html-placeholder="Enter the project or client specific record retention or archiving protocol.  This may be a requirement by your client or in your contract on how long project documents and deliverables must be archived. Client or project reference documents may be attached for reference." />
+            </apex:outputPanel><br/>
+            <table><tr>
+            <td class="questionCol" >
+                <apex:outputText value="{!dLabel['DL238']}" />
+                </td>
+                <td><apex:outputField value="{!pse__Proj__c.DocumentRecordsArchivingType__c}" />
+                </td>
+            </tr></table>                           
+            <div class="fileList" >
+            <apex:pageBlockTable value="{!AttachedDocumentRecordsAndArchivingFiles}" var="attachedDocumentRecordsArchivingFile" style="width: 825px;" rendered="{!pse__Proj__c.DocumentRecordsArchivingAttachment__c != null}" >
+                <apex:column headervalue="{!dLabel['DL239']}" >
+                    <apex:outputLink value="{!URLFOR($Action.Attachment.Download, attachedDocumentRecordsArchivingFile.Id)}" target="_blank" >
+                        <apex:outputText value="{!attachedDocumentRecordsArchivingFile.Name}" />
+                    </apex:outputLink>  
+                </apex:column>
+                <apex:column value="{!attachedDocumentRecordsArchivingFile.ContentType}" /> 
+                <apex:column value="{!attachedDocumentRecordsArchivingFile.LastModifiedDate}" />    
+                <apex:column value="{!attachedDocumentRecordsArchivingFile.LastModifiedById}" />
+            </apex:pageBlockTable></div>
+        </apex:outputPanel> 
+        <apex:outputPanel ><br/></apex:outputPanel>
+                
+        <apex:outputPanel ><br/>
+            <apex:outputText value="{!dLabel['DL240']}" styleclass="dmeOutput" /><br/>      
+            <apex:outputField id="inputComments" value="{!pse__Proj__c.DocumentOtherCommentsNotes__c}" style="width: 825px; height: 40px" /><br/>
+            <table><tr>
+            <td class="questionCol" >
+                <apex:outputText value="{!dLabel['DL241']}" />
+                </td>
+                <td><apex:outputField value="{!pse__Proj__c.DocumentOtherCommentsNotesType__c}" />
+                </td>
+            </tr></table>   
+            <div class="fileList" >
+            <apex:pageBlockTable value="{!AttachedDocumentCommentsOtherNotesFiles}" var="attachedDocumentCommentsOtherNotesFile" style="width: 825px;" rendered="{!pse__Proj__c.DocumentOtherCommentsNotesAttachment__c != null}" >
+                <apex:column headervalue="{!dLabel['DL242']}" >
+                    <apex:outputLink value="{!URLFOR($Action.Attachment.Download, attachedDocumentCommentsOtherNotesFile.Id)}" target="_blank" >
+                        <apex:outputText value="{!attachedDocumentCommentsOtherNotesFile.Name}" />
+                    </apex:outputLink>  
+                </apex:column>
+                <apex:column value="{!attachedDocumentCommentsOtherNotesFile.ContentType}" />   
+                <apex:column value="{!attachedDocumentCommentsOtherNotesFile.LastModifiedDate}" />  
+                <apex:column value="{!attachedDocumentCommentsOtherNotesFile.LastModifiedById}" />
+            </apex:pageBlockTable></div>
+        </apex:outputPanel>         
+    
+        
+        </apex:pageBlockSection>
+    
+    </apex:pageBlock>
+    
+    <p style="page-break-after:always;" />
+    <br/>
+    <h2 style="line-height:80%;" ><nttdcore:DLabel name="DL243" default="Risk Management" labelParent="{!this}" />{!dLabel['DL243']}</h2>
+    <br/>
+    <apex:pageBlock ><nttdcore:DLabel name="DL244" default="Project Risks" labelParent="{!this}" /><nttdcore:DLabel name="DL245" default="Action" labelParent="{!this}" /><nttdcore:DLabel name="DL246" default="View" labelParent="{!this}" /><nttdcore:DLabel name="DL247" default="Risk Title" labelParent="{!this}" /><nttdcore:DLabel name="DL248" default="Current Status" labelParent="{!this}" /><nttdcore:DLabel name="DL249" default="Event Phase" labelParent="{!this}" /><nttdcore:DLabel name="DL250" default="Risk Owner" labelParent="{!this}" /><nttdcore:DLabel name="DL251" default="Pre-mitigation" labelParent="{!this}" /><nttdcore:DLabel name="DL252" default="Rating" labelParent="{!this}" /><nttdcore:DLabel name="DL253" default="Pre-mitigation" labelParent="{!this}" /><nttdcore:DLabel name="DL254" default="Contingency" labelParent="{!this}" /><nttdcore:DLabel name="DL255" default="Mitigation Strategy" labelParent="{!this}" /><nttdcore:DLabel name="DL256" default="Mitigation" labelParent="{!this}" /><nttdcore:DLabel name="DL257" default="Cost Total" labelParent="{!this}" /><nttdcore:DLabel name="DL258" default="Post-mitigation" labelParent="{!this}" /><nttdcore:DLabel name="DL259" default="Rating" labelParent="{!this}" /><nttdcore:DLabel name="DL260" default="Post-mitigation" labelParent="{!this}" /><nttdcore:DLabel name="DL261" default="Contingency Total" labelParent="{!this}" /><nttdcore:DLabel name="DL262" default="No records to display" labelParent="{!this}" />
+        <apex:pageBlockSection title="{!dLabel['DL244']}" columns="1" collapsible="false" >
+            <apex:pageBlockTable value="{!Risks}" rendered="{!Risks.size > 0}" var="risklist" rowclasses="even,odd" >
+                <apex:column headervalue="{!dLabel['DL245']}" >
+                    <apex:outputLink value="/{!risklist.Id}" id="theLink" >{!dLabel['DL246']}</apex:outputLink>&nbsp;&nbsp;
+                </apex:column>
+                <apex:column headerclass="centerAlign" styleclass="leftAlign" ><apex:facet name="header" >{!dLabel['DL247']}</apex:facet><apex:outputField value="{!risklist.Name}" /></apex:column>
+                <apex:column headerclass="centerAlign" headervalue="{!dLabel['DL248']}" styleclass="centerAlign" ><apex:outputField value="{!risklist.CurrentStatus__c}" /></apex:column>
+                <apex:column headerclass="centerAlign" headervalue="{!dLabel['DL249']}" styleclass="centerAlign" ><apex:outputField value="{!risklist.EventPhase__c}" /></apex:column>
+                <apex:column headerclass="centerAlign" styleclass="centerAlign" headervalue="{!dLabel['DL250']}" ><apex:outputField value="{!risklist.RiskOwner__c}" /></apex:column>
+                <apex:column headerclass="centerAlign" styleclass="centerAlign" ><apex:facet name="header" >{!dLabel['DL251']}<br/>{!dLabel['DL252']}</apex:facet><apex:outputField value="{!risklist.Premitigationrating__c}" /></apex:column>
+                <apex:column headerclass="centerAlign" styleclass="rightAlign" ><apex:facet name="header" >{!dLabel['DL253']}<br/>{!dLabel['DL254']}</apex:facet>
+                <apex:outputtext value="{0, number, currency}" >
+                   <apex:param value="{!risklist.ContingencyDollars__c}" />
+                </apex:outputtext>                
+                </apex:column>                      
+                
+                <apex:column headerclass="centerAlign" styleclass="leftAlign" headervalue="{!dLabel['DL255']}" ><apex:outputField value="{!risklist.RiskMitigation__c}" /></apex:column>
+                <apex:column headerclass="centerAlign" styleclass="rightAlign" ><apex:facet name="header" >{!dLabel['DL256']}<br/>{!dLabel['DL257']}</apex:facet>
+                <apex:outputtext value="{0, number, currency}" >
+                   <apex:param value="{!risklist.MitigationCostTotal__c}" />
+                </apex:outputtext>                     
+                </apex:column>
+                <apex:column headerclass="centerAlign" styleclass="centerAlign" ><apex:facet name="header" >{!dLabel['DL258']}<br/>{!dLabel['DL259']}</apex:facet>
+                    <apex:outputField value="{!risklist.Postmitigationrating__c}" />                
+                </apex:column>  
+                <apex:column headerclass="centerAlign" styleclass="rightAlign" ><apex:facet name="header" >{!dLabel['DL260']}<br/>{!dLabel['DL261']}</apex:facet>
+                <apex:outputtext value="{0, number, currency}" >
+                   <apex:param value="{!risklist.PostmitigationContingencyTotal__c}" />
+                </apex:outputtext>                     
+                </apex:column>
+            </apex:pageBlockTable>
+            
+            <apex:outputPanel rendered="{!Risks.size == 0}" >
+                <apex:outputText value="{!dLabel['DL262']}" />
+            </apex:outputPanel> 
+        </apex:pageBlockSection>
+    </apex:pageBlock>
+    
+    <p style="page-break-after:always;" />
+    <br/>
+    <h2 style="line-height:80%;" ><nttdcore:DLabel name="DL263" default="Assumptions Register" labelParent="{!this}" />{!dLabel['DL263']}</h2>
+    <br/>
+    <nttdcore:DLabel name="DL264" default="Project Assumption List" labelParent="{!this}" /><apex:pageBlock id="assumptionRegister" title="{!dLabel['DL264']}" >
+    <br/>
+        <table class="tablesorter" cellspacing="0" cellpadding="0" >
+            <thead>
+                <tr>
+                    <th width="160px" ><nttdcore:DLabel name="DL265" default="Plan Element" labelParent="{!this}" />
+                        {!dLabel['DL265']}
+                    </th>
+                    <th><nttdcore:DLabel name="DL266" default="Assumption" labelParent="{!this}" />
+                        {!dLabel['DL266']}
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                <apex:repeat value="{!lAssumptions}" var="assumption" >
+                    <tr class="firstRow" >
+                        <td>
+                            <apex:outputField value="{!assumption.PlanElement__c}" />
+                        </td>
+                        <td>
+                            <apex:outputField value="{!assumption.Assumption__c}" />
+                        </td>
+                    </tr>
+                </apex:repeat>
+            </tbody>
+        </table>
+    </apex:pageBlock>
+
+    <p style="page-break-after:always;" />
+    <br/>   
+    <br/>
+    <h2 style="line-height:80%;" ><nttdcore:DLabel name="DL267" default="DOA Register and Conditions of Approval" labelParent="{!this}" />{!dLabel['DL267']}</h2>
+    <br/>
+    <apex:pageBlock ><nttdcore:DLabel name="DL268" default="DOA Triggers" labelParent="{!this}" /><nttdcore:DLabel name="DL269" default="Select" labelParent="{!this}" /><nttdcore:DLabel name="DL270" default="Conditions of Approval" labelParent="{!this}" /><nttdcore:DLabel name="DL271" default="No DOA Conditions Found" labelParent="{!this}" /><nttdcore:DLabel name="DL272" default="View" labelParent="{!this}" /><nttdcore:DLabel name="DL273" default="View" labelParent="{!this}" />
+        <apex:pageBlockSection title="{!dLabel['DL268']}" collapsible="false" >
+            <apex:pageBlockTable value="{!lstDOATriggers}" var="Trigger" rendered="{!if(lstDOATriggers.size > 0, true, false)}" id="TriggerTable" >
+            <apex:column headervalue="{!dLabel['DL269']}" width="40" id="selectBox" >
+                <apex:outputText value="{!Trigger.bChecked}" />
+            </apex:column>
+            <apex:repeat value="{!$ObjectType.DOARegister__c.FieldSets.DOA_TriggerView}" var="SearchField" >
+                <apex:column value="{!Trigger.oTrigger[SearchField]}" />
+            </apex:repeat>
+            </apex:pageBlockTable>
+        </apex:pageBlockSection>
+        <apex:pageBlockSection title="{!dLabel['DL270']}" collapsible="false" >
+            <apex:pageMessage severity="INFO" rendered="{!if(lstDOAConditions.size > 0, false, true)}" summary="{!dLabel['DL271']}" /> 
+            <apex:pageBlockTable value="{!lstDOAConditions}" var="Condition" rendered="{!if(lstDOAConditions.size > 0, true, false)}" >
+                <apex:column headervalue="{!dLabel['DL272']}" width="40" >
+                    <apex:outputLink value="/{!Condition.id}" >{!dLabel['DL273']}</apex:outputLink>
+                </apex:column>              
+                <apex:repeat value="{!$ObjectType.DOAConditions__c.FieldSets.DOA_ApprovalView}" var="SearchField" >
+                    <apex:column value="{!Condition[SearchField]}" />
+                </apex:repeat>
+            </apex:pageBlockTable>
+        </apex:pageBlockSection>
+        
+    </apex:pageBlock>
+    
+    <p style="page-break-after:always;" />
+    <br/>
+    <h2 style="line-height:80%;" ><nttdcore:DLabel name="DL274" default="Change Management" labelParent="{!this}" />{!dLabel['DL274']}</h2>
+    <br/>    
+    <apex:pageBlock ><nttdcore:DLabel name="DL275" default="Project Contract Change Requirements" labelParent="{!this}" /><nttdcore:DLabel name="DL276" default="AECOM Requirements" labelParent="{!this}" /><nttdcore:DLabel name="DL277" default="Clients Requirements" labelParent="{!this}" /><nttdcore:DLabel name="DL278" default="Change Legend" labelParent="{!this}" /><nttdcore:DLabel name="DL279" default=" No Unapproved Changes" labelParent="{!this}" /><nttdcore:DLabel name="DL280" default="Changes Pending Approval" labelParent="{!this}" /><nttdcore:DLabel name="DL281" default="Project Plan Change Status" labelParent="{!this}" /><nttdcore:DLabel name="DL282" default="Schedule/WBS" labelParent="{!this}" /><nttdcore:DLabel name="DL283" default="Project Team" labelParent="{!this}" /><nttdcore:DLabel name="DL284" default="Customers" labelParent="{!this}" /><nttdcore:DLabel name="DL285" default="Project Classifications" labelParent="{!this}" /><nttdcore:DLabel name="DL286" default="Safety Health &amp; Environment" labelParent="{!this}" /><nttdcore:DLabel name="DL287" default="Agreements and Funding" labelParent="{!this}" /><nttdcore:DLabel name="DL288" default="Scope and Packages" labelParent="{!this}" /><nttdcore:DLabel name="DL289" default="Subs and Vendors" labelParent="{!this}" /><nttdcore:DLabel name="DL290" default="Deliverables" labelParent="{!this}" /><nttdcore:DLabel name="DL291" default="Document Management" labelParent="{!this}" /><nttdcore:DLabel name="DL292" default="Stakeholders &amp; Communications" labelParent="{!this}" /><nttdcore:DLabel name="DL293" default="Risk Register" labelParent="{!this}" /><nttdcore:DLabel name="DL294" default="Resilience" labelParent="{!this}" />                                                                        
+              <apex:pageBlockSection title="{!dLabel['DL275']}" collapsible="false" columns="1" >
+                <apex:outputPanel >
+                    <apex:outputLabel value="{!dLabel['DL276']}" styleclass="dmeOutput" />
+                    <c:ECO_HelpIcon helptext="{!$ObjectType.pse__Proj__c.fields.ChangeManagerAECOMRequirements__c.inlineHelpText}" />
+                    <br/>
+                    <apex:outputField value="{!pse__Proj__c.ChangeManagerAECOMRequirements__c}" style="width: 825px; height: 40px" html-placeholder="For example, review DOA triggers or conditions of contractual approval." />
+                </apex:outputPanel>
+                <apex:outputPanel >
+                <apex:outputLabel value="{!dLabel['DL277']}" styleclass="dmeOutput" />
+                <c:ECO_HelpIcon helptext="{!$ObjectType.pse__Proj__c.fields.ChangeManagerClientsRequirements__c.inlineHelpText}" />
+                <br/>
+                    <apex:outputField value="{!pse__Proj__c.ChangeManagerClientsRequirements__c}" style="width: 825px; height: 40px" html-placeholder="For example, when proposing a new project team member provide a copy of their resume to the client project manager for approval prior to the individual beginning work on the project." />
+                </apex:outputPanel>
+            </apex:pageBlockSection>
+            <apex:pageBlockSection columns="1" >
+                <apex:outputPanel >
+                    <apex:outputLabel styleclass="dmeOutput" value="{!dLabel['DL278']}" />
+                    <table class="changeManagerTable" >
+                        <tr><td><apex:outputField value="{!pse__Proj__c.ChangeManagerNoChanges__c}" /><apex:outputLabel styleclass="dmeOutput" value="{!dLabel['DL279']}" /></td></tr>
+                        <tr><td><apex:outputField value="{!pse__Proj__c.ChangeManagerChanges__c}" /><apex:outputLabel styleclass="dmeOutput" value="{!dLabel['DL280']}" /></td></tr>
+                    </table>
+                    <br/>
+                    <apex:outputLabel styleclass="dmeOutput" value="{!dLabel['DL281']}" />
+                    <table class="changeManagerTable" >
+                        <tr>                        
+                            <td>
+                                <apex:outputPanel rendered="{!NOT(IsChangedTasks)}" >
+                                    <apex:outputField value="{!pse__Proj__c.ChangeManagerNoChanges__c}" />
+                                </apex:outputPanel>
+                                <apex:outputPanel rendered="{!IsChangedTasks}" >
+                                    <apex:outputField value="{!pse__Proj__c.ChangeManagerChanges__c}" />
+                                </apex:outputPanel>
+                                <apex:outputLabel styleclass="dmeOutput" value="{!dLabel['DL282']}" />
+                            </td>
+                            <td>
+                                <apex:outputPanel rendered="{!NOT(IsChangedKeyMembers)}" >
+                                    <apex:outputField value="{!pse__Proj__c.ChangeManagerNoChanges__c}" />
+                                </apex:outputPanel>
+                                <apex:outputPanel rendered="{!IsChangedKeyMembers}" >
+                                    <apex:outputField value="{!pse__Proj__c.ChangeManagerChanges__c}" />
+                                </apex:outputPanel>
+                                <apex:outputLabel styleclass="dmeOutput" value="{!dLabel['DL283']}" />
+                            </td>
+                            <td>
+                                <apex:outputPanel rendered="{!NOT(IsChangedCustomers)}" >
+                                    <apex:outputField value="{!pse__Proj__c.ChangeManagerNoChanges__c}" />
+                                </apex:outputPanel>
+                                <apex:outputPanel rendered="{!IsChangedCustomers}" >
+                                    <apex:outputField value="{!pse__Proj__c.ChangeManagerChanges__c}" />
+                                </apex:outputPanel>
+                                <apex:outputLabel styleclass="dmeOutput" value="{!dLabel['DL284']}" />
+                            </td>
+                            <td>
+                                <apex:outputPanel rendered="{!NOT(IsChangedClassifications)}" >
+                                    <apex:outputField value="{!pse__Proj__c.ChangeManagerNoChanges__c}" />
+                                </apex:outputPanel>
+                                <apex:outputPanel rendered="{!IsChangedClassifications}" >
+                                    <apex:outputField value="{!pse__Proj__c.ChangeManagerChanges__c}" />
+                                </apex:outputPanel>
+                                <apex:outputLabel styleclass="dmeOutput" value="{!dLabel['DL285']}" />
+                            </td>                       
+                            <td>
+                                <apex:outputPanel rendered="{!NOT(IsChangedSHE)}" >
+                                    <apex:outputField value="{!pse__Proj__c.ChangeManagerNoChanges__c}" />
+                                </apex:outputPanel>
+                                <apex:outputPanel rendered="{!IsChangedSHE}" >
+                                    <apex:outputField value="{!pse__Proj__c.ChangeManagerChanges__c}" />
+                                </apex:outputPanel>
+                                <apex:outputLabel styleclass="dmeOutput" value="{!dLabel['DL286']}" />
+                            </td>                       
+                            <td>
+                                <apex:outputPanel rendered="{!NOT(IsChangedAgreements)}" >
+                                    <apex:outputField value="{!pse__Proj__c.ChangeManagerNoChanges__c}" />
+                                </apex:outputPanel>
+                                <apex:outputPanel rendered="{!IsChangedAgreements}" >
+                                    <apex:outputField value="{!pse__Proj__c.ChangeManagerChanges__c}" />
+                                </apex:outputPanel>
+                                <apex:outputLabel styleclass="dmeOutput" value="{!dLabel['DL287']}" />
+                            </td>                       
+                            <td>
+                                <apex:outputPanel rendered="{!NOT(IsChangedScope)}" >
+                                    <apex:outputField value="{!pse__Proj__c.ChangeManagerNoChanges__c}" />
+                                </apex:outputPanel>
+                                <apex:outputPanel rendered="{!IsChangedScope}" >
+                                    <apex:outputField value="{!pse__Proj__c.ChangeManagerChanges__c}" />
+                                </apex:outputPanel>
+                                <apex:outputLabel styleclass="dmeOutput" value="{!dLabel['DL288']}" />
+                            </td>   
+                        </tr>
+                        <tr>                    
+                            <!-- <td><apex:outputLabel styleclass="dmeOutput" value="Budget"/></td>      -->                
+                            <td>
+                                <apex:outputPanel rendered="{!NOT(IsChangedResources)}" >
+                                    <apex:outputField value="{!pse__Proj__c.ChangeManagerNoChanges__c}" />
+                                </apex:outputPanel>
+                                <apex:outputPanel rendered="{!IsChangedResources}" >
+                                    <apex:outputField value="{!pse__Proj__c.ChangeManagerChanges__c}" />
+                                </apex:outputPanel>
+                                <apex:outputLabel styleclass="dmeOutput" value="{!dLabel['DL289']}" />
+                            </td>                       
+                            <td>
+                                <apex:outputPanel rendered="{!NOT(IsChangedDeliverables)}" >
+                                    <apex:outputField value="{!pse__Proj__c.ChangeManagerNoChanges__c}" />
+                                </apex:outputPanel>
+                                <apex:outputPanel rendered="{!IsChangedDeliverables}" >
+                                    <apex:outputField value="{!pse__Proj__c.ChangeManagerChanges__c}" />
+                                </apex:outputPanel>
+                                <apex:outputLabel styleclass="dmeOutput" value="{!dLabel['DL290']}" />
+                            </td>                       
+                            <td>
+                                <apex:outputPanel rendered="{!NOT(IsChangedDocManage)}" >
+                                    <apex:outputField value="{!pse__Proj__c.ChangeManagerNoChanges__c}" />
+                                </apex:outputPanel>
+                                <apex:outputPanel rendered="{!IsChangedDocManage}" >
+                                    <apex:outputField value="{!pse__Proj__c.ChangeManagerChanges__c}" />
+                                </apex:outputPanel>
+                                <apex:outputLabel styleclass="dmeOutput" value="{!dLabel['DL291']}" />
+                            </td>                       
+                            <td>
+                                <apex:outputPanel rendered="{!NOT(IsChangedStakeComm)}" >
+                                    <apex:outputField value="{!pse__Proj__c.ChangeManagerNoChanges__c}" />
+                                </apex:outputPanel>
+                                <apex:outputPanel rendered="{!IsChangedStakeComm}" >
+                                    <apex:outputField value="{!pse__Proj__c.ChangeManagerChanges__c}" />
+                                </apex:outputPanel>
+                                <apex:outputLabel styleclass="dmeOutput" value="{!dLabel['DL292']}" />
+                            </td>                       
+                            <td>
+                                <apex:outputPanel rendered="{!NOT(IsChangedRisk)}" >
+                                    <apex:outputField value="{!pse__Proj__c.ChangeManagerNoChanges__c}" />
+                                </apex:outputPanel>
+                                <apex:outputPanel rendered="{!IsChangedRisk}" >
+                                    <apex:outputField value="{!pse__Proj__c.ChangeManagerChanges__c}" />
+                                </apex:outputPanel>
+                                <apex:outputLabel styleclass="dmeOutput" value="{!dLabel['DL293']}" />
+                            </td>
+                            <td>
+                                <apex:outputPanel rendered="{!NOT(IsChangedResilience)}" >
+                                    <apex:outputField value="{!pse__Proj__c.ChangeManagerNoChanges__c}" />
+                                </apex:outputPanel>
+                                <apex:outputPanel rendered="{!IsChangedResilience}" >
+                                    <apex:outputField value="{!pse__Proj__c.ChangeManagerChanges__c}" />
+                                </apex:outputPanel>
+                                <apex:outputLabel styleclass="dmeOutput" value="{!dLabel['DL294']}" />
+                            </td>
+                        </tr>               
+                    </table>    
+                </apex:outputPanel>
+                                                        
+            </apex:pageBlockSection>    
+        </apex:pageBlock>
+        
+        <p style="page-break-after:always;" />
+        <br/>
+        <h2 style="line-height:80%;" ><nttdcore:DLabel name="DL295" default="Project Finances" labelParent="{!this}" />{!dLabel['DL295']}</h2>
+        <br/> 
+        <br/>
+        <br/>
+        <h3 style="line-height:80%;" ><nttdcore:DLabel name="DL296" default="Summary of Agreements" labelParent="{!this}" />{!dLabel['DL296']}</h3>
+        <br/>    
+        <apex:pageBlock >
+                <apex:pageBlockTable rendered="{!lAgreements.size > 0}" value="{!lAgreements}" var="eachAgmnt" >
+                    <apex:column value="{!eachAgmnt.Name}" />
+                    <apex:column value="{!eachAgmnt.Project__r.Name}" />
+                    <apex:column value="{!eachAgmnt.RecordType.Name}" />
+                    <apex:column value="{!eachAgmnt.Description__c}" />
+                    <apex:column value="{!eachAgmnt.Amount__c}" />
+                    <apex:column value="{!eachAgmnt.Account__c}" />
+                </apex:pageBlockTable>
+        </apex:pageBlock>
+ 
+        <p style="page-break-after:always;" />
+        <br/>
+        <h2 style="line-height:80%;" ><nttdcore:DLabel name="DL297" default="Prime Agreements and Funding" labelParent="{!this}" />{!dLabel['DL297']}</h2>
+        <br/> 
+        <br/> 
+        
+        <apex:repeat rendered="{!lPrimeAgreements.size > 0}" value="{!lPrimeAgreements}" var="agreement" >
+            
+            <nttdcore:DLabel name="DL298" default="{{1}} - {{2}}" labelParent="{!this}" p1="{!agreement.Name}" p2="{!agreement.RecordType.Name}" /><apex:pageBlock title="{!dLabel['DL298']}" ><nttdcore:DLabel name="DL299" default="ECO Agreement Number" labelParent="{!this}" /><nttdcore:DLabel name="DL300" default="Ecosystem Project Reference ID" labelParent="{!this}" /><nttdcore:DLabel name="DL301" default="Agreement Status" labelParent="{!this}" /><nttdcore:DLabel name="DL302" default="Oracle Project No" labelParent="{!this}" /><nttdcore:DLabel name="DL303" default="Oracle Agreement No" labelParent="{!this}" /><nttdcore:DLabel name="DL304" default="Project Name" labelParent="{!this}" /><nttdcore:DLabel name="DL305" default="Parent Agreement" labelParent="{!this}" /><nttdcore:DLabel name="DL306" default="Agreement Owner" labelParent="{!this}" /><nttdcore:DLabel name="DL307" default="Billing Client" labelParent="{!this}" /><nttdcore:DLabel name="DL308" default="Agreement Executed By" labelParent="{!this}" /><nttdcore:DLabel name="DL309" default="Invoicing Client" labelParent="{!this}" /><nttdcore:DLabel name="DL310" default="Execution Date" labelParent="{!this}" /><nttdcore:DLabel name="DL311" default="Contract Title/Name" labelParent="{!this}" /><nttdcore:DLabel name="DL312" default="Fee Type" labelParent="{!this}" /><nttdcore:DLabel name="DL313" default="Client Contract Reference No." labelParent="{!this}" /><nttdcore:DLabel name="DL314" default="Payment Terms" labelParent="{!this}" /><nttdcore:DLabel name="DL315" default="Contract Type" labelParent="{!this}" /><nttdcore:DLabel name="DL316" default="Agreement Currency" labelParent="{!this}" /><nttdcore:DLabel name="DL317" default="The date the agreement record was created in Ecosystem (&amp; Oracle)" labelParent="{!this}" /><nttdcore:DLabel name="DL318" default="Create Date" labelParent="{!this}" /><nttdcore:DLabel name="DL319" default="Agreement Amount (confirmed)" labelParent="{!this}" /><nttdcore:DLabel name="DL320" default="Start Date" labelParent="{!this}" /><nttdcore:DLabel name="DL321" default="Agreement Amount (estimated)" labelParent="{!this}" /><nttdcore:DLabel name="DL322" default="End Date" labelParent="{!this}" /><nttdcore:DLabel name="DL323" default="Total Funding Amount" labelParent="{!this}" /><nttdcore:DLabel name="DL324" default="Prof Indemnity/Liability Amt" labelParent="{!this}" /><nttdcore:DLabel name="DL325" default="Agreement - Funding Variance" labelParent="{!this}" /><nttdcore:DLabel name="DL326" default="Public/General Liability Amt" labelParent="{!this}" /><nttdcore:DLabel name="DL327" default="Variance Reason" labelParent="{!this}" /><nttdcore:DLabel name="DL328" default="Revenue Limit" labelParent="{!this}" /><nttdcore:DLabel name="DL329" default="Action Code" labelParent="{!this}" /><nttdcore:DLabel name="DL330" default="Invoice Limit" labelParent="{!this}" /><nttdcore:DLabel name="DL331" default="Change Manager Approved For Synch" labelParent="{!this}" /><nttdcore:DLabel name="DL332" default="Change Manager Is Changed" labelParent="{!this}" /><nttdcore:DLabel name="DL333" default="Scope Package" labelParent="{!this}" /><nttdcore:DLabel name="DL334" default="Scope of Services" labelParent="{!this}" />
+            <br/> 
+            <apex:pageBlockSection >
+                <apex:pageBlockSectionItem helptext="{!$ObjectType.Agreement__c.Fields.Name.inlineHelpText}" >
+                    <apex:outputText value="{!dLabel['DL299']}" />
+                    <apex:outputPanel >
+                        <apex:outputField value="{!agreement.Name}" />
+                    </apex:outputPanel>
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                    <apex:outputText value="{!dLabel['DL300']}" />
+                    <apex:outputPanel >
+                        <apex:outputField value="{!agreement.project__r.EcoSystemReferenceNumber__c}" />              
+                    </apex:outputPanel>
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                    <apex:outputText value="{!dLabel['DL301']}" />
+                    <apex:outputPanel >
+                        <apex:outputField value="{!agreement.AgreementStatus__c}" />    
+                    </apex:outputPanel>         
+                </apex:pageBlockSectionItem>        
+                <apex:pageBlockSectionItem >
+                    <apex:outputText value="{!dLabel['DL302']}" />
+                    <apex:outputPanel >
+                        <apex:outputField value="{!agreement.project__r.OracleProjectnumber__c}" />
+                    </apex:outputPanel>
+                </apex:pageBlockSectionItem>        
+                <apex:pageBlockSectionItem helptext="{!$ObjectType.Agreement__c.Fields.AgreementNumber__c.inlineHelpText}" >
+                    <apex:outputText value="{!dLabel['DL303']}" />
+                     <apex:outputPanel >
+                    <apex:outputField value="{!agreement.AgreementNumber__c}" />
+                    </apex:outputPanel>
+                </apex:pageBlockSectionItem>    
+                <apex:pageBlockSectionItem >
+                    <apex:outputText value="{!dLabel['DL304']}" />
+                    <apex:outputPanel >
+                        <apex:outputField value="{!agreement.project__r.Name}" />
+                    </apex:outputPanel>         
+                </apex:pageBlockSectionItem>    
+                <apex:pageBlockSectionItem helptext="{!$ObjectType.Agreement__c.Fields.ParentAgreement__c.inlineHelpText}" >
+                    <apex:outputText value="{!dLabel['DL305']}" />
+                    <apex:outputPanel >
+                        <apex:outputField value="{!agreement.ParentAgreement__c}" />        
+                    </apex:outputPanel>     
+                </apex:pageBlockSectionItem>            
+                <apex:pageBlockSectionItem helptext="{!$ObjectType.Agreement__c.Fields.ProjectTeamMember__c.inlineHelpText}" >
+                    <apex:outputText value="{!dLabel['DL306']}" />
+                    <apex:outputPanel >
+                        <apex:outputField value="{!agreement.ProjectTeamMember__c}" />  
+                    </apex:outputPanel>         
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                    <apex:outputText value="{!dLabel['DL307']}" />
+                    <apex:outputPanel >
+                        <apex:outputField value="{!agreement.Account__c}" />    
+                    </apex:outputPanel>         
+                </apex:pageBlockSectionItem>        
+                <apex:pageBlockSectionItem helptext="{!$ObjectType.Agreement__c.Fields.AgreementExecutedBy__c.inlineHelpText}" >
+                    <apex:outputText value="{!dLabel['DL308']}" />
+                    <apex:outputPanel >
+                        <apex:outputField value="{!agreement.AgreementExecutedBy__c}" />    
+                    </apex:outputPanel>         
+                </apex:pageBlockSectionItem>    
+                <apex:pageBlockSectionItem helptext="{!$ObjectType.Agreement__c.Fields.InvoicingClient__c.inlineHelpText}" >
+                    <apex:outputText value="{!dLabel['DL309']}" />
+                    <apex:outputPanel >
+                        <apex:outputField value="{!agreement.InvoicingClient__c}" />        
+                    </apex:outputPanel>     
+                </apex:pageBlockSectionItem>        
+                <apex:pageBlockSectionItem helptext="{!$ObjectType.Agreement__c.Fields.ExecutionDate__c.inlineHelpText}" >
+                    <apex:outputText value="{!dLabel['DL310']}" />
+                    <apex:outputPanel >
+                        <apex:outputField value="{!agreement.ExecutionDate__c}" />  
+                    </apex:outputPanel>         
+                </apex:pageBlockSectionItem>    
+                <apex:pageBlockSectionItem helptext="{!$ObjectType.Agreement__c.Fields.ContractTitle__c.inlineHelpText}" >
+                    <apex:outputText value="{!dLabel['DL311']}" />
+                    <apex:outputPanel >
+                        <apex:outputField value="{!agreement.ContractTitle__c}" />  
+                    </apex:outputPanel>         
+                </apex:pageBlockSectionItem>        
+                <apex:pageBlockSectionItem helptext="{!$ObjectType.Agreement__c.Fields.FeeType__c.inlineHelpText}" >
+                    <apex:outputText value="{!dLabel['DL312']}" />
+                    <apex:outputPanel >
+                        <apex:outputField value="{!agreement.FeeType__c}" />        
+                    </apex:outputPanel>     
+                </apex:pageBlockSectionItem>            
+                <apex:pageBlockSectionItem helptext="{!$ObjectType.Agreement__c.Fields.ClientContractReferenceNo__c.inlineHelpText}" >
+                    <apex:outputText value="{!dLabel['DL313']}" />
+                    <apex:outputPanel >
+                        <apex:outputField value="{!agreement.ClientContractReferenceNo__c}" />  
+                    </apex:outputPanel>         
+                </apex:pageBlockSectionItem>            
+                <apex:pageBlockSectionItem >
+                    <apex:outputText value="{!dLabel['DL314']}" />
+                    <apex:outputPanel >
+                        <apex:outputField value="{!agreement.PaymentTerms__c}" />
+                    </apex:outputPanel>             
+                </apex:pageBlockSectionItem>    
+                <apex:pageBlockSectionItem >
+                    <apex:outputText value="{!dLabel['DL315']}" />
+                    <apex:outputPanel >
+                        <apex:outputField value="{!agreement.AgreementType__c}" />  
+                    </apex:outputPanel>         
+                </apex:pageBlockSectionItem>            
+                <apex:pageBlockSectionItem helptext="{!$ObjectType.Agreement__c.Fields.FundingCurrencyCode__c.inlineHelpText}" >
+                    <apex:outputText value="{!dLabel['DL316']}" />
+                    <apex:outputPanel >
+                        <apex:outputField value="{!agreement.FundingCurrencyCode__c}" />    
+                    </apex:outputPanel>         
+                </apex:pageBlockSectionItem>    
+                <apex:pageBlockSectionItem helptext="{!dLabel['DL317']}" >
+                    <apex:outputText value="{!dLabel['DL318']}" />
+                    <apex:outputField value="{!agreement.CreatedDate}" />                
+                </apex:pageBlockSectionItem>    
+                <apex:pageBlockSectionItem helptext="{!$ObjectType.Agreement__c.Fields.Amount__c.inlineHelpText}" >
+                    <apex:outputText value="{!dLabel['DL319']}" />
+                    <apex:outputPanel >
+                        <apex:outputField value="{!agreement.Amount__c}" /> 
+                    </apex:outputPanel>
+                </apex:pageBlockSectionItem>    
+                <apex:pageBlockSectionItem helptext="{!$ObjectType.Agreement__c.Fields.StartDate__c.inlineHelpText}" >
+                    <apex:outputText value="{!dLabel['DL320']}" />
+                    <apex:outputPanel >
+                        <apex:outputField value="{!agreement.StartDate__c}" />  
+                    </apex:outputPanel>         
+                </apex:pageBlockSectionItem>                                            
+                <apex:pageBlockSectionItem helptext="{!$ObjectType.Agreement__c.Fields.AgreementAmountEstimated__c.inlineHelpText}" >
+                    <apex:outputText value="{!dLabel['DL321']}" />
+                    <apex:outputPanel >
+                        <apex:outputField value="{!agreement.AgreementAmountEstimated__c}" />
+                    </apex:outputPanel>             
+                </apex:pageBlockSectionItem>        
+                <apex:pageBlockSectionItem helptext="{!$ObjectType.Agreement__c.Fields.ExpirationDate__c.inlineHelpText}" >
+                    <apex:outputText value="{!dLabel['DL322']}" />
+                    <apex:outputPanel >
+                        <apex:outputField value="{!agreement.ExpirationDate__c}" /> 
+                    </apex:outputPanel>                         
+                </apex:pageBlockSectionItem>    
+                <apex:pageBlockSectionItem >
+                    <apex:outputText value="{!dLabel['DL323']}" />
+                    <apex:outputPanel >
+                        <apex:outputField value="{!agreement.TotalFundingAmount__c}" /> 
+                    </apex:outputPanel>         
+                </apex:pageBlockSectionItem>        
+                <apex:pageBlockSectionItem helptext="{!$ObjectType.Agreement__c.Fields.ProfIndemnityLiabilityAmt__c.inlineHelpText}" >
+                    <apex:outputText value="{!dLabel['DL324']}" />
+                    <apex:outputPanel >
+                        <apex:outputField value="{!agreement.ProfIndemnityLiabilityAmt__c}" />
+                    </apex:outputPanel>                                         
+                </apex:pageBlockSectionItem>    
+                <apex:pageBlockSectionItem >
+                    <apex:outputText value="{!dLabel['DL325']}" />
+                    <apex:outputField value="{!agreement.AgreementFundingVariance__c}" />                
+                </apex:pageBlockSectionItem>            
+                <apex:pageBlockSectionItem helptext="{!$ObjectType.Agreement__c.Fields.PublicGeneralLiabilityAmt__c.inlineHelpText}" >
+                    <apex:outputText value="{!dLabel['DL326']}" />
+                    <apex:outputPanel >
+                        <apex:outputField value="{!agreement.PublicGeneralLiabilityAmt__c}" />      
+                    </apex:outputPanel>     
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                        <apex:outputText value="{!dLabel['DL327']}" />
+                        <apex:outputPanel >
+                            <apex:outputField value="{!agreement.VarianceReason__c}" /> 
+                        </apex:outputPanel>                                                 
+                </apex:pageBlockSectionItem>   
+                     
+                <apex:pageBlockSectionItem >
+                    <apex:outputText value="{!dLabel['DL328']}" />
+                    <apex:outputPanel >
+                            <apex:outputField value="{!agreement.RevenueLimitFlag__c}" />                 
+                    </apex:outputPanel>     
+                </apex:pageBlockSectionItem>    
+                
+                <apex:pageBlockSectionItem >
+                    <apex:outputText value="{!dLabel['DL329']}" />
+                    <apex:outputPanel >
+                    <apex:outputField value="{!agreement.ActionCode__c}" />   
+                    </apex:outputPanel>                        
+                </apex:pageBlockSectionItem>
+                    
+                <apex:pageBlockSectionItem >
+                    <apex:outputText value="{!dLabel['DL330']}" />
+                    <apex:outputPanel >
+                            <apex:outputField value="{!agreement.InvoiceLimitFlag__c}" />                 
+                    </apex:outputPanel>     
+                </apex:pageBlockSectionItem>    
+    
+                <apex:pageBlockSectionItem >    
+                    <apex:outputText value="{!dLabel['DL331']}" />  
+                   <apex:outputPanel >          
+                        <apex:outputField value="{!agreement.ChangeManagerApprovedForSynch__c}" />  
+                    </apex:outputPanel>
+                </apex:pageBlockSectionItem>
+                
+                <apex:pageBlockSectionItem >    
+                    <apex:outputText value="{!dLabel['DL332']}" />      
+                    <apex:outputPanel >      
+                        <apex:outputField value="{!agreement.ChangeManagerIsChanged__c}" />  
+                    </apex:outputPanel>
+                </apex:pageBlockSectionItem>
+                                                                                                                                       
+            </apex:pageBlockSection>
+            
+            <apex:pageBlockSection columns="2" >
+                <apex:pageBlockSectionItem helptext="{!$ObjectType.Agreement__c.Fields.ScopePackage__c.inlineHelpText}" >
+                    <apex:outputText value="{!dLabel['DL333']}" />
+                    <apex:outputPanel >
+                        <apex:outputField value="{!agreement.ScopePackage__c}" />
+                    </apex:outputPanel>
+                </apex:pageBlockSectionItem>    
+                    
+                <apex:pageBlockSectionItem helptext="{!$ObjectType.Agreement__c.Fields.ScopeOfServices__c.inlineHelpText}" >
+                    <apex:outputText value="{!dLabel['DL334']}" />
+                    <apex:outputPanel id="primeScope" >
+                        <apex:outputField value="{!agreement.ScopeOfServices__c}" rendered="{!agreement.ScopePackage__c == null}" />
+                        <apex:outputField value="{!agreement.ScopePackage__r.Scope_Details__c}" rendered="{!agreement.ScopePackage__c != null}" />
+                    </apex:outputPanel>             
+                </apex:pageBlockSectionItem>    
+            </apex:pageBlockSection>        
+            </apex:pageBlock>
+            
+            <apex:variable var="primeAgmntId" value="{!agreement.Id}" />
+            
+             <!--
+            <apex:outputText value="Current Prime Agmnt ID: {!primeAgmntId}" />
+            <apex:repeat value="{!mapOfPrimeAgmntIdToFundings}" var="keyAgmntId">
+                <apex:outputText value="Prime Agreement ID: {!keyAgmntId}" />
+                <apex:pageBlock title="Funding" >
+                <apex:outputPanel >
+                    <apex:pageBlockTable value="{!mapOfPrimeAgmntIdToFundings[keyAgmntId]}" var="funding">
+                        <apex:column headervalue="Date Allocated">
+                            <apex:outputField value="{!funding.CreatedDate}" rendered="{!funding.DateAllocatedDate__c == null}"></apex:outputField>
+                                    <apex:outputField value="{!funding.DateAllocatedDate__c}" rendered="{!funding.DateAllocatedDate__c != null}"></apex:outputField>                    
+                                </apex:column>                  
+                                <apex:column headervalue="Allocated Amount">
+                                    <apex:outputField value="{!funding.TotalBaselinedAmount__c}" rendered="{!funding.AllocatedAmount__c==null}"/>
+                                    <apex:outputField value="{!funding.AllocatedAmount__c}" rendered="{!funding.AllocatedAmount__c!=null}"/>
+                                </apex:column>
+                    </apex:pageBlockTable>
+                </apex:outputPanel>
+                </apex:pageBlock>
+            </apex:repeat>
+            -->
+        
+            <apex:variable var="listOfFundingsForPrimeAgmnt" value="{!mapOfPrimeAgmntIdToFundings[primeAgmntId]}" />
+            <apex:outputPanel rendered="{!listOfFundingsForPrimeAgmnt.size > 0}" >
+                <nttdcore:DLabel name="DL335" default="Funding" labelParent="{!this}" /><apex:pageBlock title="{!dLabel['DL335']}" >
+                <br/>
+                    <apex:outputPanel ><nttdcore:DLabel name="DL336" default="Date Allocated" labelParent="{!this}" /><nttdcore:DLabel name="DL337" default="Allocated Amount" labelParent="{!this}" />
+                    
+                        <apex:pageBlockTable value="{!listOfFundingsForPrimeAgmnt}" var="funding" >
+                            <apex:column headervalue="{!dLabel['DL336']}" >
+                                <apex:outputField value="{!funding.CreatedDate}" rendered="{!funding.DateAllocatedDate__c == null}" />
+                                <apex:outputField value="{!funding.DateAllocatedDate__c}" rendered="{!funding.DateAllocatedDate__c != null}" />                    
+                            </apex:column>                  
+                            <apex:column headervalue="{!dLabel['DL337']}" >
+                                <apex:outputField value="{!funding.TotalBaselinedAmount__c}" rendered="{!funding.AllocatedAmount__c==null}" />
+                                <apex:outputField value="{!funding.AllocatedAmount__c}" rendered="{!funding.AllocatedAmount__c!=null}" />
+                            </apex:column>
+                        </apex:pageBlockTable> 
+                      
+                    </apex:outputPanel>
+                </apex:pageBlock>
+            </apex:outputPanel>
+                 
+                   
+            <apex:outputPanel rendered="{!listOfFundingsForPrimeAgmnt.size == 0}" >
+            	<nttdcore:DLabel name="DL338" default="Funding" labelParent="{!this}" /><apex:pageBlock title="{!dLabel['DL338']}" >
+	                <br/>
+	                <nttdcore:DLabel name="DL339" default="No records to display" labelParent="{!this}" /><apex:outputText value="{!dLabel['DL339']}" />
+	                <br/>
+                </apex:pageBlock>
+            </apex:outputPanel> 
+            <p style="page-break-after:always;" />
+        </apex:repeat>      
+        
+        <h2 style="line-height:80%;" ><nttdcore:DLabel name="DL340" default="Budget and Billing Details" labelParent="{!this}" />{!dLabel['DL340']}</h2>
+        <br/> 
+        <br/> 
+        
+        <apex:pageBlock id="theBlock" ><nttdcore:DLabel name="DL341" default="Budget Header Summary" labelParent="{!this}" /><nttdcore:DLabel name="DL342" default="CHANGE VALUE" labelParent="{!this}" /><nttdcore:DLabel name="DL343" default="BUDGET / AS-SOLD" labelParent="{!this}" /><nttdcore:DLabel name="DL344" default="FORECAST / EAC" labelParent="{!this}" /><nttdcore:DLabel name="DL345" default="WORK AT RISK" labelParent="{!this}" /><nttdcore:DLabel name="DL346" default="Budget Name" labelParent="{!this}" /><nttdcore:DLabel name="DL347" default="Created Date" labelParent="{!this}" /><nttdcore:DLabel name="DL348" default="Status" labelParent="{!this}" /><nttdcore:DLabel name="DL349" default="Cost" labelParent="{!this}" /><nttdcore:DLabel name="DL350" default="Revenue" labelParent="{!this}" /><nttdcore:DLabel name="DL351" default="Approved Cost" labelParent="{!this}" /><nttdcore:DLabel name="DL352" default="Approved Revenue" labelParent="{!this}" /><nttdcore:DLabel name="DL353" default="Forecast Cost" labelParent="{!this}" /><nttdcore:DLabel name="DL354" default="Forecast Revenue" labelParent="{!this}" /><nttdcore:DLabel name="DL355" default="WaR - Cost" labelParent="{!this}" /><nttdcore:DLabel name="DL356" default="War - Revenue" labelParent="{!this}" /><nttdcore:DLabel name="DL357" default="Raw Labour" labelParent="{!this}" /><nttdcore:DLabel name="DL358" default="Fringe" labelParent="{!this}" /><nttdcore:DLabel name="DL359" default="Overhead" labelParent="{!this}" /><nttdcore:DLabel name="DL360" default="Subs" labelParent="{!this}" /><nttdcore:DLabel name="DL361" default="ODCs" labelParent="{!this}" /><nttdcore:DLabel name="DL362" default="Contingency" labelParent="{!this}" /><nttdcore:DLabel name="DL363" default="Current Budget total" labelParent="{!this}" /><nttdcore:DLabel name="DL364" default="BUDGET METRICS" labelParent="{!this}" /><nttdcore:DLabel name="DL365" default="BUDGET / AS - SOLD" labelParent="{!this}" /><nttdcore:DLabel name="DL366" default="FORECAST / EAC" labelParent="{!this}" /><nttdcore:DLabel name="DL367" default="WORK AT RISK" labelParent="{!this}" /><nttdcore:DLabel name="DL368" default="Net Service Revenue" labelParent="{!this}" /><nttdcore:DLabel name="DL369" default="Gross Margin" labelParent="{!this}" /><nttdcore:DLabel name="DL370" default="Net Margin" labelParent="{!this}" /><nttdcore:DLabel name="DL371" default="GM/NSR" labelParent="{!this}" /><nttdcore:DLabel name="DL372" default="{{1}}%" labelParent="{!this}" p1="{!budgetWrapper.getBudgetTotalGMNSR}" /><nttdcore:DLabel name="DL373" default="{{1}}%" labelParent="{!this}" p1="{!budgetWrapper.getForecastTotalGMNSR}" /><nttdcore:DLabel name="DL374" default="{{1}}%" labelParent="{!this}" p1="{!budgetWrapper.getWorkAtRiskTotalGMNSR}" /><nttdcore:DLabel name="DL375" default="NM/NSR" labelParent="{!this}" /><nttdcore:DLabel name="DL376" default="{{1}}%" labelParent="{!this}" p1="{!budgetWrapper.getBudgetTotalNMNSR}" /><nttdcore:DLabel name="DL377" default="{{1}}%" labelParent="{!this}" p1="{!budgetWrapper.getForecastTotalNMNSR}" /><nttdcore:DLabel name="DL378" default="{{1}}%" labelParent="{!this}" p1="{!budgetWrapper.getWorkAtRiskTotalNMNSR}" /><nttdcore:DLabel name="DL379" default="Project Info" labelParent="{!this}" /><nttdcore:DLabel name="DL380" default="Budget Levels - Cost" labelParent="{!this}" /><nttdcore:DLabel name="DL381" default="Budget Levels - Revenue" labelParent="{!this}" /><nttdcore:DLabel name="DL382" default="This project is offline." labelParent="{!this}" /><nttdcore:DLabel name="DL383" default="Fee Basis" labelParent="{!this}" /><nttdcore:DLabel name="DL384" default="Commercial Structure" labelParent="{!this}" /><nttdcore:DLabel name="DL385" default="Default Bill Rate" labelParent="{!this}" /><nttdcore:DLabel name="DL386" default="Default Labour %age" labelParent="{!this}" /><nttdcore:DLabel name="DL387" default="Default subs %age" labelParent="{!this}" /><nttdcore:DLabel name="DL388" default="Default ODC %age" labelParent="{!this}" /><nttdcore:DLabel name="DL389" default="Escalation Applies" labelParent="{!this}" /><nttdcore:DLabel name="DL390" default="Date Effective" labelParent="{!this}" /><nttdcore:DLabel name="DL391" default="Description" labelParent="{!this}" /><nttdcore:DLabel name="DL392" default="Assigned To" labelParent="{!this}" /><nttdcore:DLabel name="DL393" default="Cash Flow" labelParent="{!this}" /><nttdcore:DLabel name="DL394" default="Payment Terms" labelParent="{!this}" /><nttdcore:DLabel name="DL395" default="Billing Structure" labelParent="{!this}" /><nttdcore:DLabel name="DL396" default="Frequency" labelParent="{!this}" /><nttdcore:DLabel name="DL397" default="Project Start Date" labelParent="{!this}" /><nttdcore:DLabel name="DL398" default="Project End Date" labelParent="{!this}" /><nttdcore:DLabel name="DL399" default="First Invoice date" labelParent="{!this}" /><nttdcore:DLabel name="DL400" default="Expected Date" labelParent="{!this}" /><nttdcore:DLabel name="DL401" default="Description" labelParent="{!this}" /><nttdcore:DLabel name="DL402" default="Amount" labelParent="{!this}" /><nttdcore:DLabel name="DL403" default="Relocations / Secondments" labelParent="{!this}" /><nttdcore:DLabel name="DL404" default="Name" labelParent="{!this}" /><nttdcore:DLabel name="DL405" default="Home Location" labelParent="{!this}" /><nttdcore:DLabel name="DL406" default="Secondment Location" labelParent="{!this}" /><nttdcore:DLabel name="DL407" default="Estimated Costs" labelParent="{!this}" /><nttdcore:DLabel name="DL408" default="Attachments" labelParent="{!this}" /><nttdcore:DLabel name="DL409" default="Total Relocation/Secondment Costs to be included" labelParent="{!this}" /><nttdcore:DLabel name="DL410" default="Budget Questionnaire Attachments" labelParent="{!this}" /><nttdcore:DLabel name="DL411" default="File Name" labelParent="{!this}" /><nttdcore:DLabel name="DL412" default="No Budget Questionnaire Attachments were found." labelParent="{!this}" />
+            <apex:pageBlockSection id="budgetHeaderSummary" title="{!dLabel['DL341']}" columns="1" collapsible="false" >
+                <apex:form styleclass="budgetFrameWrapper" >
+                <table style="width:100%" >
+                <tr>
+                    <th style="border: 0px" />
+                    <th style="border: 0px" />
+                    <th style="border: 0px" />
+                    <th colspan="2" class="centerBlue" >{!dLabel['DL342']}</th>
+                    <th colspan="2" class="centerGreen" >{!dLabel['DL343']}</th>
+                    <th colspan="2" class="centerPurple" >{!dLabel['DL344']}</th>
+                    <th colspan="2" class="centerOrange" >{!dLabel['DL345']}</th>
+                </tr>
+                <tr>
+                    <th style="background-color:#ACACA8" >{!dLabel['DL346']}</th>
+                    <th style="background-color:#ACACA8" >{!dLabel['DL347']}</th>
+                    <th style="background-color:#ACACA8" >{!dLabel['DL348']}</th>
+                    <th class="rightBlue" >{!dLabel['DL349']}</th>
+                    <th class="rightBlue" >{!dLabel['DL350']}</th>
+                    <th class="rightGreen" >{!dLabel['DL351']}</th>
+                    <th class="rightGreen" >{!dLabel['DL352']}</th>
+                    <th class="rightPurple" >{!dLabel['DL353']}</th>
+                    <th class="rightPurple" >{!dLabel['DL354']}</th>
+                    <th class="rightOrange" >{!dLabel['DL355']}</th>
+                    <th class="rightOrange" >{!dLabel['DL356']}</th>
+                </tr>
+                <apex:repeat value="{!budgetWrapper.dtoBudgetHeaders}" var="budgetHeader" >
+                    <tr>
+                        <td>{!budgetHeader.budgetName}</td>
+                        <td>
+                            <apex:outputText value="{0,date,d MMM yyyy}" >
+                                <apex:param value="{!budgetHeader.createdDate}" /> 
+                            </apex:outputText>
+                        </td>
+                        <td>{!budgetHeader.status}</td>
+                        <td class="dollarAmount lightBlue" >
+                            <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                                <apex:param value="{!budgetHeader.dTotalCost}" />
+                            </apex:outputText>
+                        </td>
+                        <td class="dollarAmount lightBlue" >
+                            <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                                <apex:param value="{!budgetHeader.dTotalRevenue}" />
+                            </apex:outputText>
+                        </td>
+                        <td class="dollarAmount lightGreen" >
+                            <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                                <apex:param value="{!budgetHeader.dTotalApprovedCost}" />
+                            </apex:outputText>
+                        </td>
+                        <td class="dollarAmount lightGreen" >
+                            <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                                <apex:param value="{!budgetHeader.dTotalApprovedRevenue}" />
+                            </apex:outputText>
+                        </td>
+                        <td class="dollarAmount lightPurple" >
+                            <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                                <apex:param value="{!budgetHeader.dTotalForecastCost}" />
+                            </apex:outputText>
+                        </td>
+                        <td class="dollarAmount lightPurple" >
+                            <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                                <apex:param value="{!budgetHeader.dTotalForecastRevenue}" />
+                            </apex:outputText>
+                        </td>
+                        <td class="dollarAmount lightOrange" >
+                            <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                                <apex:param value="{!budgetHeader.dTotalWorkAtRiskCost}" />
+                            </apex:outputText>
+                        </td>
+                        <td class="dollarAmount lightOrange" >
+                            <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                                <apex:param value="{!budgetHeader.dTotalWorkAtRiskRevenue}" />
+                            </apex:outputText>
+                        </td>
+                    </tr>
+                </apex:repeat>
+                <tr>
+                    <td style="height:30px;border-right: 0px solid #fff !important; border-left: 0px solid #fff !important;border-bottom:0px solid #fff !important;" colspan="12" />
+                </tr>
+                <tr>
+                    <td style="border-right: 0px solid #fff !important;border-left: 0px solid #fff !important;border-top:0px solid #fff !important;border-bottom:0px solid #fff !important;" colspan="4" />
+                    <td class="dollarAmount" >{!dLabel['DL357']}</td>
+                    <td class="dollarAmount" >
+                        <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                            <apex:param value="{!budgetWrapper.getBudgetTotalRawLabour}" />
+                        </apex:outputText>
+                    </td>
+                    <td/>
+                    <td class="dollarAmount" >
+                        <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                            <apex:param value="{!budgetWrapper.getForecastTotalRawLabour}" />
+                        </apex:outputText>
+                    </td>
+                    <td/>
+                    <td class="dollarAmount" >
+                        <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                            <apex:param value="{!budgetWrapper.getWorkAtRiskTotalRawLabour}" />
+                        </apex:outputText>
+                    </td>
+                    <td/>
+                </tr>
+                <tr>
+                    <td style="border-right: 0px solid #fff !important;border-left: 0px solid #fff !important;border-top:0px solid #fff !important;border-bottom:0px solid #fff !important;" colspan="4" />
+                    <td class="dollarAmount" >{!dLabel['DL358']}</td>
+                    <td class="dollarAmount" >
+                        <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                            <apex:param value="{!budgetWrapper.getBudgetTotalFringe}" />
+                        </apex:outputText>
+                    </td>
+                    <td/>
+                    <td class="dollarAmount" >
+                        <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                            <apex:param value="{!budgetWrapper.getForecastTotalFringe}" />
+                        </apex:outputText>
+                    </td>
+                    <td/>
+                    <td class="dollarAmount" >
+                        <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                            <apex:param value="{!budgetWrapper.getWorkAtRiskTotalFringe}" />
+                        </apex:outputText>
+                    </td>
+                    <td/>
+                </tr>
+                <tr>
+                    <td style="border-right: 0px solid #fff !important;border-left: 0px solid #fff !important;border-top:0px solid #fff !important;border-bottom:0px solid #fff !important;" colspan="4" />
+                    <td class="dollarAmount" >{!dLabel['DL359']}</td>
+                    <td class="dollarAmount" >
+                        <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                            <apex:param value="{!budgetWrapper.getBudgetTotalOverhead}" />
+                        </apex:outputText>
+                    </td>
+                    <td/>
+                    <td class="dollarAmount" >
+                        <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                            <apex:param value="{!budgetWrapper.getForecastTotalOverhead}" />
+                        </apex:outputText>
+                    </td>
+                    <td/>
+                    <td class="dollarAmount" >
+                        <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                            <apex:param value="{!budgetWrapper.getWorkAtRiskTotalOverhead}" />
+                        </apex:outputText>
+                    </td>
+                    <td/>
+                </tr>
+                <tr>
+                    <td style="border-right: 0px solid #fff !important;border-left: 0px solid #fff !important;border-top:0px solid #fff !important;border-bottom:0px solid #fff !important;" colspan="4" />
+                    <td class="dollarAmount" >{!dLabel['DL360']}</td>
+                    <td class="dollarAmount" >
+                        <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                            <apex:param value="{!budgetWrapper.getBudgetTotalSubAmount}" />
+                        </apex:outputText>
+                    </td>
+                    <td/>
+                    <td class="dollarAmount" >
+                        <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                            <apex:param value="{!budgetWrapper.getForecastTotalSubAmount}" />
+                        </apex:outputText>
+                    </td>
+                    <td/>
+                    <td class="dollarAmount" >
+                        <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                            <apex:param value="{!budgetWrapper.getWorkAtRiskTotalSubAmount}" />
+                        </apex:outputText>
+                    </td>
+                    <td/>
+                </tr>
+                <tr>
+                    <td style="border-right: 0px solid #fff !important;border-left: 0px solid #fff !important;border-top:0px solid #fff !important;border-bottom:0px solid #fff !important;" colspan="4" />
+                    <td class="dollarAmount" >{!dLabel['DL361']}</td>
+                    <td class="dollarAmount" >
+                        <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                            <apex:param value="{!budgetWrapper.getBudgetTotalFeeAmount}" />
+                        </apex:outputText>
+                    </td>
+                    <td/>
+                    <td class="dollarAmount" >
+                        <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                            <apex:param value="{!budgetWrapper.getForecastTotalFeeAmount}" />
+                        </apex:outputText>
+                    </td>
+                    <td/>
+                    <td class="dollarAmount" >
+                        <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                            <apex:param value="{!budgetWrapper.getWorkAtRiskTotalFeeAmount}" />
+                        </apex:outputText>
+                    </td>
+                    <td/>
+                </tr>
+                <tr>
+                    <td style="border-right: 0px solid #fff !important;border-left: 0px solid #fff !important;border-top:0px solid #fff !important;border-bottom:0px solid #fff !important;" colspan="4" />
+                    <td class="dollarAmount" >{!dLabel['DL362']}</td>
+                    <td class="dollarAmount" >
+                        <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                            <apex:param value="{!budgetWrapper.getBudgetTotalContingencyAmount}" />
+                        </apex:outputText>
+                    </td>
+                    <td/>
+                    <td class="dollarAmount" >
+                        <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                            <apex:param value="{!budgetWrapper.getForecastTotalContingencyAmount}" />
+                        </apex:outputText>
+                    </td>
+                    <td/>
+                    <td class="dollarAmount" >
+                        <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                            <apex:param value="{!budgetWrapper.getWorkAtRiskTotalContingencyAmount}" />
+                        </apex:outputText>
+                    </td>
+                    <td/>
+                </tr>
+                <tr>
+                    <td style="border-right: 0px solid #fff !important;border-left: 0px solid #fff !important;border-top:0px solid #fff !important;border-bottom:0px solid #fff !important;" colspan="4" />
+                    <td class="dollarAmount bold" >{!dLabel['DL363']}</td>
+                    <td class="dollarAmount bold" >
+                        <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                            <apex:param value="{!budgetWrapper.getBudgetTotalCost}" />
+                        </apex:outputText>
+                    </td>
+                    <td class="dollarAmount bold" >
+                        <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                            <apex:param value="{!budgetWrapper.getBudgetTotalRevenue}" />
+                        </apex:outputText>
+                    </td>
+                    <td class="dollarAmount bold" >
+                        <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                            <apex:param value="{!budgetWrapper.getForecastTotalCost}" />
+                        </apex:outputText>
+                    </td>
+                    <td class="dollarAmount bold" >
+                        <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                            <apex:param value="{!budgetWrapper.getForecastTotalRevenue}" />
+                        </apex:outputText>
+                    </td>
+                    <td class="dollarAmount bold" >
+                        <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                            <apex:param value="{!budgetWrapper.getWorkAtRiskTotalCost}" />
+                        </apex:outputText>
+                    </td>
+                    <td class="dollarAmount bold" >
+                        <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                            <apex:param value="{!budgetWrapper.getWorkAtRiskTotalRevenue}" />
+                        </apex:outputText>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="height:30px;border-right: 0px solid #fff !important; border-left: 0px solid #fff !important;border-bottom:0px solid #fff !important;border-top:0px solid #fff !important;" colspan="12" />
+                </tr>
+                <tr>
+                    <td style="border-right: 0px solid #fff !important;border-left: 0px solid #fff !important;border-top:0px solid #fff !important;border-bottom:0px solid #fff !important;" colspan="4" />
+                    <td class="rightBlue" >{!dLabel['DL364']}</td>
+                    <td colspan="2" class="centerGreen" >{!dLabel['DL365']}</td>
+                    <td colspan="2" class="centerPurple" >{!dLabel['DL366']}</td>
+                    <td colspan="2" class="centerOrange" >{!dLabel['DL367']}</td>
+                </tr>
+                <tr>
+                    <td style="border-right: 0px solid #fff !important;border-left: 0px solid #fff !important;border-top:0px solid #fff !important;border-bottom:0px solid #fff !important;" colspan="4" />
+                    <td class="rightBlue" >{!dLabel['DL368']}</td>
+                    <td colspan="2" class="dollarAmount" >
+                        <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                            <apex:param value="{!budgetWrapper.getBudgetTotalNetServiceRevenue}" />
+                        </apex:outputText>
+                    </td>
+                    <td colspan="2" class="dollarAmount" >
+                        <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                            <apex:param value="{!budgetWrapper.getForecastTotalNetServiceRevenue}" />
+                        </apex:outputText>
+                    </td>
+                    <td colspan="2" class="dollarAmount" >
+                        <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                            <apex:param value="{!budgetWrapper.getWorkAtRiskTotalNetServiceRevenue}" />
+                        </apex:outputText>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="border-right: 0px solid #fff !important;border-left: 0px solid #fff !important;border-top:0px solid #fff !important;border-bottom:0px solid #fff !important;" colspan="4" />
+                    <td class="rightBlue" >{!dLabel['DL369']}</td>
+                    <td colspan="2" class="dollarAmount" >
+                        <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                            <apex:param value="{!budgetWrapper.getBudgetTotalGrossMargin}" />
+                        </apex:outputText>
+                    </td>
+                    <td colspan="2" class="dollarAmount" >
+                        <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                            <apex:param value="{!budgetWrapper.getForecastTotalGrossMargin}" />
+                        </apex:outputText>
+                    </td>
+                    <td colspan="2" class="dollarAmount" >
+                        <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                            <apex:param value="{!budgetWrapper.getWorkAtRiskTotalGrossMargin}" />
+                        </apex:outputText>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="border-right: 0px solid #fff !important;border-left: 0px solid #fff !important;border-top:0px solid #fff !important;border-bottom:0px solid #fff !important;" colspan="4" />
+                    <td class="rightBlue" >{!dLabel['DL370']}</td>
+                    <td colspan="2" class="dollarAmount" >
+                        <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                            <apex:param value="{!budgetWrapper.getBudgetTotalNetMargin}" />
+                        </apex:outputText>
+                    </td>
+                    <td colspan="2" class="dollarAmount" >
+                        <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                            <apex:param value="{!budgetWrapper.getForecastTotalNetMargin}" />
+                        </apex:outputText>
+                    </td>
+                    <td colspan="2" class="dollarAmount" >
+                        <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                            <apex:param value="{!budgetWrapper.getWorkAtRiskTotalNetMargin}" />
+                        </apex:outputText>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="border-right: 0px solid #fff !important;border-left: 0px solid #fff !important;border-top:0px solid #fff !important;border-bottom:0px solid #fff !important;" colspan="4" />
+                    <td class="rightBlue" >{!dLabel['DL371']}</td>
+                    <td colspan="2" class="percentAmount" >{!dLabel['DL372']}</td>
+                    <td colspan="2" class="percentAmount" >{!dLabel['DL373']}</td>
+                    <td colspan="2" class="percentAmount" >{!dLabel['DL374']}</td>
+                </tr>
+                <tr>
+                    <td style="border-right: 0px solid #fff !important;border-left: 0px solid #fff !important;border-top:0px solid #fff !important;border-bottom:0px solid #fff !important;" colspan="4" />
+                    <td class="rightBlue" >{!dLabel['DL375']}</td>
+                    <td colspan="2" class="percentAmount" >{!dLabel['DL376']}</td>
+                    <td colspan="2" class="percentAmount" >{!dLabel['DL377']}</td>
+                    <td colspan="2" class="percentAmount" >{!dLabel['DL378']}</td>
+                </tr>
+                </table>
+                </apex:form>
+            </apex:pageBlockSection>
+            
+			<apex:pageBlockSection id="projectInfo" title="{!dLabel['DL379']}" columns="2" collapsible="false" >
+				<apex:pageBlockSectionItem >
+					<apex:outputLabel value="{!dLabel['DL380']}" />
+					<apex:outputField value="{!theProject.BudgetStrategy__c}" />
+				</apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+					<apex:outputLabel value="{!dLabel['DL381']}" />
+					<apex:outputField value="{!theProject.BudgetStrategyRevenue__c}" />
+				</apex:pageBlockSectionItem>
+				<apex:pageBlockSectionItem >
+					<apex:outputPanel layout="inline" >
+						<apex:outputField value="{!theProject.BudgetOffline__c}" />
+						<apex:outputLabel value="{!dLabel['DL382']}" />
+					</apex:outputPanel>
+				</apex:pageBlockSectionItem>
+			</apex:pageBlockSection>
+			
+			<apex:pageBlockSection title="{!dLabel['DL383']}" collapsible="false" columns="1" id="escalationSection" >
+						<apex:pageBlockSectionItem >
+							<apex:outputLabel value="{!dLabel['DL384']}" />
+							<apex:outputField value="{!theProject.DefaultMarginType__c}" />
+						</apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem >
+						</apex:pageBlockSectionItem>
+						<apex:pageBlockSectionItem rendered="{!theProject.DefaultMarginType__c == 'Amount'}" >
+							<apex:outputLabel value="{!dLabel['DL385']}" />
+							<apex:outputField value="{!theProject.DefaultBillRate__c}" />
+						</apex:pageBlockSectionItem>
+						<apex:pageBlockSectionItem rendered="{!theProject.DefaultMarginType__c == 'Percent'}" >
+							<apex:outputLabel value="{!dLabel['DL386']}" />
+							<apex:outputField value="{!theProject.DefaultUpliftLabor__c}" />
+						</apex:pageBlockSectionItem>
+						<apex:pageBlockSectionItem rendered="{!theProject.DefaultMarginType__c == 'Percent'}" >
+							<apex:outputLabel value="{!dLabel['DL387']}" />
+							<apex:outputField value="{!theProject.DefaultUpliftSubs__c}" />
+						</apex:pageBlockSectionItem>
+						<apex:pageBlockSectionItem rendered="{!theProject.DefaultMarginType__c == 'Percent'}" >
+							<apex:outputLabel value="{!dLabel['DL388']}" />
+							<apex:outputField value="{!theProject.DefaultUpliftODCs__c}" />
+						</apex:pageBlockSectionItem>
+						<apex:pageBlockSectionItem >
+							<apex:outputLabel value="{!dLabel['DL389']}" />
+							<apex:outputField value="{!theProject.EscalationApplies__c}" />
+						</apex:pageBlockSectionItem>
+			</apex:pageBlockSection>
+			
+			<apex:pageBlockSection id="taskSection" columns="1" >
+                    	<apex:pageBlockSectionItem rendered="{!theProject.EscalationApplies__c}" >
+                            <apex:pageBlockTable value="{!tasks}" var="taskNumber" id="taskTable" >
+                                <apex:column >
+                                    <apex:facet name="header" >
+                                        {!dLabel['DL390']}
+                                    </apex:facet>
+                                    <apex:outputField value="{!tasks[taskNumber].ActivityDate}" />
+                                </apex:column>
+                                <apex:column >
+                                    <apex:facet name="header" >
+                                        {!dLabel['DL391']}
+                                    </apex:facet>
+                                    <apex:outputField value="{!tasks[taskNumber].Description}" />
+                                </apex:column>
+                                <apex:column >
+                                    <apex:facet name="header" >
+                                        {!dLabel['DL392']}
+                                    </apex:facet>
+                                    <apex:outputField value="{!tasks[taskNumber].OwnerId}" />
+                                </apex:column>
+                            </apex:pageBlockTable>
+                        </apex:pageBlockSectionItem>
+            </apex:pageBlockSection>
+            	
+            <apex:pageBlockSection title="{!dLabel['DL393']}" collapsible="false" columns="1" id="milestoneSection" >
+					<apex:pageBlockSectionItem >
+						<apex:outputLabel value="{!dLabel['DL394']}" for="paymentTerms" />
+						<apex:outputField value="{!theProject.PaymentTerms__c}" id="paymentTerms" />
+					</apex:pageBlockSectionItem>
+					<apex:pageBlockSectionItem >
+						<apex:outputLabel value="{!dLabel['DL395']}" />
+						<apex:outputField value="{!theProject.BillingStructure__c}" />
+					</apex:pageBlockSectionItem>
+                        <apex:pageBlockSection columns="1" rendered="{!theProject.BillingStructure__c == 'Progress'}" >
+                        	<apex:pageBlockSectionItem >
+                                <apex:outputLabel value="{!dLabel['DL396']}" />
+                                <apex:outputField value="{!theProject.MilestoneFrequency__c}" />
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="{!dLabel['DL397']}" />
+                                <apex:outputField value="{!theProject.pse__Start_Date__c}" />
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="{!dLabel['DL398']}" />
+                                <apex:outputField value="{!theProject.pse__End_Date__c}" />
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="{!dLabel['DL399']}" />
+                                <apex:outputField value="{!theProject.DateOfFirstInvoice__c}" />
+                            </apex:pageBlockSectionItem>
+                        </apex:pageBlockSection>
+					<apex:pageBlockSectionItem >
+                        	<apex:pageBlockTable value="{!milestones}" var="milestoneNumber" id="milestoneTable" >
+							<apex:column >
+								<apex:facet name="header" >
+									{!dLabel['DL400']}
+								</apex:facet>
+								<apex:outputField value="{!milestones[milestoneNumber].ExDate__c}" />
+							</apex:column>
+							<apex:column >
+								<apex:facet name="header" >
+									{!dLabel['DL401']}
+								</apex:facet>
+								<apex:outputField value="{!milestones[milestoneNumber].Description__c}" />
+							</apex:column>
+							<apex:column >
+								<apex:facet name="header" >
+									{!dLabel['DL402']}
+								</apex:facet>
+								<apex:outputField value="{!milestones[milestoneNumber].Amount__c}" />
+							</apex:column>
+						</apex:pageBlockTable>
+					</apex:pageBlockSectionItem>
+				</apex:pageBlockSection>
+				
+				<apex:pageBlockSection title="{!dLabel['DL403']}" collapsible="false" columns="1" >
+					<apex:pageBlockSectionItem id="relocSection" >
+                        	<apex:pageBlockTable value="{!relocs}" var="relocNumber" id="relocTable" >
+                                <apex:column >
+                                    <apex:facet name="header" >
+                                        {!dLabel['DL404']}
+                                    </apex:facet>
+                                    <apex:outputField value="{!relocs[relocNumber].Name__c}" />
+                                </apex:column>
+                                <apex:column >
+                                    <apex:facet name="header" >
+                                        {!dLabel['DL405']}
+                                    </apex:facet>
+                                    <apex:outputField value="{!relocs[relocNumber].HomeLocation__c}" />
+                                </apex:column>
+                                <apex:column >
+                                    <apex:facet name="header" >
+                                        {!dLabel['DL406']}
+                                    </apex:facet>
+                                    <apex:outputField value="{!relocs[relocNumber].SecondmentLocation__c}" />
+                                </apex:column>
+                                <apex:column >
+                                    <apex:facet name="header" >
+                                        {!dLabel['DL407']}
+                                    </apex:facet>
+                                    <apex:outputField value="{!relocs[relocNumber].EstimatedCost__c}" />
+                                </apex:column>
+                                <apex:column >
+                                    <apex:facet name="header" >
+                                        {!dLabel['DL408']}
+                                    </apex:facet>
+                                    <apex:repeat value="{!relocs[relocNumber].Attachments}" var="attach" >
+                                        <a href="/servlet/servlet.FileDownload?file={!attach.Id}" title="{!attach.Name}" >
+                                            <img src="PaperClip Icon" />
+                                        </a>
+                                    </apex:repeat>
+                                </apex:column>
+                            </apex:pageBlockTable>
+					</apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="{!dLabel['DL409']}" />
+                        <apex:outputField value="{!theProject.TotalEstSecondmentCost__c}" />
+                    </apex:pageBlockSectionItem>
+				</apex:pageBlockSection>
+				
+				
+				<apex:pageBlockSection title="{!dLabel['DL410']}" collapsible="false" columns="1" >
+				<div class="fileList" >
+					<apex:pageBlockTable value="{!AttachedBudgetQuestionnaireFiles}" var="attachedBudgetQuestionnaireFile" style="width: 825px;" rendered="{!IF(AttachedBudgetQuestionnaireFiles.size > 0, true, false)}" >
+						<apex:column headervalue="{!dLabel['DL411']}" >
+							<apex:outputLink value="{!URLFOR($Action.Attachment.Download, attachedBudgetQuestionnaireFile.Id)}" target="_blank" >
+								<apex:outputText value="{!attachedBudgetQuestionnaireFile.Name}" />
+							</apex:outputLink>
+						</apex:column>
+						<apex:column value="{!attachedBudgetQuestionnaireFile.ContentType}" />	
+						<apex:column value="{!attachedBudgetQuestionnaireFile.LastModifiedDate}" />	
+						<apex:column value="{!attachedBudgetQuestionnaireFile.LastModifiedById}" />
+					</apex:pageBlockTable>
+				</div>
+				<apex:outputText value="{!dLabel['DL412']}" rendered="{!IF(AttachedBudgetQuestionnaireFiles.size > 0, false, true)}" />			
+				</apex:pageBlockSection>
+				
+		</apex:pageBlock>
+
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

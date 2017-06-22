@@ -1,0 +1,7 @@
+<apex:page showHeader="true" sidebar="true">
+	<c:ECO_HelpText HelpID="Budget Help 1" />
+	<c:ECO_HelpText HelpID="HT0002" />
+	<c:ECO_HelpText HelpID="HT 0003" />
+
+	<c:ECO_HelpTextRender ready="1" />
+</apex:page>

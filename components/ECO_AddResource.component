@@ -1,0 +1,372 @@
+<apex:component controller="ECO_AddResourceController2" allowDML="true">
+    <apex:attribute name="parentCon" description="Parent Controller" type="IBudgetSave" required="true" assignTo="{!parentController}" />
+	<apex:attribute name="budgetHeader" description="The Budget Header ID" type="String" required="true" assignTo="{!budgetHeaderId}" />
+
+    <apex:attribute name="refreshPage" description="The refresh page" type="String" required="true" assignTo="{!refresh}" />
+
+    <apex:includeScript value="{!$Resource.ECO_jQuery_1_11_2_min_js}"/>
+    <apex:includeScript value="{!URLFOR($Resource.ECO_jQueryUI_1_11_2, 'jquery-ui.min.js')}" />
+
+    <apex:stylesheet value="{!URLFOR($Resource.ECO_jQueryUI_1_11_2_Themes, 'themes/smoothness/jquery-ui.css')}"/>
+
+    <script type="text/javascript">
+        $z = jQuery.noConflict();
+
+        function loading(val) {
+            if (val) {
+              document.getElementById('spinner1').style.display = 'block';
+            }
+            else {
+              document.getElementById('spinner1').style.display = 'none';
+            }
+          }
+
+        function clearAll() {
+            $z('.searchField').val('');
+        }  
+
+        function toggleAll(inx) {
+            $z('.check1').prop('checked', $z(inx).is(":checked"));
+        }
+
+        jQuery.fn.filterByText = function(textbox, selectSingleMatch) {
+          return this.each(function() {
+            var select = this;
+            var options = [];
+            $z(select).find('option').each(function() {
+              options.push({value: $z(this).val(), text: $z(this).text()});
+            });
+            $z(select).data('options', options);
+            $z(textbox).bind('change keyup', function() {
+              var options = $z(select).empty().scrollTop(0).data('options');
+              var search = $z.trim($z(this).val());
+              var regex = new RegExp(search,'gi');
+
+              $z.each(options, function(i) {
+                var option = options[i];
+                if(option.text.match(regex) !== null) {
+                  $z(select).append(
+                     $z('<option' + ' region="0101"' + '>').text(option.text).val(option.value)
+                  );
+                }
+              });
+              if (selectSingleMatch === true && 
+                  $z(select).children().length === 1) {
+                $z(select).children().get(0).selected = true;
+              }
+            });
+          });
+        };
+
+        $z(document).ready(function () {
+            $z('.tabsForResource').tabs();
+
+            jobNameJSON = {!jobNameJSON};
+
+            sel = $z('.jobNames');
+
+            for (var i = 0; i < jobNameJSON.length; i++) {
+                sel.append('<option value="' + jobNameJSON[i] + '">' + jobNameJSON[i] + '</option>');
+            }
+
+            $z('.jobNames').filterByText($z('.filterJobName'), true);
+
+            sel1 = $z('.jobNames option:selected');
+
+            $z('.filterJobName').keyup();
+
+            $z.each(sel1, function(i, e) {
+                $z('.jobNames option[value="' + $z(e).val() + '"]').prop('selected', true);
+            }); 
+           // populateJobNames();
+
+        });
+
+        function populateJobNames(json) {
+            //jobNameJSON = {!jobNameJSON};
+            jobNameJSON =  json;
+
+            sel = $z('.jobNames');
+
+            for (var i = 0; i < jobNameJSON.length; i++) {
+                sel.append('<option value="' + jobNameJSON[i] + '">' + jobNameJSON[i] + '</option>');
+            }
+
+            $z('.jobNames').filterByText($z('.filterJobName'), true);
+
+            sel1 = $z('.jobNames option:selected');
+
+            $z('.filterJobName').keyup();
+
+            $z.each(sel1, function(i, e) {
+                $z('.jobNames option[value="' + $z(e).val() + '"]').prop('selected', true);
+            }); 
+        }
+
+        function setupAddExisting() {
+        	var tmp = "";
+
+			$z('.check1:checked').next('.memberid').each(function() {
+				tmp += $z(this).html() + ",";
+			});
+
+			$z('.memberids').val(tmp);
+		}
+
+    </script>
+
+    <style>
+        .tabs { 
+            padding: 0px; 
+            background: none; 
+            border-width: 0px;
+        }
+
+        .ui-tabs-nav { 
+            padding-left: 0px; 
+            background: transparent; 
+            border-width: 0px 0px 1px 0px; 
+            -moz-border-radius: 0px; 
+            -webkit-border-radius: 0px; 
+            border-radius: 0px; 
+        } 
+
+        .ui-tabs-panel { 
+            background: #ffffff;
+            border-width: 0px 1px 1px 1px;
+        }
+
+        .tableClass {
+            background-color: black;
+            border-spacing: 1px;
+            border-collapse: inherit;
+        }
+
+        td.textCell {
+            background-color: white;
+        }
+
+        th.headerCell {
+            background-color: #f0f0f0;
+            text-align: center;
+            font-family: Arial, Helvetica;
+            font-size: 10pt;
+            font-weight: bold;
+        }
+    </style>
+
+    <apex:actionFunction name="populateOrganizationStrings" action="{!populateOrganizationStrings}" rerender="sl1,sl2" status="loading"/>
+    <apex:actionFunction name="findResource" action="{!findResource}" rerender="theTable" status="loading" />
+    <apex:actionStatus id="loading" onstart="loading(true)" onstop="loading(false)" />
+
+
+    	<apex:inputText value="{!memberids}" styleClass="memberids" style="display:none;" />
+
+        <span style="font-size:14pt;font-weight:bold;">{!$Label.ECO_Add_Resource_to_Budget}</span>
+
+        <div style="display:none; float: right;" id="spinner1">
+            <img height="15" width="15" class="spinner" src="{!$Resource.loading}" alt="loading" title="loading"/>
+        </div>
+
+        <div style="clear:both;"></div>
+
+        <div id="tabs" class="tabsForResource tabs" style="height:400px; margin-top:20px">
+            <ul class="ui-tabs-nav">
+                <li><a class="tabs-1" href="#tabs-1">{!$Label.Project_Team}</a></li>
+                <li><a class="tabs-2" href="#tabs-2">{!$Label.ECO_Find_Resource}</a></li>
+                <li><a class="tabs-3" href="#tabs-3">{!$Label.ECO_Create_Generic_From_Title}</a></li>
+                <li><a class="tabs-4" href="#tabs-4">{!$Label.ECO_Create_Generic}</a></li>
+            </ul>
+            
+            <div id="tabs-1" class="ui-tabs-panel">
+                <div style="height:325px;">
+                    <table class="tableClass" cellspacing="1" cellpadding="5" border="0" width="550" style="table-layout:fixed;">
+                        <tr>
+                            <th class="headerCell" style="width: 25px;"><apex:inputCheckbox onclick="toggleAll(this);" /></th>
+                            <th class="headerCell">{!$Label.ECO_Name}</th>
+                            <th class="headerCell">{!$Label.ECO_Role}</th>
+                            <th class="headerCell" style="width: 75px;">{!$Label.Start_Date}</th>
+                            <th class="headerCell" style="width: 75px;">{!$Label.End_Date_Field_Label}</th>
+                        </tr>
+                    </table>
+
+                    <div style="height:280px; overflow:scroll;">
+                        <table class="tableClass" cellspacing="1" cellpadding="5" border="0" width="550" style="table-layout:fixed;">
+                            <apex:repeat value="{!memberList}" var="member">
+                                <tr>
+                                    <td class="textCell" style="width: 25px; text-align: center;">
+                                    	<apex:inputCheckbox styleClass="check1" />
+
+                                    	<div style="display:none;" class="memberid">{!member.id}</div>
+                                    </td>
+
+                                    <td class="textCell">
+                                        <!-- <apex:outputLink value="/{!member.id}" target="_blank"> -->
+                                            <apex:outputText value="{!member.name}" />
+                                        <!-- </apex:outputLink> -->
+                                    </td>
+                                    <td class="textCell"><apex:outputText value="{!member.ProjectRole__r.name}" /></td>
+                                    
+                                    <td class="textCell" style="width: 75px;">
+                                        <apex:outputText value="{0,date,MM'/'dd'/'yyyy}">
+                                            <apex:param value="{!member.StartDate__c}" />
+                                        </apex:outputText>
+                                    </td>
+                                    
+                                    <td class="textCell" style="width: 75px;">
+                                        <apex:outputText value="{0,date,MM'/'dd'/'yyyy}">
+                                            <apex:param value="{!member.EndDate__c}" />
+                                        </apex:outputText>
+                                    </td>
+                                </tr>
+                            </apex:repeat>                    
+                        </table>
+                    </div>
+                </div>
+
+                <div style="float: right;">
+                    <apex:commandButton action="{!addExistingResource}" value="{!$Label.ECO_Add_Resources}"  status="loading" onclick="setupAddExisting(); return disableButtonsNoSave();" style="font-size:11px !important; font-family: Arial;" styleClass="addResourceBtn" />
+                    
+                    <apex:commandButton value="{!$Label.ECOCancel}" onclick="closeModal('modalDialog0');return false;" style="font-size:11px !important; font-family: Arial;" />
+                </div>
+
+                <div style="clear: both;"></div>
+            </div>
+
+            <div id="tabs-2" class="ui-tabs-panel">
+                <div style="height:325px;">
+                    <table border="0" cellspacing="2" cellpadding="3">
+                        <tr>
+                            <td style="text-align:right;">{!$Label.First_Name}:</td>
+                            <td><apex:inputText value="{!searchFirstName}" styleClass="searchField" /></td>
+
+                            <td style="text-align:right; padding-left:75px;">{!$Label.Last_Name}:</td>
+                            <td><apex:inputText value="{!searchLastName}" styleClass="searchField" /></td>
+                        </tr>
+
+                        <tr>
+                            <td style="text-align:right;">{!$Label.ECO_Phone}:</td>
+                            <td><apex:inputText value="{!searchPhone}" styleClass="searchField" /></td>
+
+                            <td style="text-align:right; padding-left:75px;">{!$Label.ECO_Email}:</td>
+                            <td><apex:inputText value="{!searchEmail}" styleClass="searchField" /></td>
+                        </tr>
+
+                        <tr>
+                            <td colspan="4" style="text-align: center; padding-top:10px;">
+                                <apex:commandButton onclick="findResource(); return false;" value="{!$Label.ECOSearch}" style="font-size:11px !important; font-family: Arial;"/>
+                                <apex:commandButton onclick="clearAll(); findResource(); return false;" value="{!$Label.ECO_Reset}" style="font-size:11px !important; font-family: Arial;"/>
+                            </td>
+                        </tr>
+                    </table>
+
+                    <br/>
+
+                    <apex:outputPanel id="theTable">
+                    <div style="height:180px; overflow:scroll;">
+                        <table class="tableClass" cellspacing="1" cellpadding="5" border="0" width="550">
+                            <tr>
+                                <th class="headerCell">&nbsp;</th>
+                                <th class="headerCell">{!$Label.First_Name}</th>
+                                <th class="headerCell">{!$Label.Last_Name}</th>
+                                <th class="headerCell">{!$Label.ECO_Phone}</th>
+                                <th class="headerCell">{!$Label.ECO_Email}</th>
+                            </tr>
+
+                            <apex:repeat value="{!contacts}" var="contact">
+                                <tr>
+                                    <td class="textCell">
+                                    	<!--apex:outputLink value="/apex/ECO_AddFoundResource?id={!budgetHeaderId}&amp;cid={!contact.id}" onclick="var retval; if(retval=disableButtons()) saveBudget(); return retval;">Add</apex:outputLink-->
+                                        <apex:commandLink onclick="closeModal('modalDialog0');return disableButtonsNoSave();" action="{!addNew}" value="{!$Label.Add}">
+                                            <apex:param assignTo="{!contactId}" name="contactId" value="{!contact.id}" />
+                                        </apex:commandLink>
+                                    </td>
+                                    <td class="textCell"><apex:outputField value="{!contact.firstname}" /></td>
+                                    <td class="textCell"><apex:outputField value="{!contact.lastname}" /></td>
+                                    <td class="textCell"><apex:outputField value="{!contact.phone}" /></td>
+                                    <td class="textCell"><apex:outputField value="{!contact.email}" /></td>
+                                </tr>
+                            </apex:repeat>                    
+                        </table>
+                    </div>
+                    </apex:outputPanel>
+                </div>
+
+                <div style="float: right;">                    
+                    <apex:commandButton value="{!$Label.ECOCancel}" onclick="closeModal('modalDialog0');return false;" style="font-size:11px !important; font-family: Arial;" />
+                </div>
+
+                <div style="clear: both;"></div>
+            </div>
+
+            <div id="tabs-3" class="ui-tabs-panel">
+                <apex:actionStatus id="updateJobs">  
+                <apex:facet name="stop">          
+                <apex:outputPanel >
+                  
+                <div style="height:325px;">
+
+
+                    <apex:selectList id="sl1" value="{!businessLineSelection}" style="width:550px;" multiselect="false" size="1" >
+                        <apex:actionSupport event="onchange" action="{!populateJobNameChoices}" oncomplete="populateJobNames({!jobNameJSON});" reRender="jobNamePanel" status="updateJobs"/>
+                        <apex:selectOptions value="{!businessLineChoices}" />
+                    </apex:selectList>
+
+                    <br /><br />
+
+                    <apex:selectList id="sl2" value="{!regionSelection}" style="width:550px;" multiselect="false" size="1" >
+                        <apex:actionSupport event="onchange" action="{!populateJobNameChoices}" oncomplete="populateJobNames({!jobNameJSON});" reRender="jobNamePanel" status="updateJobs"/>
+                        <apex:selectOptions value="{!regionChoices}" />
+                    </apex:selectList>
+
+                    <br /><br />
+
+                    <apex:inputText html-placeholder="{!$Label.ECO_filter_job_name}" size="50" style="width:550px;" styleClass="filterJobName"></apex:inputText>
+
+                    <br /><br />
+
+                    <apex:inputText value="{!jobNameSelections}" style="display:none;" styleClass="jobNameSelection" />
+
+                   <apex:outputPanel id="jobNamePanel">
+
+                    <select multiselect="false" size="10" style="width:550px;" class="jobNames" onchange="$z('.jobNameSelection').val($z(this).val());">  <!--populateOrganizationStrings();-->
+                    </select>
+
+                <div style="float: right;">
+                    <apex:commandButton value="{!$Label.ECO_Add_Resource}" status="loading" onclick="return disableButtonsNoSave()" action="{!addGenericResourceTitle}" style="font-size:11px !important; font-family: Arial;" styleClass="addResourceBtn" disabled="{!isNoJobs}" />
+                    
+                    <apex:commandButton value="{!$Label.ECOCancel}" onclick="closeModal('modalDialog0');return false;" style="font-size:11px !important; font-family: Arial;" />
+                </div>
+
+
+                    </apex:outputPanel>
+
+
+                </div>
+
+                   </apex:outputPanel>
+                   </apex:facet>
+                   <apex:facet name="start">
+                     <apex:outputPanel >                        
+                        <p style="padding-bottom:20px;padding-left: 220px" class="searchText" ><img style="position:relative;top:12px;" src="/img/loading32.gif" /> {!$Label.updating}</p>
+                     </apex:outputPanel>
+                   </apex:facet>
+                </apex:actionStatus>  
+                <div style="clear: both;"></div>
+            </div>
+
+
+
+
+            <div id="tabs-4" class="ui-tabs-panel">
+                <div style="float: right;">
+                    <apex:commandButton action="{!addGenericResource}" value="{!$Label.ECO_Add_Resource}" status="loading" onclick="return disableButtonsNoSave()" style="font-size:11px !important; font-family: Arial;" styleClass="addResourceBtn"/>
+                    
+                    <apex:commandButton value="{!$Label.ECOCancel}" onclick="closeModal('modalDialog0');return false;" style="font-size:11px !important; font-family: Arial;" />
+                </div>
+
+                <div style="clear: both;"></div>
+            </div>
+
+        </div>
+</apex:component>

@@ -1,0 +1,7 @@
+<apex:page standardController="pse__Assignment__c" >
+  <BR></BR>
+  &nbsp;&nbsp;<img src="/img/icon/form32.png" alt=" "/> 
+  <h1><font size="3">Creating Assignments</font></h1>
+  <BR></BR>
+  <BR>&nbsp;&nbsp;New assignments must be created from a resource request or project.</BR>
+</apex:page>

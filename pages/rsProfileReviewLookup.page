@@ -1,0 +1,40 @@
+<apex:page controller="rsProfileReviewLookupController" showHeader="false" sidebar="false" docType="html-5.0" >
+    <apex:form >
+        <apex:pageBlock title="Assign Profile Review Lookup">
+        <apex:pageMessages escape="false" />
+        <apex:pageBlockButtons location="top">
+                <apex:actionStatus id="profileRefreshStatus">
+                    <apex:facet name="start">
+                        <apex:outputPanel >
+                            <apex:commandButton value="{!$Label.Refresh_Results}" disabled="true" />
+                            <apex:image value="/img/loading.gif"/>
+                        </apex:outputPanel>
+                    </apex:facet>
+                    <apex:facet name="stop">
+                        <apex:commandButton value="{!$Label.Refresh_Results}" action="{!refreshResults}" status="profileRefreshStatus" />
+                    </apex:facet>
+                </apex:actionStatus>
+            </apex:pageBlockButtons>
+            <apex:pageBlockSection >
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel for="searchNamein" value="{!$ObjectType['User'].fields['Name'].Label}"  />
+                    <apex:inputText id="searchNamein" value="{!SearchName}" />
+                </apex:pageBlockSectionItem>
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+
+        <apex:pageBlock rendered="{!UserResults.size > 0}" title="Results">
+            <apex:pageBlockTable value="{!UserResults}" var="currUser" >
+                <apex:column >
+                    <apex:facet name="header">
+                        <apex:outputText value="User Name" />
+                    </apex:facet>
+                    <apex:outputLink value="javascript:top.window.opener.lookupPick2('{!FormTag}','{!TextBox}_lkid','{!TextBox}','{!currUser.Id}','{!JSENCODE(currUser.Name)}', false)" >{!currUser.Name}</apex:outputLink>
+                </apex:column>
+            </apex:pageBlockTable>
+        </apex:pageBlock>
+        <apex:pageBlock rendered="{!UserResults.size < 1}" >
+            <apex:outputLabel value="{!$Label.No_Records_To_Display}" />
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

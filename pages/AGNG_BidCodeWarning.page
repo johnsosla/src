@@ -1,0 +1,17 @@
+<apex:page standardController="Go_No_Go_Conversation__c">
+	<style>
+		  .SecondHeader{
+			font-size: 25px;
+			background-color:#FC4153;
+			width:100%
+		  }
+		  .SecondHeader_Green {
+			font-size: 25px;
+			background-color:#54FF79;
+			width:100%
+		  }
+		</style>
+	<div class="{!IF(Go_No_Go_Conversation__c.RecordType.DeveloperName == 'Bid_Code_Warning', 'SecondHeader', 'SecondHeader_Green')}">
+		<apex:outputField value="{!Go_No_Go_Conversation__c.AGNG_Bid_Code_Message__c}"/>
+	</div>
+</apex:page>

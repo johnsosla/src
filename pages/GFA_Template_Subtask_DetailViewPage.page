@@ -1,0 +1,124 @@
+<apex:page standardController="GFA_Template_Subtask__c" extensions="GFA_TemplateSubtask_DetailController">
+<!-- <apex:stylesheet value="{!URLFOR($Resource.GFA, 'bootstrap/css/bootstrap.min.css')}"/> -->
+<apex:stylesheet value="{!URLFOR($Resource.GFA, 'bootstrap/css/bootstrap.css')}"/>
+<apex:stylesheet value="{!URLFOR($Resource.GFA, 'custom/css/GFA_app.css')}"/>
+<apex:stylesheet value="{!URLFOR($Resource.GFA, 'font-awesome/css/font-awesome.min.css')}"/>
+<apex:stylesheet value="{!URLFOR($Resource.GFA, 'custom/css/GFA_app2.css')}"/>
+
+<script src="{!URLFOR($Resource.GFA, 'jQuery/jquery-1.12.1.min.js')}" type="text/javascript" charset="utf-8"></script>
+<script src="{!URLFOR($Resource.GFA, 'bootstrap/js/bootstrap.min.js')}" type="text/javascript" charset="utf-8"></script>
+<script src="{!URLFOR($Resource.GFA, 'custom/js/GFA_app.js')}" type="text/javascript" charset="utf-8"></script>
+<div class="GFA">
+
+<div class="bPageTitle">
+    <div class="ptBody">
+        <div class="content">
+            <img src="/s.gif" alt="Template Subtask" class="pageTitleIcon" title="Template Subtask"/>
+            <h1 class="pageType">Template Subtask Detail for<span class="titleSeparatingColon">: </span></h1>
+            <h2 class="pageDescription">{!ts.LibrarySubtaskName}</h2>
+            <h4><a href="/apex/GFA_TemplateFramework?id={!template.Id}">{!template.TemplateName}</a> / {!phase.LibraryPhaseName} / <a href="/apex/GFA_TemplateTaskDetail?id={!task.Id}"> {!task.LibraryTaskName}</a></h4><br/>
+            <div class="blank">&nbsp;</div>
+        </div>
+    </div>
+</div>
+
+<div class="pageContainer">
+    <apex:form id="form">
+        <div class="centerButtonsGroup p10">
+            <apex:actionStatus id="actionButtonsStatus" rendered="{!CanEdit}">
+                <apex:facet name="stop">
+                    <apex:outputPanel id="btnPanel">
+                        <apex:commandButton value="Edit" action="/apex/GFA_Template_Subtask_DetailEditPage?id={!ts.Id}" styleClass="mainButton"/>
+                        <apex:commandButton value="Delete" action="{!deleteSubtask}" styleClass="mainButton" reRender="form" onclick="if(!confirmDeletePart('template subtask')) return false;"/>
+                    </apex:outputPanel>
+                </apex:facet>
+                <apex:facet name="start">
+                    <apex:image styleClass="actionButtonSpinner" value="/img/loading.gif"/>
+                </apex:facet>
+            </apex:actionStatus>
+       </div>
+
+        <apex:outputPanel id="templateSubtask">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Template Subtask Detail</h3>
+                </div>
+                <div class="panel-body">
+                     <table class="table">
+                        <tr>
+                            <td>
+                                <label>Subtask Name:</label>
+                            </td>
+                            <td>
+                                <apex:outputText value="{!libSubtaskVersion.LibrarySubtaskName}" />
+                            </td>
+                            <td>
+                                <label>Scope of Service:</label>
+                            </td>
+                            <td>
+                                <apex:outputText value="{!libSubtaskVersion.ScopeofService}" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <label>Description:</label>
+                            </td>
+                            <td>
+                                <apex:outputText value="{!libSubtaskVersion.Description}" />
+                            </td>
+                            <td>
+                                <label>Impact Level:</label>
+                            </td>
+                            <td>
+                                <apex:outputText value="{!libSubtaskVersion.ImpactLevel}" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <label>Sequence:</label>
+                            </td>
+                            <td>
+                                <apex:outputText value="{!ts.Sequence}" />
+                            </td>
+                            <td>
+                                <label>Risk Level:</label>
+                            </td>
+                            <td>
+                                <apex:outputText value="{!libSubtaskVersion.RiskLevel}" />
+                            </td>
+                        </tr>
+                         <tr>
+                            <td colspan="2"/>
+                            <td>
+                                <label>Discipline:</label>
+                            </td>
+                            <td>
+                                <apex:outputText value="{!libSubtaskVersion.Discipline}" />
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Documentation</h3>
+                </div>
+                <div class="panel-body">
+                    <table class="table">
+                        <apex:repeat var="document" value="{!libSubtaskVersion.LibrarySubtaskContents}">
+                            <tr>
+                                <td>
+                                    <a href="{!document.Link}" target="_blank">{!document.Name}</a>
+                                </td>
+                            </tr>
+                         </apex:repeat>
+                    </table>
+                </div>
+            </div>
+        </apex:outputPanel>
+
+    </apex:form>
+</div>
+
+</div>
+</apex:page>

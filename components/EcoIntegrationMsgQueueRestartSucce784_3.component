@@ -1,0 +1,10 @@
+<apex:component language="{!theLanguage}" controller="nttdcore.DLabelChildController" access="global" ><nttdcore:DLabel name="DL1" default="The subject project has been successfully restarted.
+    
+    Project Name: {{1}}  
+    Project Number: {{2}}  
+    Change Request Number: {{3}}  
+    Submitted for Sync on: {{4}}  
+    
+    Click here to access the Project: {{5}}" labelParent="{!this}" componentContext="EcoIntegrationMsgQueueRestartSucce784_3" p1="{!theRelatedTo.ProjectName__c}" p2="{!theRelatedTo.ProjectNumber__c}" p3="{!theRelatedTo.ChangeRequestNumber__c}" p4="{!theRelatedTo.CreatedDate}" p5="{!theRelatedTo.ProjectLink__c}" /><apex:attribute name="theLanguage" type="String" required="true" description="language" access="global" /><apex:attribute name="theRecipient" type="Contact" required="true" description="recipient" access="global" /><apex:attribute name="theRelatedTo" type="IntegrationMessageQueue__c" required="true" description="related to" access="global" />
+    {!dlRoot.dLabel['DL1']}
+<nttdcore:DLabelInit language="{!theLanguage}" labelParentInit="{!this}" /></apex:component>

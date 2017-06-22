@@ -1,0 +1,31 @@
+<apex:component language="{!theLanguage}" controller="nttdcore.DLabelChildController" access="global" ><nttdcore:DLabel name="DL1" default="{{1}} has submitted a change request for {{2}}. Please review and approve the below.
+
+        Impacted Changes:
+        
+        Task: {{3}} 
+        Task Comments: {{4}}
+        
+        Budget {{5}}
+        Budget Comments: {{6}}
+        
+        Customers: {{7}}
+        Customer Comments:{{8}}
+        
+        Agreements: {{9}}
+        Agreement Comments: {{10}}
+        
+        Classifications: {{11}}
+        Classification Comments: {{12}}
+        
+        Key Members: {{13}}
+        Key Member Comments {{14}}
+        
+        Please approve or reject this item via clicking on the link below or replying to this email with the words 'approve • approved • yes • reject • rejected • no'. Any additional comments to be recorded can be added in a second line of the email reply.
+        
+        
+        Approval Link:" labelParent="{!this}" componentContext="EcoCMAllChanges_VF_3" p1="{!theRelatedTo.LastModifiedBy.Name}" p2="{!theRelatedTo.ProjectLongName__c}" p3="{!theRelatedTo.StringInt_Ext_Schedule__c}" p4="{!theRelatedTo.IntExtProjectTasksComments__c}" p5="{!theRelatedTo.StringInt_Ext_Budget_Change__c}" p6="{!theRelatedTo.IntExtBudgetComments__c}" p7="{!theRelatedTo.StringInt_Ext_Customers__c}" p8="{!theRelatedTo.IntExtContractManagementComments__c}" p9="{!theRelatedTo.StringInt_Ext_Contract_Management__c}" p10="{!theRelatedTo.IntExtContractManagementComments__c}" p11="{!theRelatedTo.StringIntExtClassifications__c}" p12="{!theRelatedTo.IntExtClassificationsComments__c}" p13="{!theRelatedTo.StringInt_Ext_Key_Members__c}" p14="{!theRelatedTo.IntExtKeyMembersComments__c}" /><nttdcore:DLabel name="DL2" default="Project Link: {{1}}" labelParent="{!this}" componentContext="EcoCMAllChanges_VF_3" p1="{!theRelatedTo.ProjectLink__c}" /><apex:attribute name="theLanguage" type="String" required="true" description="language" access="global" /><apex:attribute name="theRecipient" type="User" required="true" description="recipient" access="global" /><apex:attribute name="theRelatedTo" type="ChangeManager__c" required="true" description="related to" access="global" />
+    
+        {!dlRoot.dLabel['DL1']} <c:ECO_ApprovalRequestURL relatedtoid="{!theRelatedTo.Id}" texttype="PlainText" />
+        {!dlRoot.dLabel['DL2']}
+        
+    <nttdcore:DLabelInit language="{!theLanguage}" labelParentInit="{!this}" /></apex:component>

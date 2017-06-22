@@ -1,0 +1,5 @@
+<apex:component controller="ECO_ApprovalCommentsApproverController" access="global">
+     <apex:attribute name="relatedToId" assignTo="{!objId}" type="String" description="ID of the record whose last approval comments to retrieve"/>
+     <apex:attribute name="status" assignTo="{!StepStatusMessage}" type="String" description="Status of the record whose last approval comments to retrieve"/>
+    <apex:outputText value="{!getApproverName}"/>
+</apex:component>

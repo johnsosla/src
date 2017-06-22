@@ -1,0 +1,94 @@
+<apex:page showheader="fasle" sidebar="false" standardcontroller="OracleFile__c" extensions="ECO_OracleFileViewerController,nttdcore.DLabelParentController" action="{!init}" >
+	
+	<script type="text/javascript" >
+	window.onload = function() {
+		if('{!renderPage}' != 'true')
+		{
+			openModal('modalDialogOracleLogin');
+			return false;
+		}
+	}
+
+	function closeAuthenticationModal(){
+        closeModal('modalDialogOracleLogin');
+        closeAuthenticationWindow();
+        return true;
+    }
+
+    function cancelModal(dialogWindow)
+    {
+        closeModal(dialogWindow);  
+        returnToProject();
+    }
+
+    function authenticate()
+    {
+        authenticateCredentials($x('[id$=username]').val(), $x('[id$=password]').val());
+    }
+	</script>
+
+	<apex:form ><nttdcore:DLabel name="DL12" default="Closing..." labelParent="{!this}" />
+			<apex:outputPanel style="display:none" >
+				<apex:outputField value="{!OracleFile__c.Project__c}" />
+				<apex:outputField value="{!OracleFile__c.FileId__c}" />
+			</apex:outputPanel>
+ 		
+		<apex:actionFunction id="returnToProject" name="returnToProject" action="{!returnToProject}" />
+		<c:ECO_ModalDialog width="350" padding="0px 0px 0px 0px" name="modalDialogOracleLogin" >
+            <nttdcore:DLabel name="DL1" default="Oracle Authentication" labelParent="{!this}" /><apex:pageBlock title="{!dLabel['DL1']}" ><nttdcore:DLabel name="DL11" default="Authenticating..." labelParent="{!this}" />
+	            <div>
+	                <apex:outputText ><nttdcore:DLabel name="DL2" default="Your Oracle security token has expired - please enter your Oracle credentials below to renew the token" labelParent="{!this}" />{!dLabel['DL2']}</apex:outputText>
+	            <br/><br/>
+	            </div>
+	            <div align="center" >
+	            <nttdcore:DLabel name="DL3" default="Oracle Username:" labelParent="{!this}" /><apex:outputText style="font-weight:bold" value="{!dLabel['DL3']}" />
+	            <nttdcore:DLabel name="DL4" default="Username:" labelParent="{!this}" /><apex:inputText label="{!dLabel['DL4']}" value="{!OracleUserName}" id="username" /><br/>
+	            <nttdcore:DLabel name="DL5" default="Oracle Password:" labelParent="{!this}" /><apex:outputText style="font-weight:bold" value="{!dLabel['DL5']}" />
+	            <nttdcore:DLabel name="DL6" default="Password" labelParent="{!this}" /><apex:inputSecret label="{!dLabel['DL6']}" value="{!OraclePassword}" id="password" /><br/><br/>
+	            </div>
+
+	            <apex:outputPanel id="btn1" >
+	                <apex:outputPanel rendered="{!authenticationResult != 'SUCCESS'}" >
+	                    <div align="center" >
+	                        <apex:outputPanel layout="inline" styleclass="btn" onclick="authenticate()" ><nttdcore:DLabel name="DL7" default="Login" labelParent="{!this}" />{!dLabel['DL7']}</apex:outputPanel>
+	                        <apex:outputPanel layout="inline" styleclass="btn" onclick="cancelModal('modalDialogOracleLogin')" ><nttdcore:DLabel name="DL8" default="Cancel" labelParent="{!this}" />{!dLabel['DL8']}</apex:outputPanel>
+	                    </div>
+	                </apex:outputPanel>
+	            </apex:outputPanel>
+
+	            <apex:outputPanel id="btn2" >
+	                <apex:outputPanel rendered="{!authenticationResult == 'SUCCESS'}" >
+	                    <div align="center" >
+	                        <apex:outputPanel layout="inline" styleclass="btn" onclick="closeAuthenticationModal()" ><nttdcore:DLabel name="DL9" default="Close" labelParent="{!this}" />{!dLabel['DL9']}</apex:outputPanel>
+	                    </div>
+	                </apex:outputPanel>
+	            </apex:outputPanel>
+
+	            <apex:outputPanel id="result" >
+	                <apex:outputPanel rendered="{!authenticationResult != null}" ><br/>
+	                    <b><nttdcore:DLabel name="DL10" default="Result:" labelParent="{!this}" />{!dLabel['DL10']} </b><apex:outputText value="{!authenticationResult}" id="authenticationResult" />
+	                </apex:outputPanel>
+	            </apex:outputPanel>
+
+	            <apex:actionStatus id="queryStatus" >
+	                <apex:facet name="start" >
+	                    <p style="padding-bottom:20px;text-align:center;" class="searchText" ><img style="position:relative;top:24px;" src="/img/loading32.gif" /> {!dLabel['DL11']}</p>
+	                </apex:facet>
+	            </apex:actionStatus>
+            </apex:pageBlock>
+        </c:ECO_ModalDialog> 
+
+        <apex:actionFunction name="authenticateCredentials" action="{!authenticateCredentials}" rerender="result, btn1, btn2" status="queryStatus" immediate="true" >
+            <apex:param name="username" value="" />
+            <apex:param name="password" value="" />
+        </apex:actionFunction>
+
+        <apex:actionStatus id="closeAuthentication" >
+            <apex:facet name="start" >
+                <p style="padding-bottom:20px;text-align:center;" class="searchText" ><img style="position:relative;top:24px;" src="/img/loading32.gif" /> {!dLabel['DL12']}</p>
+            </apex:facet>
+        </apex:actionStatus>
+
+        <apex:actionFunction name="closeAuthenticationWindow" action="{!closeAuthenticationWindow}" status="closeAuthentication" immediate="true" />   
+	</apex:form>
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

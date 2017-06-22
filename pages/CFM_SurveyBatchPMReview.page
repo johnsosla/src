@@ -1,0 +1,400 @@
+<apex:page standardController="CFM_Survey_Project_Review__c" extensions="CFM_SurveyBatchPMReviewController" showHeader="true" sidebar="false" standardStylesheets="true" applyBodyTag="true" applyHtmlTag="true" docType="html-5.0">
+
+<link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css" />
+<script src="//code.jquery.com/jquery-1.10.2.js"></script>
+<script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+
+
+<script type="text/javascript">
+
+
+  $(function() {
+    $("#rejectionReason").change(function() {
+      var value = $("#rejectionReason").val();
+
+      if (value.toLowerCase().indexOf("other") > -1) {
+        $("#otherRationalePanel").css("display", "block");
+      }
+      else {
+        $("#otherRationalePanel").css("display", "none");
+      }
+    });
+  });
+
+  function promptRejectionReason(evt, surveyProjectId) {
+    if (evt.preventDefault) evt.preventDefault();
+    evt.returnValue = false;
+
+    window.currentSurveyProjectId = surveyProjectId;
+
+    $("#otherRationalePanel").css("display", "none");
+    $("#rejectionReason").val("");
+    $("#otherRationale").val("");
+
+
+    $("#dialog").dialog({
+      modal: true,
+      width: 400,
+    });
+  }
+
+  function submitRejection() {
+      var rejectionReason = $("#rejectionReason").val();
+      var otherRationale = $("#otherRationale").val();
+
+      if (!rejectionReason) {
+        alert("Please enter a rejection reason");
+        return;
+      }
+
+      if (rejectionReason.toLowerCase().indexOf("other") > -1) {
+        if (!otherRationale) {
+          alert("Please enter an 'Other' rationale");
+          return;
+        }
+      }
+
+      $("#dialog").dialog("close");
+
+      $("#rejectionReason").val("");
+      $("#otherRationale").val("");
+
+      rejectAction(window.currentSurveyProjectId, rejectionReason, otherRationale);
+  }
+
+  function openContactEditWindow(evt, projectId) {
+    if (evt.preventDefault) evt.preventDefault();
+    evt.returnValue = false;
+
+    window.open ("/apex/CFM_ProjectContactEdit?id=" + projectId,"contactWindow","resizable=1,scrollbars=1,width=600,height=600");
+  }
+</script>
+
+<style>
+    .pageTitle {
+        padding: 10px; 
+        display: block;
+        font-size: 15px;
+    }
+    .pmReviewPage .styledButton, .rejectionDialog .styledButton  {
+        padding: 5px 20px;
+        font-size: 12px;
+        color: white;
+        background: #1E9EAF;
+        border-radius: 6px;
+        font-weight: normal;
+        margin-top: 10px;
+        margin-left: auto; /*Center the button*/
+        margin-right: auto;
+        display: block;
+    }
+
+    .styledButton:hover {
+      background: #3FCFBF;
+    }
+
+    .projectTable {
+        border: 1px #1E9EAF solid !important;
+        border-top-left-radius: 4px;
+        border-top-right-radius: 4px;
+    }
+    .projectTable th {
+        background: #1E9EAF !important;
+    }
+    .projectTable th div {
+        color: white;
+    }
+    .projectTable tr:first-child {
+        border-top-left-radius: 4px;
+    }
+    .projectTable tr:last-child {
+        border-top-right-radius: 4px;
+    }
+    .projectTable tr:nth-child(even) {
+        background-color: #F0F0F0;
+    }
+    .actionStepText {
+        padding-left: 5px;
+        padding-bottom: 10px;
+    }
+
+    .centeredIcon {
+      margin-left: auto;
+      margin-right: auto;
+      display: block;
+    }
+
+    /*Salesforce Overrides*/
+    .pbHeader {
+        background-color: #1E9EAF !important;
+    }
+    .mainTitle {
+        color: white !important;
+    }
+    .secondaryPalette {
+        border-color: #1E9EAF !important;
+    }
+
+    .hiddenPageBlock .bPageBlock {
+        visibility: hidden;
+    }
+    .hiddenPageBlock .pbBody {
+        visibility: visible;
+        margin: 0 !important;
+    }
+    .pageTitleIcon {
+      background-image: none !important;
+    }
+
+    .ui-dialog-titlebar {
+      color: white;
+      background: #1E9EAF;
+      background-image: none;
+    }
+
+    .brandSecondaryBrd {
+      border-color: #1E9EAF !important;
+    }
+
+    .ui-widget-header {
+        border: 0 !important;
+    }
+
+</style>
+
+<div id="dialog" class="rejectionDialog" title="{!$Label.CFM_Rejection_Rationale}" style="display: none">
+    <p>
+      {!$Label.CFM_Project_Reason_Reject}:
+    </p>
+
+      <!-- {!$Component.rejectionList} -->
+      <select id="rejectionReason" size="1">
+        <apex:repeat value="{!rejectionReasons}" var="reason">
+          <option value="{!reason.value}">{!reason.label}</option>
+        </apex:repeat>
+      </select>
+
+      <br/>
+
+      <div id="otherRationalePanel" style="display: none; margin-top: 10px">
+        <label for="name">{!$Label.CFM_Project_Reject_Other}:</label>
+
+        <br/><br/>
+
+        <input type="text" name="otherRationale" id="otherRationale" class="text ui-widget-content ui-corner-all" style="width: 80%" />
+
+        <br/>
+
+        <p><i>{!$Label.CFM_Reject_Approval_Part_1}</i> {!$Label.CFM_Reject_Approval_Part_2} </p>
+
+      </div>
+
+      <button type="button" onclick="submitRejection();" class="styledButton" >{!$Label.CFM_REJECT}</button>
+
+</div>
+
+
+<apex:form styleClass="pmReviewPage" id="mainForm">
+
+    <apex:actionFunction action="{!rejectAction}" name="rejectAction"  rerender="mainForm">
+        <apex:param name="surveyProjectId" assignTo="{!surveyProjectId}" value="" />
+        <apex:param name="rejectReason" assignTo="{!rejectReason}" value="" />
+        <apex:param name="otherRejectReason" assignTo="{!otherRejectReason}" value="" />
+    </apex:actionFunction>
+
+    <div class="bPageTitle">
+        <div class="ptBody">
+            <div class="content">
+                <apex:image url="{!URLFOR($Resource.CFM_Images, 'Survey_Icon.png')}" styleClass="pageTitleIcon" />
+                <h1 class="pageType">{!$Label.CFM_Project_Surveys}<span class="titleSeparatingColon">:</span></h1>
+                <h2 class="pageDescription"> {!$Label.CFM_Review_Projects}</h2>
+                <div class="blank">&nbsp;</div>
+            </div>
+        </div>
+    </div>
+
+     <apex:pageMessages />
+
+    <apex:pageBlock title="{!$Label.CFM_Transactional_Client_Surveys}">
+        <apex:pageBlockSection >
+            <apex:outputField value="{!surveyBatch.obj.Name}"/>
+            <apex:outputField value="{!surveyBatch.obj.Survey_Name__c}"/>
+
+            <apex:pageBlockSectionItem >
+              <apex:outputLabel value="{!$ObjectType.CFM_Survey_Batch__c.fields.Target_Survey_Date__c.Label}" />
+                <apex:outputText value="{0, date, d MMMM','  yyyy}">
+                  <apex:param value="{!surveyBatch.obj.Target_Survey_Date__c}" />
+                </apex:outputText>
+            </apex:pageBlockSectionItem>
+
+            <apex:pageBlockSectionItem >
+                <apex:outputLabel value="{!$ObjectType.CFM_Survey_Batch__c.fields.Survey_Close_Date__c.Label}" />
+                <apex:outputText value="{0, date, d MMMM','  yyyy}">
+                  <apex:param value="{!surveyBatch.obj.Survey_Close_Date__c}" />
+                </apex:outputText>
+            </apex:pageBlockSectionItem>
+
+            <!--
+            <apex:outputField value="{!surveyBatch.obj.Target_Survey_Date__c}"/>
+            <apex:outputField value="{!surveyBatch.obj.Survey_Close_Date__c}"/>
+            -->
+        </apex:pageBlockSection>
+    </apex:pageBlock>
+
+    <apex:pageBlock >
+
+            <apex:outputPanel layout="none" rendered="{!!isClosed && !isCompleted}"> <!-- Rendered if prior to Close date -->
+            <div>
+                <p>
+                {!$Label.CFM_Review_Comments_1} 
+                <b>
+                <abbr style="color: #9F000F" title="[Survey Close Date]">
+                <apex:outputText value="{0, date, d MMMM','  yyyy}">
+                  <apex:param value="{!surveyBatch.obj.Survey_Close_Date__c}" />
+                </apex:outputText>
+                </abbr> 
+                </b> {!$Label.CFM_Review_Comments_2} 
+                </p>
+                <p>
+                {!$Label.CFM_Review_Comments_3}
+                </p>
+                <p>
+                {!$Label.CFM_Review_Comments_4} 
+                <b>
+                <abbr title="[Target Survey Date]">
+
+                <apex:outputText value="{0, date, d MMMM','  yyyy}">
+                    <apex:param value="{!surveyBatch.obj.Target_Survey_Date__c}" />
+                </apex:outputText>
+
+                </abbr>
+                </b>.
+                </p>
+                <p>
+                <b>{!$Label.CFM_Actions_Requested}:</b>
+                </p>
+                <p>
+                  <div class="actionStepText">
+                      <b>{!$Label.CFM_Step_1}:</b> {!$Label.CFM_Step_1_Text}
+                  </div>
+                  <div class="actionStepText">
+                        <b>{!$Label.CFM_Step_2}:</b> {!$Label.CFM_Step_2_Text}
+                  </div>
+                  <div class="actionStepText">
+                        <b>{!$Label.CFM_Step_3}:</b> {!$Label.CFM_Step_3_Text}
+                  </div>
+                </p>
+                 <p>
+                  <div style="width: 100%; text-align: center"><b><a style="font-size:10.0pt; color: #9F000F; font-style: italic" target="_blank" href="{!$Setup.CFM_Training_Video_Link__c.Link__c}">{!$Label.CFM_Training_Video_Link} </a></b></div>
+                </p>
+            </div>
+            </apex:outputPanel>
+
+            <apex:outputPanel layout="none" rendered="{!isClosed && !isCompleted}"> <!-- Rendered if after Close date -->
+            <div>
+                <p>
+                 {!$Label.CFM_Closed_Text_1} 
+                 <b><abbr style="color: #9F000F" title="[Survey Close Date]">
+                 <apex:outputText value="{0, date, d MMMM','  yyyy}">
+                    <apex:param value="{!surveyBatch.obj.Survey_Close_Date__c}" />
+                </apex:outputText>
+                 </abbr></b> {!$Label.CFM_Closed_Text_2}
+                </p>
+               <p>
+                {!$Label.CFM_Closed_Text_3}
+                </p>
+                <p>
+                <b>{!$Label.CFM_Actions_Requested}:</b>
+                </p>
+                <p>
+                <div class="actionStepText">
+                    <b>{!$Label.CFM_Step_1}:</b> {!$Label.CFM_Step_1_Text}
+                </div>
+                <div class="actionStepText">
+                      <b>{!$Label.CFM_Step_2}:</b> {!$Label.CFM_Step_2_Text}
+                </div>
+                <div class="actionStepText">
+                      <b>{!$Label.CFM_Step_3}:</b> {!$Label.CFM_Step_3_Text}
+                </div>
+               </p>
+               <p>
+               
+                <div style="width: 100%; text-align: center"><b><a style="font-size:10.0pt; color: #9F000F; font-style: italic" target="_blank" href="{!$Setup.CFM_Training_Video_Link__c.Link__c}">{!$Label.CFM_Training_Video_Link} </a></b></div>
+                 
+               </p>
+            </div>
+            </apex:outputPanel>
+
+        <apex:outputPanel layout="none" rendered="{!isCompleted}">
+        <div style="width: 100%; text-align: center">
+
+            <h2>{!$Label.CFM_Response_Success} </h2>
+
+            <p>
+              {!$Label.CFM_Response_Success_Text} 
+              <b>
+                <apex:outputText value="{0, date, d MMMM','  yyyy}">
+                  <apex:param value="{!surveyBatch.obj.Target_Survey_Date__c}" />
+                </apex:outputText>
+              </b>.
+            </p>
+
+        </div>
+        </apex:outputPanel>
+
+    </apex:pageBlock>
+
+  <div class="hiddenPageBlock">
+    <apex:pageBlock >
+        <apex:pageBlockTable value="{!surveyBatchProjects}" var="project" styleClass="projectTable">
+            <apex:column headerValue="{!$Label.Action}" rendered="{!!isCompleted}" style="width: 200px">
+              <apex:commandLink value="{!$Label.CFM_Confirm}" action="{!confirmAction}">
+                <apex:param name="projectId" value="{!project.obj.Id}" />
+              </apex:commandLink>
+              &nbsp;|&nbsp;
+              <apex:outputLink value="/apex/CFM_SurveyBatchPMReview_SettingsMsg" onclick="promptRejectionReason(event,'{!project.obj.Id}'); return false;">{!$Label.CFM_Reject_Lower}</apex:outputLink>
+              &nbsp;|&nbsp;
+
+              <apex:outputLink value="/apex/CFM_SurveyBatchPMReview_SettingsMsg" onclick="openContactEditWindow(event, '{!project.obj.Project__c}')">{!$Label.CFM_Edit_Contact}</apex:outputLink>
+            </apex:column>
+
+            <apex:column >
+              <apex:image url="{!URLFOR($Resource.CFM_P90DIcon)}" styleClass="centeredIcon" width="20" height="20" rendered="{!project.contactWasSurveyedPast90Days}" alt="{!$Label.CFM_PMReview_P90DAlert}" title="{!$Label.CFM_PMReview_P90DAlert}" />
+                 
+              <apex:image url="{!URLFOR($Resource.CFM_DTWIcon)}" styleClass="centeredIcon" width="20" height="20" rendered="{!project.obj.Project__r.CFM_Is_DTW_Project__c}"  />
+            </apex:column>
+
+            <apex:column >
+                <apex:image url="{!URLFOR($Resource.CFM_Images, 'CFM_redcross.png')}" styleClass="centeredIcon" width="20" height="20" rendered="{!project.obj.PM_Status__c == 'Rejected'}" />
+                <apex:image url="{!URLFOR($Resource.CFM_Images, 'checkmarkicon.png')}" styleClass="centeredIcon" width="20" height="20" rendered="{!project.obj.PM_Status__c == 'Confirmed'}" />
+                <apex:image url="{!URLFOR($Resource.CFM_Images, 'graycircle.png')}" styleClass="centeredIcon" width="20" height="20" rendered="{!project.obj.PM_Status__c != 'Confirmed' && project.obj.PM_Status__c != 'Rejected'}"/>
+            </apex:column>
+
+
+            <apex:column value="{!project.obj.Project__c}" />
+
+            <apex:column value="{!project.obj.Project__r.Oracle_Project_Number__c}" />
+
+            <apex:column value="{!project.obj.Project_Status__c}" />
+
+            <apex:column value="{!project.obj.Oracle_Complete__c}" />
+
+            <apex:column value="{!project.obj.Account__c}" />
+
+            <apex:column value="{!project.obj.Survey_Contact__c}" />
+
+            <apex:column value="{!project.obj.Survey_Contact_Email__c}" />
+
+            <apex:column value="{!project.obj.PM_Status__c}" headerValue="{!$Label.CFM_Confirm_Status}" />
+
+            <apex:column value="{!project.obj.PM_Reject_Reason__c}" headerValue="{!$Label.CFM_Rejection_Rationale}" />
+
+            <apex:column value="{!project.obj.PM_Reject_Other__c}" headerValue="{!$Label.CFM_Other_Reason_Comments}" />
+        </apex:pageBlockTable>
+        <apex:commandButton value="{!$Label.CFM_SUBMIT}" styleClass="styledButton" action="{!submitAction}" rendered="{!!isCompleted}" />
+    </apex:pageBlock>
+  </div>
+    
+  
+</apex:form>
+</apex:page>

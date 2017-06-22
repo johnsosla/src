@@ -1,0 +1,75 @@
+<apex:page standardController="Project__c" showheader="false"  standardstylesheets="false" Sidebar="false" cache="true" contentType="application/msword"> 
+<apex:variable value="{!Project__c}" var="prj"/>
+<b><apex:outputField style="font-family: Arial; font-size: 12pt;"  value="{!prj.Owner_Client_Output__c}"/></b><b><apex:outputText style="font-family: Arial; font-size: 12pt;"  value=", "/></b>
+<b><apex:outputField style="font-family: Arial; font-size: 12pt;"  value="{!prj.Name}"/></b><b><apex:outputText style="font-family: Arial; font-size: 12pt;"  value=", "/></b>
+<b><apex:outputField style="font-family: Arial; font-size: 12pt;"  value="{!prj.Location_Output__c}"/></b>
+<font size="9pt" face="Arial"> 
+<br/><b>
+<apex:outputField style="font-family: Arial; font-size: 12pt;"  value="{!prj.Client_contract__c}" rendered="{!prj.RecordType.name=='Program'}"/>
+<apex:outputField style="font-family: Arial; font-size: 12pt;"  value="{!prj.Program_Master_Contract_Name__r.Client_contract__c}" rendered="{!prj.RecordType.name=='Task Order'}"/>
+<apex:outputText style="font-family: Arial; font-size: 9pt;" value=", " rendered="{!prj.RecordType.name=='Task Order'}"/>
+<apex:outputField style="font-family: Arial; font-size: 12pt;"  value="{!prj.DO_TO_Number__c}" rendered="{!prj.RecordType.name=='Task Order'}"/>
+</b><br></br><br/>
+<apex:outputText style="font-family: Arial; font-size: 9pt;"  value="{!prj.Project_Description__c}"/>
+<table style ="font-family: Arial; font-size: 9pt;"> <tr> 
+   <td> <b><apex:outputText value="Actual Completion:   "/></b></td> 
+         <td align="right"> <apex:outputText value="{!prj.Date_Actual_Completion__c} "/> </td>
+ </tr><tr>
+         <td><b> <apex:outputText value="Owners Total Cost:   "/></b></td>
+                                 <td align="right"> <apex:outputText value="${0,number,###,###,###,###,###}"> 
+                  <apex:param value="{!prj.Owners_Total_cost__c}"/>
+                  </apex:outputText> </td>
+</tr>   
+<tr> 
+           <td><b> <apex:outputText value="Revenue:  "/></b></td>
+           <td align="right"> <apex:outputText value="${0,number,###,###,###,###,###}">
+              <apex:param value="{!prj.SearchFee__c}"/> </apex:outputText></td>
+</tr>   
+<tr> 
+   <td> <b><apex:outputText value="Dates of Service:  "/></b></td>
+  <td align="right"> <apex:outputText value="{!prj.Date_Started__c} - {!prj.Search_Completion_Date__c}"/> </td>
+</tr>    
+</table>
+ <br/>
+ </font>
+<b>Project Team</b><br/><br/>
+<apex:outputText style="font-family: Arial; font-size: 9pt;" value="{!prj.Project_Manager__r.Name}" rendered="{!prj.Project_Manager_Status__c=='Active'}"/>, <apex:outputText value=" " rendered="{!prj.Project_Manager_Status__c=='Active'}"/>
+<apex:outputText style="font-family: Arial; font-size: 9pt;" value=" "/><apex:outputText style="font-family: Arial; font-size: 9pt;" value=" Project Manager" rendered="{!prj.Project_Manager_Status__c=='Active'}"/>
+<br/>
+<apex:repeat value="{!Project__c.PR_Team_Employees__r}" var="pt">
+<apex:outputtext style="font-family: Arial; font-size: 9pt;" value="{!pt.Employee__r.Name} <br/>" rendered="{!pt.PRStatusEmployee__c=='Active'}"/>
+</apex:repeat>
+<br/>
+<b><font size="9pt" face="Arial"> 
+References</font></b><br/><br/> 
+ <font size="9pt" face="Arial"> 
+
+<apex:repeat value="{!Project__c.PR_Contacts__r}" var="ref" > 
+<apex:outputtext style="font-family: Arial; font-size: 9pt;" value="{!ref.Contact__r.Name}"/><br></br>
+<apex:outputtext style="font-family: Arial; font-size: 9pt;" value="{!ref.Contact__r.MailingStreet}"/><br></br>
+<apex:outputtext style="font-family: Arial; font-size: 9pt;" value="{!ref.Contact__r.MailingCity}"/>, <apex:outputText value=" "/>
+<apex:outputtext style="font-family: Arial; font-size: 9pt;" value="{!ref.Contact__r.MailingState}"/><apex:outputText value=" "/>
+<apex:outputtext style="font-family: Arial; font-size: 9pt;" value="{!ref.Contact__r.MailingCountry}"/><apex:outputText value=" "/>
+<apex:outputText style="font-family: Arial; font-size: 9pt;" value=" "/><apex:outputtext style="font-family: Arial; font-size: 9pt;" value="{!ref.Contact__r.MailingPostalCode}"/><br></br>
+<b><apex:outputtext style="font-family: Arial; font-size: 9pt;" value="Phone:  "/></b> 
+<apex:outputtext style="font-family: Arial; font-size: 9pt;" value="{!ref.Contact__r.Phone}"/><br></br>
+<b><apex:outputtext style="font-family: Arial; font-size: 9pt;" value="Fax:  "/></b> 
+<apex:outputtext style="font-family: Arial; font-size: 9pt;" value="{!ref.Contact__r.Fax}"/><br></br>
+<b><apex:outputtext style="font-family: Arial; font-size: 9pt;" value="Email:  "/></b> 
+<apex:outputtext style="font-family: Arial; font-size: 9pt;" value="{!ref.Contact__r.Email}" rendered="{!Not(IsBlank(ref.Contact__r.Email))}"/>
+<br></br><br/>
+</apex:repeat>
+<b><font size="9pt" face="Arial"> 
+Awards</font></b><Br></br><br/>
+<apex:repeat value="{!Project__c.Awards__r}" var="awd"> 
+<apex:outputpanel style="font-family: Arial; font-size: 9pt;" rendered="{!AND(awd.RecordType.DeveloperName=='Awards', awd.Award_Status__c=='Won')}">
+<apex:outputtext value="{!awd.Name}"/><apex:outputText value="  "/>
+<apex:outputText value="{0,date,MM'/'dd'/'yyyy}">
+    <apex:param value="{!awd.Date_Award_Won__c}" /> 
+</apex:outputText>
+><br/><br/>
+
+</apex:outputpanel>
+</apex:repeat>  
+</font>     
+</apex:page>

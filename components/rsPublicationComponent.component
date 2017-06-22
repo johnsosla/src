@@ -1,0 +1,274 @@
+<apex:component controller="rsPublicationController" allowDML="true">
+
+    <apex:attribute name="rsProfile" assignTo="{!profile}" description="" type="rsProfile" required="true"/>
+
+    <apex:attribute name="reRender" description="" type="String" required="false"/>
+
+    <script>
+        inputFields = ['[id$=pubDate]'];
+        $j(document).ready(function() {
+            if( '{!IsSF1}' == 'true' ) {
+                $j('[id$=pubAttachLink]').removeAttr('onclick href').parent().addClass('disabled');
+            }
+            setPublicationRequiredFields();
+            setUpPubParts();
+            helpTextSetup();
+            setDatePickers();
+        });
+        function setPublicationRequiredFields() {
+            ///Required Fields for this component.
+            requiredFields = ['[id$=pubTitle]','[id$=pub]'];
+        }
+        function setUpPubParts() {
+            j$('a[id$=movePubPartUp]').each(function() {
+                if(j$(this).hasClass('0')) {
+                    j$(this).removeAttr('onclick href').parent().addClass('disabled');
+                    j$(this).click(function(e) {
+                        e.preventDefault();
+                    });
+                }
+            });
+            j$('a[id$=movePubPartDown]').each(function() {
+                var arr = j$(this).attr('class').split(" ");
+                if((arr.length == 1 && arr[0] == '0')) {
+                    j$(this).removeAttr('onclick href').parent().addClass('disabled');
+                    j$(this).click(function(e) {
+                        e.preventDefault();
+                    });
+                }
+                else if (arr[0] == arr[1] || (arr[0] == '0' && arr[1].length == 0)) {
+                    j$(this).removeAttr('onclick href').parent().addClass('disabled');
+                    j$(this).click(function(e) {
+                        e.preventDefault();
+                    });
+                }
+            });
+        }
+    </script>
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h3 class="panel-title has-spinner pull-left" id="pubHeader">{!$Label.Publication_Presentations}&nbsp;<img height="15" width="15" class="spinner" src="{!URLFOR($Resource.rs_bundle, '/images/loading.gif')}" alt="loading" title="loading"/></h3>
+            <apex:commandLink value="" styleClass="{!IF(canEdit, '','disabled')} has-spinner pull-right " reRender="{!reRender}" action="{!newPart}" onclick="if(inProgress) return false; showSectionSpinner('pubHeader'); inProgress = true;" oncomplete="resetProgress(); setupFields();focusField('pubTitle');" rendered="{!IsListMode && canEdit}">
+                <span title="{!$Label.Add}" class="glyphicon glyphicon-plus"></span>
+            </apex:commandLink>
+            <div class="clearfix"/>
+        </div>
+
+        <div class="panel-body">
+
+            <apex:outputPanel rendered="{!IsEditMode}">
+            <apex:actionRegion >
+
+                <table id="editPubTable" class="table">
+                    <tbody>
+                        <tr>
+                            <td style="border-top:none;">
+                                <apex:outputLabel value="{!$ObjectType['rs_Profile_Part__c'].fields['Publication_Title__c'].Label}"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['rs_Profile_Part__c'].fields['Publication_Title__c'].inlineHelpText}"/></apex:outputLabel>
+                            </td>
+                            <td style="border-top:none;">
+                                <div class="rsRequired">
+                                    <div class="rsRequiredBlock"/>
+                                    <apex:inputText id="pubTitle" value="{!CurrentPart.PublicationTitle}" maxlength="255"/>
+                                    <span class="rsError"><br/>{!$ObjectType['rs_Profile_Part__c'].fields['Publication_Title__c'].Label} {!$Label.Is_Required}</span>
+                                </div>
+                            </td>
+                            <td style="border-top:none;">
+                                <apex:outputLabel value="{!$ObjectType['rs_Profile_Part__c'].fields['Publication_Date__c'].Label}"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['rs_Profile_Part__c'].fields['Publication_Date__c'].inlineHelpText}"/></apex:outputLabel>
+                            </td>
+                            <td style="border-top:none;"><apex:inputText id="pubDate" styleClass="date" value="{!CurrentPart.PublicationDate}"/></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <apex:outputLabel value="{!$ObjectType['rs_Profile_Part__c'].fields['Publication__c'].Label}"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['rs_Profile_Part__c'].fields['Publication__c'].inlineHelpText}"/></apex:outputLabel>
+                            </td>
+                            <td>
+                                <div class="rsRequired">
+                                    <div class="rsRequiredBlock"/>
+                                    <apex:inputText id="pub" value="{!CurrentPart.Publication}" maxlength="255"/>
+                                    <span class="rsError"><br/>{!$ObjectType['rs_Profile_Part__c'].fields['Publication__c'].Label} {!$Label.Is_Required}</span>
+                                </div>
+                            </td>
+                            <td>
+                                <apex:outputLabel value="{!$ObjectType['rs_Profile_Part__c'].fields['Publication_Author__c'].Label}"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['rs_Profile_Part__c'].fields['Publication_Author__c'].inlineHelpText}"/></apex:outputLabel>
+                            </td>
+                            <td><apex:inputText id="pubAuthor" value="{!CurrentPart.PublicationAuthor}" maxlength="255"/></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <br/>
+                <div class="text-center">
+
+                    <apex:commandLink action="{!savePart}" value="{!$Label.Save}" styleClass="btn brandStyledBtn" reRender="{!reRender}" onclick="if(inProgress) return false; setPublicationRequiredFields();if(!checkRequiredFields()) return false; showSectionSpinner('pubHeader'); inProgress = true;" oncomplete="resetProgress();">
+                         <span class="glyphicon glyphicon-ok-circle"></span>
+                    </apex:commandLink>
+                    &nbsp;
+                    <apex:commandLink action="{!saveAndApprove}" value="{!$Label.Save_And_Approve}" styleClass="btn brandStyledBtn" reRender="{!reRender}" onclick="if(inProgress) return false; setPublicationRequiredFields();if(!checkRequiredFields()) return false; showSectionSpinner('pubHeader'); inProgress = true;" oncomplete="resetProgress();" rendered="{!isApprovable && CurrentPart.IsPendingOrInReview}">
+                         <apex:param value="{!CurrentPart.Id}" name="partId"/>
+                         <span class="glyphicon glyphicon-ok-circle"></span>
+                    </apex:commandLink>
+                    &nbsp;
+                    <apex:commandLink action="{!cancelPart}" value="{!$Label.Cancel}" styleClass="btn btn--neutral" reRender="{!reRender}" onclick="if(inProgress) return false; showSectionSpinner('pubHeader'); inProgress = true; clearInputFields();" oncomplete="resetProgress();">
+                         <span class="glyphicon glyphicon-remove-circle"></span>
+                    </apex:commandLink>
+                </div>
+            </apex:actionRegion>
+            </apex:outputPanel>
+
+            <apex:outputPanel rendered="{!IsViewMode}">
+                <div class="col-md-4 text-center">
+                    <apex:commandLink action="{!cancelPart}" immediate="true" value="{!$Label.Cancel}" styleClass="btn btn--neutral" reRender="{!reRender}" onclick="if(inProgress) return false; showSectionSpinner('pubHeader'); inProgress = true;" oncomplete="resetProgress();">
+                         <span class="glyphicon glyphicon-remove-circle"></span>
+                    </apex:commandLink>
+                </div>
+                <br/>
+                <table class="table">
+                    <tbody>
+                        <tr>
+                            <td>
+                                <apex:outputLabel value="{!$ObjectType['rs_Profile_Part__c'].fields['Publication_Title__c'].Label}"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['rs_Profile_Part__c'].fields['Publication_Title__c'].inlineHelpText}"/></apex:outputLabel>
+                            </td>
+                            <td><apex:outputText value="{!CurrentPart.PublicationTitle}"/></td>
+                            <td>
+                                <apex:outputLabel value="{!$ObjectType['rs_Profile_Part__c'].fields['Publication_Date__c'].Label}"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['rs_Profile_Part__c'].fields['Publication_Date__c'].inlineHelpText}"/></apex:outputLabel>
+                            </td>
+                            <td><apex:outputText value="{!CurrentPart.PublicationDate}"/></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <apex:outputLabel value="{!$ObjectType['rs_Profile_Part__c'].fields['Publication__c'].Label}"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['rs_Profile_Part__c'].fields['Publication__c'].inlineHelpText}"/></apex:outputLabel>
+                            </td>
+                            <td><apex:outputText value="{!CurrentPart.Publication}"/></td>
+                            <td>
+                                <apex:outputLabel value="{!$ObjectType['rs_Profile_Part__c'].fields['Publication_Author__c'].Label}"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['rs_Profile_Part__c'].fields['Publication_Author__c'].inlineHelpText}"/></apex:outputLabel>
+                            </td>
+                            <td><apex:outputText value="{!CurrentPart.PublicationAuthor}"/></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </apex:outputPanel>
+
+
+
+
+            <apex:outputPanel rendered="{!IsListMode}" id="pubPanel">
+
+                <table id="regTable" class="table">
+                    <thead>
+                        <tr>
+                            <th>Action</th>
+                            <th>
+                                <apex:commandLink action="{!sortParts}" reRender="pubPanel" onclick="if (inProgress) return false; inProgress = true;" oncomplete="resetProgress();sortOrderArrow(this.id);setUpPubParts();" value="{!$ObjectType['rs_Profile_Part__c'].fields['Publication_Title__c'].Label}">
+                                    <apex:param name="sortField" value="Publication_Title__c"/>
+                                    <span class="toggleClassDown glyphicon glyphicon-chevron-down"></span>
+                                    <span class="toggleClassUp glyphicon glyphicon-chevron-up"></span>
+                                </apex:commandLink>
+                            </th>
+                            <th>
+                                <apex:commandLink action="{!sortParts}" reRender="pubPanel" onclick="if (inProgress) return false; inProgress = true;" oncomplete="resetProgress();sortOrderArrow(this.id);setUpPubParts();" value="{!$ObjectType['rs_Profile_Part__c'].fields['Publication__c'].Label}">
+                                    <apex:param name="sortField" value="Publication__c"/>
+                                    <span class="toggleClassDown glyphicon glyphicon-chevron-down"></span>
+                                    <span class="toggleClassUp glyphicon glyphicon-chevron-up"></span>
+                                </apex:commandLink>
+                            </th>
+                            <th>
+                                <apex:commandLink action="{!sortParts}" reRender="pubPanel" onclick="if (inProgress) return false; inProgress = true;" oncomplete="resetProgress();sortOrderArrow(this.id);setUpPubParts();" value="{!$ObjectType['rs_Profile_Part__c'].fields['Publication_Author__c'].Label}">
+                                    <apex:param name="sortField" value="Publication_Author__c"/>
+                                    <span class="toggleClassDown glyphicon glyphicon-chevron-down"></span>
+                                    <span class="toggleClassUp glyphicon glyphicon-chevron-up"></span>
+                                </apex:commandLink>
+                            </th>
+                            <th>
+                                <apex:commandLink action="{!sortParts}" reRender="pubPanel" onclick="if (inProgress) return false; inProgress = true;" oncomplete="resetProgress();sortOrderArrow(this.id);setUpPubParts();" value="{!$ObjectType['rs_Profile_Part__c'].fields['Publication_Date__c'].Label}">
+                                    <apex:param name="sortField" value="Publication_Date__c"/>
+                                    <span class="toggleClassDown glyphicon glyphicon-chevron-down"></span>
+                                    <span class="toggleClassUp glyphicon glyphicon-chevron-up"></span>
+                                </apex:commandLink>
+                            </th>
+                            <th class="text-center">{!$Label.Attachment}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        <apex:repeat value="{!ViewParts}" var="part">
+                            <tr style="background-color:{!IF(part.ProfilePart.IsPendingOrInReview, 'LightYellow', 'white')};">
+                                <td>
+                                    <div class="dropdown">
+                                        <button class="wrench btn-default btn-sm dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown">
+                                            <span class="glyphicon glyphicon-wrench"></span>
+                                        </button>
+                                        <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">
+                                            <li role="presentation">
+                                                <apex:commandLink tabindex="-1" html-data-role="menuitem" action="{!viewPart}" value="{!$Label.View}" reRender="{!reRender}" onclick="if(inProgress) return false; showSectionSpinner('pubHeader'); inProgress = true;" oncomplete="resetProgress();">
+                                                    <apex:param value="{!part.ProfilePart.Id}" name="partId"/>
+                                                </apex:commandLink>
+                                            </li>
+                                            <apex:outputPanel rendered="{!canEdit}" layout="none">
+                                                <li role="presentation" class="{!IF(canEdit, '','disabled')}">
+                                                    <apex:commandLink tabindex="-1" html-data-role="menuitem" action="{!editPart}" value="{!$Label.Edit}" reRender="{!reRender}" oncomplete="resetProgress(); setDatePickers();setupFields();" onclick="if(inProgress) return false; showSectionSpinner('pubHeader'); inProgress = true;">
+                                                        <apex:param value="{!part.ProfilePart.Id}" name="partId"/>
+                                                    </apex:commandLink>
+                                                </li>
+                                                 <li role="presentation" class="divider"></li>
+                                                <li>
+                                                    <apex:commandLink tabindex="-1" html-data-role="menuitem" action="{!movePartUp}" value="{!$Label.Move_Part_Up}" styleClass="{!part.ProfilePart.PartSequence}" reRender="{!reRender}" oncomplete="resetProgress();" onclick="if(inProgress) return false; showSectionSpinner('pubHeader'); inProgress = true;" id="movePubPartUp">
+                                                        <apex:param value="{!part.ProfilePart.Id}" name="partId"/>
+                                                    </apex:commandLink>
+                                                </li>
+                                                <li>
+                                                    <apex:commandLink tabindex="-1" html-data-role="menuitem" action="{!movePartDown}" value="{!$Label.Move_Part_Down}" styleClass="{!Parts.size - 1} {!part.ProfilePart.PartSequence}" reRender="{!reRender}" oncomplete="resetProgress();" onclick="if(inProgress) return false; showSectionSpinner('pubHeader'); inProgress = true;" id="movePubPartDown">
+                                                        <apex:param value="{!part.ProfilePart.Id}" name="partId"/>
+                                                    </apex:commandLink>
+                                                </li>
+                                                <li role="presentation" class="divider"></li>
+                                                <li role="presentation" class="{!IF(canEdit, '','disabled')}">
+                                                    <apex:commandLink tabindex="-1" html-data-role="menuitem" value="{!$Label.Add_Attachment}" onclick="if(inProgress) return false; showSectionSpinner('pubHeader'); inProgress = true; window.top.location.href='/apex/rsAttachment?partId={!part.ProfilePart.Id}&retUrl=/_ui/core/userprofile/UserProfilePage&ownerId={!profile.Id}&tab=Skills_and_Qualifications&tab.Skills_and_Qualifications.subtab=3';" oncomplete="resetProgress();" id="pubAttachLink">
+                                                        <apex:param value="{!part.ProfilePart.Id}" name="partId"/>
+                                                    </apex:commandLink>
+                                                </li>
+                                                <li role="presentation" class="{!IF(canEdit, '','disabled')}">
+                                                    <apex:commandLink action="{!deleteAttachment}" reRender="{!reRender}" rendered="{!part.DeleteRender}" value="{!$Label.Remove_Attachment}" onclick="if(inProgress) return false; if(!confirmDeleteAttachment()) return false; showSectionSpinner('pubHeader');">
+                                                        <apex:param name="attachmentId" value="{!part.ProfilePart.AttachmentId}"/>
+                                                        <apex:param name="partId" value="{!part.ProfilePart.Id}"/>
+                                                    </apex:commandLink>
+                                                </li>
+                                                <li role="presentation" class="divider"></li>
+                                                <li role="presentation" class="{!IF(canEdit, '','disabled')}">
+                                                    <apex:commandLink tabindex="-1" html-data-role="menuitem" action="{!deletePart}" value="{!$Label.Delete}" reRender="{!reRender}" onclick="if(inProgress) return false; if(!confirmDeletePart()) return false; inProgress = true; showSectionSpinner('pubHeader');" oncomplete="resetProgress();setUpPubParts();">
+                                                        <apex:param value="{!part.ProfilePart.Id}" name="partId"/>
+                                                    </apex:commandLink>
+                                                </li>
+                                            </apex:outputPanel>
+                                            <apex:outputPanel layout="none" rendered="{!isApprovable && part.ProfilePart.IsPendingOrInReview}">
+                                                <li role="presentation" class="divider"></li>
+                                                <li role="presentation">
+                                                    <apex:commandLink tabindex="-1" html-data-role="menuitem" action="{!approvePart}" value="{!$Label.Approve_Item}" reRender="{!reRender}" onclick="if(inProgress) return false; showSectionSpinner('pubHeader'); inProgress = true;" oncomplete="resetProgress();">
+                                                        <apex:param value="{!part.ProfilePart.Id}" name="partId"/>
+                                                    </apex:commandLink>
+                                                </li>
+                                            </apex:outputPanel>
+                                        </ul>
+                                    </div>
+                                </td>
+                                <td><apex:outputText value="{!part.ProfilePart.PublicationTitle}"/></td>
+                                <td><apex:outputText value="{!part.ProfilePart.Publication}"/></td>
+                                <td><apex:outputText value="{!part.ProfilePart.PublicationAuthor}"/></td>
+                                <td><apex:outputText value="{!part.ProfilePart.PublicationDate}"/></td>
+                                <td>
+                                    <div class="text-center">
+                                        <apex:outputLink value="/servlet/servlet.FileDownload?file={!part.ProfilePart.AttachmentId}" target="_blank">{!part.ProfilePart.AttachmentName}</apex:outputLink>
+                                    </div>
+                                </td>
+                            </tr>
+                        </apex:repeat>
+                    </tbody>
+                </table>
+
+                <c:rsPaginationComponent nextPage="{!getNextPage}" previousPage="{!getPreviousPage}" firstPage="{!getFirstPage}" lastPage="{!getLastPage}" viewIndex="{!ViewIndex}" viewLimit="{!ViewLimit}" totalParts="{!TotalParts}" pageNumber="{!PageNum}" numberOfPages="{!NumberOfPages}" rendered="{!TotalParts > ResultLimit}" reRender="{!reRender}"/>
+
+            </apex:outputPanel>
+
+            <c:rsAutoComplete fieldId="pub" field="Publication__c" sObject="rs_Profile_Part__c"/>
+
+        </div>
+    </div>
+</apex:component>

@@ -1,0 +1,445 @@
+<apex:page standardcontroller="ProjectReview__c" extensions="ECO_ProjectReviewsController,nttdcore.DLabelParentController" showheader="true" sidebar="false" action="{!init}" >
+
+        <style>
+            .meetingNotes td, .meetingNotes th{
+                padding:10px;
+            }
+
+            .meetingNotes td{
+                padding-top:2px;
+            }
+
+            .meetingNotes th{
+                padding-bottom:2px;
+            }
+
+            .tableLabel{
+                font-weight:bold;
+                color: #4a4a56 !important;
+                text-align: right;
+                font-size: 91%;
+                padding-right:10px;
+            }
+
+            .setPicker{
+                position:absolute;
+                top:0;
+                right:0;
+            }
+            body .bPageBlock .pbBody .labelCol{
+                padding-top: 3px !important;
+                padding-bottom: 5px;
+                vertical-align: middle;
+            }
+
+            .riskNotifications .pbSubsection .detailList tr td{
+                color:red !important;
+            }
+            .true
+            {
+                background-color:#FD6666;
+            }
+            .false
+            {
+                background-color:#A4FDBD;
+            }
+            .printReviews{
+                padding:4px !important;
+            }
+
+            .dmeOutput{
+                font-size: 1.0em;
+                font-weight: bold;
+                color: #4a4a56;  /*Standrd Salesforce Color*/
+            }
+
+        </style>
+
+        <apex:includescript value="{!$Resource.ECO_jQuery_1_11_2_min_js}" />
+        <apex:includescript value="{!URLFOR($Resource.ECO_jQueryUI_1_11_2, 'jquery-ui.min.js')}" />
+
+        <script type="text/javascript" >
+            function collapseSection()
+            {
+                console.log('collapseSection');
+                $("div[id$='ProjectSummary']").find("div.pbBody").find("img.hideListButton").click();
+            }
+
+            sfdcPage.appendToOnloadQueue(collapseSection);
+
+        </script>
+
+        <apex:form id="mainForm" >
+            <div style="position:relative" >
+                <nttdcore:DLabel name="DL53" default="{{1}}({{2}})" labelParent="{!this}" p1="{!theProject.Name}" p2="{!theProject.ProjectNumber__c}" /><apex:sectionheader title="{!oProjectReview.RecordType.Name}" subtitle="{!dLabel['DL53']}" />
+            </div>
+            <apex:pagemessages id="pgMessages" />
+            <div class="projectSummary" >
+
+                <nttdcore:DLabel name="DL54" default="Project Summary" labelParent="{!this}" /><apex:pageblock title="{!dLabel['DL54']}" id="ProjectSummary" ><nttdcore:DLabel name="DL63" default="Project Information" labelParent="{!this}" /><nttdcore:DLabel name="DL64" default="Project Review Details" labelParent="{!this}" /><nttdcore:DLabel name="DL65" default="Record Type" labelParent="{!this}" /><nttdcore:DLabel name="DL66" default="Admin View" labelParent="{!this}" /><nttdcore:DLabel name="DL73" default="Agenda Items" labelParent="{!this}" /><nttdcore:DLabel name="DL74" default="Add New Agenda Item" labelParent="{!this}" /><nttdcore:DLabel name="DL75" default="AgendaItem__c" labelParent="{!this}" /><nttdcore:DLabel name="DL76" default="Actions" labelParent="{!this}" /><nttdcore:DLabel name="DL77" default="Remove" labelParent="{!this}" /><nttdcore:DLabel name="DL78" default="AgendaItem__c" labelParent="{!this}" /><nttdcore:DLabel name="DL79" default="Item Number" labelParent="{!this}" /><nttdcore:DLabel name="DL80" default="Item Name" labelParent="{!this}" /><nttdcore:DLabel name="DL81" default="Comments" labelParent="{!this}" /><nttdcore:DLabel name="DL82" default="Updating..." labelParent="{!this}" /><nttdcore:DLabel name="DL83" default="Agenda/Meeting Minutes" labelParent="{!this}" /><nttdcore:DLabel name="DL84" default="Follow-up Tasks" labelParent="{!this}" /><nttdcore:DLabel name="DL85" default="New Task" labelParent="{!this}" /><nttdcore:DLabel name="DL86" default="Action" labelParent="{!this}" /><nttdcore:DLabel name="DL87" default="Edit" labelParent="{!this}" /><nttdcore:DLabel name="DL88" default=" | " labelParent="{!this}" /><nttdcore:DLabel name="DL89" default="Del" labelParent="{!this}" /><nttdcore:DLabel name="DL90" default="Due Date" labelParent="{!this}" /><nttdcore:DLabel name="DL91" default="Subject" labelParent="{!this}" /><nttdcore:DLabel name="DL92" default="Assigned To" labelParent="{!this}" /><nttdcore:DLabel name="DL93" default="No tasks have been specified." labelParent="{!this}" /><nttdcore:DLabel name="DL94" default="Exception Report" labelParent="{!this}" /><nttdcore:DLabel name="DL95" default="Safety" labelParent="{!this}" /><nttdcore:DLabel name="DL96" default="Client Relations" labelParent="{!this}" /><nttdcore:DLabel name="DL97" default="Change Management" labelParent="{!this}" /><nttdcore:DLabel name="DL98" default="Financial Performance" labelParent="{!this}" /><nttdcore:DLabel name="DL99" default="Schedule" labelParent="{!this}" /><nttdcore:DLabel name="DL100" default="Quality" labelParent="{!this}" /><nttdcore:DLabel name="DL101" default="Risk Management" labelParent="{!this}" /><nttdcore:DLabel name="DL102" default="Staff Resources" labelParent="{!this}" /><nttdcore:DLabel name="DL103" default="Subs" labelParent="{!this}" /><nttdcore:DLabel name="DL104" default="Project Snapshot" labelParent="{!this}" />
+                    <apex:pageblockbuttons location="top" >
+                        <!-- <apex:commandButton action="{!SaveAll}" value="Save" onComplete="location.reload()"/> -->
+                        <!--<apex:commandButton action="{!ScheduleMeeting}" value="Schedule Meeting" rendered="{!AND(showOtherSections,showScheduleButton) && oProjectReview.Status__c != 'Not Started'}" />-->
+                        <nttdcore:DLabel name="DL55" default="Manage Meeting" labelParent="{!this}" /><apex:commandbutton action="{!ManageEvent}" value="{!dLabel['DL55']}" rendered="{!AND(showOtherSections, NOT(showScheduleButton))}" />
+                        <nttdcore:DLabel name="DL56" default="Create Calendar Invite" labelParent="{!this}" /><apex:commandbutton action="{!CreateCalendarInvite}" value="{!dLabel['DL56']}" html-formtarget="_blank" rendered="{!AND(showOtherSections, NOT(showScheduleButton))}" />
+                        <nttdcore:DLabel name="DL57" default="Print Project Reviews" labelParent="{!this}" /><apex:commandlink action="{!printProjectReviews}" value="{!dLabel['DL57']}" styleclass="btn printReviews" immediate="true" target="_blank" style="text-decoration:none" rendered="{!oProjectReview.Status__c != 'Not Started' && isPerfReview}" />
+                        <nttdcore:DLabel name="DL58" default="Take Project Snapshot" labelParent="{!this}" /><apex:commandbutton action="{!SaveHealthCheck}" value="{!dLabel['DL58']}" rendered="{!NOT(perfActiveStatus) && isPerfReview && oProjectReview.Snapshot_Date__c == null}" />
+                        <nttdcore:DLabel name="DL59" default="Save" labelParent="{!this}" /><apex:commandbutton action="{!SaveAll}" value="{!dLabel['DL59']}" />
+                        <nttdcore:DLabel name="DL60" default="Return to Project" labelParent="{!this}" /><apex:commandbutton action="{!ReturnToProjectFromReview}" value="{!dLabel['DL60']}" />
+                        <nttdcore:DLabel name="DL61" default="Return to All Project Reviews" labelParent="{!this}" /><apex:commandbutton action="{!returnToAllReviews}" value="{!dLabel['DL61']}" />
+                        <nttdcore:DLabel name="DL62" default="Return to R&amp;M Assessment" labelParent="{!this}" /><apex:commandbutton action="{!returnToRMASummary}" value="{!dLabel['DL62']}" rendered="{!IF(oProjectReview.RecordType.Name=='Go/No Go', true, false)}" />
+                    </apex:pageblockbuttons>
+                    <!--
+                    <apex:pageBlockSection title="Project Information" collapsible="false">
+                        <apex:repeat value="{!CustomProjSetupFields}" var="f">
+                            <apex:outputField value="{!theProject[f.fieldPath]}" />
+                        </apex:repeat>
+                    </apex:pageBlockSection>
+                    -->
+                    <apex:pageblocksection title="{!dLabel['DL63']}" collapsible="true" columns="2" >
+                        <apex:repeat value="{!CustomProjFields}" var="f" >
+                            <apex:outputfield value="{!theProject[f.fieldPath]}" />
+                        </apex:repeat>
+
+                    <!--    <apex:outputField value="{!theProject.Name}" />
+                        <apex:outputField value="{!theProject.OwnerId}" />-->
+                        <!--<apex:outputField value="{!theProject.pse__Opportunity__c}" />-->
+                        <!--<apex:outputField value="{!theProject.ProjectNumber__c}" />-->
+                        <!--<apex:outputField value="{!theProject.EstimatedContractValue__c}" />-->
+                        <!--<apex:outputField value="{!theProject.pse__Project_Manager__c}" />-->
+                        <!--<apex:outputField value="{!theProject.NetServicesRevenue__c}" />-->
+
+                        <!--<apex:outputField value="{!theProject.TotalMargin__c}" />-->
+                        <!--<apex:outputField value="{!theProject.ProjectOwningOrg__c}" />-->
+                        <!--<apex:outputField value="{!theProject.PrimaryEndClient__c}" />-->
+                        <!--<apex:outputField value="{!theProject.TotalBidBudget__c}" />-->
+                        <!--<apex:outputField value="{!theProject.PrimaryEndClientName__c}" />-->
+
+                        <!--<apex:outputField value="{!theProject.PrimaryBillingClient__c}" />-->
+                        <!--<apex:outputField value="{!theProject.EstimatedStartDate__c}" />-->
+                        <!--<apex:outputField value="{!theProject.PrimaryBillingClientName__c}" />-->
+
+                    </apex:pageblocksection>
+
+                        <apex:inputhidden value="{!ProjectReview__c.Name}" />
+
+                        <apex:inputhidden value="{!ProjectReview__c.Status__c}" />
+                        <apex:inputhidden value="{!ProjectReview__c.MeetingMinutes__c}" />
+                        <apex:inputhidden value="{!ProjectReview__c.IsPerformanceReview__c}" />
+                        <apex:inputhidden value="{!ProjectReview__c.IsProjectPerformanceReview__c}" />
+
+                    <apex:pageblocksection id="ReviewDetails" title="{!dLabel['DL64']}" columns="2" collapsible="false" >
+                        <apex:inputfield value="{!oProjectReview.Name}" required="true" style="width: 250px" onchange="setFormHasChanged();" />
+                        <apex:outputfield label="{!dLabel['DL65']}" value="{!oProjectReview.RecordType.Name}" />
+                        <apex:inputfield value="{!oProjectReview.ScheduledDate__c}" onchange="setFormHasChanged();" />
+                        <apex:inputfield value="{!oProjectReview.Responsible_Person__c}" onchange="setFormHasChanged();" />
+                        <!--<apex:outputField value="{!oProjectReview.Snapshot_Date__c}" rendered="{!IsPerfReview}"/>-->
+                        <apex:inputfield value="{!oProjectReview.CompletedDate__c}" onchange="setFormHasChanged();" />
+                        <apex:inputfield value="{!oProjectReview.OtherPart1__c}" rendered="{!oProjectReview.Status__c != 'Approved' && oProjectReview.Status__c != 'Submitted'}" onchange="setFormHasChanged();" />
+                        <apex:inputfield value="{!oProjectReview.OtherPart2__c}" rendered="{!oProjectReview.Status__c != 'Approved' && oProjectReview.Status__c != 'Submitted'}" onchange="setFormHasChanged();" />
+                        <apex:inputfield value="{!oProjectReview.OtherPart3__c}" rendered="{!oProjectReview.Status__c != 'Approved' && oProjectReview.Status__c != 'Submitted'}" onchange="setFormHasChanged();" />
+
+                    </apex:pageblocksection>
+                    <apex:pageblocksection columns="1" collapsible="false" >
+                        <apex:inputfield value="{!oProjectReview.Purpose__c}" style="width:1100px" onchange="setFormHasChanged();" />
+                    </apex:pageblocksection>
+                    <!--<apex:pageBlockSection >
+                        <apex:outputField value="{!oProjectReview.ProjectReviewTemplate__r.Purpose__c}" rendered="{!NOT(ISBLANK(oProjectReview.ProjectReviewTemplate__c))}"/>
+                    </apex:pageBlockSection>-->
+
+                    <apex:pageblocksection title="{!dLabel['DL66']}" collapsible="false" rendered="{!showKPIs}" >
+                        <apex:outputfield value="{!oProjectReview.TotalKPIs__c}" rendered="{!showKPIs}" />
+                        <apex:outputfield value="{!oProjectReview.PassedKPIs__c}" rendered="{!showKPIs}" />
+                        <apex:outputfield value="{!oProjectReview.KPIPassPercentage__c}" rendered="{!showKPIs}" />
+                    </apex:pageblocksection>
+
+                    <apex:outputpanel id="KPIResults" rendered="{!isPerfReview}" ><nttdcore:DLabel name="DL67" default="KPI Results" labelParent="{!this}" /><nttdcore:DLabel name="DL68" default="KPI" labelParent="{!this}" /><nttdcore:DLabel name="DL69" default="Threshold" labelParent="{!this}" /><nttdcore:DLabel name="DL70" default="Has Triggered" labelParent="{!this}" /><nttdcore:DLabel name="DL71" default="Alert Message" labelParent="{!this}" /><nttdcore:DLabel name="DL72" default="Explanation" labelParent="{!this}" />
+                    <apex:pageblocksection title="{!dLabel['DL67']}" columns="1" collapsible="false" >
+                        <apex:pageblocktable value="{!lKPI_Results}" var="item" width="100%" id="KPITable" >
+                            <apex:column >
+                                <!--<apex:facet name="header">Trigger Name</apex:facet>-->
+                                <apex:facet name="header" >{!dLabel['DL68']}</apex:facet>
+                                <apex:outputfield value="{!item.Trigger_Name__c}" />
+                            </apex:column>
+                            <apex:column >
+                                <apex:facet name="header" >{!dLabel['DL69']}</apex:facet>
+
+                            </apex:column>
+                            <apex:column ><!-- styleClass="{!item.Evaluation_Result__c}"-->
+                                <apex:facet name="header" >{!dLabel['DL70']}</apex:facet>
+                                <!--<apex:outputText value="{!item.Evaluation_Result__c}" />-->
+                                <apex:image height="30px" width="30px" value="{!IF(item.Evaluation_Result__c, $Resource.redTriangle, $Resource.greenStar)}" />
+                            </apex:column>
+                            <apex:column >
+                                <apex:facet name="header" >{!dLabel['DL71']}</apex:facet>
+                                <apex:outputfield value="{!item.Alert_Message__c}" />
+                            </apex:column>
+                            <apex:column rendered="{!perfActiveStatus}" >
+                                <apex:facet name="header" >{!dLabel['DL72']}</apex:facet>
+                                <apex:inputfield value="{!item.Explanation__c}" style="width:80%" onchange="setFormHasChanged();" />
+                            </apex:column>
+                        </apex:pageblocktable>
+                    </apex:pageblocksection>
+                    </apex:outputpanel>
+
+                    <apex:pageblocksection title="{!dLabel['DL73']}" columns="1" collapsible="false" rendered="{!showOtherSections && isProjectPerfReview}" >
+                        <apex:pageblocktable value="{!lAgendaItems}" var="item" width="100%" columnswidth="120px" id="AgendaTable" >
+                            <apex:facet name="footer" >
+                                <apex:commandlink action="{!addRecord}" value="{!dLabel['DL74']}" rerender="AgendaTable" status="agendaStatus" >
+                                    <apex:param name="object" value="{!dLabel['DL75']}" assignto="{!recordObjectType}" />
+                                </apex:commandlink>
+                            </apex:facet>
+                            <apex:column >
+                                <apex:facet name="header" >{!dLabel['DL76']}</apex:facet>
+                                <apex:commandlink action="{!removeRecord}" value="{!dLabel['DL77']}" rerender="AgendaTable" status="agendaStatus" >
+                                    <apex:param name="object" value="{!dLabel['DL78']}" assignto="{!recordObjectType}" />
+                                    <apex:param name="objID" value="{!item.Id}" assignto="{!recordObjectId}" />
+                                </apex:commandlink>
+                            </apex:column>
+                            <apex:column >
+                                <apex:facet name="header" >{!dLabel['DL79']}</apex:facet>
+                                <apex:inputfield value="{!item.Agenda_Num__c}" style="width: 24px" onchange="setFormHasChanged();" />
+                            </apex:column>
+                            <apex:column >
+                                <apex:facet name="header" >{!dLabel['DL80']}</apex:facet>
+                                <apex:inputfield value="{!item.Name}" style="width: 500px" onchange="setFormHasChanged();" />
+                            </apex:column>
+                            <apex:column >
+                                <apex:facet name="header" >{!dLabel['DL81']}</apex:facet>
+                                <apex:inputfield value="{!item.Comments__c}" style="width: 500px" onchange="setFormHasChanged();" />
+                            </apex:column>
+
+                        </apex:pageblocktable>
+                        <apex:actionstatus id="agendaStatus" >
+                            <apex:facet name="start" >
+                                <p style="padding-bottom:20px;" class="searchText" ><img style="position:relative;top:12px;" src="/img/loading32.gif" /> {!dLabel['DL82']}</p>
+                            </apex:facet>
+                        </apex:actionstatus>
+                    </apex:pageblocksection>
+
+                    <!--<apex:pageBlockSection title="Approval Conditions"  columns="1" collapsible="false" rendered="{!oProjectReview.Status__c != 'Not Started'}">
+                    <apex:pageMessage severity="INFO" rendered="{!if(lstDOAConditions.size > 0, false, true)}" summary="No DOA Conditions Found"></apex:pageMessage>
+                    <apex:pageBlockTable value="{!lstDOAConditions}" var="Condition" rendered="{!if(lstDOAConditions.size > 0, true, false)}">
+                        <apex:column headerValue="View"  width="40">
+                            <apex:outputLink value="/{!Condition.id}">View</apex:outputLink>
+                        </apex:column>
+                        <apex:repeat value="{!$ObjectType.DOAConditions__c.FieldSets.DOA_ApprovalView}" var="SearchField">
+                            <apex:column value="{!Condition[SearchField]}" />
+                        </apex:repeat>
+                    </apex:pageBlockTable>
+                    </apex:pageBlockSection>-->
+
+                    <apex:pageblocksection id="meetingMinutes" title="{!dLabel['DL83']}" columns="1" collapsible="false" rendered="{!showOtherSections && oProjectReview.Status__c != 'Not Started'}" >
+                        <!--<apex:commandButton value="Copy Comments from Previous Review" action="{!copyComments}" rendered="{!lastProjectReview != null}">
+                        </apex:commandButton>-->
+                        <apex:inputfield label="" value="{!oProjectReview.MeetingMinutes__c}" onchange="setFormHasChanged();" />
+                    </apex:pageblocksection>
+
+                    <!--<apex:pageBlockSection title="Attendees" columns="1" collapsible="false" rendered="{!showOtherSections && oProjectReview.Status__c != 'Not Started'}">
+                        <apex:pageBlockTable value="{!lAttendees}" var="item" width="100%" id="AttendeesTable" rendered="{!IF(lAttendees.size > 0, true, false)}">--><!--  columnsWidth="120px" -->
+                         <!--
+                            <apex:facet name="footer">
+                                <apex:commandLink action="{!addRecord}" value="Add New Attendee" rerender="AttendeesTable" status="attendeeStatus">
+                                    <apex:param name="object" value="Attendee__c" assignTo="{!recordObjectType}"/>
+                                </apex:commandLink>
+                            </apex:facet>
+
+                            <apex:column >
+                                <apex:facet name="header">Actions</apex:facet>
+                                <apex:commandLink action="{!removeRecord}" value="Remove" rerender="AttendeesTable" status="attendeeStatus">
+                                    <apex:param name="object" value="Attendee__c" assignTo="{!recordObjectType}" />
+                                    <apex:param name="objID" value="{!item.Id}" assignTo="{!recordObjectId}" />
+                                </apex:commandLink>
+                            </apex:column>
+                        -->
+                            <!--<apex:column >
+                                <apex:facet name="header">Name</apex:facet>
+                                <apex:commandLink action="/{!item.Id}" value="{!item.Name}" />
+                            </apex:column>
+                            <apex:column >
+                                <apex:facet name="header">Phone</apex:facet>
+                                <apex:outputLabel value="{!item.Phone}" />
+                            </apex:column>
+                            <apex:column >
+                                <apex:facet name="header">Email</apex:facet>
+                                <apex:outputLabel value="{!item.Email}" />
+                            </apex:column>
+
+                        </apex:pageBlockTable>-->
+                    <!--
+                        <apex:actionStatus id="subsStatus">
+                            <apex:facet name="start">
+                                <p style="padding-bottom:20px;" class="searchText"><img style="position:relative;top:12px;" src="/img/loading32.gif" /> Updating...</p>
+                            </apex:facet>
+                        </apex:actionStatus>
+                    -->
+                        <!--<apex:pageMessage severity="info" rendered="{!if(lAttendees.size = 0, true, false)}" summary="No attendees have been specified." />
+                    </apex:pageBlockSection>-->
+                    <apex:pageblocksection title="{!dLabel['DL84']}" columns="1" collapsible="false" rendered="{!showOtherSections && oProjectReview.Status__c != 'Not Started'}" >
+                        <apex:commandbutton value="{!dLabel['DL85']}" action="{!newTask}" />
+                        <apex:pageblocktable value="{!ReviewTasks}" var="item" width="100%" id="TasksTable" rendered="{!IF(ReviewTasks != null && ReviewTasks.size > 0, true, false)}" >
+                            <apex:column style="width:60px" headervalue="{!dLabel['DL86']}" >
+                                <apex:commandlink style="color:#015ba7;" action="{!URLFOR($Action.Task.edit, item.Id, ['retURL'='/apex/ECO_ProjectReviews?id='&oProjectReview.Id])}" >{!dLabel['DL87']}</apex:commandlink><apex:outputtext value="{!dLabel['DL88']}" />
+                                <apex:commandlink style="color:#015ba7;" action="{!URLFOR($Action.Task.delete, item.Id, ['retURL'='/apex/ECO_ProjectReviews?id='&oProjectReview.Id])}" >{!dLabel['DL89']}</apex:commandlink>
+                            </apex:column>
+                            <apex:column headervalue="{!dLabel['DL90']}" >
+                                <apex:outputfield value="{!item.ActivityDate}" />
+                            </apex:column>
+                            <apex:column headervalue="{!dLabel['DL91']}" >
+                                <apex:outputfield value="{!item.Subject}" />
+                            </apex:column>
+                            <apex:column headervalue="{!dLabel['DL92']}" >
+                                <apex:outputfield value="{!item.OwnerId}" />
+                            </apex:column>
+                        </apex:pageblocktable>
+                        <apex:pagemessage severity="info" rendered="{!IF(ReviewTasks == null || ReviewTasks.size = 0, true, false)}" summary="{!dLabel['DL93']}" />
+                    </apex:pageblocksection>
+
+                    <apex:pageblocksection title="{!dLabel['DL94']}" rendered="{!isProjectPerfReview && oProjectReview.Status__c != 'Not Started'}" columns="1" >
+                        <apex:outputpanel >
+                            <apex:outputlabel value="{!dLabel['DL95']}" styleclass="dmeOutput" /><br/>
+                            <apex:inputfield style="width:800px" value="{!oProjectReview.SafetyExceptionReport__c}" html-placeholder="Note any issues, incidents or near misses in the period and whether these have been reported" onchange="setFormHasChanged();" />
+                        </apex:outputpanel>
+                        <apex:outputpanel >
+                            <apex:outputlabel value="{!dLabel['DL96']}" styleclass="dmeOutput" /><br/>
+                            <apex:inputfield style="width:800px" value="{!oProjectReview.ClientRelations__c}" html-placeholder="Note any client feedback in the period" onchange="setFormHasChanged();" />
+                        </apex:outputpanel>
+                        <apex:outputpanel >
+                            <apex:outputlabel value="{!dLabel['DL97']}" styleclass="dmeOutput" /><br/>
+                            <apex:inputfield style="width:800px" value="{!oProjectReview.ChangeManagementExceptionReport__c}" html-placeholder="Note any outstanding change issues (Scope, budget/funding, schedule, quality, other)" onchange="setFormHasChanged();" />
+                        </apex:outputpanel>
+                        <apex:outputpanel >
+                            <apex:outputlabel value="{!dLabel['DL98']}" styleclass="dmeOutput" /><br/>
+                            <apex:inputfield style="width:800px" value="{!oProjectReview.FinancialPerformanceExceptionReport__c}" html-placeholder="Note any financial issues (EAC changes (cost & Rev), EAC - budget differences, margin changes, aged unbilled / AR, LDs)" onchange="setFormHasChanged();" />
+                        </apex:outputpanel>
+                        <apex:outputpanel >
+                            <apex:outputlabel value="{!dLabel['DL99']}" styleclass="dmeOutput" /><br/>
+                            <apex:inputfield style="width:800px" value="{!oProjectReview.SheduleExceptionReport__c}" html-placeholder="Note any threats to approved schedule (is client aware, is action being taken?)" onchange="setFormHasChanged();" />
+                        </apex:outputpanel>
+                        <apex:outputpanel >
+                            <apex:outputlabel value="{!dLabel['DL100']}" styleclass="dmeOutput" /><br/>
+                            <apex:inputfield style="width:800px" value="{!oProjectReview.QualityException__c}" html-placeholder="Note any quality issues including any unresolved audit findings" onchange="setFormHasChanged();" />
+                        </apex:outputpanel>
+                        <apex:outputpanel >
+                            <apex:outputlabel value="{!dLabel['DL101']}" styleclass="dmeOutput" html-placeholder="" /><br/>
+                            <apex:inputfield style="width:800px" value="{!oProjectReview.RiskManagement__c}" html-placeholder="Note any emerging risks and opportunites.  Excluding any threatened claims by clients or others, which should be notified to legal" onchange="setFormHasChanged();" />
+                        </apex:outputpanel>
+                        <apex:outputpanel >
+                            <apex:outputlabel value="{!dLabel['DL102']}" styleclass="dmeOutput" /><br/>
+                            <apex:inputfield style="width:800px" value="{!oProjectReview.StaffResourcesExceptionReport__c}" html-placeholder="Note any staff resourcing issues" onchange="setFormHasChanged();" />
+                        </apex:outputpanel>
+                        <apex:outputpanel >
+                            <apex:outputlabel value="{!dLabel['DL103']}" styleclass="dmeOutput" /><br/>
+                            <apex:inputfield style="width:800px" value="{!oProjectReview.SubsExceptionReport__c}" html-placeholder="Note any issues (contractual, performance)" onchange="setFormHasChanged();" />
+                        </apex:outputpanel>
+                    </apex:pageblocksection>
+
+                    <apex:pageblocksection title="{!dLabel['DL104']}" columns="1" rendered="{!isPerfReview && oProjectReview.Status__c != 'Not Started'}" >
+            <!--            <apex:outputText escape="false" value="{!projectSnapshotRecord}"/> -->
+                        <iframe src="/apex/ECO_ProjectSnapshot?id={!ProjectSnapshotRecord}" scrolling="true" id="iframe_id" width="100%" height="100%" />
+                    </apex:pageblocksection>
+                </apex:pageblock>
+            </div>
+
+             <c:ECO_RiskFlyout projectid="{!theProject.Id}" rendered="{!theProject != null}" planelement="" />
+             <c:ECO_AssumptionFlyout projectid="{!theProject.Id}" rendered="{!theProject != null}" planelement="" />
+             <c:ECO_ProjectTeamFlyout projectid="{!theProject.Id}" rendered="{!theProject != null}" />
+
+        </apex:form>
+
+        <!--<apex:relatedList list="OpenActivities" rendered="{!showOtherSections}" />-->
+        <!-- <apex:relatedList list="ActivityHistories" rendered="{!showOtherSections}" /> -->
+        <apex:relatedlist list="CombinedAttachments" />
+        <!--<apex:relatedList list="ProjectSnapshots__r" rendered="{!isPerfReview}"/>-->
+
+        <script type="text/javascript" >
+
+            $(document).ready(function() {
+                //Hide Reassign link for Approval Process
+                var reassign;
+                $( "a" ).each(function( index ) {
+                   var href= $( this ).attr("href");
+
+                   if (typeof href != 'undefined') {
+                       if (href.includes("REASSIGN")) {
+                           reassign = $(this).parent();
+                           return false; //break
+                       }
+                   }
+                });
+                reassign.html(reassign.children().eq(1));
+            });
+
+            // need to check if any form controls have changed before attaching a file because changes be lost when navigating to a new page
+            // add onchange="setFormHasChanged();" to all form inputFields
+
+            var existingSFBtnName;
+            var existingSFBtnText;
+
+            // repeat for all buttons on form you want to override to check for user changes
+            existingSFBtnName = "attachFile";
+            existingSFBtnText = "Attach File";
+            overrideSFButtonToCheckForChanges(existingSFBtnName, existingSFBtnText);
+            // end repeat
+
+            function overrideSFButtonToCheckForChanges(existingSFBtnName, existingSFBtnText)
+            {
+                // this function hides an existing SF button
+                // adds a new button that calls the checkForChanges() function
+
+                var existingSFBtn = getExistingSFButton(existingSFBtnName, existingSFBtnText);
+
+                if (existingSFBtn != null)
+                {
+                    var myNewBtn = document.createElement("BUTTON");    // Create a <button> element
+                    var txt = document.createTextNode(existingSFBtnText);      // create a text node
+                    myNewBtn.appendChild(txt);                          // append the text to <button>
+
+                    myNewBtn.onclick = function() { checkForChangesBeforeLeavingPage(existingSFBtn); };  // add onclick function
+                    document.body.appendChild(myNewBtn);                                // append <button> to <body> next to existing button
+
+                    existingSFBtn.parentNode.appendChild(myNewBtn);     // add new button to replace existing button
+                    existingSFBtn.style.display = "none";               // hide existing button
+                }
+            }
+
+            function getExistingSFButton(existingSFBtnName, existingSFBtnText)
+            {
+                var existingSFBtn;
+
+                var sfButtons = document.getElementsByName(existingSFBtnName);
+                if (sfButtons.length > 0)
+                {
+                    existingSFBtn = sfButtons[0];
+                }
+                else // in case the SF generated name changes someday
+                {
+                    var allInputs = document.getElementsByTagName("input");
+                    for(var x = 0;x < allInputs.length; x++)
+                    if(allInputs[x].value == existingSFBtnText)
+                        existingSFBtn = allInputs[x];
+                }
+
+                return existingSFBtn;
+            }
+
+            var formHasChanged = false;
+            function setFormHasChanged()
+            {
+                formHasChanged = true;
+            }
+
+            function checkForChangesBeforeLeavingPage(existingSFBtnToClick)
+            {
+                if (formHasChanged)
+                {
+                    if (confirm("You have unsaved changes on this form.\r\nClick Cancel to go back and save your changes.\r\nClick OK to proceed without saving."))
+                        existingSFBtnToClick.click();
+                }
+                else // form has not changed
+                    existingSFBtnToClick.click();
+            }
+
+        </script>
+
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

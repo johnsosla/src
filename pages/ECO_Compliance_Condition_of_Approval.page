@@ -1,0 +1,34 @@
+<apex:page showheader="true" sidebar="true" standardcontroller="ComplianceConditionsofApproval__c" extensions="ECO_ComplianceController,nttdcore.DLabelParentController" >
+	<apex:form >
+        <nttdcore:DLabel name="DL1" default="Conditions of Approval Compliance" labelParent="{!this}" /><apex:sectionheader title="{!dLabel['DL1']}" subtitle="{!oCompliance.Name}" id="secHeader" />
+        <apex:pagemessages />
+    	<apex:pageBlock >
+            <apex:pageBlockButtons location="top" rendered="{!isDOAAdmin}" >
+            	<nttdcore:DLabel name="DL2" default="Save" labelParent="{!this}" /><apex:commandButton action="{!saveCompliance}" value="{!dLabel['DL2']}" />
+                <nttdcore:DLabel name="DL3" default="Delete" labelParent="{!this}" /><apex:commandButton action="{!delete}" value="{!dLabel['DL3']}" />
+                <nttdcore:DLabel name="DL4" default="Delete" labelParent="{!this}" /><apex:commandButton action="{!URLFOR($Action.ComplianceConditionsofApproval__c.delete,oCompliance.id,[retURL=oCompliance.DOAApprovalRequest__c])}" value="{!dLabel['DL4']}" id="deleteButton" rendered="{!isDOAAdmin}" />
+                <nttdcore:DLabel name="DL5" default="Back to DOA Approval" labelParent="{!this}" /><apex:commandButton action="/{!oCompliance.DOAApprovalRequest__c}" value="{!dLabel['DL5']}" rendered="{!IF(oCompliance.DOAApprovalRequest__c != null, true, false)}" />
+            </apex:pageBlockButtons>
+            <apex:pageBlockButtons location="top" rendered="{!NOT(isDOAAdmin)}" >
+            	<nttdcore:DLabel name="DL6" default="Back to DOA Approval" labelParent="{!this}" /><apex:commandButton action="/{!oCompliance.DOAApprovalRequest__c}" value="{!dLabel['DL6']}" rendered="{!IF(oCompliance.DOAApprovalRequest__c != null, true, false)}" />
+            </apex:pageBlockButtons>
+        	<apex:pageBlockSection rendered="{!isDOAAdmin}" >
+            	<apex:inputField value="{!oCompliance.ComplianceStatus__c}" />
+                <apex:inputField value="{!oCompliance.ConditionsCompleted__c}" />
+                <apex:inputField value="{!oCompliance.ComplianceStatusDate__c}" />
+                <apex:inputField value="{!oCompliance.ConditionsCompletedDate__c}" />
+                
+            </apex:pageBlockSection>
+            <apex:pageBlockSection columns="1" rendered="{!isDOAAdmin}" >
+            	<apex:inputField value="{!oCompliance.GeneralComments__c}" style="Width:75%;Height:120px" />
+            </apex:pageBlockSection>
+            <apex:pageBlockSection rendered="{!NOT(isDOAAdmin)}" >
+            	<apex:outputField value="{!oCompliance.ComplianceStatus__c}" />
+                <apex:outputField value="{!oCompliance.ConditionsCompleted__c}" />
+                <apex:outputField value="{!oCompliance.ComplianceStatusDate__c}" />
+                <apex:outputField value="{!oCompliance.ConditionsCompletedDate__c}" />
+                <apex:outputField value="{!oCompliance.GeneralComments__c}" />
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+    </apex:form> 
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

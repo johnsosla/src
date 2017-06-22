@@ -1,0 +1,504 @@
+<apex:page Controller="ECO_BatchSchedulingDashboardController" 
+	Id="thePage" 
+	action="{!startDashboard}" 
+	title="Batch Dashboard"
+	sidebar="true"
+	showHeader="true">
+	<apex:includeScript value="{!$Resource.ECO_jQuery_1_11_2_min_js}"/>
+
+	<script type="text/javascript">
+		var $x = jQuery.noConflict();
+
+		$x(document).ready(function(){
+		})
+
+		//selects/deselects all of the batch checkboxes depending on the checkbox state nn the header row
+		function selectAllBatches(){
+			 $x('.batchCheckBox').each(function () {
+				$x(this).prop('checked', $x('[id$=batchCheckAll]').prop('checked'));
+			 })
+		}
+
+		function setFocus(fieldId) {
+			var element = $x('[id$='+fieldId+']').get(0);
+			var elemLen = element.value.length;
+
+			element.selectionStart = elemLen;
+			element.selectionEnd = elemLen;
+			element.focus();
+		}
+
+
+	</script>
+
+	<apex:form id="batchScheduleDashboard">
+		<apex:outputPanel id="pageMessagePanel" >
+			<apex:pageMessages id="pageMessages" />
+		</apex:outputPanel>
+		<apex:sectionHeader title="ECO Batch Dashboard & Scheduling Tool" subtitle="Batch Scheduling Dashboard" /> 
+
+		<apex:pageBlock id="scheduledBatchList" title="Scheduled Batch Status">
+			<apex:pageBlockButtons location="top" >
+				<apex:commandButton action="{!newBatchJob}" value="New Scheduled Batch" reRender="scheduledBatchList, newOrEditSchedule, runNowPanel" oncomplete="setFocus('selectNewScheduledJob');" disabled="{!isReadOnly}" />
+				<apex:commandButton action="{!newRunNowJob}" value="Run Batch Now" reRender="newOrEditSchedule" oncomplete="setFocus('pickRunNowJob');" disabled="{!isReadOnly}" />
+			</apex:pageBlockButtons>
+
+			<apex:outputPanel id="scheduleList" style="{!if( (inNew || inEdit), 'disabled:true;', '')}">
+				<apex:pageBlockTable id="batchList" value="{!scheduledJobList}" var="job">
+					<apex:column >
+						<apex:facet name="header">
+							<apex:inputCheckbox onclick="selectAllBatches()" value="{!checkAll}" id="batchCheckAll" disabled="{!isReadOnly}"/>
+						</apex:facet>
+						<apex:inputCheckbox value="{!job.checked}" styleClass="batchCheckBox" disabled="{!isReadOnly}"/>
+					</apex:column>
+
+					<apex:column width="50px;">
+						<apex:facet name="header">Action</apex:facet>
+						<apex:commandLink action="{!addEditBatchSchedule}" value="Edit" reRender="newOrEditSchedule" oncomplete="setFocus('newEditJobName');" rendered="{!!isReadOnly}">
+							<apex:param name="selectedEditId" value="{!job.id}" assignTo="{!selectedEditId}"/>
+						</apex:commandLink>
+							&nbsp;
+						<apex:commandLink action="{!deleteBatchJob}" value="Del" onclick="return confirm('Are You Sure?')" rendered="{!!isReadOnly}">
+							<apex:param name="deleteId" value="{!job.id}" assignTo="{!deleteId}"/>
+						</apex:commandLink>
+					</apex:column>
+
+					<apex:column >
+						<apex:facet name="header">Status</apex:facet>
+						<apex:outputText value="{!job.scheduledStatus}" style="{!if(job.scheduledStatus='Failed', 'color:red;font-weight:bold;', if(job.scheduledStatus='Unscheduled', 'color:red;', ''))}"/>
+					</apex:column>
+
+					<apex:column headerValue="Scheduled Job Name" value="{!job.jobName}"/>
+					<apex:column headerValue="Batch or Stream" value="{!job.classLabel}" title="{!job.description}" width="100px"/>
+					<apex:column headerValue="Batch Size" value="{!job.batchSize}" style="text-align:right;"/>
+					<apex:column headerValue="Regions" value="{!job.regionIds}"/>
+					<apex:column headerValue="Schedule" value="{!job.cronInEnglish}"/>
+					<apex:column headerValue="Last Run" value="{!job.lastRun}"/>
+
+					<apex:column style="text-align:right;" >
+						<apex:facet name="header">Items Run</apex:facet>
+						<apex:outputText value="{!job.jobItemsProcessed}" rendered="{!job.lastRun != null}" />
+					</apex:column>
+
+					<apex:column style="text-align:right;" >
+						<apex:facet name="header">Total Items</apex:facet>
+						<apex:outputText value="{!job.totalJobItems}" rendered="{!job.lastRun != null}" />
+					</apex:column>
+
+					<apex:column style="text-align:right;" >
+						<apex:facet name="header">Batch Errors</apex:facet>
+						<apex:outputText value="{!job.numberOfErrors}" rendered="{!job.lastRun != null}"/>
+					</apex:column>
+
+					<apex:column headerValue="Next Run" value="{!job.nextRun}"/>
+					<apex:column headerValue="CRON" value="{!job.cron}"/>
+				</apex:pageBlockTable>
+
+				<br/>
+				<apex:commandButton action="{!scheduleSelectedJobs}" value="Schedule Selected" reRender="batchScheduleDashboard" disabled="{!isReadOnly}" />
+				<apex:commandButton action="{!unscheduleSelectedJobs}" value="Unschedule Selected" reRender="batchScheduleDashboard" disabled="{!isReadOnly}" />
+
+				<div align="right">
+					You are currently using <b>{!currentScheduleCount}</b> scheduled Apex jobs out of a maximum of {!maxScheduledApex}
+				</div>
+			</apex:outputPanel>
+		</apex:pageBlock>
+
+		<apex:pageBlock id="setupNewSandbox" title="Setup New Region Steps">
+			<apex:outputLabel value="Current region settings: "/>
+			<apex:outputText value="{!setupJobRegions}" style="color:blue;"/>
+			<br/><br/>
+
+			<b><apex:outputLabel value="Use this only once when initializing a new regional rollout" /></b>&nbsp;&nbsp;
+			<apex:commandButton action="{!kickoffNewRegion}" value="Kickoff" disabled="{!isReadOnly}" reRender="kickoffJobInfo"/>
+			<br/><br/>
+			<apex:outputPanel id="kickoffJobInfo" >
+				<apex:outputLabel value="The kickoff job has been started, monitor it using this link: " rendered="{!kickoffJobId != null}" />
+				<apex:outputLink value="/apexpages/setup/listAsyncApexJobs.apexp/" target="_blank" rendered="{!kickoffJobId != null}" style="width:120px;">
+					{!kickoffJobId}
+				</apex:outputLink>
+				<apex:outputText value=" *Remember* that this actually runs a number of different jobs, so wait for all of them to complete before proceeding." rendered="{!kickoffJobId != null}" />
+				<apex:outputPanel rendered="{!kickoffJobId != null}">
+					<br/><br/>
+				</apex:outputPanel>
+			</apex:outputPanel>
+
+			<fieldset>
+				<legend>Run these steps, in order, when initializing a new region and you want to process all project records</legend>
+				<apex:pageBlockTable id="setupList" value="{!setupJobList}" var="setup" >
+
+					<apex:column headerValue="Job Order" width="40px" value="{!setup.setupJobOrder}"/>
+					
+					<apex:column width="30px">
+						<apex:facet name="header">Action</apex:facet>
+						<apex:commandLink action="{!runSetupStep}" value="Run" reRender="setupNewSandbox" rendered="{!!isReadOnly}">
+							<apex:param name="selectedStepJobName" value="{!setup.jobName}" assignTo="{!batchClassBeingRunNow}"/>
+						</apex:commandLink>
+					</apex:column>
+
+					<apex:column width="80px">
+						<apex:facet name="header">Status / JobId</apex:facet>
+						<apex:outputText value="{!setup.status + if( setup.lastRunJobId != null, ' / ' + setup.lastRunJobId, '')}" style="width:120px;{!if(setup.status='Failed', 'color:red;font-weight:bold;', '')}"
+						rendered="{!!runningSetupStep}" title="{!setup.ExtendedStatus}"/>
+						<apex:outputLink value="/apexpages/setup/listAsyncApexJobs.apexp" rendered="{!runningSetupStep && batchClassBeingRunNow == setup.jobName}" style="width:120px;">{!runSetupBatchId}</apex:outputLink>
+					</apex:column>
+
+					<apex:column width="120px" headerValue="Scheduled Job Name" value="{!setup.jobName}"/>
+					<apex:column width="220px" headerValue="Batch" value="{!setup.classLabel}" title="{!setup.description}"/>
+					<apex:column width="30px" headerValue="Batch Size" value="{!setup.batchSize}" style="text-align:right;"/>
+					<apex:column width="120px" headerValue="Last Run" value="{!setup.lastRun}"/>
+				</apex:pageBlockTable>
+			</fieldset>
+			<br/>
+
+			<fieldset>
+				<legend>Run this step to rollout priority projects in chunks</legend>
+				<div>There are currently {!priorityQueueSize} projects in the priority request queue</div>
+				<div>There are currently {!projectQueueSize} projects remaining in the project queue</div>
+				<br/>
+				<apex:outputLabel value="Enter how many projects to run: "/>
+				<apex:inputText value="{!priorityRolloutSize}" size="10" maxlength="3" disabled="{!isReadOnly}"/>
+				<apex:outputLabel value=" maximum is 999 projects"/>
+				<br/>
+				<div>
+					<apex:commandButton action="{!kickoffPriorityRollout}" value="Run Priority Projects Now" disabled="{!isReadOnly}" reRender="blockedRolloutJobInfo, pageMessagePanel"/>
+					&nbsp;&nbsp;
+					<apex:outputLabel value="Run stream in continuous loop" />
+					<apex:inputCheckbox value="{!runRolloutStreamInLoop}" disabled="{!isReadOnly}" />
+					<br/><br/>
+					<apex:commandButton action="{!stopRolloutLoop}" value="Stop loop when current stream completes" disabled="{!isReadOnly}" />
+				</div>
+
+				<apex:outputPanel id="blockedRolloutJobInfo" >
+					<apex:outputPanel rendered="{!blockBatchId != null}">
+						<br/>
+						<apex:outputLabel value="The Blocked Regional Rollout job stream has been started, monitor it using this link: " rendered="{!blockBatchId != null}" />
+						<apex:outputLink value="/apexpages/setup/listAsyncApexJobs.apexp/" target="_blank" rendered="{!blockBatchId != null}" style="width:120px;">
+							{!blockBatchId}
+						</apex:outputLink>
+						<br/>
+						<apex:outputText value=" *Remember* that this actually runs several batch jobs in series, so wait for all of them to all complete before proceeding." rendered="{!blockBatchId != null}" />
+						<apex:outputPanel rendered="{!blockBatchId != null}">
+							<br/><br/>
+						</apex:outputPanel>
+					</apex:outputPanel>
+				</apex:outputPanel>
+			</fieldset>
+		</apex:pageBlock>
+		<br/>
+
+		<apex:outputPanel id="newOrEditSchedule">
+			<apex:pageBlock id="scheduleSettings" rendered="{!inNew || inEdit}" title="Create or Edit a Scheduled Job">
+
+				<apex:pageBlockButtons >
+					<apex:commandButton action="{!saveBatchJob}" value="Save" reRender="batchScheduleDashboard, newOrEditSchedule"/>
+					<apex:commandButton action="{!cancelNewOrEdit}" value="Cancel" reRender="batchScheduleDashboard, newOrEditSchedule"/>
+				</apex:pageBlockButtons>
+
+				<apex:selectRadio value="{!scheduleType}">
+					<apex:actionSupport event="onclick" reRender="scheduleTable" action="{!updateScheduleType}"/>
+					<apex:selectOption itemValue="1" itemlabel="Single Batch"/>
+					<apex:selectOption itemValue="2" itemlabel="Batch Stream" />
+				</apex:selectRadio>
+
+				<apex:outputPanel id="scheduleTable">
+					<apex:outputPanel rendered="{!scheduleType == 1}">
+						<table>
+							<tr>
+								<td>
+									<apex:outputLabel value="Select batch job"/>
+								</td>
+								<td>
+									<apex:selectList Id="selectNewScheduledJob" value="{!editScheduleJob.className}" size="1">
+										<apex:selectOptions value="{!batchAvailableList}"/>
+										<apex:actionSupport event="onchange" reRender="recommendedSize" action="{!updateScheduleBatchSize}"/>
+									</apex:selectList>
+									&nbsp;&nbsp;
+									<apex:outputLabel value=" jobs marked with " style="color:darkgrey;"/>
+									<apex:outputLabel value=" (R) " style="color:darkgrey;font-weight:bold;"/>
+									<apex:outputLabel value=" support regionalization" style="color:darkgrey;"/>
+								</td>
+							</tr>
+							<tr>
+								<td>
+									<apex:outputLabel value="Enter the batch size:"/>
+								</td>
+								<td>
+									<apex:outputPanel id="recommendedSize">
+										<apex:inputText value="{!editScheduleJob.batchSize}" size="10" maxlength="4"/>
+										&nbsp;&nbsp;
+										<apex:outputLabel value=" recommended size is: " style="color:darkgrey;" rendered="{!scheduledRecommendedBatchSize != null}"/>
+										<apex:outputLabel value="{!scheduledRecommendedBatchSize}" style="color:darkgrey;font-weight:bold;" rendered="{!scheduledRecommendedBatchSize != null}"/>
+									</apex:outputPanel>
+								</td>
+							</tr>							
+						</table>
+					</apex:outputPanel>
+
+					<apex:outputPanel rendered="{!scheduleType == 2}">
+						<table>
+							<tr>
+								<td>
+									<apex:outputLabel value="Select Batch Stream"/>
+								</td>
+								<td>
+									<apex:selectList value="{!batchStreamBeingScheduled}" size="1">
+										<apex:actionSupport event="onchange" reRender="streamHelp" action="{!updateStreamInfo}"/>
+										<apex:selectOptions value="{!batchStreamList}"/>
+									</apex:selectList>
+									&nbsp;&nbsp;
+									<apex:outputPanel id="streamHelp">
+										<apex:image url="http://png-3.findicons.com/files/icons/1156/fugue/16/question_frame.png" title="{!selectedStreamDetail}" />
+									</apex:outputPanel>
+
+									<apex:outputLabel value=" streams marked with " style="color:darkgrey;"/>
+									<apex:outputLabel value=" (R) " style="color:darkgrey;font-weight:bold;"/>
+									<apex:outputLabel value=" support regionalization" style="color:darkgrey;"/>
+								</td>
+							</tr>
+						</table>
+					</apex:outputPanel>
+
+					<table>
+						<tr>
+							<td>
+								<apex:outputLabel value="Enter a comma delimited list of region OU Ids:"/>
+							</td>
+							<td>
+								<apex:inputText id="regionIds" value="{!editScheduleJob.regionIds}" size="20" />
+								&nbsp;&nbsp;
+								<apex:outputLabel value=" (ex. " style="color:darkgrey;"/>
+								<apex:outputLabel value=" 140,147" style="color:darkgrey;font-weight:bold;"/>
+								<apex:outputLabel value=" or leave empty for all regions)" style="color:darkgrey;"/>
+							</td>
+						</tr>
+						<tr>
+							<td>
+								<apex:outputLabel value="Enter a unique name for the instance of this job"/>
+							</td>
+							<td>
+								<apex:inputText id="newEditJobName" value="{!editScheduleJob.jobName}" size="76" />
+							</td>
+						</tr>
+						<tr>
+							<td>
+							</td>
+							<td>
+								<fieldset style="background-color:whitesmoke;width:100px;">
+									<table>
+										<tr>
+											<td>
+												<label>Select the interval</label>
+												<apex:selectRadio value="{!selectedFrequency}" layout="pageDirection" borderVisible="true" style="width:100px;">
+													<apex:actionSupport reRender="freqSpecifics" event="onchange" action="{!updateFrequency}" />
+													<apex:selectOptions value="{!availableFrequencies}"/><br/>
+												</apex:selectRadio>
+											</td>
+											<td>
+												<label>Set the details (time is in PT)</label><br/>
+												<apex:outputPanel id="freqSpecifics">
+													<!--Daily-->
+													<apex:outputPanel id="daily" rendered="{!selectedFrequency == 'DAILY'}">
+														<fieldset style="display:block;width:280px;">
+															Preferred Start Time&nbsp;&nbsp;
+															<apex:selectList value="{!selectedHour}" size="1">							
+																<apex:selectOptions value="{!availableHours}"/>
+															</apex:selectList>
+															:&nbsp;							
+															<apex:selectList value="{!selectedMinute}" size="1">							
+																<apex:selectOptions value="{!availableMinutes}"/>
+															</apex:selectList>
+															&nbsp;						
+															<apex:selectList value="{!selectedAmPm}" size="1">							
+																<apex:selectOptions value="{!availableAmPm}"/>
+															</apex:selectList>
+															<br/><br/>
+															<span style="margin-left:30px;font-size:70%">Exact start time will depend on job queue activity.</span>		
+												
+														</fieldset>
+													</apex:outputPanel>
+													<!--Weekly-->
+													<apex:outputPanel id="weekly" rendered="{!selectedFrequency == 'WEEKLY'}">
+														<fieldset style="width:280px;">
+															Recurs every week on
+															<apex:selectRadio value="{!selectedDayOfWeek}" layout="pageDirection" >
+																<apex:selectOptions value="{!availableDaysOfWeek}"/><br/>
+															</apex:selectRadio>
+															Preferred Start Time&nbsp;&nbsp;
+															<apex:selectList value="{!selectedHour}" size="1">							
+																<apex:selectOptions value="{!availableHours}"/>
+															</apex:selectList>
+															:&nbsp;							
+															<apex:selectList value="{!selectedMinute}" size="1">							
+																<apex:selectOptions value="{!availableMinutes}"/>
+															</apex:selectList>
+															&nbsp;						
+															<apex:selectList value="{!selectedAmPm}" size="1">							
+																<apex:selectOptions value="{!availableAmPm}"/>
+															</apex:selectList>							
+															<br/><br/>
+															<span style="margin-left:30px;font-size:75%">Exact start time will depend on job queue activity.</span>		
+														</fieldset>
+													</apex:outputPanel>
+													<!--Monthly-->
+													<apex:outputPanel id="monthly" rendered="{!selectedFrequency == 'MONTHLY'}">
+														<fieldset style="width:320px;">
+															<apex:selectRadio value="{!availableMonthlyOnType}" layout="pageDirection">
+																<apex:actionSupport event="onclick" reRender="monthly" />
+
+																<apex:selectOption itemValue="1" itemlabel="On Day"/>
+																<apex:selectOption itemValue="2" itemlabel="On" />
+															</apex:selectRadio>
+
+															<apex:outputPanel rendered="{!availableMonthlyOnType = 1}" style="margin-left:40px;">
+																<apex:selectList value="{!selectedDayOfMonth}" size="1">
+																	<apex:selectOptions value="{!availableDaysOfMonth}"/>
+																</apex:selectList>							
+																of every month
+															</apex:outputPanel>
+
+															<apex:outputPanel rendered="{!availableMonthlyOnType = 2}" style="margin-left:40px;">
+																<apex:selectList value="{!selectedWeekOfMonth}" size="1">
+																	<apex:selectOptions value="{!availableWeeksOfMonth}"/>
+																</apex:selectList>&nbsp;							
+																<apex:selectList value="{!selectedDayOfWeek}" size="1">
+																	<apex:selectOptions value="{!availableDaysOfWeek}"/>
+																</apex:selectList>							
+																of every month
+															</apex:outputPanel>
+
+															<br/><br/>
+															<apex:outputPanel style="margin-left:40px;">
+																Preferred Start Time&nbsp;&nbsp;
+																<apex:selectList value="{!selectedHour}" size="1">							
+																	<apex:selectOptions value="{!availableHours}"/>
+																</apex:selectList>
+																:&nbsp;						
+																<apex:selectList value="{!selectedMinute}" size="1">							
+																	<apex:selectOptions value="{!availableMinutes}"/>
+																</apex:selectList>
+																&nbsp;						
+																<apex:selectList value="{!selectedAmPm}" size="1">							
+																	<apex:selectOptions value="{!availableAmPm}"/>
+																</apex:selectList>							
+															</apex:outputPanel>
+
+															<br/><br/>
+															<span style="margin-left:60px;font-size:80%">Exact start time will depend on job queue activity.</span>		
+														</fieldset>
+													</apex:outputPanel>
+												</apex:outputPanel>
+											</td>
+										</tr>
+									</table>
+								</fieldset>
+							</td>
+						</tr>
+					</table>
+				</apex:outputPanel>
+			</apex:pageBlock>
+
+			<apex:pageBlock id="RunNowPanel" rendered="{!inRunNow}" title="Run a batch or batch stream now">
+
+				<apex:pageBlockButtons >
+					<apex:commandButton action="{!runNowBatch}" value="Submit Job" rerender="RunNowPanel"/>
+					<apex:commandButton action="{!cancelNewOrEdit}" value="Cancel"/>
+				</apex:pageBlockButtons>
+
+				<fieldset style="background-color:whitesmoke;">
+					<legend>Enter your job information and click "Submit Job"</legend>
+
+					<apex:selectRadio value="{!runNowType}">
+						<apex:actionSupport event="onclick" reRender="runNowTable" action="{!updateRunNow}"/>
+						<apex:selectOption itemValue="1" itemlabel="Single Batch"/>
+						<apex:selectOption itemValue="2" itemlabel="Batch Stream" />
+					</apex:selectRadio>
+
+					<apex:outputPanel id="runNowTable">
+						<apex:outputPanel rendered="{!runNowType==1}" >
+							<table cellspacing="5" >
+								<tr>
+									<td>
+										<apex:outputLabel value="Select batch job to run"/>
+									</td>
+									<td>
+										<apex:selectList id="pickRunNowJob" value="{!batchClassBeingRunNow}" size="1">
+											<apex:selectOptions value="{!batchAvailableList}"/>
+											<apex:actionSupport event="onchange" reRender="recommendedRunNowSize" action="{!updateRunNowBatchSize}"/>
+										</apex:selectList>
+										&nbsp;&nbsp;
+										<apex:outputLabel value=" jobs marked with " style="color:darkgrey;"/>
+										<apex:outputLabel value=" (R) " style="color:darkgrey;font-weight:bold;"/>
+										<apex:outputLabel value=" support regionalization" style="color:darkgrey;"/>
+									</td>
+								</tr>
+								<tr>
+									<td>
+										<apex:outputLabel value="Enter the batch size:"/>
+									</td>
+									<td>
+									<apex:outputPanel id="recommendedRunNowSize" >
+										<apex:inputText value="{!runNowBatchSize}" size="10" maxlength="4"/>
+										&nbsp;&nbsp;
+										<apex:outputLabel value=" recommended size is: " style="color:darkgrey;" rendered="{!runNowRecommendedBatchSize != null}"/>
+										<apex:outputLabel value="{!runNowRecommendedBatchSize}" style="color:darkgrey;font-weight:bold;" rendered="{!runNowRecommendedBatchSize != null}"/>
+									</apex:outputPanel>
+									</td>
+								</tr>							
+							</table>
+						</apex:outputPanel>
+
+						<apex:outputPanel id="runNowStream" rendered="{!runNowType==2}" >
+							<table cellspacing="5" >
+								<tr>
+									<td>
+										<apex:outputLabel value="Select a job stream to run"/>
+									</td>
+									<td>
+										<apex:selectList id="pickRunNowStream" value="{!batchStreamBeingRunNow}" size="1">
+											<apex:actionSupport event="onchange" reRender="streamHelpRunNow" action="{!updateStreamInfo}"/>
+											<apex:selectOptions value="{!batchStreamList}"/>
+										</apex:selectList>
+										&nbsp;&nbsp;
+										<apex:outputPanel id="streamHelpRunNow">
+											<apex:image url="http://png-3.findicons.com/files/icons/1156/fugue/16/question_frame.png" title="{!selectedStreamDetail}" />
+										</apex:outputPanel>
+
+   										<apex:outputLabel value=" streams marked with " style="color:darkgrey;"/>
+										<apex:outputLabel value=" (R) " style="color:darkgrey;font-weight:bold;"/>
+										<apex:outputLabel value=" support regionalization" style="color:darkgrey;"/>
+									</td>
+								</tr>
+							</table>
+						</apex:outputPanel>
+
+						<apex:outputPanel id="runNowRegion">
+							<table cellspacing="5" >
+								<tr>
+									<td>
+										<apex:outputLabel value="Enter a comma delimited list of region OU Ids:"/>
+									</td>
+									<td>
+										<apex:inputText id="regionIds" value="{!regionIds}" size="20" />
+										&nbsp;&nbsp;
+										<apex:outputLabel value=" (ex. " style="color:darkgrey;"/>
+										<apex:outputLabel value=" 140,147" style="color:darkgrey;font-weight:bold;"/>
+										<apex:outputLabel value=" or leave empty for all regions)" style="color:darkgrey;"/>
+									</td>
+								</tr>
+							</table>
+						</apex:outputPanel>
+
+					</apex:outputPanel>
+
+					<apex:outputPanel rendered="{!runNowBatchId != null}">
+						<apex:outputText value="Your job has been queued to run as {!runNowBatchId}"/><br/>
+						You can check the status of your job on the <a href="/apexpages/setup/listAsyncApexJobs.apexp" target="_blank">Monitor/Apex Job </a>page
+					</apex:outputPanel>
+				</fieldset>
+			</apex:pageBlock>
+
+		</apex:outputPanel>
+	</apex:form>
+	
+</apex:page>

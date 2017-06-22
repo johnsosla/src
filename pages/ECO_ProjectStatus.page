@@ -1,0 +1,516 @@
+<apex:page standardcontroller="pse__Proj__c" showheader="false" extensions="ECO_ProjectStatusController,nttdcore.DLabelParentController" sidebar="false" standardstylesheets="false" >
+    <style>
+        body{
+            font-family:arial, helvetica, sans-serif;
+            padding:0;
+            width:100%;
+            height:100%;
+            line-height:100%:;
+            padding-left:12px;
+        }
+
+       /* STATUS BAR BUTTON GROUP */
+        body span ul, body div ul{
+            margin:0;
+            padding:0;
+        }
+        body span ul.progress{
+            margin:0 0 8px 0 !important;
+        }
+        ul.progress li{
+            display:inline-block;
+            width:9%;
+            height:45px;
+            vertical-align:top;
+            position: relative;
+            background-color:#727272;
+            border-radius:3px;
+            padding:0 10px 0 0;
+            min-width:100px;
+            cursor:pointer;
+            font-family: arial;
+            background-image: -moz-linear-gradient(top,  rgba(255,255,255,0) 0%, rgba(255,255,255,0.09) 57%, rgba(0,0,0,0.15) 100%); /* FF3.6+ */
+            background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(255,255,255,0)), color-stop(57%,rgba(255,255,255,0.09)), color-stop(100%,rgba(0,0,0,0.15))); /* Chrome,Safari4+ */
+            background-image: -webkit-linear-gradient(top,  rgba(255,255,255,0) 0%,rgba(255,255,255,0.09) 57%,rgba(0,0,0,0.15) 100%); /* Chrome10+,Safari5.1+ */
+            background-image: -o-linear-gradient(top,  rgba(255,255,255,0) 0%,rgba(255,255,255,0.09) 57%,rgba(0,0,0,0.15) 100%); /* Opera 11.10+ */
+            background-image: -ms-linear-gradient(top,  rgba(255,255,255,0) 0%,rgba(255,255,255,0.09) 57%,rgba(0,0,0,0.15) 100%); /* IE10+ */
+            background-image: linear-gradient(to bottom,  rgba(255,255,255,0) 0%,rgba(255,255,255,0.09) 57%,rgba(0,0,0,0.15) 100%); /* W3C */
+        }
+        ul.progress li a{
+            position: absolute;
+            left: 7px; 
+            top: 3%; 
+            width: 90%; 
+            height: 45px; 
+            display: table; 
+            font-size:10px;
+            font-family: arial;
+            text-decoration:none;
+            font-weight:bold;
+            color:#fff;
+        }
+        ul.progress li div{ 
+            display: table-cell; 
+            vertical-align: middle; 
+            text-align: center; 
+        }
+        ul.progress li:before{
+            width: 0; 
+            height: 0; 
+            border-top: 15px solid transparent;
+            border-bottom: 15px solid transparent;
+            border-left: 15px solid #727272;
+        }
+        .container{
+            width:100%;
+            height:100%;
+        }
+        .boxed{
+            max-width:1200px;
+            min-width:800px;
+            margin:0 auto;
+        }
+        .activeButtons{
+            box-shadow:inset 0 0 25px #333;
+            opacity:0.75;
+        }
+        .activeButtons:after{
+            content: "";
+            width: 0;
+            height: 0;
+            border-left: 45px solid transparent;
+            border-right: 45px solid transparent;
+            border-top: 15px solid #fff;
+            bottom: -15px;
+            position: absolute;
+            left: 3%;
+            width: 2px;
+            border-radius: 4px;
+        }
+        .rowOne .activeButtons:after{
+            border-left: 45px solid transparent;
+            border-right: 45px solid transparent;
+            border-top: 70px solid #fff;
+            bottom: -70px;
+            z-index: 99999;
+            left: 3%;
+        }
+        .rowOne .activeButtons{
+            z-index:99999;
+        }
+        .decission.activeButtons:after{
+            left: 13%;
+            border-left: 35px solid transparent;
+            border-right: 35px solid transparent;
+
+        }
+
+        /* working on idea to keep the active/hover state of the steps 
+        .stayActiveButtons{
+            opacity:0.55;
+            box-shadow:inset 0 0 25px #333;
+        }
+        .stayActiveButtons a{
+            text-shadow:0 2px 3px #000;
+        }
+        */
+        .critcalStep{
+            border: 2px solid #234;
+        }
+        .normalStep{
+            border: 2px solid #EBEBEB;
+        }
+        
+        /* conditional colors */
+        /* not started, default gray, defined above in anchor #404040 */
+        ul.progress li.Ready{
+            background-color:#0099FF;
+            border-color:#0099FF !important;
+        }
+        ul.progress li.Started{
+            background-color:#daca2e;
+            border-color:#daca2e !important;
+        }
+        /*ul.progress li.Started.decission{
+            background:#4058e0;
+            border-color:#4058e0 !important;
+        }*/
+        ul.progress li.Complete{
+            background-color:#52c934;
+            border-color:#52c934 !important;
+        }
+        /*ul.progress li.Complete2{
+            background:#54A340;
+            border-color:#54A340 !important;
+        }*/
+        /*ul.progress li.Complete.decission{
+            background-color:#52c934;
+            border-color:#52c934 !important;
+        }*/
+        ul.progress li.Rejected{
+            background-color:#e53d2d;
+            border-color:#e53d2d !important;
+        }
+        ul.progress li.decission{
+            border-radius:50px;
+        }
+        ul.progress li.decission2{
+            border-radius:50px;
+        }
+
+
+
+        /* DROPDOWN / HOVER BUTTONS */
+        .buttonGroup{
+            padding:8px 15px;
+            background-color:#EBEBEB;
+            margin-right:6.5%;
+            border-radius:4px;
+            box-shadow: 0 0 8px #333;
+            margin-top:10px;
+        }
+        .buttonGroup ul li{
+            display:inline-block;
+            font-size:11px;
+            background:#727272;
+            padding:3px 7px;
+            border-radius:3px;
+            width:12.3%;
+            margin:0 0 4px 0;
+            text-align:center;
+            min-width:125px;
+            cursor:pointer;
+            background-image: -moz-linear-gradient(top,  rgba(255,255,255,0) 0%, rgba(255,255,255,0.09) 57%, rgba(0,0,0,0.15) 100%); /* FF3.6+ */
+            background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(255,255,255,0)), color-stop(57%,rgba(255,255,255,0.09)), color-stop(100%,rgba(0,0,0,0.15))); /* Chrome,Safari4+ */
+            background-image: -webkit-linear-gradient(top,  rgba(255,255,255,0) 0%,rgba(255,255,255,0.09) 57%,rgba(0,0,0,0.15) 100%); /* Chrome10+,Safari5.1+ */
+            background-image: -o-linear-gradient(top,  rgba(255,255,255,0) 0%,rgba(255,255,255,0.09) 57%,rgba(0,0,0,0.15) 100%); /* Opera 11.10+ */
+            background-image: -ms-linear-gradient(top,  rgba(255,255,255,0) 0%,rgba(255,255,255,0.09) 57%,rgba(0,0,0,0.15) 100%); /* IE10+ */
+            background-image: linear-gradient(to bottom,  rgba(255,255,255,0) 0%,rgba(255,255,255,0.09) 57%,rgba(0,0,0,0.15) 100%); /* W3C */
+        }
+        .buttonGroup ul li a{
+            color:#fff;
+            text-decoration:none;
+        }
+        .buttonGroup ul li:hover{
+            //opacity:0.75;
+            opacity:0.85;
+        }
+        .buttonGroup ul li:hover a{
+            //text-shadow:0 1px 2px #000;
+            //text-shadow: 0px 0px 3px rgba(150, 150, 150, 0.7);
+            text-shadow: 0px 0px 3px rgba(60, 60, 60, 0.7)
+
+
+        }
+        .buttonGroup ul li.Started{
+            background:#daca2e;
+        }
+        .buttonGroup ul li.Started.decission{
+            background:#4058e0;
+        }
+        .buttonGroup ul li.Started2{
+            background:#9C8F17;
+        }
+        .buttonGroup ul li.Started2.decission{
+            background:#4058e0;
+        }
+        .buttonGroup ul li.Complete{
+            background:#52c934;
+        }
+        .buttonGroup ul li.Complete2{
+            background:#629654;
+        }
+        .buttonGroup ul li.Complete.decission{
+            background:#52c934;
+        }
+        .buttonGroup ul li.Complete2.decission{
+            background:#629654;
+            
+        }
+        .buttonGroup ul li.Rejected{
+            background:#e53d2d;
+        }
+        .buttonGroup ul li.decission{
+            border-radius:50px;
+        }
+        
+    </style>
+    <script>
+        if('{!IsEpmInMaintenance}' == 'true') {
+            window.open('/apex/ePM_InMaintenance', '_top');
+        }
+
+        function onClickApproval(){
+            //if(approvalStatus == 'Submitted')
+            alert('Plan Already Submitted for Approval');
+            //alert(approvalStatus);
+        }
+        function onclickfunc(retFunction){
+            if(retFunction == 'NotStarted'){
+                {!rmAssessStatus} = 'Rejected';
+                retFunction = 'Rejected';
+            }
+            return retFunction;
+        }
+        function GNGdisp(buttonsToShow){
+            $('.buttonGroup').hide();
+            $('#'+buttonsToShow).show();
+        }
+        function clickFunction(liClass){
+            alert('Inside Javascript') ;
+
+        }
+        $( document ).ready(function() {
+             $('.activeHover').hover(function() {
+              $( this ).addClass("activeButtons");
+            });
+            $('.activeHover').hover(function() {
+                $( '.activeHover' ).removeClass("activeButtons");
+                $( '.decission' ).removeClass("activeButtons");
+                $( this ).addClass("activeButtons");
+            });
+            $('.decission').hover(function() {
+                $( this ).addClass("activeButtons");
+            });
+            $('.decission').hover(function() {
+                $( '.activeHover' ).removeClass("activeButtons");
+                $( '.decission' ).removeClass("activeButtons");
+                $( this ).addClass("activeButtons");
+            });
+            //$('.activeHover').click(function() {
+            //    $( this ).addClass("stayActiveButtons");
+            //});
+            //$('.activeHover').click(function() {
+            //    $( '.activeHover' ).removeClass("stayActiveButtons");
+            //    $( this ).addClass("stayActiveButtons");
+            //});
+
+        });
+    </script>
+    <apex:includescript value="{!$Resource.ECO_jQuery_1_11_2_min_js}" />
+
+    <apex:outputtext value="{!pse__Proj__c.DelegateProject__c}" rendered="false" />
+    <apex:outputtext value="{!pse__Proj__c.ProjectApproverUser__c}" rendered="false" />
+    <apex:outputtext value="{!pse__Proj__c.EscalationApprover__c}" rendered="false" />
+    <apex:pagemessages id="pageMessages" />
+    <apex:form >
+        <apex:inputhidden value="{!pse__Proj__c.DelegateProject__c}" />
+        <apex:outputpanel rendered="false" >
+            <apex:repeat value="{!$ObjectType.pse__Proj__c.FieldSets.ECO_OracleClassificationFields}" var="f" >
+                <apex:outputtext value="{!pse__Proj__c[f]}" /><br/>
+            </apex:repeat>
+            <apex:outputfield value="{!pse__Proj__c.ProgBarPrelimPlanApproval__c}" rendered="false" />
+            <apex:outputfield value="{!pse__Proj__c.pse__Stage__c}" rendered="false" />
+            <apex:outputfield value="{!pse__Proj__c.SafetyHealthCompleted__c}" rendered="false" />
+            <apex:outputfield value="{!pse__Proj__c.ProgressBarExecutionApproval__c}" rendered="false" />
+            <apex:outputfield value="{!pse__Proj__c.ProposalSubmittedDate__c}" rendered="false" />
+            <apex:outputfield value="{!pse__Proj__c.RM_Button_Clicked__c}" rendered="false" />
+            <apex:outputfield value="{!pse__Proj__c.CarryingOutOrganization__c}" rendered="false" />
+        </apex:outputpanel>
+    <apex:outputpanel rendered="{!pse__Proj__c.recordType.name =='Customer Project (Unapproved)' 
+                                || pse__Proj__c.recordType.name =='Customer Project (Planning)'}" >
+    <ul class="breadcrumb progress" >
+        <li class="Complete" >
+            <a href="#" title="Create the project within the Ecosystem & link to opportunity in Salesforce" ><div><nttdcore:DLabel name="DL100" default="Create" labelParent="{!this}" /><nttdcore:DLabel name="DL101" default="Project" labelParent="{!this}" />{!dLabel['DL100']}<br/>{!dLabel['DL101']}</div></a>
+        </li>
+        <li class="{!goNoGoStatus} activeHover" >
+            <a href="#" onmouseover="GNGdisp('GoNoGoButtons')" ><div><nttdcore:DLabel name="DL102" default="R&amp;M" labelParent="{!this}" /><nttdcore:DLabel name="DL103" default="Assessment" labelParent="{!this}" /><nttdcore:DLabel name="DL104" default="for Go / No Go" labelParent="{!this}" />{!dLabel['DL102']}<br/>{!dLabel['DL103']}<br/>{!dLabel['DL104']}</div></a>
+        </li>
+        <li class="{!rmAssessDecisionStatus} decission2" >
+            <a href="#" title="Approval of the Go/No Go recommendation to proceed  with incurring overhead costs (e.g., business development) to prepare a bid  document in response to a client's request for proposal or brief.  Several iterations of the Go/No Go process may occur at this stage." >
+                <div><nttdcore:DLabel name="DL105" default="Go/No Go" labelParent="{!this}" />{!dLabel['DL105']}</div></a>
+        </li>
+        <li class="{!preliminaryProjectPlan} activeHover" >
+            <a href="#" onmouseover="GNGdisp('ReviseProjButtons')" ><div><nttdcore:DLabel name="DL106" default="Prepare Project" labelParent="{!this}" /><nttdcore:DLabel name="DL107" default="Plan &amp; Bid" labelParent="{!this}" />{!dLabel['DL106']}<br/>{!dLabel['DL107']}</div></a>
+        </li> 
+        <li class="{!planApprovalStatus} decission" >
+            <a href="#" title="Approval of the Preliminary Project Plan incorporates and constitutes formal approval to submit the bid document and requires upload of the  signed proposal and/or any relevant supporting approval or review documents." onmouseover="GNGdisp('PlanApprovalButtons')" ><div><nttdcore:DLabel name="DL108" default="Plan" labelParent="{!this}" /><nttdcore:DLabel name="DL109" default="Approval" labelParent="{!this}" />{!dLabel['DL108']}<br/> {!dLabel['DL109']}</div></a>
+        </li>
+        <!--<li class="{!pse__Proj__c.ProgBarBidSubmission__c} activeHover">-->
+        <li class="{!submitBidStatus} " >
+            <a href="#" title="This step is not covered within the Ecosystem project management tool, however the Project Plan should be revised to incorporate any negotiated changes, and the R&M Assessment and Go/No Go repeated for any significant changes." >
+                <div><nttdcore:DLabel name="DL110" default="Submit Bid &amp;" labelParent="{!this}" /><nttdcore:DLabel name="DL111" default="Negotiate" labelParent="{!this}" />{!dLabel['DL110']}<br/>{!dLabel['DL111']}</div></a>
+        </li>
+        <li class="{!contractReviewStatus} activeHover" >
+            <a href="#" title="Finalize any outstanding contract review and approval actions or seek approval to work at risk per relevant delegations of authority.  Allocate the approved project funding to the  prime agreement record and upload the executed agreement or documentation for approval to work at risk." onmouseover="GNGdisp('ContractReviewButtons')" ><div><nttdcore:DLabel name="DL112" default="Contract Review &amp; Approval OR Work At Risk" labelParent="{!this}" />{!dLabel['DL112']}</div></a>
+        </li>
+        <li class="{!negotiationProjectPlan} activeHover" >
+            <a href="#" class="projectPlanUpdate1" title="Update the Project Plan to reflect any changes resulting from bid negotiation, as needed, as the baseline into the project Execution phase." onmouseover="GNGdisp('ReviseProjButtons')" ><div><nttdcore:DLabel name="DL113" default="Revise Project" labelParent="{!this}" /><nttdcore:DLabel name="DL114" default="Plan" labelParent="{!this}" />{!dLabel['DL113']} <br/>{!dLabel['DL114']}</div></a>
+        </li>
+        <li class="{!executeApprovalStatus} decission" >
+            <a href="#" title="This step is the formal approval of the Project Plan as the baseline into Execution phase.  This step will also create the project in Oracle.  As part of this process, the associated Opportunity status may be updated, if appropriate." onmouseover="GNGdisp('ApprovalButtons')" ><div><nttdcore:DLabel name="DL115" default="Approval" labelParent="{!this}" /><nttdcore:DLabel name="DL116" default="To Execute" labelParent="{!this}" />{!dLabel['DL115']}<br/>{!dLabel['DL116']}</div></a>
+        </li>
+    </ul>
+    </apex:outputpanel>
+    <apex:outputpanel rendered="{!pse__Proj__c.recordType.name=='Customer Project (Closed)' 
+                                || pse__Proj__c.recordType.name=='Customer Project (Approved)'}" >
+    <ul class="breadcrumb progress" >
+        <li class="{!contractReviewStatus}" >
+            <a href="#" ><div><nttdcore:DLabel name="DL117" default="Contract Review &amp; Approval OR Work At Risk" labelParent="{!this}" />{!dLabel['DL117']}</div></a>
+        </li>
+        <li class="{!executeApprovalStatus} decission2" >
+            <a href="#" ><div><nttdcore:DLabel name="DL118" default="Approval to" labelParent="{!this}" /><nttdcore:DLabel name="DL119" default="Execute" labelParent="{!this}" />{!dLabel['DL118']}<br/>{!dLabel['DL119']}</div></a>
+        </li>
+         <li class="{!projInitiationStatus} activeHover" >
+            <a href="#" title="Commence execution of the approved Project Plan and enroll the project in the Deliver to Win program, if applicable." onmouseover="GNGdisp('ProjInitiationButtons')" ><div><nttdcore:DLabel name="DL120" default="Project Initiation" labelParent="{!this}" />{!dLabel['DL120']}</div></a>
+        </li>
+        <li class="{!projExecMonitorStatus} activeHover" >
+            <a href="#" class="projectPlanUpdate2" title="Execute the project in accordance with the Project Plan, monitor and control project performance and financial health, and update the Project Plan, including budget, in response to internal and external changes." onmouseover="GNGdisp('PProjPlanButtons')" >
+                <div><nttdcore:DLabel name="DL121" default="Project Execution," labelParent="{!this}" /><nttdcore:DLabel name="DL122" default="Monitoring &amp;" labelParent="{!this}" /><nttdcore:DLabel name="DL123" default="Control" labelParent="{!this}" />{!dLabel['DL121']}<br/>{!dLabel['DL122']}<br/>{!dLabel['DL123']}</div>
+            </a>
+        </li>
+        <li class="{!monthlyReviewStatus} activeHover" >
+            <a href="#" title="PMs monthly review of the project's financial health given a prescribed set of KPIs, including earned value (EV), and confirmation that the project Estimate at Completion (EAC) is current and accurate" onmouseover="GNGdisp('PReviewButtons')" >
+                <div><nttdcore:DLabel name="DL124" default="Monthly PM" labelParent="{!this}" /><nttdcore:DLabel name="DL125" default="Project Review" labelParent="{!this}" />{!dLabel['DL124']}<br/>{!dLabel['DL125']}</div>
+            </a>
+        </li>
+        <li class="{!monthlyReviewStatus} decission2" >
+            <a href="#" title="Approval of the project's current financial performance  and overall health, in accordance with the project category review." >
+                <div><nttdcore:DLabel name="DL126" default="Monthly" labelParent="{!this}" /><nttdcore:DLabel name="DL127" default="Review" labelParent="{!this}" /><nttdcore:DLabel name="DL128" default="Approval" labelParent="{!this}" />{!dLabel['DL126']}<br/> {!dLabel['DL127']}<br/> {!dLabel['DL128']}</div>
+            </a>
+        </li>
+        <li class="{!projectCloseHoldStatus}" >
+            <a href="#" title="Click on the 'Change Project Status' button above to request the project to be put on hold or closed." >
+                <div><nttdcore:DLabel name="DL129" default="Project" labelParent="{!this}" /><nttdcore:DLabel name="DL130" default="Close" labelParent="{!this}" />{!dLabel['DL129']}<br/>{!dLabel['DL130']}</div>
+            </a>
+        </li>
+    </ul>
+    </apex:outputpanel>
+        <div id="GoNoGoButtons" class="GoNoGo buttonGroup" style="display: none;" >
+            <ul>
+                <li class="{!projTeamStakeStatus}" ><a href="/apex/ECO_Stakeholders?scontrolCaching=1&id={!pse__Proj__c.id}" target="_parent" ><span><nttdcore:DLabel name="DL131" default="Project Team &amp; Stake" labelParent="{!this}" />{!dLabel['DL131']}</span></a></li>
+                <li class="{!locationsResilienceStatus}" ><a href="/apex/ECO_Resilience?id={!pse__Proj__c.id}" target="_parent" ><span><nttdcore:DLabel name="DL132" default="Locations &amp; Resilience" labelParent="{!this}" />{!dLabel['DL132']}</span></a></li>
+                <li class="{!rmAssessStatus}" ><a href="/apex/ECO_RMAChooser?id={!pse__Proj__c.id}" target="_parent" ><span><nttdcore:DLabel name="DL133" default="R &amp; M Assessment" labelParent="{!this}" />{!dLabel['DL133']}</span></a></li>
+                <li class="{!doaManagerStatus}" ><a href="/apex/ECO_DOA_ApprovalRequest?projectID={!pse__Proj__c.id}" target="_parent" ><span><nttdcore:DLabel name="DL134" default="DoA Manager" labelParent="{!this}" />{!dLabel['DL134']}</span></a></li>
+                <!--<li class="{!doaManagerStatus}"><a href="/apex/ECO_DOA_ApprovalRequest?projectID={!pse__Proj__c.Id }" target="_parent"><span>DoA Manager</span></a></li>
+                <li class="{!agreementStatus}"><a href="/apex/ECO_ProjectAgreement?CF00Ne0000001Hha5={!pse__Proj__c.Name}&CF00Ne0000001Hha5_lkid={!pse__Proj__c.Id}&saveURL=%2F{!pse__Proj__c.Id}&scontrolCaching=1&retURL=%2F{!pse__Proj__c.Id}&sfdc.override=1" target="_parent"><span>Agreements</span></a></li>-->
+                <li class="{!agreementStatus}" ><a href="/apex/ECO_ProjectAgreement?ProjectId={!pse__Proj__c.Id}&saveURL=%2F{!pse__Proj__c.Id}&scontrolCaching=1&retURL=%2F{!pse__Proj__c.Id}&sfdc.override=1" target="_parent" ><span><nttdcore:DLabel name="DL135" default="Agreements" labelParent="{!this}" />{!dLabel['DL135']}</span></a></li>
+            </ul>
+        </div>
+        <div id="ReviseProjButtons" class="buttonGroup" style="display: none;" >
+            <ul>
+                <li class="{!scopeApproachStatus}" ><a href="/apex/ECO_ProjectScope?projectId={!pse__Proj__c.id}" target="_parent" ><span><nttdcore:DLabel name="DL136" default="Scope &amp; Approach" labelParent="{!this}" />{!dLabel['DL136']}</span></a></li>
+                <li class="{!deliverableStatus}" >
+                    <!--<a href="/a4d/e?CF00Ne00000016aWE={!pse__Proj__c.Name}&CF00Ne00000016aWE_lkid={!pse__Proj__c.id}&retURL=%2F{!pse__Proj__c.id}" target="_parent" ><span>Deliverables</span></a>-->
+                    <a href="/apex/ECO_DeliverableList?id={!pse__Proj__c.id}" target="_parent" ><span><nttdcore:DLabel name="DL137" default="Deliverables &amp; TQR" labelParent="{!this}" />{!dLabel['DL137']}</span></a>
+                </li>
+                <li class="{!riskRegisterStatus}" ><a href="/apex/ECO_RiskRegisterList?id={!pse__Proj__c.id}" target="_parent" ><span><nttdcore:DLabel name="DL138" default="Risk Register" labelParent="{!this}" />{!dLabel['DL138']}</span></a></li>
+                <li class="{!classificationStatus}" ><a href="/apex/ECO_ClassificationEditor?scontrolCaching=1&id={!pse__Proj__c.id}" target="_parent" ><span><nttdcore:DLabel name="DL139" default="Classifications" labelParent="{!this}" />{!dLabel['DL139']}</span></a></li>
+                <li class="{!scheduleWBSStatus}" ><a href="{!IF(useWBStaskManager,'/apex/pse__ProjectTaskGantt?id=','/apex/eco_taskdetail?id=') + pse__Proj__c.id}" target="_parent" ><span><nttdcore:DLabel name="DL140" default="Schedule &amp; WBS" labelParent="{!this}" />{!dLabel['DL140']}</span></a></li>
+                <li class="{!documentMgmtStatus}" ><a href="/apex/ECO_DocumentManagement?scontrolCaching=1&id={!pse__Proj__c.id}" target="_parent" ><span><nttdcore:DLabel name="DL141" default="Document Mgmt" labelParent="{!this}" />{!dLabel['DL141']}</span></a></li>
+                <li class="{!doaManagerStatus}" ><a href="/apex/ECO_DOA_ApprovalRequest?projectID={!pse__Proj__c.Id }" target="_parent" ><span><nttdcore:DLabel name="DL142" default="DoA Manager" labelParent="{!this}" />{!dLabel['DL142']}</span></a></li>
+                <li class="{!safeHealthEnvStatus}" ><a href="/apex/ECO_SafetyHealthEnvironment?scontrolCaching=1&id={!pse__Proj__c.id}" target="_parent" ><span><nttdcore:DLabel name="DL143" default="Safety, Health &amp; Env" labelParent="{!this}" />{!dLabel['DL143']}</span></a></li>
+                <li class="{!budgetStatus}" ><a href="/apex/ECO_BudgetHeaderSummary?id={!pse__Proj__c.id}" target="_parent" ><span><nttdcore:DLabel name="DL144" default="Budget &amp; EAC" labelParent="{!this}" />{!dLabel['DL144']}</span></a></li>
+                <li class="{!projTeamStakeStatus}" ><a href="/apex/ECO_Stakeholders?scontrolCaching=1&id={!pse__Proj__c.id}" target="_parent" ><span><nttdcore:DLabel name="DL145" default="Project Team &amp; Stake" labelParent="{!this}" />{!dLabel['DL145']}</span></a></li>
+                <li class="{!rmAssessStatus}" ><a href="/apex/ECO_RMAChooser?id={!pse__Proj__c.id}" target="_parent" ><span><nttdcore:DLabel name="DL146" default="R &amp; M Assessment" labelParent="{!this}" />{!dLabel['DL146']}</span></a></li>
+                <li class="{!locationsResilienceStatus}" ><a href="/apex/ECO_Resilience?id={!pse__Proj__c.id}" target="_parent" ><span><nttdcore:DLabel name="DL147" default="Locations &amp; Resilience" labelParent="{!this}" />{!dLabel['DL147']}</span></a></li>
+                <!--<li class="{!agreementStatus}"><a href="/apex/ECO_ProjectAgreement?CF00Ne0000001Hha5={!pse__Proj__c.Name}&CF00Ne0000001Hha5_lkid={!pse__Proj__c.Id}&saveURL=%2F{!pse__Proj__c.Id}&scontrolCaching=1&retURL=%2F{!pse__Proj__c.Id}&sfdc.override=1" target="_parent"><span>Agreements</span></a></li>-->
+                <li class="{!agreementStatus}" ><a href="/apex/ECO_ProjectAgreement?ProjectId={!pse__Proj__c.Id}&saveURL=%2F{!pse__Proj__c.Id}&scontrolCaching=1&retURL=%2F{!pse__Proj__c.Id}&sfdc.override=1" target="_parent" ><span><nttdcore:DLabel name="DL148" default="Agreements" labelParent="{!this}" />{!dLabel['DL148']}</span></a></li>
+                <li class="{!subsVendorStatus}" ><a href="/apex/ECO_SubsVendors?scontrolCaching=1&id={!pse__Proj__c.id}" target="_parent" ><span><nttdcore:DLabel name="DL149" default="Subs/Vendors" labelParent="{!this}" />{!dLabel['DL149']}</span></a></li>
+                <li class="{!reviewMeetingStatus}" ><a href="/apex/ECO_ProjectReviewRecordType?id={!pse__Proj__c.id}" target="_parent" ><span><nttdcore:DLabel name="DL150" default="Reviews/Meetings" labelParent="{!this}" />{!dLabel['DL150']}</span></a></li>
+                <li class="{!assumptionStatus}" ><a href="/apex/ECO_AssumptionRegister?projectId={!pse__Proj__c.id}" target="_parent" ><span><nttdcore:DLabel name="DL151" default="Assumptions" labelParent="{!this}" />{!dLabel['DL151']}</span></a></li>
+            </ul>        
+        </div>
+        <div id="PlanApprovalButtons" class="buttonGroup" style="display: none;" >
+            <ul>
+                <li class="{!planApprovalStatus}" >
+                    <nttdcore:DLabel name="DL152" default="Submit Plan for Approval" labelParent="{!this}" /><apex:commandlink action="{!submitPlanApproval}" value="{!dLabel['DL152']}" target="_parent" rendered="{!AND(hasPermissionForApprovalProcess, IF(pse__Proj__c.ProjectApprover__c!=null, true, false), IF(NOT(pse__Proj__c.ProgBarPrelimPlanApproval__c = 'Submitted' || pse__Proj__c.pse__Stage__c = 'Pending Go/No Go'|| pse__Proj__c.pse__Project_Manager__c = null || pse__Proj__c.pse__Project_Manager__c = '' || sTeamApprovedCheck != ''),true,false))}" onclick="return confirm('This project plan (and accompanying bid if pre-execution) complies with AECOM procedural requirements, including: \n \u2022 Signature by Authorized Signatory \n \u2022 Approval in the Contract Review App (or is under a previously approved agreement) \n \u2022 Confirms to DoA Approval requirements and complies with any Conditions \n \u2022 Adequate resources for compliance with Quality system requirements \n \u2022 Planning to ensure all work is performed safely \n \u2022 Financials - Estimated Project Budget on the PCC have been updated to reflect the current project estimate.');" />
+                    <nttdcore:DLabel name="DL153" default="Escalate Approval" labelParent="{!this}" /><apex:commandlink action="{!escalateApproval}" value="{!dLabel['DL153']}" target="_parent" onclick="return confirm('Project plan will be submitted for escalation');" rendered="{!AND(hasPermissionForApprovalProcess, IF((pse__Proj__c.ProgBarPrelimPlanApproval__c = 'Submitted' && pse__Proj__c.pse__Stage__c != 'Pending Go/No Go' && pse__Proj__c.FlagForEscalate__c = false),true,false))}" />
+                    
+                    <nttdcore:DLabel name="DL154" default="Submit Plan for Approval" labelParent="{!this}" /><apex:commandlink action="{!submitPlanApprovalDummy}" value="{!dLabel['DL154']}" onclick="return confirm('{!sTeamApprovedCheck}');" rendered="{!AND(hasPermissionForApprovalProcess, IF(pse__Proj__c.ProjectApprover__c!=null, true, false), IF(NOT(pse__Proj__c.ProgBarPrelimPlanApproval__c = 'Submitted' || pse__Proj__c.pse__Stage__c = 'Pending Go/No Go'|| pse__Proj__c.pse__Project_Manager__c = null || pse__Proj__c.pse__Project_Manager__c = ''|| sTeamApprovedCheck = ''),true,false))}" />
+                    <nttdcore:DLabel name="DL155" default="Escalate Approval" labelParent="{!this}" /><apex:commandlink action="{!submitPlanApprovalDummy}" value="{!dLabel['DL155']}" onclick="return confirm('Only the Project Manager or Capture Manager are authorized to submit the Project Plan for escalation.');" rendered="{!AND(NOT(hasPermissionForApprovalProcess), IF((pse__Proj__c.ProgBarPrelimPlanApproval__c = 'Submitted' && pse__Proj__c.pse__Stage__c != 'Pending Go/No Go' && pse__Proj__c.FlagForEscalate__c = false),true,false))}" />
+                    <nttdcore:DLabel name="DL156" default="Submit Plan for Approval" labelParent="{!this}" /><apex:commandlink action="{!submitPlanApprovalDummy}" value="{!dLabel['DL156']}" onclick="return confirm('Plan cannot be submitted for approval until a Project Approver is added for the Project.');" rendered="{!AND(hasPermissionForApprovalProcess, IF(pse__Proj__c.ProjectApprover__c!=null, false, true), IF(NOT(pse__Proj__c.ProgBarPrelimPlanApproval__c = 'Submitted' || pse__Proj__c.pse__Stage__c = 'Pending Go/No Go'|| pse__Proj__c.pse__Project_Manager__c = null || pse__Proj__c.pse__Project_Manager__c = ''),true,false))}" />
+                    <nttdcore:DLabel name="DL157" default="Escalate Approval" labelParent="{!this}" /><apex:commandlink action="{!submitPlanApprovalDummy}" value="{!dLabel['DL157']}" onclick="return confirm('Project plan has already been submitted for escalation');" rendered="{!AND(hasPermissionForApprovalProcess,IF((pse__Proj__c.ProgBarPrelimPlanApproval__c = 'Submitted' && pse__Proj__c.pse__Stage__c != 'Pending Go/No Go' && pse__Proj__c.FlagForEscalate__c = true),true,false))}" />
+                    <nttdcore:DLabel name="DL158" default="Submit Plan for Approval" labelParent="{!this}" /><apex:commandlink action="{!submitPlanApprovalDummy}" value="{!dLabel['DL158']}" onclick="return confirm('Plan cannot be submitted for approval as Project is in Pending Go/No Go Status');" rendered="{!AND(hasPermissionForApprovalProcess,IF(pse__Proj__c.pse__Stage__c = 'Pending Go/No Go',true,false))}" />
+                    <nttdcore:DLabel name="DL159" default="Submit Plan for Approval" labelParent="{!this}" /><apex:commandlink action="{!submitPlanApprovalDummy}" value="{!dLabel['DL159']}" onclick="return confirm('Please add a Project Manager for the Project before submitting for approval');" rendered="{!AND(hasPermissionForApprovalProcess,IF(pse__Proj__c.pse__Project_Manager__c = null && pse__Proj__c.pse__Stage__c != 'Pending Go/No Go',true,false))}" />
+                    <nttdcore:DLabel name="DL160" default="Submit Plan for Approval" labelParent="{!this}" /><apex:commandlink action="{!submitPlanApprovalDummy}" value="{!dLabel['DL160']}" onclick="return confirm('You do not have permission to Submit for Approval');" rendered="{!AND(NOT(hasPermissionForApprovalProcess), IF(NOT(pse__Proj__c.ProgBarPrelimPlanApproval__c = 'Submitted' ),true,false))}" /> 
+                </li>
+                <li class="{!doaManagerStatus}" ><a href="/apex/ECO_DOA_ApprovalRequest?projectID={!pse__Proj__c.Id }" target="_parent" ><span><nttdcore:DLabel name="DL161" default="DoA Manager" labelParent="{!this}" />{!dLabel['DL161']}</span></a></li>
+                <li class="{!healthyStartStatus}" ><nttdcore:DLabel name="DL162" default="Healthy Start" labelParent="{!this}" /><apex:commandlink action="{!healthyStartClicked}" target="_parent" value="{!dLabel['DL162']}" /></li>
+            </ul>
+        </div>
+        <div id="ApprovalButtons" class="buttonGroup" style="display: none;" >
+            <ul>
+                <li class="{!submitExecutionButtonStatus}" ><a href="/apex/ECO_ChangeManagerRecordType?id={!pse__Proj__c.Id}" target="_parent" ><span><nttdcore:DLabel name="DL163" default="Submit Plan for Execution" labelParent="{!this}" />{!dLabel['DL163']}</span></a></li>
+                <!-- <li ><a href="#" value="Submit" target="_self"><span>Submit Project Plan for Approval</span></a></li>-->
+            </ul>
+        </div>
+        <div id="ContractReviewButtons" class="buttonGroup" style="display: none;" >
+            <ul>
+                <!--<li class="{!agreementStatus}"><a href="/apex/ECO_ProjectAgreement?CF00Ne0000001Hha5={!pse__Proj__c.Name}&CF00Ne0000001Hha5_lkid={!pse__Proj__c.Id}&saveURL=%2F{!pse__Proj__c.Id}&scontrolCaching=1&retURL=%2F{!pse__Proj__c.Id}&sfdc.override=1" target="_parent"><span>Agreements</span></a></li>-->
+                <li class="{!agreementStatus}" ><a href="/apex/ECO_ProjectAgreement?ProjectId={!pse__Proj__c.Id}&saveURL=%2F{!pse__Proj__c.Id}&scontrolCaching=1&retURL=%2F{!pse__Proj__c.Id}&sfdc.override=1" target="_parent" ><span><nttdcore:DLabel name="DL164" default="Agreements" labelParent="{!this}" />{!dLabel['DL164']}</span></a></li>
+                <li class="{!doaManagerStatus}" ><a href="/apex/ECO_DOA_ApprovalRequest?projectID={!pse__Proj__c.Id }" target="_parent" ><span><nttdcore:DLabel name="DL165" default="DoA Manager" labelParent="{!this}" />{!dLabel['DL165']}</span></a></li>
+            </ul>
+        </div>
+        <div id="CMgmtButtons" class="buttonGroup " style="display: none;" >
+            <ul>
+                <li class="{!changeMgmtStatus}" >
+                    <a href="/apex/ECO_ProjectChangeManager?id={!pse__Proj__c.id}" target="_parent" ><span><nttdcore:DLabel name="DL166" default="Change Management" labelParent="{!this}" />{!dLabel['DL166']}</span></a>
+                </li>
+            </ul>
+        </div>
+        <div id="EValButtons" class="buttonGroup " style="display: none;" >
+            <ul>
+                <li class="{!earnedValueStatus}" ><a href="/apex/ECO_EarnedValueReport?scontrolCaching=1&id={!pse__Proj__c.id}" target="_parent" ><span><nttdcore:DLabel name="DL167" default="Earned Value" labelParent="{!this}" />{!dLabel['DL167']}</span></a></li>
+                <li class="{!budgetStatus}" ><a href="/apex/ECO_BudgetHeaderSummary?id={!pse__Proj__c.id}" target="_parent" ><span><nttdcore:DLabel name="DL168" default="Budget" labelParent="{!this}" />{!dLabel['DL168']}</span></a></li>
+            </ul>
+        </div>
+        <div id="ProjInitiationButtons" class="buttonGroup " style="display: none;" >
+            <ul>
+                <!--<li class="{!projectKickOffStatus}"><apex:commandLink action="{!projectKickOffClicked}" target="_parent" value="Project Kickoff" /></li>-->
+                <li class="{!projectKickOffStatus}" ><a href="/apex/ECO_ProjectReviewRecordType?id={!pse__Proj__c.id}" target="_parent" ><span><nttdcore:DLabel name="DL169" default="Project Kickoff" labelParent="{!this}" />{!dLabel['DL169']}</span></a></li>
+                <li><a href="/apex/INC_DeliverToWinLanding" target="_parent" ><span><nttdcore:DLabel name="DL170" default="Deliver to Win" labelParent="{!this}" />{!dLabel['DL170']}</span></a></li>
+            </ul>
+        </div>
+        <div id="PProjPlanButtons" class="buttonGroup" style="display: none;" >
+            <ul>
+                <li class="Complete" ><a href="/apex/eco_pmd_projectdashboard?id={!pse__Proj__c.id}" target="_parent" ><span><nttdcore:DLabel name="DL171" default="Project Dashboard" labelParent="{!this}" />{!dLabel['DL171']}</span></a></li>
+                <!--<li class="{!earnedValueStatus}"><a href="/apex/ECO_EarnedValueReport2?scontrolCaching=1&id={!pse__Proj__c.id}" target="_parent" style="border-color:#9ecaed; box-shadow:0 0 10px #9ecaed;"><span>Earned Value</span></a></li>-->
+                <li class="{!earnedValueStatus}" ><a href="/apex/ECO_EarnedValueReport?scontrolCaching=1&id={!pse__Proj__c.id}" target="_parent" ><span><nttdcore:DLabel name="DL172" default="*Earned Value*" labelParent="{!this}" />{!dLabel['DL172']}</span></a></li>
+                <li class="{!changeMgmtStatus}" >
+                    <apex:outputpanel rendered="{!pse__Proj__c.pse__Stage__c != 'Pre-Contract'}" ><a href="/apex/ECO_ProjectChangeManager?id={!pse__Proj__c.id}" target="_parent" > <span><nttdcore:DLabel name="DL173" default="*Change Management*" labelParent="{!this}" />{!dLabel['DL173']}</span></a></apex:outputpanel>
+                    <apex:outputpanel rendered="{!pse__Proj__c.pse__Stage__c == 'Pre-Contract'}" ><a href="/apex/ECO_ChangeManagerRecordType?id={!pse__Proj__c.id}" target="_parent" > <span><nttdcore:DLabel name="DL174" default="*Change Management*" labelParent="{!this}" />{!dLabel['DL174']}</span></a></apex:outputpanel>
+                </li>
+                <li><a href="/apex/INC_DeliverToWinLanding" target="_parent" ><span><nttdcore:DLabel name="DL175" default="Deliver to Win" labelParent="{!this}" />{!dLabel['DL175']}</span></a></li>
+                <li class="{!scopeApproachStatus}" ><a href="/apex/ECO_ProjectScope?projectId={!pse__Proj__c.id}" target="_parent" ><span><nttdcore:DLabel name="DL176" default="Scope &amp; Approach" labelParent="{!this}" />{!dLabel['DL176']}</span></a></li>
+                <li class="{!deliverableStatus}" ><!--<a href="/a4d/e?CF00Ne00000016aWE={!pse__Proj__c.Name}&CF00Ne00000016aWE_lkid={!pse__Proj__c.id}&retURL=%2F{!pse__Proj__c.id}" target="_parent"></a>-->
+                    <a href="/apex/ECO_DeliverableList?id={!pse__Proj__c.id}" target="_parent" ><span><nttdcore:DLabel name="DL177" default="Deliverables &amp; TQR" labelParent="{!this}" />{!dLabel['DL177']}</span></a>
+                </li>
+                <li class="{!riskRegisterStatus}" ><a href="/apex/ECO_RiskRegisterList?id={!pse__Proj__c.id}" target="_parent" ><span><nttdcore:DLabel name="DL178" default="Risk Register" labelParent="{!this}" />{!dLabel['DL178']}</span></a></li>
+                <li class="{!classificationStatus}" ><a href="/apex/ECO_ClassificationEditor?scontrolCaching=1&id={!pse__Proj__c.id}" target="_parent" ><span><nttdcore:DLabel name="DL179" default="Classifications" labelParent="{!this}" />{!dLabel['DL179']}</span></a></li>
+                <li class="{!scheduleWBSStatus}" ><a href="{!IF(useWBStaskManager,'/apex/pse__ProjectTaskGantt?id=','/apex/eco_taskdetail?id=') + pse__Proj__c.id}" target="_parent" ><span><nttdcore:DLabel name="DL180" default="Schedule &amp; WBS" labelParent="{!this}" />{!dLabel['DL180']}</span></a></li>
+                <li class="{!documentMgmtStatus}" ><a href="/apex/ECO_DocumentManagement?scontrolCaching=1&id={!pse__Proj__c.id}" target="_parent" ><span><nttdcore:DLabel name="DL181" default="Document Mgmt" labelParent="{!this}" />{!dLabel['DL181']}</span></a></li>
+                <li class="{!doaManagerStatus}" ><a href="/apex/ECO_DOA_ApprovalRequest?projectID={!pse__Proj__c.Id }" target="_parent" ><span><nttdcore:DLabel name="DL182" default="DoA Manager" labelParent="{!this}" />{!dLabel['DL182']}</span></a></li>
+                <li class="{!safeHealthEnvStatus}" ><a href="/apex/ECO_SafetyHealthEnvironment?scontrolCaching=1&id={!pse__Proj__c.id}" target="_parent" ><span><nttdcore:DLabel name="DL183" default="Safety, Health &amp; Env" labelParent="{!this}" />{!dLabel['DL183']}</span></a></li>
+                <li class="{!budgetStatus}" ><a href="/apex/ECO_BudgetHeaderSummary?id={!pse__Proj__c.id}" target="_parent" ><span><nttdcore:DLabel name="DL184" default="*Budget &amp; EAC*" labelParent="{!this}" />{!dLabel['DL184']}</span></a></li>
+                <li class="{!projTeamStakeStatus}" ><a href="/apex/ECO_Stakeholders?scontrolCaching=1&id={!pse__Proj__c.id}" target="_parent" ><span><nttdcore:DLabel name="DL185" default="Project Team &amp; Stake" labelParent="{!this}" />{!dLabel['DL185']}</span></a></li>
+                <li class="{!rmAssessStatus}" ><a href="/apex/ECO_RMAChooser?id={!pse__Proj__c.id}" target="_parent" ><span><nttdcore:DLabel name="DL186" default="R &amp; M Assessment" labelParent="{!this}" />{!dLabel['DL186']}</span></a></li>
+                <li class="{!locationsResilienceStatus}" ><a href="/apex/ECO_Resilience?id={!pse__Proj__c.id}" target="_parent" ><span><nttdcore:DLabel name="DL187" default="Locations &amp; Resilience" labelParent="{!this}" />{!dLabel['DL187']}</span></a></li>
+                <!--<li class="{!agreementStatus}"><a href="/apex/ECO_ProjectAgreement?CF00Ne0000001Hha5={!pse__Proj__c.Name}&CF00Ne0000001Hha5_lkid={!pse__Proj__c.Id}&saveURL=%2F{!pse__Proj__c.Id}&scontrolCaching=1&retURL=%2F{!pse__Proj__c.Id}&sfdc.override=1" target="_parent"><span>Agreements</span></a></li>-->
+                <li class="{!agreementStatus}" ><a href="/apex/ECO_ProjectAgreement?ProjectId={!pse__Proj__c.Id}&saveURL=%2F{!pse__Proj__c.Id}&scontrolCaching=1&retURL=%2F{!pse__Proj__c.Id}&sfdc.override=1" target="_parent" ><span><nttdcore:DLabel name="DL188" default="Agreements" labelParent="{!this}" />{!dLabel['DL188']}</span></a></li>
+                <li class="{!subsVendorStatus}" ><a href="/apex/ECO_SubsVendors?scontrolCaching=1&id={!pse__Proj__c.id}" target="_parent" ><span><nttdcore:DLabel name="DL189" default="Subs/Vendors" labelParent="{!this}" />{!dLabel['DL189']}</span></a></li>
+                <li class="{!reviewMeetingStatus}" ><a href="/apex/ECO_ProjectReviewRecordType?id={!pse__Proj__c.id}" target="_parent" ><span><nttdcore:DLabel name="DL190" default="*Reviews/Meetings*" labelParent="{!this}" />{!dLabel['DL190']}</span></a></li>
+                <li class="{!assumptionStatus}" ><a href="/apex/ECO_AssumptionRegister?projectId={!pse__Proj__c.id}" target="_parent" ><span><nttdcore:DLabel name="DL191" default="Assumptions" labelParent="{!this}" />{!dLabel['DL191']}</span></a></li>
+            </ul>        
+        </div>
+        
+        <div id="PReviewButtons" class="buttonGroup " style="display: none;" >
+            <ul>
+                <li class="Complete" ><a href="/apex/eco_pmd_projectdashboard?id={!pse__Proj__c.id}" target="_parent" ><span><nttdcore:DLabel name="DL192" default="Project Dashboard" labelParent="{!this}" />{!dLabel['DL192']}</span></a></li>
+                <li class="{!earnedValueStatus}" ><a href="/apex/ECO_EarnedValueReport?scontrolCaching=1&id={!pse__Proj__c.id}" target="_parent" ><span><nttdcore:DLabel name="DL193" default="Earned Value" labelParent="{!this}" />{!dLabel['DL193']}</span></a></li>
+                <li class="{!changeMgmtStatus}" ><apex:outputpanel rendered="{!pse__Proj__c.pse__Stage__c != 'Pre-Contract'}" ><a href="/apex/ECO_ProjectChangeManager?id={!pse__Proj__c.id}" target="_parent" > <span><nttdcore:DLabel name="DL194" default="Change Management" labelParent="{!this}" />{!dLabel['DL194']}</span></a></apex:outputpanel>
+                    <apex:outputpanel rendered="{!pse__Proj__c.pse__Stage__c == 'Pre-Contract'}" ><a href="/apex/ECO_ChangeManagerRecordType?id={!pse__Proj__c.id}" target="_parent" > <span><nttdcore:DLabel name="DL195" default="Change Management" labelParent="{!this}" />{!dLabel['DL195']}</span></a>
+                </apex:outputpanel>
+                </li>
+                <li class="{!reviewMeetingStatus}" ><a href="/apex/ECO_ProjectReviewRecordType?id={!pse__Proj__c.id}" target="_parent" ><span><nttdcore:DLabel name="DL196" default="Reviews/Meetings" labelParent="{!this}" />{!dLabel['DL196']}</span></a></li>
+                <li class="{!budgetStatus}" ><a href="/apex/ECO_BudgetHeaderSummary?id={!pse__Proj__c.id}" target="_parent" ><span><nttdcore:DLabel name="DL197" default="Budget &amp; EAC" labelParent="{!this}" />{!dLabel['DL197']}</span></a></li>
+            </ul>
+        </div>
+        <div id="PCloseButtons" class="buttonGroup " style="display: none;" >
+            <ul>
+                <li class="{!projectCloseButtonStatus}" ><a href="/apex/ECO_CloseoutProjectApprovalPhase?scontrolCaching=1&id={!pse__Proj__c.id}" target="_parent" ><span><nttdcore:DLabel name="DL198" default="Project Close/Hold" labelParent="{!this}" />{!dLabel['DL198']}</span></a></li>
+            </ul>
+        </div>
+
+    </apex:form>
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

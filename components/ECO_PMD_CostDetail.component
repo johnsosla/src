@@ -1,0 +1,502 @@
+<!-- DEPRECATED TO ECO_PMD_ag_grid_js.component - jow -->
+<apex:component controller="ECO_PMD_CostDetail_Controller" layout="none">
+	<apex:attribute name="projectId" description="Project ID" type="String" required="true" />
+	<apex:attribute name="projectName" description="Project Name" type="String" required="true" />
+	<apex:attribute name="layout" description="Desired Layout (AllCosts, LabourHours, LabourCost, ODCExpenses, or ODCSubs)" type="String" required="true" />
+
+	<apex:includeScript value="{!URLFOR($Resource.angular_1_4_7_min, 'angular.min.js')}"/>
+	<apex:includeScript value="{!URLFOR($Resource.angular_1_4_7_min, 'i18n/angular-locale_' + LOWER(locale) + '.js')}"/>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/ag-grid/2.3.5/ag-grid.min.js"></script>
+	<apex:includeScript value="{!URLFOR($Resource.ECO_PMD_twygmbh_auto_height)}" />
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/Faker/3.0.1/faker.min.js"></script>
+
+	<apex:stylesheet value="{!URLFOR($Resource.bootstrap_3_3_5_Namespaced, 'css-bs/bootstrap.min.css')}" />
+	<link href="https://cdnjs.cloudflare.com/ajax/libs/ag-grid/2.3.5/ag-grid.min.css" rel="stylesheet" type="text/css"></link>
+	<link href="https://cdnjs.cloudflare.com/ajax/libs/ag-grid/2.3.5/theme-fresh.min.css" rel="stylesheet" type="text/css"></link>
+   <apex:stylesheet value="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/css/font-awesome.min.css')}" />
+
+	<div ng-controller="costDetailController as ctrl">
+		<eco-pmd-cost-detail data="ctrl.costDetailData" 
+		project-id="{!projectId}" project-name="{!projectName}" 
+		layout="{!layout}" labels="ctrl.labels"/>
+	</div>
+
+	<script type="text/ng-template" id="eco-pmd-cost-detail-directive-template">
+		<div class="container-fluid">
+			<style>
+			div.ag-fresh div#borderLayout_eRootPanel div#centerRow div#east {
+				float: left !important;
+			}
+			</style>
+			<div class="row">
+				<div class="col-md-2 lead"><!-- ng-bind="vm.projectName"> -->
+				</div>
+				<div class="col-md-10">
+					<div class="form-inline pull-right">
+						<label for="paPeriodSelect" ng-bind="vm.labels.lookbackPeriod"></label>
+						<select id="paPeriodSelect" class="form-control" ng-model="vm.selectedPeriod" ng-options="period.periodName for period in vm.paPeriods" ></select>
+						&nbsp;
+						<label for="lookbackCountInput" ng-bind="vm.labels.lookbackCount"></label>
+						<input id="lookbackCountInput" type="text" class="form-control" style="width: 50px;" ng-model="vm.lookbackCount" >
+						&nbsp;&nbsp;&nbsp;
+	                    <input type="text" class="form-control" ng-model="vm.grid.quickFilterText" style="width: 100px;" placeholder="{{vm.labels.filter}}" >
+						&nbsp;&nbsp;&nbsp;
+						<button class="btn btn-info" ng-click="vm.grid.api.expandAll()" ng-bind="vm.labels.expandAll"></button>
+						<button class="btn btn-info" ng-click="vm.grid.api.collapseAll()" ng-bind="vm.labels.collapseAll"></button>
+						<button class="btn btn-primary" ng-click="vm.export()" ng-bind="vm.labels.export"></button>
+						<button class="btn btn-primary" ng-click="vm.toggleToolPanel()" ng-bind="vm.showToolPanel ? vm.labels.hideToolPanel : vm.labels.showToolPanel"></button>
+					</div>
+				</div>
+			</div>
+			<div class="clearfix">
+			</div>
+			<div class="row">
+			<div ag-grid="vm.grid" ng-style="{width: vm.showToolPanel ? 'calc(100% + 200px)' : '100%'}" class="ag-fresh" auto-height="yes" additional-height="50" />
+			</div>
+		</div>
+	</script>
+
+	<script id="costDetailController">
+		(function() {
+			'use strict';
+
+			angular.module('ecopmd', ['ecopmd.costDetail', 'ecopmd.navigator']);
+
+			angular.module('ecopmd')
+				.controller('costDetailController', costDetailController);
+
+			costDetailController.$inject = ['$timeout'];
+			function costDetailController($timeout) {
+				var vm = this;
+
+				function loadData() {
+					var projectNum = '{!projectId}'; //'a32e00000002t8x'; //document.getElementById('acctSearch').value;
+					var pageLength = 2500;
+					var cum = [];
+
+					function loadNextPage(result , event) {
+						if (event.status) {
+							var count = cum.length + result.length;
+							$(".ag-overlay-loading-center").html('<i class="fa fa-spinner fa-pulse"></i> Loaded '+count.toLocaleString()+' records...');
+							if (result!=null) cum = cum.concat(result);
+							console.log(result.length);
+							if (result.length == pageLength && result.length != 0) {
+								console.log( 'Load GetCostDistLines - '+count );
+								Visualforce.remoting.Manager.invokeAction(
+									'{!$RemoteAction.ECO_PMD_CostDetail_Controller.GetCostDistLines}',
+									projectNum, result[pageLength-1].CostDistLine_Id, '{!layout}',
+									loadNextPage,
+									{escape: true});
+							} else {
+								console.log( 'Loaded GetCostDistLines = '+count );
+							  	$timeout(function() { vm.costDetailData = cum; });
+								if (count === 0) {
+									$(".ag-overlay-loading-center").html('No records were found.');
+								}
+							}
+						} else if (event.type === 'exception') {
+							console.log(event);
+						} else {
+							console.log(event.message);
+						}
+					}
+
+					console.log( 'Load GetCostDistLines - 0' );
+					Visualforce.remoting.Manager.invokeAction(
+						'{!$RemoteAction.ECO_PMD_CostDetail_Controller.GetCostDistLines}',
+						projectNum, null, '{!layout}',
+						loadNextPage,
+						{escape: true});
+				}
+
+				function establishLabels() {
+					vm.labels = {
+						// Columns
+						task: '{!$ObjectType.ExpendItem__c.Fields.ProjectTask__c.Label}',
+						expenditureItemName: '{!$ObjectType.ExpendItem__c.Fields.Name.Label}',
+						expenditureItemType: '{!$ObjectType.ExpendItem__c.Fields.ExpenditureType__c.Label}',
+						expenditureCategory: '{!$Label.ECOPMDExpenditureCategory}',
+						expenditureOrgId: '{!$Label.ECOPMDExpenditureOrg}',
+						personId: '{!$ObjectType.ExpendItem__c.Fields.PersonId__c.Label}',
+						employeeNumber: '{!$Label.ECOPMDEmployeeNumber}',
+						employeeClassification: '{!$Label.ECOPMDEmployeeClassification}',
+						vendorId: '{!$ObjectType.ExpendItem__c.Fields.VendorId__c.Label}',
+						personOrVendor: '{!$Label.ECOPMDPersonOrVendorName}',
+						projectCurrencyCode: '{!$Label.ECOPMDProjectCurrency}',
+						projectBurdenedCost: '{!$Label.ECOPMDProjectBurdenedCost}',
+						functionalCurrencyCode: '{!$Label.ECOPMDProjectFunctionalCurrencyCode}',
+						functionalBurdenedCost: '{!$Label.ECOPMDProjectFunctionalBurdenedCost}',
+						quantity: '{!$ObjectType.ExpendItem__c.Fields.Quantity__c.Label}',
+						priorPeriods: '{!$Label.ECOPMDPriorPeriods}',
+						inceptionToDate: '{!$Label.ECOPMDInceptionToDate}',
+						monthToDate: '{!$Label.ECOPMDMonthToDate}',
+						yearToDate: '{!$Label.ECOPMDYearToDate}',
+						glPeriodName: '{!$ObjectType.CostDistLine__c.Fields.GLPeriodName__c.Label}',
+						paPeriodName: '{!$ObjectType.CostDistLine__c.Fields.PAPeriodName__c.Label}',
+						paPeriodDate: '{!$ObjectType.CostDistLine__c.Fields.PADate__c.Label}',
+						operatingGroup: '{!$ObjectType.OrganizationString__c.Fields.OperatingGroup__c.Label}',
+						geographyName: '{!$ObjectType.OrganizationString__c.Fields.GeographyName__c.Label}',
+						region: '{!$ObjectType.OrganizationString__c.Fields.Region__c.Label}',
+						district: '{!$ObjectType.OrganizationString__c.Fields.District__c.Label}',
+						businessLineName: '{!$ObjectType.OrganizationString__c.Fields.BusinessLineName__c.Label}',
+						subBusinessLineName: '{!$ObjectType.OrganizationString__c.Fields.SubBusinessLineName__c.Label}',
+						// Column Groups
+						group: '{!$Label.ECOPMDGroup}',
+						details: '{!$Label.ECOPMDDetails}',
+						business: '{!$Label.ECOPMDBusiness}',
+						cost: '{!$Label.ECOPMDCost}',
+						periods: '{!$Label.ECOPMDPeriods}',
+						// Button and other labels
+						lookbackPeriod: '{!$Label.ECOPMDLookBackPeriod}',
+						lookbackCount: '{!$Label.ECOPMDLookBackCount}',
+						filter: '{!$Label.ECOPMDFilter}',
+						export: '{!$Label.ECOPMDExport}',
+						expandAll: '{!$Label.ECOPMDExpandAll}',
+						collapseAll: '{!$Label.ECOPMDCollapseAll}',
+						hideToolPanel: '{!$Label.ECOPMDHideToolPanel}',
+						showToolPanel: '{!$Label.ECOPMDShowToolPanel}'
+					};
+				}
+
+				establishLabels();
+				loadData();
+			}
+		}());
+	</script>
+
+	<script  id="eco-pmd-cost-detail-directive-module">
+		(function() {
+			'use strict';
+
+			var ngModule = angular.module('ecopmd.costDetail', ['agGrid', 'twygmbh.auto-height']);
+
+			ngModule.service('faker', function() { return window.faker; });
+			ngModule.service('underscore', function() { return window._; });
+		}());
+	</script>
+
+	<script id="eco-pmd-cost-detail-directive">
+		(function() {
+			'use strict';
+
+			angular
+				.module('ecopmd.costDetail')
+				.directive('ecoPmdCostDetail', costDetail);
+
+			costDetail.$inject = [];
+			function costDetail() {
+				return {
+					restrict: 'EA',
+					scope: {
+						projectName: '@',
+						projectId: '@',
+						layout: '@',
+						data: '=',
+						labels: '='
+					},
+					bindToController: true,
+					controllerAs: 'vm',
+					controller: costDetailController,
+					template: document.getElementById('eco-pmd-cost-detail-directive-template').text
+				};
+			}
+
+			costDetailController.$inject = ['$filter', 'underscore', 'costDetailTransformer'];
+			function costDetailController($filter, _, costDetailTransformer) {
+				var vm = this;
+
+				vm.layout = vm.layout || 'AllCosts'; // one of AllCosts, LabourHours, LabourCost, ODCExpenses, ODCSubs
+
+				var layoutToPeriodField  = {
+					AllCosts: 'CostDistLine_ProjectFunctionalBurdenedCost',
+					LabourHours: 'ExpenditureItem_Quantity',
+					LabourCost: 'CostDistLine_ProjectFunctionalBurdenedCost',
+					ODCExpenses: 'CostDistLine_ProjectFunctionalBurdenedCost',
+					ODCSubs: 'CostDistLine_ProjectFunctionalBurdenedCost'
+				};
+
+				var layoutToGroupKeys = {
+					AllCosts: ['task', 'expenditureItemType'],
+					LabourHours: [ 'task', 'personOrVendor',  'expenditureItemType' ],
+					LabourCost: [ 'task', 'personOrVendor', 'expenditureItemType' ],
+					ODCExpenses: [ 'task', 'expenditureCategory', 'expenditureItemType' ],
+					ODCSubs: [ 'task', 'personOrVendor', 'expenditureItemType' ]
+				};
+
+				vm._lookbackCount = 6;
+				vm._data = [];
+				vm._selectedPeriod = null;
+				vm.showToolPanel = true;
+
+				//vm.projectName = '123456 - Project Name';
+				vm.grid = {
+				   groupHeaders: true,
+				   groupKeys: layoutToGroupKeys[vm.layout],
+				   groupHidePivotColumns: true,
+				   groupIncludeFooter: false,
+				   groupColumnDef: {
+					   width: 300,
+					   headerName: vm.labels.group,
+					   cellRenderer: {
+						   renderer: 'group'
+					   },
+					   cellStyle: cellStyler
+				   },
+				   pinnedColumnCount: 1,
+				   showToolPanel: vm.showToolPanel,
+				   toolPanelSuppressValues: true,
+				   enableColResize: true,
+				   enableSorting: true,
+				   enableFilter: true,
+				   onReady: onReady
+				};
+
+				function buildColumnDefs(periodNames) {
+					var beforeColumnDefs = [
+						{ field: 'task', headerName: vm.labels.task, headerGroup: vm.labels.details, cellStyle: cellStyler },
+						{ field: 'personOrVendor', headerName: vm.labels.personOrVendor, headerGroup: vm.labels.details, cellStyle: cellStyler },
+						{ field: 'employeeNumber', headerName: vm.labels.employeeNumber, headerGroup: vm.labels.details, headerGroupShow: 'open', cellStyle: cellStyler, width: 80 },
+						{ field: 'employeeClassification', headerName: vm.labels.employeeClassification, headerGroup: vm.labels.details, headerGroupShow: 'open', cellStyle: cellStyler, width: 200 },
+						{ field: 'expenditureCategory', headerName: vm.labels.expenditureCategory, headerGroup: vm.labels.details, cellStyle: cellStyler, width: 100 },
+						{ field: 'expenditureItemType', headerName: vm.labels.expenditureItemType, headerGroup: vm.labels.details, cellStyle: cellStyler, width: 160 },
+						{ field: 'expenditureOrgId', headerName: vm.labels.expenditureOrgId, headerGroup: vm.labels.details, headerGroupShow: 'open', cellStyle: cellStyler, width: 100 },
+						{ field: 'operatingGroup', headerName: vm.labels.operatingGroup, headerGroup: vm.labels.business, headerGroupShow: 'open', cellStyle: cellStyler, width: 130 },
+						{ field: 'geographyName', headerName: vm.labels.geographyName, headerGroup: vm.labels.business, headerGroupShow: 'open', cellStyle: cellStyler, width: 100 },
+						{ field: 'region', headerName: vm.labels.region, headerGroup: vm.labels.business, headerGroupShow: 'open', cellStyle: cellStyler, width: 100 },
+						{ field: 'district', headerName: vm.labels.district, headerGroup: vm.labels.business, headerGroupShow: 'open', cellStyle: cellStyler, width: 100 },
+						{ field: 'businessLineName', headerName: vm.labels.businessLineName, headerGroup: vm.labels.business, cellStyle: cellStyler, width: 130 },
+						{ field: 'subBusinessLineName', headerName: vm.labels.subBusinessLineName, headerGroup: vm.labels.business, headerGroupShow: 'open', cellStyle: cellStyler, width: 130 },
+						{ field: 'paPeriodName', headerName: vm.labels.paPeriodName, headerGroup: vm.labels.cost, headerGroupShow: 'open', cellStyle: cellStyler, width: 130 },
+						{ field: 'glPeriodName', headerName: vm.labels.glPeriodName, headerGroup: vm.labels.cost, headerGroupShow: 'open', cellStyle: cellStyler, width: 130 },
+						{ field: 'quantity', headerName: vm.labels.quantity, headerGroup: vm.labels.cost, headerGroupShow: 'open', cellRenderer: numberCellRenderer, cellStyle: cellStyler, width: 80 },
+						{ field: 'projectBurdenedCost', headerName: vm.labels.projectBurdenedCost, headerGroup: vm.labels.cost, headerGroupShow: 'open', cellRenderer: numberCellRenderer, cellStyle: cellStyler, width: 130 },
+						{ field: 'projectCurrencyCode', headerName: vm.labels.projectCurrencyCode, headerGroup: vm.labels.cost, headerGroupShow: 'open', cellStyle: cellStyler, width: 100 },
+						{ field: 'functionalBurdenedCost', headerName: vm.labels.functionalBurdenedCost, headerGroup: vm.labels.cost, cellRenderer: numberCellRenderer, cellStyle: cellStyler, width: 130 },
+						{ field: 'functionalCurrencyCode', headerName: vm.labels.functionalCurrencyCode, headerGroup: vm.labels.cost, headerGroupShow: 'open', cellStyle: cellStyler, width: 130 },
+						{ field: 'itdPriorToLookbacks', headerName: 'Prior Periods', cellRenderer: numberCellRenderer, headerGroup: vm.labels.periods, headerGroupShow: 'open', width: 100, cellStyle: cellStyler }
+					];
+					var afterColumnDefs = [
+						{ field: 'inceptionToDate', headerName: vm.labels.inceptionToDate, cellRenderer: detailSummaryCellRenderer, headerGroup: vm.labels.periods, width: 80, cellStyle: cellStyler },
+						{ field: 'monthToDate', headerName: vm.labels.monthToDate, width: 80, cellRenderer: detailSummaryCellRenderer, cellStyle: cellStyler },
+						{ field: 'yearToDate', headerName: vm.labels.yearToDate, width: 80, cellRenderer: detailSummaryCellRenderer, cellStyle: cellStyler }
+					];
+					return beforeColumnDefs
+						.concat(periodNames.map(function (period) {
+							return { field: period, headerName: period, cellRenderer: numberCellRenderer, headerGroup: vm.labels.periods, headerGroupShow: 'open', width: 130, cellStyle: cellStyler };
+						}))
+						.concat(afterColumnDefs);
+				}
+
+				function detailSummaryCellRenderer(params) {
+					if (params.node.allChildrenCount) {
+						return numberCellRenderer(params);
+					} else {
+						return '';  // for fields that are just there to provide summaries, do not display values at the detail level
+					}
+				}
+
+				function numberCellRenderer(params) {
+					return $filter('number')(params.value || 0, 0);
+				}
+
+				function cellStyler(params) {
+				   var result = {};
+				   if (params.colDef.headerName === 'Prior Periods' || params.colDef.headerName === 'ITD') {
+					   result['background-color'] = '#D9EAF7';
+				   }
+				   if (params.node.level === 0) {
+					   result['font-weight'] = 'bold';
+					   result['font-style'] = 'normal';
+					   result['background-color'] = '#D9EAF7';
+				   }
+				   if (params.node.level === 1) {
+					   result['font-style'] = 'normal';
+					   result['background-color'] = '#D9EAF7';
+				   }
+				   if (params.node.level === 2) {
+					   result['font-style'] = 'normal';
+				   }
+				   if (typeof(params.value) === 'number' || params.colDef.headerGroup === 'Periods') {
+					   result['text-align'] = 'right';
+					   if (params.value < 0) {
+						   result['color'] = '#d81e05';
+					   }
+				   }
+				   return result;
+				}
+
+				vm.toggleToolPanel = function () {
+					vm.showToolPanel = !vm.showToolPanel;
+					vm.grid.api.showToolPanel(vm.showToolPanel);
+				};
+
+				vm.export = function () {
+					var fileName = 'Cost Detail ' + vm.layout + ' - ' + vm.projectName + '.csv';
+					console.debug('exporting as', fileName);
+					vm.grid.api.exportDataAsCsv({
+						skipHeader: false,
+						skipFooters: false,
+						skipGroups: false,
+						fileName: fileName
+					});
+				}
+
+				function dataSort(it) {
+					return it.task.split(".").map(function(v) { return v.length > 10 ? v : ('0000000000'+v).substr(-10); } ).join('.')
+						+ '.' + it.expenditureCategory
+						+ '.' + it.personId
+						+ '.' + it.paPeriodDate;
+				}
+
+				function buildGrid() {
+					var result = costDetailTransformer.transformData(vm.data, vm.selectedPeriod.periodDate, vm.lookbackCount, layoutToPeriodField[vm.layout]);
+					vm.grid.api.setColumnDefs(buildColumnDefs(result.periodNames));
+					vm.grid.groupAggFields = [ 'quantity', 'projectBurdenedCost', 'functionalBurdenedCost', 'itdPriorToLookbacks', 'inceptionToDate', 'monthToDate', 'yearToDate' ].concat(result.periodNames);
+					var group = vm.grid.columnApi.getColumnGroup(vm.labels.periods);
+					vm.grid.columnApi.columnGroupOpened(group, true);
+					vm.grid.api.setRowData(_.sortBy(result.data, dataSort));
+				}
+
+				function setPaPeriods() {
+					vm.paPeriods = _.chain(vm.data)
+						.map(function (it) {
+							return { periodName: it.CostDistLine_PAPeriodName, periodDate: it.CostDistLine_PADate };
+						})
+						.uniq(false, function (it) { return it.periodName; })
+						.sortBy('periodDate')
+						.value();
+					vm.selectedPeriod = _.last(vm.paPeriods);
+				}
+
+				Object.defineProperty(vm, 'lookbackCount', {
+					get: function () {
+						return vm._lookbackCount;
+					},
+					set: function (value) {
+						vm._lookbackCount = parseInt(value);
+						buildGrid();
+					}
+				});
+
+				Object.defineProperty(vm, 'selectedPeriod', {
+					get: function () {
+						return vm._selectedPeriod;
+					},
+					set: function (value) {
+						vm._selectedPeriod = value;
+						buildGrid();
+					}
+				});
+
+				Object.defineProperty(vm, 'data', {
+					get: function () { return vm._data; },
+					set: function (value) {
+						vm._data = value;
+						setPaPeriods();
+					}
+				});
+
+				function onReady() {
+					if (vm.data.length > 0) vm.grid.api.setRowData(vm.data);
+				}
+			}
+		}());
+	</script>
+
+	<script id="eco-pmd-cost-detail-transformer">
+		(function() {
+			'use strict';
+
+			angular
+				.module('ecopmd.costDetail')
+				.service('costDetailTransformer', costDetailTransformer);
+
+			costDetailTransformer.$inject = ['$filter', '$timeout', 'underscore'];
+			function costDetailTransformer($filter, $timeout, _) {
+				var lookbackPeriodNames = [];
+
+				function transformData(data, lookback, lookbackCount, fieldForPeriodColumns) {
+					lookbackPeriodNames = [];
+					fieldForPeriodColumns = fieldForPeriodColumns || 'ExpenditureItem_Quantity';
+					var sortedData = _.sortBy(data, 'CostDistLine_PADate');
+					var lookbackPeriods = calculateLookbackPeriods(sortedData, lookback, lookbackCount);
+					return {
+						periodNames: lookbackPeriodNames,
+						data: sortedData.map(transformRow(lookbackPeriods, fieldForPeriodColumns))
+					};
+				}
+
+				function calculateLookbackPeriods(data, lookback, lookbackCount) {
+					var allPeriods = _.uniq(data.map(function (it) { return it.CostDistLine_PADate; }));
+					lookback = lookback || _.last(allPeriods); // use most recent period if lookback is not specified
+					lookbackCount = lookbackCount || 6;
+					var periods = _.last(allPeriods.filter(function (it) { return it <= lookback; }), lookbackCount);
+					return periods;
+				}
+
+				function transformRow(lookbackPeriods, fieldForPeriodColumns) {
+					return function (row) {
+						var taskNumber = row.ExpenditureItem_ProjectTaskNumber
+						, taskName = row.ExpenditureItem_ProjectTaskName
+						, personId = row.ExpenditureItem_PersonId
+						, vendorId = row.ExpenditureItem_VendorId
+						, expenditureCategory = row.ExpenditureItem_ExpenditureType.split(/[\s-]+/)[0]
+						, result = {
+							task: taskNumber + " - " + taskName,
+							expenditureItemName: "",
+							expenditureItemType: row.ExpenditureItem_ExpenditureType,
+							expenditureCategory: expenditureCategory,
+							expenditureOrgId: row.ExpenditureItem_ExpenditureOrgId,
+							costDistributionLine: "",
+							personId: personId,
+							employeeNumber: row.EmployeeNumber,
+							employeeName: row.EmployeeName,
+							employeeClassification: row.EmployeeClassification,
+							vendorId: vendorId,
+							vendorName: row.VenderName,
+							personOrVendor: row.EmployeeName
+								|| (row.ExpenditureItem_VendorId === "null" ? null : row.ExpenditureItem_VendorId)
+								|| row.ExpenditureItem_PersonId,
+							uom: "",
+							projectCurrencyCode: row.CostDistLine_ProjectCurrencyCode,
+							projectBurdenedCost: row.CostDistLine_ProjectBurdenedCost,
+							functionalCurrencyCode: row.CostDistLine_ProjectFunctionalCurrencyCode,
+							functionalBurdenedCost: row.CostDistLine_ProjectFunctionalBurdenedCost,
+							quantity: row.ExpenditureItem_Quantity,
+							inceptionToDate: row[fieldForPeriodColumns],
+							monthToDate: 0,
+							yearToDate: 0,
+							glPeriodName: row.CostDistLine_GLPeriodName,
+							paPeriodName: row.CostDistLine_PAPeriodName,
+							paPeriodDate: row.CostDistLine_PADate,
+							operatingGroup: row.OperatingGroup,
+							geographyName: row.GeographyName,
+							region: row.Region,
+							district: row.District,
+							businessLineName: row.BusinessLineName,
+							subBusinessLineName: row.SubBusinessLineName
+						};
+						if (_.contains(lookbackPeriods, row.CostDistLine_PADate)) {
+							if (!_.contains(lookbackPeriodNames, row.CostDistLine_PAPeriodName)) lookbackPeriodNames.push(row.CostDistLine_PAPeriodName);
+							result[row.CostDistLine_PAPeriodName] = row[fieldForPeriodColumns];
+						} else if (row.CostDistLine_PADate < _.first(lookbackPeriods)) {
+							result.itdPriorToLookbacks = row[fieldForPeriodColumns];
+						}
+						if (row.CostDistLine_PAPeriodName.indexOf($filter('date')(new Date(), 'MMM') + '-' + $filter('date')(new Date(), 'yy')) !== -1) {
+							result.monthToDate = row[fieldForPeriodColumns];
+						}
+						if (row.CostDistLine_PAPeriodName.indexOf('F-'+$filter('date')(new Date(), 'yy')) !== -1) {
+							result.yearToDate = row[fieldForPeriodColumns];
+						}
+						return result;
+					}
+				}
+
+				return {
+					transformData: transformData
+				}
+			}
+		}());
+	</script>
+
+</apex:component>

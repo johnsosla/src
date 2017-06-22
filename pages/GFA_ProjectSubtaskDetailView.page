@@ -1,0 +1,222 @@
+<apex:page standardController="GFA_Project_Subtask__c" extensions="GFA_ProjectSubtaskDetailViewController">
+<!-- <apex:stylesheet value="{!URLFOR($Resource.GFA, 'bootstrap/css/bootstrap.min.css')}"/> -->
+<apex:stylesheet value="{!URLFOR($Resource.GFA, 'bootstrap/css/bootstrap.css')}"/>
+<apex:stylesheet value="{!URLFOR($Resource.GFA, 'custom/css/GFA_app.css')}"/>
+<apex:stylesheet value="{!URLFOR($Resource.GFA, 'font-awesome/css/font-awesome.min.css')}"/>
+<apex:stylesheet value="{!URLFOR($Resource.GFA, 'custom/css/GFA_app2.css')}"/>
+
+<script src="{!URLFOR($Resource.GFA, 'jQuery/jquery-1.12.1.min.js')}" type="text/javascript" charset="utf-8"></script>
+<script src="{!URLFOR($Resource.GFA, 'bootstrap/js/bootstrap.min.js')}" type="text/javascript" charset="utf-8"></script>
+<script src="{!URLFOR($Resource.GFA, 'custom/js/GFA_app.js')}" type="text/javascript" charset="utf-8"></script>
+<div class="GFA">
+
+<div class="bPageTitle">
+    <div class="ptBody">
+        <div class="content">
+            <img src="/s.gif" alt="Project Subtask" class="pageTitleIcon" title="Project Subtask"/>
+            <h4>Project Subtask Details View for <span class="titleSeparatingColon">:</span>{!projectSubtask.LibrarySubtaskName}</h4><br/>
+            <h4><a href="apex/GFA_ProjectDetailView?id={!project.Id}">{!project.ProjectName}</a> / {!projectPhase.LibraryPhaseName} / <a href="apex/GFA_ProjectTaskDetail?id={!projectTask.Id}">{!projectTask.LibraryTaskName}</a></h4>
+            <div class="blank">&nbsp;</div>
+
+        </div>
+    </div>
+</div>
+
+<div class="pageContainer">
+    <chatter:feedWithFollowers entityId="{!projectSubtask.Id}" />
+    <div class="clearfix"></div>
+
+    <apex:form id="form">
+        <div class="centerButtonsGroup p10">
+            <apex:actionStatus id="actionButtonsStatus" rendered="{!CanEdit}">
+                <apex:facet name="stop">
+
+                    <apex:outputPanel id="btnPanel">
+                        <apex:commandButton value="Edit" action="{!editSubtask}" styleClass="mainButton AE_Blue" reRender="form"/>
+                    </apex:outputPanel>
+                </apex:facet>
+                <apex:facet name="start">
+                    <apex:image styleClass="actionButtonSpinner" value="/img/loading.gif"/>
+                </apex:facet>
+            </apex:actionStatus>
+        </div>
+
+        <apex:outputPanel id="projectSubtaskPage">
+            <div class="panel panel-default">
+             <div class="panel-heading">
+                <h3 class="panel-title">Project Subtask Details</h3>
+            </div>
+            <div class="panel-body">
+                <table class="table fixedTable">
+                    <tbody>
+                       <tr>
+                            <td>
+                                <label>Subtask Name:</label>
+                            </td>
+                            <td>
+                                <apex:outputText value="{!projectSubtask.LibrarySubtaskName}" />
+                            </td>
+                            <td>
+                                <label>Status:</label>
+                            </td>
+                            <td>
+                                <apex:outputText value="{!projectSubtask.Status}" />
+                            </td>
+                       </tr>
+
+                        <tr>
+                            <td>
+                                <label>Description:</label>
+                            </td>
+                            <td>
+                                <apex:outputText value="{!lsVersion.Description}" />
+                            </td>
+                            <td>
+                                <label>Scope of Service:</label>
+                            </td>
+                            <td>
+                                <apex:outputText value="{!lsVersion.ScopeofService}" />
+                            </td>
+                       </tr>
+
+                        <tr>
+                            <td>
+                                <label>Sequence:</label>
+                            </td>
+                            <td>
+                                <apex:outputText value="{!projectSubtask.Sequence}" />
+                            </td>
+                            <td>
+                                <label>Impact Level:</label>
+                            </td>
+                            <td>
+                                <apex:outputText value="{!lsVersion.ImpactLevel}" />
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>
+                                <label>Due Date:</label>
+                            </td>
+                            <td>
+                                <apex:outputField value="{!projectSubtask.obj.Due_Date_Formula__c}" />
+                            </td>
+                            <td>
+                                <label>Is Critical Override:</label>
+                            </td>
+                            <td>
+                                <apex:outputField value="{!projectSubtask.obj.Is_Critical_Override__c}" />
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>
+                                <label>Completion Date:</label>
+                            </td>
+                            <td>
+                                <apex:outputField value="{!projectSubtask.obj.Completion_Date__c}" />
+                            </td>
+                            <td>
+                                <label>Risk Level:</label>
+                            </td>
+                            <td>
+                                <apex:outputText value="{!lsVersion.RiskLevel}" />
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>
+                                <label>Days Remaining:</label>
+                            </td>
+                            <td>
+                                <apex:outputText value="{!projectSubtask.DaysRemaining}"  rendered="{!projectSubtask.CompletionDate == null}"/>
+                            </td>
+                            <td>
+                                <label>Discipline:</label>
+                            </td>
+                            <td>
+                                <apex:outputText value="{!lsVersion.Discipline}" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td >
+                                <label>Last Status Change:</label>
+                            </td>
+                            <td colspan="3">
+                                <apex:outputField value="{!projectSubtask.obj.Last_Status_Change__c}"/>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            </div>
+            <!-- Documentation -->
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Documentation</h3>
+                </div>
+                <div class="panel-body">
+                    <table class="table">
+                        <apex:repeat var="document" value="{!lsVersion.LibrarySubtaskContents}">
+                            <tr>
+                                <td>
+                                    <a href="{!document.Link}"  target="_blank">{!document.Name}</a>
+                                </td>
+                            </tr>
+                        </apex:repeat>
+                    </table>
+                </div>
+            </div>
+            <!-- Project Deliverable -->
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Completed Deliverables</h3>
+                        <div class="panel-buttons text-center">
+                            <apex:commandButton value="New Deliverable" action="{!newDeliverable}" rendered="{!CanEdit}" styleClass="mainButton" reRender="form" />
+                        </div>
+                </div>
+                <div class="panel-body">
+                    <table class="table">
+                        <thead>
+                            <th>Action</th>
+                            <th>Deliverable Name</th>
+                            <th>Hidden Deliverable</th>
+                        </thead>
+                        <apex:repeat var="deliverable" value="{!projectSubtask.ProjectDeliverables}">
+                            <apex:outputPanel rendered="{!!deliverable.HiddenDeliverable || (deliverable.HiddenDeliverable && ( CanViewHiddenDeliverables || deliverable.CanViewDeliverable))}">
+                                <tr>
+                                    <td>
+                                        <apex:actionStatus id="actionButtonsStatus">
+                                            <apex:facet name="stop">
+                                                <apex:outputPanel id="btnPanel" rendered="{!CanEdit}">
+                                                    <apex:commandLink action="{!editDeliverable}" value="Edit" id="editLink"  status="actionButtonsStatus">
+                                                        <apex:param name="deliverableId" value="{!deliverable.Id}" assignTo="{!deliverableId}"/>
+                                                    </apex:commandLink> &nbsp; | &nbsp;
+                                                    <apex:commandLink action="{!deleteDeliverable}" value="Del" id="deleteLink" status="actionButtonsStatus" onclick="if(!confirmDeletePart('deliverable')) return false;">
+                                                        <apex:param name="deliverableId" value="{!deliverable.Id}" assignTo="{!deliverableId}"/>
+                                                    </apex:commandLink>
+                                                </apex:outputPanel>
+                                            </apex:facet>
+                                            <apex:facet name="start">
+                                                <apex:image styleClass="actionButtonSpinner" value="/img/loading.gif"/>
+                                            </apex:facet>
+                                        </apex:actionStatus>
+                                    </td>
+                                    <td>
+                                        <a href="apex/GFA_ProjectDeliverableDetailView?id={!deliverable.Id}">{!deliverable.Name}</a>
+                                    </td>
+                                    <td>
+                                        <apex:outputField value="{!deliverable.obj.Hidden_Deliverable__c}" /> PM View Only
+                                    </td>
+                                </tr>
+                            </apex:outputPanel>
+                        </apex:repeat>
+                    </table>
+                </div>
+            </div>
+        </apex:outputPanel>
+    </apex:form>
+</div>
+
+</div>
+</apex:page>

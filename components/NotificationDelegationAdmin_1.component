@@ -1,0 +1,14 @@
+<apex:component language="{!theLanguage}" controller="nttdcore.DLabelChildController" access="global" ><apex:attribute name="theLanguage" type="String" required="true" description="language" access="global" /><apex:attribute name="theRecipient" type="User" required="true" description="recipient" access="global" /><apex:attribute name="theRelatedTo" type="Delegate__c" required="true" description="related to" access="global" />
+<html>
+<style type="text/css" >
+body {font-family: Arial;}
+</style>
+<body><nttdcore:DLabel name="DL1" default="{{1}} has created a new Delegation that requires your approval.  Details of this delegation are provided below.  Please approve or reject this delegation request using the links provided below." labelParent="{!this}" componentContext="NotificationDelegationAdmin_1" p1="{!theRelatedTo.CreatedBy.name}" />
+{!dlRoot.dLabel['DL1']}
+
+<c:ECO_DelegateOrgStringTable delegateid="{!theRelatedTo.id}" />
+
+
+</body>
+</html>
+<nttdcore:DLabelInit language="{!theLanguage}" labelParentInit="{!this}" /></apex:component>

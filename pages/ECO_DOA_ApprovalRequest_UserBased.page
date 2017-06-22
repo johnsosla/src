@@ -1,0 +1,827 @@
+<apex:page standardController="DOAApprovalRequest__c" extensions="ECO_DOAApprovalsController" showHeader="true" sidebar="true" tabStyle="DOAApprovalRequest__c" >
+    <style>
+        .hideDropdown select{
+            display:none !important;
+        }
+        body .bPageBlock, body #bodyCell .bResource .secondaryPalette, body .secondaryPalette.bPageBlock, body .individualPalette .secondaryPalette.bPageBlock, body .bodyDiv .genericTable, body .genericPageBlockTable, body .bodyDiv .bSubBlock, body .bComponentBlock .bPageBlock, body .bMyDashboard .bPageBlock, body.rlHoverFrame .bPageBlock, body.subjectSelectionPopup div.choicesBox, body.lookupTab .secondaryPalette.bPageBlock, body.popupTab .secondaryPalette.bPageBlock, body.UserTagStatsPage .secondaryPalette.bPageBlock
+        {
+            background-color: #FFFFFF;
+        }
+        /*.bPageBlock .detailList .dataCol {
+            width: 40%;
+        }
+        .bPageBlock .detailList .labelCol {
+            width: 40%;
+        }*/
+        .customHelpText{
+            padding: 7px;
+            border: 1px solid #85B3CE;
+            min-height: 30px;
+            display: block;
+            width: auto;
+            margin: 0 0 5px 0;
+            background-repeat: no-repeat;
+            border-radius: 4px;
+            background-color: #A2D3F1;
+            
+        }
+        .customHelpBody{
+            display:inline-block;
+            color:#;
+            max-width:95%;
+        }
+        
+    </style>
+    <script>
+        function AECOMHub(approval, countApprover, isRequired){
+            var aecomApproval = document.getElementById(approval).value;
+            var aecomApproverCount = document.getElementById(countApprover).value;
+            var aecomRequired = document.getElementById(isRequired).value;
+            if(aecomApproval == false && aecomApproverCount >0 && aecomRequired == true){
+                alert('Inside if');
+            }else{
+                alert('Inside else');
+            }
+        }
+    </script>
+    <apex:actionRegion >
+        <chatter:feedWithFollowers entityId="{!oDOA.Id}"></chatter:feedWithFollowers>
+    <apex:form id="theform">
+        
+        <apex:sectionHeader title="DOA Approval Request" subtitle="{!oDOA.Name}"/>
+        <apex:outputLabel rendered="{!NOT(isDOAAdmin)}">
+            <c:ECO_CollapsibleSection sectionTitle="General Guidance Information"> 
+                <p>This section summarizes the DOA approval request details prior to submitting the request and initiating the approval process.  Attach necessary documents or notes, view and revise approval forms, as needed, and click the “Submit to DoA Approval Queue” when ready to request approval for the selected DOA matters listed in the DOA Register.  The request will be submitted to a local queue and assigned to an appropriate ORM administrator to facilitate the approval process.  </p>
+            </c:ECO_CollapsibleSection>
+            <!-- <div class="customHelpText">
+                <div class="customHelpBody">
+                    <p>This section summarizes the DOA approval request details prior to submitting the request and initiating the approval process.  Attach necessary documents or notes, view and revise approval forms, as needed, and click the “Submit to DoA Approval Queue” when ready to request approval for the selected DOA matters listed in the DOA Register.  The request will be submitted to a local queue and assigned to an appropriate ORM administrator to facilitate the approval process.  </p>
+                </div>
+            </div> -->
+        </apex:outputLabel>
+        <apex:outputLabel rendered="{!isDOAAdmin}">
+            <c:ECO_CollapsibleSection sectionTitle="General Guidance Information"> 
+                <p>This section serves as a 'dashboard' for the ORM Administrator to initiate, manage and monitor the approval process for the specific DOA approval request.  Users can review the completed approval request form(s), DOA matters under consideration, approval participant names/roles, existing and/or pending approvals, contract review status (as needed), and recorded conditions of approval.</p>
+            </c:ECO_CollapsibleSection>
+            <!-- <div class="customHelpText">
+                <div class="customHelpBody">
+                    <p>This section serves as a 'dashboard' for the ORM Administrator to initiate, manage and monitor the approval process for the specific DOA approval request.  Users can review the completed approval request form(s), DOA matters under consideration, approval participant names/roles, existing and/or pending approvals, contract review status (as needed), and recorded conditions of approval.</p>
+                </div>
+            </div> -->
+        </apex:outputLabel>
+        
+        <apex:pageBlock title="Approvals" id="thepageblock">
+            <apex:pageMessages id="messages" />
+            <apex:pageBlockButtons >
+                <apex:commandButton action="{!saveDOA}" value="Save" rendered="{!OR(NOT(oDOA.AssigntoDoAApprovalQueue__c),isDOAAdmin)}"/>
+                <apex:commandButton action="{!submitGeography}" value="Submit for Geography Approval" rendered="{!isDOAAdmin}" disabled="{!oDOA.SubmitGeographyforApproval__c}" />
+                <apex:commandButton action="{!submitGroup}" value="Submit for Group Approval" rendered="{!isDOAAdmin}" disabled="{!oDOA.SubmitGroupforApproval__c}" />
+                <apex:commandButton action="{!submitEnterprise}" value="Submit for Enterprise Approval" rendered="{!isDOAAdmin}" disabled="{!oDOA.SubmitEnterpriseforApproval__c}" />
+                <!--<apex:commandButton action="{!submitDCSHub}" value="Submit for DCS Hub Approval" rendered="{!isDOAAdmin}" disabled="{!oDOA.SubmitDCSHubforApproval__c}" />-->
+                <apex:commandButton action="{!submitAECOMHub}" value="Submit for AECOM Hub Approval" rendered="{!isDOAAdmin}" disabled="{!oDOA.SubmitAECOMHubForApproval__c}" />
+                <apex:commandButton action="{!submitDOAQueue}" value="Submit to DoA Approval Queue" rendered="{!NOT(oDOA.AssigntoDoAApprovalQueue__c)}"/>
+                <apex:outputLink value="{!URLFOR('https://myecosystem.aecom.com/dept/risk/Pages/2%20Delegations-of-Authority.aspx')}" rendered="{!AND(NOT(oDOA.AssigntoDoAApprovalQueue__c), NOT(isDOAAdmin),oDOA.Enable_RCST_Button__c )}" styleClass="btn" style="text-decoration:none;padding:4px;">Risk Committee Submittal Template</apex:outputLink>
+                <apex:commandButton action="{!newDOAPage}" value="New DOA Page" immediate="true"/>
+                <apex:commandButton action="/{!oDOA.Project__c}" value="Return to Project" rendered="{!oDOA.AssigntoDoAApprovalQueue__c}"/>
+            </apex:pageBlockButtons>
+            <apex:pageBlockSection title="DOA Approval Request Detail" >
+                    <apex:outputField value="{!oDOA.Project__c}" rendered="{!IF(oDOA.Project__c != null, true, false)}"/>
+                    <apex:inputField value="{!oDOA.ProjectNameSubject__c}" rendered="{!AND(IF(oDOA.Project__c != null, false, true), NOT(oDOA.AssigntoDoAApprovalQueue__c))}"/>
+                    <apex:outputField value="{!oDOA.ProjectNameSubject__c}" rendered="{!AND(IF(oDOA.Project__c != null, false, true), oDOA.AssigntoDoAApprovalQueue__c)}"/>
+                    <apex:outputField value="{!oDOA.OwnerId}" rendered="{!NOT(OR(isDOAAdmin,NOT(oDOA.AssigntoDoAApprovalQueue__c)))}"/>
+                    <apex:inputField value="{!oDOA.OwnerId}" rendered="{!OR(isDOAAdmin,NOT(oDOA.AssigntoDoAApprovalQueue__c))}"/>
+                    <apex:outputField value="{!oDOA.Name}"/>
+                    <apex:inputField value="{!oDOA.Requestor__c}" styleClass="hideDropdown" required="true" rendered="{!NOT(oDOA.AssigntoDoAApprovalQueue__c)}"/>
+                    <apex:outputField value="{!oDOA.Requestor__c}" styleClass="hideDropdown" rendered="{!oDOA.AssigntoDoAApprovalQueue__c}"/>
+                    <apex:outputField value="{!oDOA.ProjectNumber__c}" rendered="{!IF(oDOA.Project__c != null, true, false)}"/>
+                    <apex:inputField value="{!oDOA.OracleProjectNumber__c}" rendered="{!AND(IF(oDOA.Project__c != null, false, true), NOT(oDOA.AssigntoDoAApprovalQueue__c))}"/>
+                    <apex:outputField value="{!oDOA.EndClientPrimary__c}" rendered="{!IF(oDOA.Project__c != null, true, false)}"/>
+                    <apex:outputField value="{!oDOA.BillingClientPrimary__c}" rendered="{!IF(oDOA.Project__c != null, true, false)}"/>
+                    <apex:outputField value="{!oDOA.ApprovalStatus__c}" rendered="{!NOT(isDOAAdmin)}"/>
+                    <apex:inputField value="{!oDOA.ApprovalStatus__c}" rendered="{!isDOAAdmin}"/>
+                    <apex:inputField value="{!oDOA.DateRequired__c}" rendered="{!NOT(oDOA.AssigntoDoAApprovalQueue__c)}"/>
+                    <apex:outputField value="{!oDOA.DateRequired__c}" rendered="{!oDOA.AssigntoDoAApprovalQueue__c}"/>
+                    <apex:outputField value="{!oDOA.OpportunityName__c}" rendered="{!IF(oDOA.Project__c != null, true, false)}"/>
+                    <apex:inputField value="{!oDOA.OpportunityNumber__c}" rendered="{!AND(IF(oDOA.Project__c != null, false, true), NOT(oDOA.AssigntoDoAApprovalQueue__c))}"/>
+                    <apex:outputField value="{!oDOA.Operating_Group__c}" rendered="{!oDOA.AssigntoDoAApprovalQueue__c}"/>
+                    <apex:inputField value="{!oDOA.Operating_Group__c}" rendered="{!NOT(oDOA.AssigntoDoAApprovalQueue__c)}" required="true"/>   
+                    <apex:outputField value="{!oDOA.Strategic_Business_Unit__c}" rendered="{!oDOA.AssigntoDoAApprovalQueue__c}"/>
+                    <apex:inputField value="{!oDOA.Strategic_Business_Unit__c}" rendered="{!NOT(oDOA.AssigntoDoAApprovalQueue__c)}" required="true"/>
+                        <!--<apex:actionSupport event="onchange" action="{!calculateQueue}" rerender="thepageblock"/>
+                    </apex:inputField>-->
+                    <apex:inputHidden value="{!oDOA.AssigntoDoAApprovalQueue__c}"/>
+            </apex:pageBlockSection>
+            <!--<apex:pageBlockSection title="Conditions of Approval Compliance" id="ConditionsSection" rendered="{!isDOAAdmin}">
+                <apex:repeat value="{!$ObjectType.DOAApprovalRequest__c.FieldSets.ECO_Approval_Compliance}" var="Field1">
+                    <apex:inputField value="{!oDOA[Field1]}" />
+                </apex:repeat>
+            </apex:pageBlockSection>-->
+            <apex:pageBlockSection title="Approvals Required" id="thepageblocksectionAR" rendered="{!isDOAAdmin}">
+                <!--<apex:repeat value="{!$ObjectType.DOAApprovalRequest__c.FieldSets.ECO_ApprovalsRequired}" var="Field1">
+                    <apex:inputField value="{!oDOA[Field1]}" />
+                </apex:repeat>-->
+                <apex:inputField value="{!oDOA.GeographyApprovalsRequired__c}" id="checkGeography"/>
+                <apex:inputField value="{!oDOA.GeographyApprovalRAG__c}" id="statusGeography"/>
+                <apex:inputField value="{!oDOA.GroupApprovalsRequired__c}" id="checkGroup"/>
+                <apex:inputField value="{!oDOA.GroupApprovalRag__c}" id="statusGroup"/>
+                <apex:inputField value="{!oDOA.EnterpriseApprovalsRequired__c}" id="checkEnterprise"/>
+                <apex:inputField value="{!oDOA.EnterpriseApprovalRag__c}" id="statusEnterprise"/>
+                <!--<apex:inputField value="{!oDOA.DCSHubApprovalsRequired__c}" id="checkDCS"/>
+                <apex:inputField value="{!oDOA.DCSApprovalStatusRAG__c}" id="statusDCS"/>-->
+                <apex:inputField value="{!oDOA.AECOMHubApprovalsRequired__c}" id="checkAECOM"/>
+                <apex:inputField value="{!oDOA.AECOMHubApprovalRAG__c}" id="statusAECOM"/>
+            </apex:pageBlockSection>
+            
+            <apex:pageBlockSection title="Approvals (Geography)" columns="2" id="thepageblocksection" rendered="{!isDOAAdmin}">
+                <apex:pageBlockSection columns="1" >
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >Geography President</apex:outputLabel>
+                        <apex:inputField value="{!oDOA.GeoPresidentApprover__c}" styleClass="hideDropdown"/>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >Geography President Approval</apex:outputLabel>
+                        <apex:outputPanel >
+                            <apex:inputField value="{!oDOA.GeoPresidentCheckApp__c}" rendered="{! oDOA.GeoPresidentCheckApp__c == '' }" />
+                            <apex:outputField value="{!oDOA.GeoPresidentCheckApp__c}" style="width:80px" rendered="{! oDOA.GeoPresidentCheckApp__c != ''}" />
+                        </apex:outputPanel>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >Geography President Approved By</apex:outputLabel>
+                        <apex:outputField value="{!oDOA.GeoPresidentApprovedBy__c}" />
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >Geography President Time Approved</apex:outputLabel>
+                        <apex:outputField value="{!oDOA.GeoPresidentTimeApp__c}" />
+                    </apex:pageBlockSectionItem>
+                </apex:pageBlockSection>
+                
+                <apex:pageBlockSection columns="1" >
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >Geography Chief Operating Officer</apex:outputLabel>
+                        <apex:inputField value="{!oDOA.GeoChiefOperatingOfficerApprover__c}" styleClass="hideDropdown"/>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >Geo Chief Operating Officer Approval</apex:outputLabel>
+                        <apex:outputPanel >
+                            <apex:inputField value="{!oDOA.GeoChiefOperatingOfficerCheckApp__c}" rendered="{! oDOA.GeoChiefOperatingOfficerCheckApp__c == '' }" />
+                            <apex:outputField value="{!oDOA.GeoChiefOperatingOfficerCheckApp__c}" style="width:80px" rendered="{! oDOA.GeoChiefOperatingOfficerCheckApp__c != '' }" />
+                        </apex:outputPanel>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >Geo Chief Operating Officer Approved By</apex:outputLabel>
+                        <apex:outputField value="{!oDOA.GeoChiefOperatingOfficerApprovedBy__c}" />
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >Geo Chief Operating Officer Time Approved</apex:outputLabel>
+                        <apex:outputField value="{!oDOA.GeoChiefOperatingOfficerTimeApp__c}" />
+                    </apex:pageBlockSectionItem>
+                </apex:pageBlockSection>
+                
+                <apex:pageBlockSection columns="1" >
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >Region/BL Executive</apex:outputLabel>
+                        <apex:inputField value="{!oDOA.RegBLExecutiveApprover__c}" styleClass="hideDropdown"/>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >Region/BL Executive Approval</apex:outputLabel>
+                        <apex:outputPanel >
+                            <apex:inputField value="{!oDOA.RegBLExecutiveCheckApp__c}" rendered="{! oDOA.RegBLExecutiveCheckApp__c == '' }" />
+                            <apex:outputField value="{!oDOA.RegBLExecutiveCheckApp__c}" style="width:80px" rendered="{! oDOA.RegBLExecutiveCheckApp__c != '' }" />
+                        </apex:outputPanel>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >Region/BL Executive Approved By</apex:outputLabel>
+                        <apex:outputField value="{!oDOA.RegBLExecutiveApprovedBy__c}" />
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >Region/BL Executive Time Approved</apex:outputLabel>
+                        <apex:outputField value="{!oDOA.RegBLExecutiveTimeApp__c}" />
+                    </apex:pageBlockSectionItem>
+                </apex:pageBlockSection>
+                
+                <apex:pageBlockSection columns="1">
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >Area Manager</apex:outputLabel>
+                        <apex:inputField value="{!oDOA.AreaManagerApprover__c}" styleClass="hideDropdown"/>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >Area Manager Approval</apex:outputLabel>
+                        <apex:outputPanel >
+                            <apex:inputField value="{!oDOA.AreaManagerCheckApp__c}" rendered="{! oDOA.AreaManagerCheckApp__c == '' }" />
+                            <apex:outputField value="{!oDOA.AreaManagerCheckApp__c}" style="width:80px" rendered="{! oDOA.AreaManagerCheckApp__c != '' }" />
+                        </apex:outputPanel>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >Area Manager Approved By</apex:outputLabel>
+                        <apex:outputField value="{!oDOA.AreaManagerApprovedBy__c}" />
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >Area Manager Time Approved</apex:outputLabel>
+                        <apex:outputField value="{!oDOA.AreaManagerTimeApp__c}" />
+                    </apex:pageBlockSectionItem>
+                </apex:pageBlockSection>
+                
+                <apex:pageBlockSection columns="1" >
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >Business Unit Leader</apex:outputLabel>
+                        <apex:inputField value="{!oDOA.BusinessUnitLeaderApprover__c}" styleClass="hideDropdown"/>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >Business Unit Lead Approval</apex:outputLabel>
+                        <apex:outputPanel >
+                            <apex:inputField value="{!oDOA.BusinessUnitLeaderCheckApp__c}" rendered="{! oDOA.BusinessUnitLeaderCheckApp__c == '' }" />
+                            <apex:outputField value="{!oDOA.BusinessUnitLeaderCheckApp__c}" style="width:80px" rendered="{! oDOA.BusinessUnitLeaderCheckApp__c != '' }" />
+                        </apex:outputPanel>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >Business Unit Leader Time Approved</apex:outputLabel>
+                        <apex:outputField value="{!oDOA.BusinessUnitLeaderTimeApp__c}" />
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >Business Unit Leader Approved By</apex:outputLabel>
+                        <apex:outputField value="{!oDOA.BusinessUnitLeaderApprovedBy__c}" />
+                    </apex:pageBlockSectionItem>
+                </apex:pageBlockSection>
+                
+                <apex:pageBlockSection columns="1" >
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >Project Manager</apex:outputLabel>
+                        <apex:inputField value="{!oDOA.ProjectManagerApprover__c}" styleClass="hideDropdown"/>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >Project Manager Approval</apex:outputLabel>
+                        <apex:outputPanel >
+                            <apex:inputField value="{!oDOA.ProjectManagerCheckApp__c}" rendered="{! oDOA.ProjectManagerCheckApp__c == '' }" />
+                            <apex:outputField value="{!oDOA.ProjectManagerCheckApp__c}" style="width:80px" rendered="{! oDOA.ProjectManagerCheckApp__c != '' }" />
+                        </apex:outputPanel>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >Project Manager Approved By</apex:outputLabel>
+                        <apex:outputField value="{!oDOA.ProjectManagerApprovedBy__c}" />
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >Project Manager Time Approved</apex:outputLabel>
+                        <apex:outputField value="{!oDOA.ProjectManagerTimeApp__c}" />
+                    </apex:pageBlockSectionItem>
+                </apex:pageBlockSection>
+                
+                <apex:pageBlockSection columns="1"  >
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >Geography Chief Counsel</apex:outputLabel>
+                        <apex:inputField value="{!oDOA.GeographyChiefCounselApprover__c}" styleClass="hideDropdown"/>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >Geography Chief Counsel Approval</apex:outputLabel>
+                        <apex:outputPanel >
+                            <apex:inputField value="{!oDOA.GeographyChiefCounselCheckApp__c}" rendered="{! oDOA.GeographyChiefCounselCheckApp__c == '' }" />
+                            <apex:outputField value="{!oDOA.GeographyChiefCounselCheckApp__c}" style="width:80px" rendered="{! oDOA.GeographyChiefCounselCheckApp__c != '' }" />
+                        </apex:outputPanel>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >Geography Chief Counsel Approved By</apex:outputLabel>
+                        <apex:outputField value="{!oDOA.GeographyChiefCounselApprovedBy__c}" />
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >Geography Chief Counsel Time Approved</apex:outputLabel>
+                        <apex:outputField value="{!oDOA.GeographyChiefCounselTimeApp__c}" />
+                    </apex:pageBlockSectionItem>
+                </apex:pageBlockSection>
+                
+                <apex:pageBlockSection columns="1"  >
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >Region Chief Counsel</apex:outputLabel>
+                        <apex:inputField value="{!oDOA.RegionChiefCounselApprover__c}" styleClass="hideDropdown"/>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >Region Chief Counsel Approval</apex:outputLabel>
+                        <apex:outputPanel >
+                            <apex:inputField value="{!oDOA.RegionChiefCounselCheckApp__c}" rendered="{! oDOA.RegionChiefCounselCheckApp__c == '' }" />
+                            <apex:outputField value="{!oDOA.RegionChiefCounselCheckApp__c}" style="width:80px" rendered="{! oDOA.RegionChiefCounselCheckApp__c != '' }" />
+                        </apex:outputPanel>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >Region Chief Counsel Approved By</apex:outputLabel>
+                        <apex:outputField value="{!oDOA.RegionChiefCounselApprovedBy__c}" />
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >Region Chief Counsel Time Approved</apex:outputLabel>
+                        <apex:outputField value="{!oDOA.RegionChiefCounselTimeApp__c}" />
+                    </apex:pageBlockSectionItem>
+                </apex:pageBlockSection>
+                
+                <apex:pageBlockSection columns="1" >
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >Counsel/Contracts Manager</apex:outputLabel>
+                        <apex:inputField value="{!oDOA.CounselContractsManagerApprover__c}" styleClass="hideDropdown"/>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >Counsel Contracts Manager Approval</apex:outputLabel>
+                        <apex:outputPanel >
+                            <apex:inputField value="{!oDOA.CounselContractsManagerCheckApp__c}" rendered="{! oDOA.CounselContractsManagerCheckApp__c == '' }" />
+                            <apex:outputField value="{!oDOA.CounselContractsManagerCheckApp__c}" style="width:80px" rendered="{! oDOA.CounselContractsManagerCheckApp__c != '' }" />
+                        </apex:outputPanel>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >Counsel Contracts Manager Approved By</apex:outputLabel>
+                        <apex:outputField value="{!oDOA.CounselContractsManagerApprovedBy__c}" />
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >Counsel Contracts Manager Time Approved</apex:outputLabel>
+                        <apex:outputField value="{!oDOA.CounselContractsManagerTimeApp__c}" />
+                    </apex:pageBlockSectionItem>
+                </apex:pageBlockSection>
+                
+                <apex:pageBlockSection columns="1" >
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >Area Counsel</apex:outputLabel>
+                        <apex:inputField value="{!oDOA.AreaCounselApprover__c}" styleClass="hideDropdown"/>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >Area Counsel Approval</apex:outputLabel>
+                        <apex:outputPanel >
+                            <apex:inputField value="{!oDOA.AreaCounselCheckApp__c}" rendered="{! oDOA.AreaCounselCheckApp__c == '' }" />
+                            <apex:outputField value="{!oDOA.AreaCounselCheckApp__c}" style="width:80px" rendered="{! oDOA.AreaCounselCheckApp__c != '' }" />
+                        </apex:outputPanel>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >Area Counsel Approved By</apex:outputLabel>
+                        <apex:outputField value="{!oDOA.AreaCounselApprovedBy__c}" />
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >Area Counsel Time Approved</apex:outputLabel>
+                        <apex:outputField value="{!oDOA.AreaCounselTimeApp__c}"/>
+                    </apex:pageBlockSectionItem>
+                </apex:pageBlockSection>
+                
+                <apex:pageBlockSection columns="1" >
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >Finance Geography Controller</apex:outputLabel>
+                        <apex:inputField value="{!oDOA.FinanceGeographyControlApprover__c}" styleClass="hideDropdown"/>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >Finance Geography Controller Approval</apex:outputLabel>
+                        <apex:outputPanel >
+                            <apex:inputField value="{!oDOA.FinanceGeographyControlCheckApp__c}" rendered="{! oDOA.FinanceGeographyControlCheckApp__c == '' }" />
+                            <apex:outputField value="{!oDOA.FinanceGeographyControlCheckApp__c}" style="width:80px" rendered="{! oDOA.FinanceGeographyControlCheckApp__c != '' }" />
+                        </apex:outputPanel>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >Finance Geography Controller Approved By</apex:outputLabel>
+                        <apex:outputField value="{!oDOA.FinanceGeographyControlApprovedBy__c}"/>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >Finance Geo Controller Time Approved</apex:outputLabel>
+                        <apex:outputField value="{!oDOA.FinanceGeographyControlTimeApp__c}"/>
+                    </apex:pageBlockSectionItem>
+                </apex:pageBlockSection>
+                
+                <apex:pageBlockSection columns="1" >
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >Fed Contacts and Procurement</apex:outputLabel>
+                        <apex:inputField value="{!oDOA.FedContractsandProcurementApprover__c}" styleClass="hideDropdown"/>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >Fed Contracts and Procurement Approval</apex:outputLabel>
+                        <apex:outputPanel >
+                            <apex:inputField value="{!oDOA.FedContractsandProcurementCheckApp__c}" rendered="{! oDOA.FedContractsandProcurementCheckApp__c == '' }" />
+                            <apex:outputField value="{!oDOA.FedContractsandProcurementCheckApp__c}" style="width:80px" rendered="{! oDOA.FedContractsandProcurementCheckApp__c != '' }" />
+                        </apex:outputPanel>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >Fed Contracts &amp; Procurement Approved By</apex:outputLabel>
+                        <apex:outputField value="{!oDOA.FedContractsandProcurementApprovedBy__c}"/>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >Fed Contracts &amp; Procurement Time Approve</apex:outputLabel>
+                        <apex:outputField value="{!oDOA.FedContractsandProcurementTimeApp__c}"/>
+                    </apex:pageBlockSectionItem>
+                </apex:pageBlockSection>
+                
+                <apex:pageBlockSection columns="1" >
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >Geography Other</apex:outputLabel>
+                        <apex:inputField value="{!oDOA.GeoOtherApprover__c}" styleClass="hideDropdown"/>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >Geography Other Approval</apex:outputLabel>
+                        <apex:outputPanel >
+                            <apex:inputField value="{!oDOA.GeoOtherCheckApp__c}" rendered="{! oDOA.GeoOtherCheckApp__c == '' }" />
+                            <apex:outputField value="{!oDOA.GeoOtherCheckApp__c}" style="width:80px" rendered="{! oDOA.GeoOtherCheckApp__c != '' }" />
+                        </apex:outputPanel>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >Geography Other Approved By</apex:outputLabel>
+                        <apex:outputField value="{!oDOA.GeoOtherApprovedBy__c}"/>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >Geography Other Time Approved</apex:outputLabel>
+                        <apex:outputField value="{!oDOA.GeoOtherTimeApp__c}"/>
+                    </apex:pageBlockSectionItem>
+                </apex:pageBlockSection>
+                
+                <apex:pageBlockSection columns="1" >
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >DCS Geography Risk Committee</apex:outputLabel>
+                        <apex:inputField value="{!oDOA.DCSgeoRiskCommitteeApprover__c}" styleClass="hideDropdown" />
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >DCS Geo Risk Committee Approval</apex:outputLabel>
+                        <apex:outputPanel >
+                            <apex:inputField value="{!oDOA.DCSgeoRiskCommitteeCheckApp__c}" rendered="{! oDOA.DCSgeoRiskCommitteeCheckApp__c == '' }" />
+                            <apex:outputField value="{!oDOA.DCSgeoRiskCommitteeCheckApp__c}" style="width:80px" rendered="{! oDOA.DCSgeoRiskCommitteeCheckApp__c != '' }" />
+                        </apex:outputPanel>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >DCS Geo Risk Committee Approved By</apex:outputLabel>
+                        <apex:outputField value="{!oDOA.DCSgeoRiskCommitteeApprovedBy__c}"  />
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >DCS Geo Risk Committee Time Approved</apex:outputLabel>
+                        <apex:outputField value="{!oDOA.DCSgeoRiskCommitteeTimeApp__c}"  />
+                    </apex:pageBlockSectionItem>
+                </apex:pageBlockSection>
+                
+                <apex:pageBlockSection columns="1" >
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >HR Director - Geo Director</apex:outputLabel>
+                        <apex:inputField value="{!oDOA.HRDirectorGeographyDirApprover__c}" styleClass="hideDropdown"/>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >HR Director - Geo Director Approval</apex:outputLabel>
+                        <apex:outputPanel >
+                            <apex:inputField value="{!oDOA.HRDirectorGeographyDirCheckApp__c}" rendered="{! oDOA.HRDirectorGeographyDirCheckApp__c == '' }" />
+                            <apex:outputField value="{!oDOA.HRDirectorGeographyDirCheckApp__c}" style="width:80px" rendered="{! oDOA.HRDirectorGeographyDirCheckApp__c != '' }" />
+                        </apex:outputPanel>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >HR Director - Geo Director Approved By</apex:outputLabel>
+                        <apex:outputField value="{!oDOA.HRDirectorGeographyDirApprovedBy__c}" />
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >HR Director - Geo Director Time Approved</apex:outputLabel>
+                        <apex:outputField value="{!oDOA.HRDirectorGeographyDirTimeApp__c}" />
+                    </apex:pageBlockSectionItem>
+                </apex:pageBlockSection>
+            </apex:pageBlockSection>
+            
+            <apex:pageBlockSection title="Approvals (Group)" id="thepageblocksection2" rendered="{!isDOAAdmin}">
+                <apex:pageBlockSection columns="1" >
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >Group Chief Executive</apex:outputLabel>
+                        <apex:inputField value="{!oDOA.GroupChiefExecutiveApprover__c}" styleClass="hideDropdown"/>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >Group Chief Executive Approval</apex:outputLabel>
+                        <apex:outputPanel >
+                            <apex:inputField value="{!oDOA.GroupChiefExecutiveCheckApp__c}" rendered="{! oDOA.GroupChiefExecutiveCheckApp__c == '' }" />
+                            <apex:outputField value="{!oDOA.GroupChiefExecutiveCheckApp__c}" style="width:80px" rendered="{! oDOA.GroupChiefExecutiveCheckApp__c != '' }" />
+                        </apex:outputPanel>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >Group Chief Executive Approved By</apex:outputLabel>
+                        <apex:outputField value="{!oDOA.GroupChiefExecutiveApprovedBy__c}" />
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >Group Chief Executive Time Approved</apex:outputLabel>
+                        <apex:outputField value="{!oDOA.GroupChiefExecutiveTimeApp__c}" />
+                    </apex:pageBlockSectionItem>
+                </apex:pageBlockSection>
+                
+                <apex:pageBlockSection columns="1" >
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >Group Chief Counsel</apex:outputLabel>
+                        <apex:inputField value="{!oDOA.GroupChiefCounselApprover__c}" styleClass="hideDropdown" />
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >Group Chief Counsel Approval</apex:outputLabel>
+                        <apex:outputPanel >
+                            <apex:inputField value="{!oDOA.GroupChiefCounselCheckApp__c}" rendered="{! oDOA.GroupChiefCounselCheckApp__c == '' }" />
+                            <apex:outputField value="{!oDOA.GroupChiefCounselCheckApp__c}" style="width:80px" rendered="{! oDOA.GroupChiefCounselCheckApp__c != '' }" />
+                        </apex:outputPanel>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >Group Chief Counsel Approved By</apex:outputLabel>
+                        <apex:outputField value="{!oDOA.GroupChiefCounselApprovedBy__c}"  />
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >Group Chief Counsel Time Approved</apex:outputLabel>
+                        <apex:outputField value="{!oDOA.GroupChiefCounselTimeApp__c}"  />
+                    </apex:pageBlockSectionItem>
+                </apex:pageBlockSection>
+                
+                <apex:pageBlockSection columns="1" >
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >Group Chief Financial Officer</apex:outputLabel>
+                        <apex:inputField value="{!oDOA.GroupChiefFinancialOfficerApprover__c}" styleClass="hideDropdown" />
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >Group Chief Financial Officer Approval</apex:outputLabel>
+                        <apex:outputPanel >
+                            <apex:inputField value="{!oDOA.GroupChiefFinancialOfficerCheckApp__c}" rendered="{! oDOA.GroupChiefFinancialOfficerCheckApp__c == '' }" />
+                            <apex:outputField value="{!oDOA.GroupChiefFinancialOfficerCheckApp__c}" style="width:80px" rendered="{! oDOA.GroupChiefFinancialOfficerCheckApp__c != '' }" />
+                        </apex:outputPanel>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >Group Chief Fin. Officer Approved By</apex:outputLabel>
+                        <apex:outputField value="{!oDOA.GroupChiefFinancialOfficerApprovedBy__c}"  />
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >Group Chief Fin. Officer Time Approved</apex:outputLabel>
+                        <apex:outputField value="{!oDOA.GroupChiefFinancialOfficerTimeApp__c}"  />
+                    </apex:pageBlockSectionItem>
+                </apex:pageBlockSection>
+                
+                <apex:pageBlockSection columns="1" >
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >Group Other</apex:outputLabel>
+                        <apex:inputField value="{!oDOA.GroupOtherApprover__c}" styleClass="hideDropdown"/>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >Group Other Approval</apex:outputLabel>
+                        <apex:outputPanel >
+                            <apex:inputField value="{!oDOA.GroupOtherCheckApp__c}" rendered="{! oDOA.GroupOtherCheckApp__c == '' }" />
+                            <apex:outputField value="{!oDOA.GroupOtherCheckApp__c}" style="width:80px" rendered="{! oDOA.GroupOtherCheckApp__c != '' }" />
+                        </apex:outputPanel>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >Group Other Approved By</apex:outputLabel>
+                        <apex:outputField value="{!oDOA.GroupOtherApprovedBy__c}"  />
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >Group Other Time Approved</apex:outputLabel>
+                        <apex:outputField value="{!oDOA.GroupOtherTimeApp__c}"  />
+                    </apex:pageBlockSectionItem>
+                </apex:pageBlockSection>
+            </apex:pageBlockSection>
+            
+            <apex:pageBlockSection title="Approvals (Enterprise)" id="thepageblocksection3" rendered="{!isDOAAdmin}">
+                <apex:pageBlockSection columns="1" >
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >Enterprise Risk Committee</apex:outputLabel>
+                        <apex:inputField value="{!oDOA.EnterpriseRiskCommitteeApprover__c}" styleClass="hideDropdown" />
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >Enterprise Risk Committee Approval</apex:outputLabel>
+                        <apex:outputPanel >
+                            <apex:inputField value="{!oDOA.EnterpriseRiskCommitteeCheckApp__c}" rendered="{! oDOA.EnterpriseRiskCommitteeCheckApp__c == '' }" />
+                            <apex:outputField value="{!oDOA.EnterpriseRiskCommitteeCheckApp__c}" style="width:80px" rendered="{! oDOA.EnterpriseRiskCommitteeCheckApp__c != '' }" />
+                        </apex:outputPanel>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >Enterprise Risk Committee Time Approved</apex:outputLabel>
+                        <apex:outputField value="{!oDOA.EnterpriseRiskCommitteeTimeApp__c}"  />
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >Enterprise Risk Committee Approved By</apex:outputLabel>
+                        <apex:outputField value="{!oDOA.EnterpriseRiskCommitteeApprovedBy__c}"  />
+                    </apex:pageBlockSectionItem>
+                </apex:pageBlockSection>
+                
+                <apex:pageBlockSection columns="1" >
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >Other</apex:outputLabel>
+                        <apex:inputField value="{!oDOA.EnterpriseOtherApprover__c}" styleClass="hideDropdown" />
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >Enterprise Other Approval</apex:outputLabel>
+                        <apex:outputPanel >
+                            <apex:inputField value="{!oDOA.EnterpriseOtherCheckApp__c}" rendered="{! oDOA.EnterpriseOtherCheckApp__c == '' }" />
+                            <apex:outputField value="{!oDOA.EnterpriseOtherCheckApp__c}" style="width:80px" rendered="{! oDOA.EnterpriseOtherCheckApp__c != '' }" />
+                        </apex:outputPanel>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >Enterprise Other Time Approved</apex:outputLabel>
+                        <apex:outputField value="{!oDOA.EnterpriseOtherTimeApp__c}"  />
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >Enterprise Other Approved By</apex:outputLabel>
+                        <apex:outputField value="{!oDOA.EnterpriseOtherApprovedBy__c}"  />
+                    </apex:pageBlockSectionItem>
+                </apex:pageBlockSection>
+                
+                <apex:pageBlockSection columns="1" >
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >General Counsel</apex:outputLabel>
+                        <apex:inputField value="{!oDOA.GeneralCounselApprover__c}" styleClass="hideDropdown" />
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >General Counsel Approval</apex:outputLabel>
+                        <apex:outputPanel >
+                            <apex:inputField value="{!oDOA.GeneralCounselCheckApp__c}" rendered="{! oDOA.GeneralCounselCheckApp__c == '' }" />
+                            <apex:outputField value="{!oDOA.GeneralCounselCheckApp__c}" style="width:80px" rendered="{! oDOA.GeneralCounselCheckApp__c != '' }" />
+                        </apex:outputPanel>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >General Counsel Time Approved</apex:outputLabel>
+                        <apex:outputField value="{!oDOA.GeneralCounselTimeApp__c}"  />
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >General Counsel Approved By</apex:outputLabel>
+                        <apex:outputField value="{!oDOA.GeneralCounselApprovedBy__c}"  />
+                    </apex:pageBlockSectionItem>
+                </apex:pageBlockSection>
+                
+                <apex:pageBlockSection columns="1" >  
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >President/CFO</apex:outputLabel>
+                        <apex:inputField value="{!oDOA.PresidentCFOApprover__c}" styleClass="hideDropdown" />
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >President/CFO Approval</apex:outputLabel>
+                        <apex:outputPanel >
+                            <apex:inputField value="{!oDOA.PresidentCFOCheckApp__c}" rendered="{! oDOA.GeneralCounselCheckApp__c == '' }" />
+                            <apex:outputField value="{!oDOA.PresidentCFOCheckApp__c}" style="width:80px" rendered="{! oDOA.GeneralCounselCheckApp__c != '' }" />
+                        </apex:outputPanel>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >President/CFO Time Approved</apex:outputLabel>
+                        <apex:outputField value="{!oDOA.PresidentCFOTimeApp__c}"  />
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >President CFO Approved By</apex:outputLabel>
+                        <apex:outputField value="{!oDOA.PresidentCFOApprovedBy__c}"  />
+                    </apex:pageBlockSectionItem>
+                </apex:pageBlockSection>
+                
+                <apex:pageBlockSection columns="1" >
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >CEO</apex:outputLabel>
+                        <apex:inputField value="{!oDOA.CEOApprover__c}" styleClass="hideDropdown" />
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >CEO Approval</apex:outputLabel>
+                        <apex:outputPanel >
+                            <apex:inputField value="{!oDOA.CEOCheckApp__c}" rendered="{! oDOA.CEOCheckApp__c == '' }" />
+                            <apex:outputField value="{!oDOA.CEOCheckApp__c}" style="width:80px" rendered="{! oDOA.CEOCheckApp__c != '' }" />
+                        </apex:outputPanel>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >CEO Time Approved</apex:outputLabel>
+                        <apex:outputField value="{!oDOA.CEOTimeApp__c}"  />
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >CEO Approved By</apex:outputLabel>
+                        <apex:outputField value="{!oDOA.CEOApprovedBy__c}"  />
+                    </apex:pageBlockSectionItem>
+                </apex:pageBlockSection>
+                
+            </apex:pageBlockSection>
+            <apex:pageBlockSection title="AECOM Hub" id="thepageblocksection4" rendered="{!isDOAAdmin}">
+                <apex:pageBlockSection columns="1" >
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >AECOM Hub Administrator</apex:outputLabel>
+                        <apex:inputField value="{!oDOA.AECOMHubAdministratorApprover__c}" styleClass="hideDropdown" />
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >AECOM Hub Administrator Approval</apex:outputLabel>
+                        <apex:outputPanel >
+                            <apex:inputField value="{!oDOA.AECOMHubAdministratorCheckApp__c}" rendered="{! oDOA.AECOMHubAdministratorCheckApp__c == '' }" />
+                            <apex:outputField value="{!oDOA.AECOMHubAdministratorCheckApp__c}" style="width:80px" rendered="{! oDOA.AECOMHubAdministratorCheckApp__c != '' }" />
+                        </apex:outputPanel>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >AECOM Hub Administrator Time Approved</apex:outputLabel>
+                        <apex:outputField value="{!oDOA.AECOMHubAdministratorTimeApp__c}"  />
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyle="width:50%" labelStyle="width:50%" >
+                        <apex:outputLabel >AECOM Hub Administrator Approved By</apex:outputLabel>
+                        <apex:outputField value="{!oDOA.AECOMHubAdministratorApprovedBy__c}"  />
+                    </apex:pageBlockSectionItem>
+                </apex:pageBlockSection>
+            </apex:pageBlockSection>
+            
+            <apex:pageBlockSection title="System Information">
+                <apex:outputField value="{!oDOA.CreatedById}"/>
+                <apex:outputField value="{!oDOA.LastModifiedById}"/>
+                <!--<apex:outputField value="{!oDOA.SubmitGroupforApproval__c}" rendered="{!isDOAAdmin}" id="sGroup"/>-->
+                <apex:outputField value="{!oDOA.RecordTypeId}"/>
+                <!--<apex:outputField value="{!oDOA.SubmitGeographyforApproval__c}" rendered="{!isDOAAdmin}" id="sGeography"/>
+                <apex:outputField value="{!oDOA.SubmitEnterpriseforApproval__c}" rendered="{!isDOAAdmin}" id="sEnterprise"/>
+                <apex:outputField value="{!oDOA.SubmitAECOMHubForApproval__c}" rendered="{!isDOAAdmin}" id="sAECOMhub"/>
+                <apex:outputField value="{!oDOA.SubmitDCSHubforApproval__c}" rendered="{!isDOAAdmin}" id="sDCShub"/>-->
+                <apex:inputField value="{!oDOA.AssigntoDoAApprovalQueue__c}" rendered="false"/>
+            </apex:pageBlockSection>
+            
+        </apex:pageBlock>
+        
+    </apex:form>
+    
+        <apex:pageBlock title="Contract Reviews">
+            <apex:include pageName="ECO_ContractReviewRequests" />
+        </apex:pageBlock>
+        <apex:pageBlock title="Approval Request Forms" rendered="{!AND(NOT(isDOAAdmin),NOT(oDOA.Enable_RCST_Button__c))}">
+            <apex:pageMessage severity="INFO" summary="No records to display" rendered="{!If(lForm.size > 0 , false, true)}" >
+            </apex:pageMessage>
+            <apex:pageBlockTable rendered="{!If(lForm.size > 0 , true, false)}" value="{!lForm}" var="form">
+                <apex:column headerValue="Form Number">
+                    <apex:outputLink value="/apex/ECO_RFA?id={!form.Id}" target="_blank">{!form.Name}</apex:outputLink>
+                </apex:column>
+                <apex:column headerValue="Record Type">
+                    <apex:outputField value="{!form.RecordTypeId}"/>
+                </apex:column>
+                <apex:column headerValue="Created By">
+                    <apex:outputField value="{!form.CreatedById}"/>
+                </apex:column>
+                <apex:column headerValue="Created Date">
+                    <apex:outputField value="{!form.CreatedDate}"/>
+                </apex:column>
+            </apex:pageBlockTable>
+        </apex:pageBlock>
+        
+        <apex:pageBlock title="DOA Register" rendered="{!NOT(isDOAAdmin)}">
+            <apex:pageMessage severity="INFO" summary="No records to display" rendered="{!If(lDOARegister.size > 0 , false, true)}" >
+            </apex:pageMessage>
+            <apex:pageBlockTable rendered="{!If(lDOARegister.size > 0 , true, false)}" value="{!lDOARegister}" var="DOA" title="DOA Register">
+                <apex:column headerValue="Action">
+                    <apex:outputLink value="/{!DOA.Id}?retURL=/apex/ECO_DOAApprovals?Id={!oDOA.Id}" target="_blank">View</apex:outputLink>
+                </apex:column>
+                <apex:column headerValue="DOA Register Number">
+                    <apex:outputField value="{!DOA.Name}"/>
+                </apex:column>
+                <apex:column headerValue="DCS sub-DOA">
+                    <apex:outputField value="{!DOA.DCSsubDOA__c}"/>
+                </apex:column>
+                <apex:column headerValue="DOA Title">
+                    <apex:outputField value="{!DOA.RiskTitle__c}"/>
+                </apex:column>
+                <apex:column headerValue="DOA Trigger">
+                    <apex:outputField value="{!DOA.DOATrigger__c}"/>
+                </apex:column>
+                <apex:column headerValue="Approval Status">
+                    <apex:outputField value="{!DOA.ApprovalStatus__c}"/>
+                </apex:column>
+            </apex:pageBlockTable>
+        </apex:pageBlock>
+        
+        <apex:pageBlock title="DOA Conditions of Approval" rendered="{!NOT(isDOAAdmin)}">
+            <apex:pageMessage severity="INFO" summary="No records to display" rendered="{!If(lDOAConditions.size > 0 , false, true)}" >
+            </apex:pageMessage>
+            <apex:pageBlockTable rendered="{!If(lDOAConditions.size > 0 , true, false)}" value="{!lDOAConditions}" var="DOACondition">
+                <apex:column headerValue="Condition of Approval" style="width:10%">
+                    <apex:outputLink value="/{!DOACondition.Id}?retURL=/apex/ECO_DOA_ApprovalRequest_UserBased?id={!oDOA.Id}" target="_blank">{!DOACondition.Name}</apex:outputLink>
+                </apex:column>
+                <apex:column headerValue="Condition" style="width:36%">
+                    <apex:outputField value="{!DOACondition.ConditionLongText__c}"/>
+                </apex:column>
+                <apex:column headerValue="Approver">
+                    <apex:outputField value="{!DOACondition.CreatedBy__c}"/>
+                </apex:column>
+                <apex:column headerValue="Created Date">
+                    <apex:outputField value="{!DOACondition.CreatedDate}"/>
+                </apex:column>
+                <apex:column headerValue="Status">
+                    <apex:outputField value="{!DOACondition.Mitigation_Plan__c}"/>
+                </apex:column>
+                <apex:column headerValue="Status Date">
+                    <apex:outputField value="{!DOACondition.Status_Date__c}"/>
+                </apex:column>
+            </apex:pageBlockTable>
+        </apex:pageBlock>
+    </apex:actionRegion>
+    
+    <!--<apex:relatedList list="ComplianceConditionsofApprovals__r"/>-->
+    <apex:relatedList list="Forms__r" rendered="{!AND(isDOAAdmin,NOT(oDOA.Enable_RCST_Button__c))}"/>
+    <apex:relatedList list="DOA_Register__r" title="DOA Register" rendered="{!isDOAAdmin}"/>
+    <apex:relatedList list="DOAConditions__r" title="DOA Conditions of Approval" rendered="{!isDOAAdmin}"/>
+    <!--<apex:relatedList list="ComplianceConditionsofApprovals__r" title="Compliance Conditions of Approval" rendered="{!isDOAAdmin}"/>
+    <apex:listViews type="ComplianceConditionsofApproval__r"/>-->
+    <apex:form rendered="{!isDOAAdmin}">
+    <apex:pageBlock title="ORM Compliance">
+            <apex:pageBlockButtons location="Top" >
+                <!--<apex:commandButton action="{!URLFOR($Action.ComplianceConditionsofApproval__c.New)}" value="New Compliance Condition of Approval"/>-->
+                <apex:commandButton action="/apex/ECO_Compliance_Create?doaId={!oDOA.Id}" value="New Compliance Entry"/>
+                <!--<apex:commandButton action="/a5E/e?CF00Ne0000000koPp={!oDOA.Name}&CF00Ne0000000koPp={!oDOA.Id}&retURL=/apex/ECO_DOA_ApprovalRequest_UserBased?id={!oDOA.Id}" value="New Compliance Condition of Approval"/>-->
+            </apex:pageBlockButtons>
+            <apex:pageMessage severity="INFO" summary="No records to display" rendered="{!If(lCompliance.size > 0 , false, true)}" >
+            </apex:pageMessage>
+            
+            <apex:pageBlockTable rendered="{!If(lCompliance.size > 0 , true, false)}" value="{!lCompliance}" var="Compliance">
+                <apex:column headerValue="Action">
+                    <apex:outputLink value="/apex/ECO_Compliance_Condition_of_Approval?Id={!Compliance.Id}" target="_blank">Edit</apex:outputLink>
+                </apex:column>
+                <!--<apex:column headerValue="Compliance Conditions of Approval Number">
+                    <apex:outputField value="{!Compliance.Name}"/>
+                </apex:column>-->
+                <apex:column headerValue="Compliance Status">
+                    <!--<apex:outputLink value="/{!DOACondition.Id}" target="_blank">{!DOACondition.Name}</apex:outputLink>-->
+                    <apex:outputField value="{!Compliance.ComplianceStatus__c}"/>
+                </apex:column>
+                <apex:column headerValue="Compliance Status Date">
+                    <apex:outputField value="{!Compliance.ComplianceStatusDate__c}"/>
+                </apex:column>
+                <apex:column headerValue="Conditions Completed">
+                    <apex:outputField value="{!Compliance.ConditionsCompleted__c}"/>
+                </apex:column>
+                <apex:column headerValue="Conditions Completed Date">
+                    <apex:outputField value="{!Compliance.ConditionsCompletedDate__c}"/>
+                </apex:column>
+                <apex:column headerValue="Comments">
+                    <apex:outputField value="{!Compliance.GeneralComments__c}"/>
+                </apex:column>
+                
+            </apex:pageBlockTable>
+    </apex:pageBlock>
+    </apex:form>
+    <apex:relatedList list="CombinedAttachments" subject="{!oDOA}" title="Notes and Attachments"/>
+    
+</apex:page>

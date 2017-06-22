@@ -1,0 +1,29 @@
+<apex:page standardcontroller="DOAApprovalRequest__c" extensions="nttdcore.DLabelParentController" >
+    <style>
+		.customHelpText{
+            padding: 7px;
+            border: 1px solid #85B3CE;
+            min-height: 30px;
+            display: block;
+            width: auto;
+            margin: 0 0 5px 0;
+            background-repeat: no-repeat;
+            border-radius: 4px;
+            background-color: #A2D3F1;
+            
+        }
+        .customHelpBody{
+            display:inline-block;
+            color:#;
+            max-width:95%;
+        }
+	</style>
+    <div class="customHelpText" >
+        <div class="customHelpBody" >
+            <p><nttdcore:DLabel labelParent="{!this}" name="DL1" default="This section serves as a &lsquo;dashboard&rsquo; to capture and manage the approval process for the specific DOA approval request.  Users can review the completed approval request form(s), DOA matters under consideration, approval participant names/roles, existing and/or pending approvals, contract review status (as needed), and recorded conditions of approval." />{!dLabel['DL1']}</p>
+            <p><nttdcore:DLabel labelParent="{!this}" name="DL2" default="ORM Administrator:  Use this section to initiate, manage and monitor the DOA approval request." />{!dLabel['DL2']}   </p>
+            <p><nttdcore:DLabel labelParent="{!this}" name="DL3" default="Approver:  Use this section to document your review of the approval request.  Locate your name and select &ldquo;Approve&rdquo; or &ldquo;Reject&rdquo; for the subject DOA matter(s).  Add any comments associated with your approval under the DOA Conditions of Approval section." />{!dLabel['DL3']} </p>
+            <p><nttdcore:DLabel labelParent="{!this}" name="DL4" default="Requestor: Use this section to view the status of the DOA approval request." />{!dLabel['DL4']}  </p>
+		</div>
+    </div>
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

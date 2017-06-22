@@ -1,0 +1,117 @@
+<apex:page standardcontroller="SharedServicesRequest__c" extensions="ECO_GBSDetailsController,nttdcore.DLabelParentController" >	
+<apex:includeScript value="{!$Resource.ECO_jQuery_1_11_2_min_js}" />
+
+	<apex:form id="form" ><nttdcore:DLabel name="DL1" default="submitting request..." labelParent="{!this}" />
+
+		<script type="text/javascript" >
+
+				var $x = jQuery.noConflict();
+
+				$x(document).ready(function(){
+					initialize();
+				})
+
+			    function initialize(){
+                    var btnName = 'edit_vf';
+
+                    setEditButton(btnName);
+				    //attachEditEvent(btnName);
+
+				    btnName = 'submit_request';
+				    setSubmitRequestButton(btnName);
+				    attachSubmitRequestEvent(btnName);
+
+                    var displayApprovalRelatedList = {!displayApprovalRelatedList};
+                    if(displayApprovalRelatedList == false){
+                    	hideApprovals();
+                    }
+
+                    var isUserGBSAdmin = {!isUserGBSAdmin};
+                    if(!isUserGBSAdmin){
+                    	hideChangeOwner();
+                    }
+			    }
+
+			    function hideChangeOwner(){
+                    $x('a:contains("\[Change\]")').hide();
+			    }
+
+                function attachSubmitRequestEvent(btnName){
+                    $x("input[name='" + btnName + "']").on('click', function(){
+                        disableButtons(btnName);
+                        callSubmitRequest();
+                    });
+                }
+
+			    function setEditButton(btnName){
+                    var isEditButtonEnabled = {!isEditButtonEnabled};
+
+				    if(isEditButtonEnabled == false)
+                    {
+				        disableButtons(btnName);
+				        updateEditFlyoverHint();
+                    }
+			    }
+			    
+			    function updateEditFlyoverHint() {
+			    	var editFlyoverHint = "{!editButtonHoverText}";
+			    	$x("input[name='edit_vf']").attr('title', editFlyoverHint);
+			    }
+
+			    function attachEditEvent(btnName){
+			    	$x("input[name='" + btnName + "']").on('click', function(){
+			    		callEditRequest();
+			    	});
+			    }
+
+			    function setSubmitRequestButton(btnName){
+			    	var disableButton = {!disableSubmitRequestButton};
+			        if(disableButton == true){
+			            disableButtons(btnName);
+			        }
+			    }
+
+			    function hideButtons(btnName) {
+			        var buttons = document.getElementsByName(btnName);
+			        for (var i=0; i < buttons.length; i++) {
+			          buttons[i].style.display = "none";
+			        }
+			    }
+
+			    function disableButtons(btnName) {
+			        var buttons = document.getElementsByName(btnName);
+			        for (var i=0; i < buttons.length; i++) {
+			          buttons[i].className='btnDisabled';
+			          buttons[i].disabled = true;
+			        }
+			    }
+
+			    function hideApprovals(){
+                    $x('.relatedProcessHistory').hide();
+                    hideApprovalHoverLink();
+			    }
+
+                function hideApprovalHoverLink(){
+                    setTimeout(function(){
+                        if($x('[id$="_RelatedProcessHistoryList_link"').size() > 0){
+                            $x('[id$="_RelatedProcessHistoryList_link"').next().hide();  //pipe
+                            $x('[id$="_RelatedProcessHistoryList_link"').hide();
+                        } else{
+                            hideApprovalHoverLink();
+                        }
+                    }, 50)  //hover links are build dynamically, so check every 50 ms if it's ready to hide.
+                }
+
+		</script>
+
+		<apex:actionStatus starttext="{!dLabel['DL1']}" stoptext="" id="submitRequestStatus" />
+		<apex:actionFunction name="callSubmitRequest" action="{!submitRequest}" rerender="form" status="submitRequestStatus" />
+
+		<apex:outputPanel id="view" >
+			<apex:detail subject="{!SharedServicesRequest__c.Id}" relatedlist="true" showchatter="true" inlineEdit="true"/>
+			<!--these are required to query -->
+			<apex:outputText value="{!SharedServicesRequest__c.Geography__c}" rendered="false" />
+			<apex:outputText value="{!SharedServicesRequest__c.Status__c}" rendered="false" />
+		</apex:outputPanel>
+	</apex:form>
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

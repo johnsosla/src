@@ -1,0 +1,57 @@
+<apex:page standardController="DOAConditions__c" extensions="ECO_DOAConditionsOfApprovalController" action="{!init}">
+	<style>
+    	.hideDropdown select{
+            display:none !important;
+        }
+    </style>
+    <apex:pageMessages id="messages" />
+    <apex:form >
+	<apex:sectionHeader title="DOA Conditions of Approval Edit" subtitle="{!agreement.ContractTitle__c}({!agreement.AgreementNumber__c})" rendered="{!IF(agreement.ContractTitle__c != null,true,false)}"/>
+	<apex:sectionHeader title="DOA Conditions of Approval Edit" rendered="{!IF(agreement.ContractTitle__c == null,true,false)}"/>
+    <apex:pageBlock title="DOA Conditions of Approval Edit">
+
+	<apex:pageBlockButtons >
+		<apex:commandButton value="Save" action="{!saveDOC}" rendered="{!OR(NOT(lockFields),isPM)}"/>
+		<!--<apex:commandButton value="Return to MSA" action="{!returnToDOA}" rendered="{!IF(doaConditions.DOAApprovalRequest__c == null,true,false)}"/>
+        <apex:commandButton value="Return to DOA" action="{!returnToDOA}" rendered="{!IF(doaConditions.DOAApprovalRequest__c == null,false,true)}"/>-->
+        <apex:commandButton action="{!CancelDOAC}" value="Return" />
+	</apex:pageBlockButtons>
+	<!--<apex:pageBlockSection collapsible="false" rendered="{!NOT(lockFields)}">-->
+    <apex:pageBlockSection collapsible="false" rendered="{!NOT(lockFields)}" columns="1">
+    	<apex:pageBlockSectionItem rendered="{!NOT(lockFields)}">
+			<apex:outputText value="DOA Condition"/>
+			<apex:inputField value="{!doaConditions.ConditionLongText__c}" style="height: 120px;width:100%;"/>
+        </apex:pageBlockSectionItem>
+    </apex:pageBlockSection>
+    <apex:pageBlockSection collapsible="false" >
+		<apex:inputField value="{!doaConditions.DOAApprovalRequest__c}" rendered="{!OR(NOT(lockFields),fromMSA)}"/>
+        <apex:inputField value="{!doaConditions.Project__c}" rendered="{!AND(IF(doaConditions.Project__c != null,true,false),NOT(lockFields))}" id="proj"/>
+        <apex:inputField styleClass="hideDropdown" value="{!doaConditions.CreatedBy__c}" rendered="{!NOT(lockFields)}"/>
+    <!--</apex:pageBlockSection>
+    <apex:pageBlockSection collapsible="false" rendered="{!lockFields}">-->
+        <apex:pageBlockSectionItem rendered="{!lockFields}">
+			<apex:outputText value="DOA Condition"/>
+			<apex:outputField value="{!doaConditions.ConditionLongText__c}" />
+		</apex:pageBlockSectionItem>
+        <apex:outputField value="{!doaConditions.DOAApprovalRequest__c}" rendered="{!AND(NOT(fromMSA),lockFields)}"/>
+		<apex:outputField value="{!doaConditions.Project__c}" rendered="{!AND(IF(doaConditions.Project__c != null,true,false), lockFields)}" id="proj2"/>
+        <apex:outputField value="{!doaConditions.CreatedBy__c}" rendered="{!lockFields}"/>
+    </apex:pageBlockSection>
+    <apex:pageBlockSection columns="1" >
+        <apex:pageBlockSectionItem rendered="{!NOT(OR(isPM, NOT(lockFields),fromMSA))}">
+            <apex:outputLabel >Status</apex:outputLabel>
+			<apex:outputField value="{!doaConditions.Mitigation_Plan__c}" style="height: 120px;width:100%;"/>
+        </apex:pageBlockSectionItem>
+        <apex:pageBlockSectionItem rendered="{!OR(isPM, NOT(lockFields), fromMSA)}">
+            <apex:outputLabel >Status</apex:outputLabel>
+			<apex:inputField value="{!doaConditions.Mitigation_Plan__c}" style="height: 120px;width:100%;"
+            	html-placeholder="For use by the Project Manager only to document the status of condition of approval, such as actions taken to comply with the condition, during the project execution. ORM will use this field to assess and track Project Manager's compliance with the condition of approval."/>
+        </apex:pageBlockSectionItem>
+    </apex:pageBlockSection>
+    
+	<apex:inputHidden value="{!doaConditions.Agreement__c}"/>
+
+
+</apex:pageBlock>
+</apex:form>
+</apex:page>

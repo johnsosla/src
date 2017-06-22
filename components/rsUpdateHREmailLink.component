@@ -1,0 +1,19 @@
+<apex:component >
+    <apex:attribute name="isPersonal" description="Is this component beind called from the personal page?" type="Boolean" required="false"/>
+    <div class="updateHrEmailLink">
+        <apex:outputPanel layout="inline" rendered="{!isPersonal}">
+            <apex:outputText value="{!$Label.Personal_Update_Info}" escape="false" />
+            <a target="_blank" class="profileUnderlined" href="{!$Setup.HR_Service_URL__c.Update_HR_Data_Link__c}">
+                <apex:outputText value="{!$Label.Here_link}" />
+            </a>
+        </apex:outputPanel>
+
+        <apex:outputPanel layout="inline" rendered="{!!isPersonal}">
+            <apex:outputText value="{!$Label.HR_Update_Email_Link_Text}" />
+            <a target="_blank" class="profileUnderlined" href="{!$Setup.HR_Service_URL__c.Update_HR_Data_Link__c}">
+                <apex:outputText value="{!$Label.Here_link}" />
+            </a>
+        </apex:outputPanel>
+
+    </div>
+</apex:component>

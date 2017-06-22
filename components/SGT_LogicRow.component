@@ -1,0 +1,59 @@
+<!--
+* @author Nathan Pilkington
+* @version 1.0
+* @description COMPONENT: AECOM Sales Goal Tracking (ASGT)
+*              PAGE: SGT_LogicRow
+*              PURPOSE: Visualforce component used in the SGT_SalesGoalEdit page
+*              CREATED: 01/2017 Ethos Solutions - www.ethos.com
+-->
+<apex:component layout="none" controller="SGT_LogicRowController">
+
+<apex:attribute name="LogicRow" type="SGT_LogicRow" description="The logic row to render" assignTo="{!LRow}"/>
+<apex:attribute name="ShowNumbers" type="Boolean" description="Show numbers to the left"/>
+
+<tr>
+    <apex:outputPanel layout="none" rendered="{!ShowNumbers}">
+        <td>
+            {!LogicRow.Position}.
+        </td>
+    </apex:outputPanel>
+    <td>
+        <apex:selectList value="{!LogicRow.Field}" size="1" id="fieldList" styleClass="fieldSelect">
+            <apex:selectOptions value="{!FieldList}"/>
+            <apex:actionSupport event="onchange" reRender="operandList,lookupWindow" status="operatorStatus" />
+        </apex:selectList>
+    </td>
+    <td>
+        <apex:outputPanel layout="block">
+            
+            <apex:selectList value="{!LogicRow.Operand}" size="1" id="operandList" styleClass="operatorSelect">
+                <apex:selectOptions value="{!OperandList}"/>
+            </apex:selectList>
+
+            <apex:actionStatus id="operatorStatus">
+                <apex:facet name="start">
+                    <apex:outputPanel >
+                        <img src="/img/loading32.gif" width="15" height="15" />
+                    </apex:outputPanel>            
+                </apex:facet>
+            </apex:actionStatus>
+            
+        </apex:outputPanel>
+    </td>
+    <td>
+        <apex:inputText id="LogicRowInput" value="{!LogicRow.LogicValue}" style="width: 300px"/>  
+    </td>
+    <td>
+        <apex:outputPanel layout="block" id="lookupWindow">
+            <apex:outputPanel layout="none" rendered="{!showLookup}">
+                <a style="text-decoration: none" onclick="openSelectionDialog(event,'{!$Component.LogicRowInput}', '{!$Component.operandList}', '{!availableValues}'); return false;">
+                    <img src="/img/s.gif" class="lookupIcon" onblur="this.className = 'lookupIcon';" onfocus="this.className = 'lookupIconOn';" onmouseout="this.className = 'lookupIcon';this.className = 'lookupIcon';" onmouseover="this.className = 'lookupIconOn';this.className = 'lookupIconOn';" />  
+                </a>
+            </apex:outputPanel>
+        </apex:outputPanel>
+    </td>
+    <td><apex:outputText value="AND" rendered="{!(!LogicRow.IsLastRow && !ShowNumbers)}" />
+    </td>
+
+</tr>
+</apex:component>

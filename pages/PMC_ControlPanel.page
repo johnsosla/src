@@ -1,0 +1,15 @@
+<apex:page showHeader="true" sidebar="true" controller="PMC_ControlPanel_Controller">
+	<apex:form >
+		<apex:pageMessages />
+		<apex:pageBlock title="PM Cert Control Panel">
+			<apex:pageBlockSection title="Actions">
+				<apex:commandButton value="Start Drawloop Batch Jobs" action="{!startDrawloopBatch}" />
+			</apex:pageBlockSection>
+		</apex:pageBlock>
+
+		
+	</apex:form>
+
+	<apex:enhancedList type="PMC_Integration_Log__c" rowsPerPage="50" height="700"  />
+
+</apex:page>

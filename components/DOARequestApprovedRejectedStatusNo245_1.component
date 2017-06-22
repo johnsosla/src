@@ -1,0 +1,21 @@
+<apex:component language="{!theLanguage}" controller="nttdcore.DLabelChildController" access="global" ><apex:attribute name="theLanguage" type="String" required="true" description="language" access="global" /><apex:attribute name="theRecipient" type="User" required="true" description="recipient" access="global" /><apex:attribute name="theRelatedTo" type="DOAApprovalRequest__c" required="true" description="related to" access="global" />
+    <apex:outputpanel ><nttdcore:DLabel name="DL1" default="Your DoA Approval request has now been {{1}}" labelParent="{!this}" componentContext="DOARequestApprovedRejectedStatusNo245_1" p1="{!theRelatedTo.ApprovalStatus__c}" /><nttdcore:DLabel name="DL2" default="Project: {{1}}" labelParent="{!this}" componentContext="DOARequestApprovedRejectedStatusNo245_1" p1="{!theRelatedTo.Project__r.Name}" /><nttdcore:DLabel name="DL3" default="Project Number: {{1}}" labelParent="{!this}" componentContext="DOARequestApprovedRejectedStatusNo245_1" p1="{!theRelatedTo.Project_No__c}" /><nttdcore:DLabel name="DL4" default="Project Stage: {{1}}" labelParent="{!this}" componentContext="DOARequestApprovedRejectedStatusNo245_1" p1="{!theRelatedTo.ProjectStage__c}" /><nttdcore:DLabel name="DL5" default="End Client: {{1}}" labelParent="{!this}" componentContext="DOARequestApprovedRejectedStatusNo245_1" p1="{!theRelatedTo.EndClientPrimary__c}" /><nttdcore:DLabel name="DL6" default="Billing Client: {{1}}" labelParent="{!this}" componentContext="DOARequestApprovedRejectedStatusNo245_1" p1="{!theRelatedTo.BillingClientPrimary__c}" /><nttdcore:DLabel name="DL7" default="DoA Request No: {{1}}" labelParent="{!this}" componentContext="DOARequestApprovedRejectedStatusNo245_1" p1="{!theRelatedTo.Name}" /><nttdcore:DLabel name="DL8" default="Date Required: {{1}}" labelParent="{!this}" componentContext="DOARequestApprovedRejectedStatusNo245_1" p1="{!theRelatedTo.DateRequired__c}" />
+{!dlRoot.dLabel['DL1']}
+<br/><br/> 
+
+{!dlRoot.dLabel['DL2']} 
+<br/> 
+{!dlRoot.dLabel['DL3']} 
+<br/> 
+{!dlRoot.dLabel['DL4']} 
+<br/> 
+{!dlRoot.dLabel['DL5']} 
+<br/> 
+{!dlRoot.dLabel['DL6']} 
+<br/> 
+{!dlRoot.dLabel['DL7']} 
+<br/> 
+{!dlRoot.dLabel['DL8']} 
+<br/><br/>        
+    </apex:outputpanel>
+<nttdcore:DLabelInit language="{!theLanguage}" labelParentInit="{!this}" /></apex:component>

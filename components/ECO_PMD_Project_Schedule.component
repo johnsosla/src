@@ -1,0 +1,141 @@
+<apex:component controller="ECO_PMD_Project_Schedule_Controller">
+	<apex:attribute name="projectId" description="Project Number" type="String" required="true" />
+
+    <style id="ecopmd.css">
+        #projSchedGrid {
+          font-size: x-small;
+        }
+        #projSchedGrid .k-virtual-scrollable-wrap td {white-space:nowrap;line-height: 1em;}
+        /*#projSchedGrid .k-grid-content table{border-spacing: 3px !important;border-collapse: separate;}*/
+        #projSchedGrid tr{
+          height: 20px;
+        }
+        .tooltip-block:hover:after{
+          border: 1px solid #fc0;
+          padding: 3px 6px;
+          background: #fffea1;
+          content: attr(data-title);
+          position: absolute;
+          right: -40px;
+          top: -26px;
+        }
+
+    </style>
+
+  <div ng-controller="dashProjectScheduleController" class="pmd-panel panel panel-default" >
+    <div class="panel-heading">
+      <a href="apex/pse__ProjectTaskGantt?id={!projectId}">{!$Label.ECO_PMD_PROJECT_SCHEDULE_TITLE}</a><span ng-Show="SFDCDATA.nodata"> - <b>{!$Label.ECO_PMD_NO_DATA}</b></span>
+    </div>
+
+    <div class="panel-body">
+      <div id="projSchedGrid" class="pmd-table"></div>      
+    </div>
+    
+    <c:ECO_PMD_PanelFooter panelID="projsched">{!$Label.ECO_PMD_PROJSCHED_MOREINFO_DETAILS}</c:ECO_PMD_PanelFooter>
+  </div>
+
+  <script id="dashpanel.js">
+      (function(){
+    
+        angular
+        .module("ecopmd")
+        .controller("dashProjectScheduleController",dashProjectScheduleController);
+        
+        function dashProjectScheduleController($scope,$locale){
+          $scope.exportedVariable = [];
+          $scope.exportedFunction = exportedFunction;
+            
+          loadData($scope);
+          $scope.isCollapsed = true;
+         
+                                                                            
+          function internalFunction(param){
+            return param;
+          }
+            
+          function exportedFunction(){
+              this.SFDCDATA=[];
+              loadData(this); // this = $scope
+          }
+          var projSchedGrid = null;
+          function createGrid(elSpec) {
+                        grid = $(elSpec).kendoGrid({
+                            dataSource: {
+                                data: $scope.SFDCDATA,
+                                schema: {
+                                    model: {
+                                        fields: {
+                                            ProjectTaskNumber__c: { type: "string" },
+                                            Name: { type: "string" },
+                                            pse__End_Date__c: { nullable: true, type: "number" },
+                                            ForecastEndDate__c: {  nullable: true, type: "number" },
+                                            ScheduleVariance__c: { type: "number" }
+                                            
+                                        }
+                                    }
+                                },
+                                pageSize: 10
+                            },
+                            scrollable: {virtual:true},
+                            sortable: true,
+                            filterable: true,
+                            xpageable: { 
+                                pageSizes: true,
+                                buttonCount: 5
+                            },
+                            columns: [
+                                { field: "ProjectTaskNumber__c", 
+                                  title: "{!$Label.ECO_PMD_PROJECT_SCHEDULE_NUMBER}",
+                                  width: "4em"},
+                                { field: "Name", 
+                                  title: "{!$Label.ECO_PMD_PROJECT_SCHEDULE_TASK_NAME}"//,
+                                  //headerAttributes: { style: "white-space: normal"} 
+                                },
+                                // { field: "pse__End_Date__c", 
+                                //   title: "{!$Label.ECO_PMD_PROJECT_SCHEDULE_BL_END}",
+                                //   attributes:{style:"text-align:right;"}, 
+                                //   //headerAttributes: { style: "white-space: normal"},
+                                //   width: "8em", 
+                                //   template: "#: kendo.toString(new Date(pse__End_Date__c), 'dd MMM yy')  #"  
+                                // },
+                                { field: "ForecastEndDate__c", 
+                                  title: "{!$Label.ECO_PMD_PROJECT_SCHEDULE_FORECAST_END}", 
+                                  template: "#: kendo.toString(new Date(ForecastEndDate__c), 'dd MMM yy')  #" ,
+                                  attributes:{style:"text-align:right;"}, 
+                                  //headerAttributes: { style: "white-space: normal"},
+                                  width: "7em"
+                                },
+                                { field: "ScheduleVariance__c", 
+                                  title: "{!$Label.ECO_PMD_PROJECT_SCHEDULE_VARIANCE}", 
+                                  format: "{0:n0}",
+                                  attributes:{style:"text-align:right;"}, 
+                                  //headerAttributes: { style: "white-space: normal"},
+                                  width: "4em"
+                                }
+                            ]
+                        }); 
+
+                        $('#projSchedGrid thead tr th').each(function(){
+                            $(this).kendoTooltip({ autoHide: true, content: $(this).data('title') });
+                            $(this).css('border-color', '#f00');                            
+                        }) 
+                    }
+
+          function loadData($scope){
+            $scope.exportedVariable.push(internalFunction("value"));
+            ECO_PMD_Project_Schedule_Controller.ProjectScheduleTasks(
+              '{!projectId}',
+              function(result, event){
+                if(event.status) {
+                  $scope.$apply(function(){
+                      console.log(result);
+                      $scope.SFDCDATA = result ;
+                      createGrid("#projSchedGrid"); 
+                  });
+                }
+              });
+          }
+        }    
+      })();
+  </script>
+</apex:component>

@@ -1,0 +1,521 @@
+<apex:page standardcontroller="Delegate__c" extensions="ECO_DelegateManagerEditController,nttdcore.DLabelParentController" tabstyle="Contact" >
+<apex:includescript value="{!$Resource.ECO_jQuery_1_11_2_min_js}" />
+
+
+
+<script type="text/javascript" >
+    var $x = jQuery.noConflict();
+
+    $x(document).ready(function(){
+        resetLimitLabels();
+        //$x("input[name='piRemove']").hide();
+        //$x("input[name='piSubmit']").hide();
+
+    })
+
+    //removes the > and < signs from the limit table labels
+    function resetLimitLabels(){
+        $x('.limitsLabel').each(function(){
+            $x(this).html($x(this).html().replace(/&/g, ''));
+            $x(this).html($x(this).html().replace(/gt;/g, ''));
+            $x(this).html($x(this).html().replace(/lt;/g, ''));
+        });
+    }
+
+    //selects/deselects all of the allowed organization checkboxes depending on the checkbox state in the header
+    function selectAllOrganizations(){
+         $x('.organizationCheckBox').each(function () {
+            $x(this).prop('checked', $x('[id$=organizationCheckAll]').prop('checked'));
+         })
+    }
+</script>
+<style>
+    .limitTable{
+        width: 100%;
+    }
+    fieldset {   
+        -moz-border-radius:5px;  
+        border-radius: 5px;  
+        -webkit-border-radius: 5px;
+    }
+    .selectRadio{
+        margin-top:-10px;
+    }
+    .maximumColumn{
+        margin-top:5px;
+    }
+
+    .limitColumn{
+        min-width:200px;
+    }
+</style>
+    <apex:form >
+        <apex:pagemessages id="pageMessages" />
+        <nttdcore:DLabel name="DL38" default="Delegation Manager" labelParent="{!this}" /><apex:sectionheader title="{!dLabel['DL38']}" subtitle="{!extensionDelegate.delegate__r.Name}" /> 
+
+        <!-- contact details pb -->
+        <nttdcore:DLabel name="DL39" default="Contact Details" labelParent="{!this}" /><apex:pageblock title="{!dLabel['DL39']}" >
+            <apex:pageblockbuttons location="top" >
+                <nttdcore:DLabel name="DL40" default="Back" labelParent="{!this}" /><apex:commandbutton value="{!dLabel['DL40']}" immediate="true" action="{!back}" />
+            </apex:pageblockbuttons>
+            <apex:pageblocksection showheader="false" >
+                <apex:repeat value="{!$ObjectType.Contact.Fieldsets.DelegationModuleContactDetails}" var="contactField" >
+                    <apex:outputfield value="{!extensionDelegate.delegate__r[contactField]}" />
+                </apex:repeat>
+            </apex:pageblocksection>
+        </apex:pageblock>
+        <nttdcore:DLabel name="DL41" default="Update Delegate" labelParent="{!this}" /><apex:pageblock title="{!dLabel['DL41']}" id="pbAddDelegate" >
+            <apex:pageblockbuttons location="top" id="pbButtons" >
+                <nttdcore:DLabel name="DL42" default="Save" labelParent="{!this}" /><apex:commandbutton value="{!dLabel['DL42']}" action="{!save}" disabled="{!AND(not(canEdit), not(unlockEndDate))}" />
+            </apex:pageblockbuttons>
+            <apex:pageblocksection showheader="false" >
+                <apex:inputfield rendered="{!canEdit}" value="{!Delegate__c.Delegate__c}" required="true" />
+                <apex:outputfield rendered="{!not(canEdit)}" value="{!Delegate__c.Delegate__c}" />
+                <apex:inputfield value="{!Delegate__c.Key_Member_Role__c}" required="true" rendered="{!and(canEdit, extensionDelegate.RecordType.Name == 'Key Roles')}" />
+                <apex:outputfield rendered="{!not(canEdit)}" value="{!Delegate__c.Key_Member_Role__c}" />
+                <apex:pageblocksectionitem rendered="{!extensionDelegate.RecordType.Name != 'Key Roles'}" />
+                <apex:inputfield rendered="{!canEdit}" value="{!Delegate__c.Start_Date__c}" required="true" />
+                <apex:outputfield rendered="{!not(canEdit)}" value="{!Delegate__c.Start_Date__c}" />
+                <apex:inputfield rendered="{!unlockEndDate}" value="{!Delegate__c.End_Date__c}" />
+                <apex:outputfield rendered="{!Not(unlockEndDate)}" value="{!Delegate__c.End_Date__c}" />
+                <apex:outputfield value="{!Delegate__c.CurrencyIsoCode}" />
+            </apex:pageblocksection>
+            <apex:outputpanel rendered="{!extensionDelegate.RecordType.Name == 'Key Roles'}" >
+                        <fieldset>
+                        <legend><nttdcore:DLabel name="DL43" default="Delegation Limits" labelParent="{!this}" />{!dLabel['DL43']}</legend>
+                            <table class="limitTable" >
+                                <tr>
+                                    <th><nttdcore:DLabel name="DL44" default="Criteria" labelParent="{!this}" />{!dLabel['DL44']}</th>
+                                    <th><nttdcore:DLabel name="DL45" default="Delegation Limit" labelParent="{!this}" />{!dLabel['DL45']}</th>
+                                    <th><nttdcore:DLabel name="DL46" default="Maximum Delegatable" labelParent="{!this}" />{!dLabel['DL46']}</th>
+                                    <th><nttdcore:DLabel name="DL47" default="Bypass Delegate?" labelParent="{!this}" />{!dLabel['DL47']}</th>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <apex:outputlabel styleclass="limitsLabel" value="{!$ObjectType.Delegate__c.fields.Agreement_Amount_estimated__c.label}" />
+                                    </td>
+                                    <td class="limitColumn" ><nttdcore:DLabel name="DL48" default="Greater Than" labelParent="{!this}" />
+                                        {!dLabel['DL48']}&nbsp;
+                                        <apex:inputfield rendered="{!canEdit}" value="{!Delegate__c.Agreement_Amount_estimated__c}" />
+                                        <apex:outputtext rendered="{!not(canEdit)}" value="{0, number, ###,###}" >
+                                            <apex:param value="{!Delegate__c.Agreement_Amount_estimated__c}" />
+                                        </apex:outputtext>
+
+                                        &nbsp;{!Delegate__c.CurrencyIsoCode}
+                                    </td>
+                                    <td>
+                                        <apex:outputfield value="{!delegateLimitSettings.Agreement_Amount__c}" styleclass="maximumColumn" />
+                                    </td>
+                                    <td>
+                                        <apex:selectradio disabled="{!not(canEdit)}" value="{!agreementAmountBypass}" styleclass="selectRadio" >
+                                            <apex:selectoptions value="{!yesNoOptions}" />
+                                        </apex:selectradio>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <apex:outputlabel styleclass="limitsLabel" value="{!$ObjectType.Delegate__c.fields.Agreement_Amount_estimated_lt__c.label}" />
+                                    </td>
+                                    <td class="limitColumn" style="padding-left:15px;" ><nttdcore:DLabel name="DL49" default="Less Than" labelParent="{!this}" />
+                                        {!dLabel['DL49']}&nbsp;
+                                        <apex:inputfield rendered="{!canEdit}" value="{!Delegate__c.Agreement_Amount_estimated_lt__c}" />
+
+                                        <apex:outputtext rendered="{!not(canEdit)}" value="{0, number, ###,###}" >
+                                            <apex:param value="{!Delegate__c.Agreement_Amount_estimated_lt__c}" />
+                                        </apex:outputtext>
+
+                                        &nbsp;{!Delegate__c.CurrencyIsoCode}
+                                    </td>
+                                    <td>
+                                        <apex:outputfield value="{!delegateLimitSettings.Agreement_Amount_lt__c}" styleclass="maximumColumn" />
+                                    </td>
+                                    <td>
+                                        <apex:selectradio disabled="{!not(canEdit)}" value="{!agreementAmountBypassLT}" styleclass="selectRadio" >
+                                            <apex:selectoptions value="{!yesNoOptions}" />
+                                        </apex:selectradio>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <apex:outputlabel styleclass="limitsLabel" value="{!$ObjectType.Delegate__c.fields.Project_Revenue_Budget__c.label}" escape="false" />
+                                    </td>
+                                    <td class="limitColumn" ><nttdcore:DLabel name="DL50" default="Greater Than" labelParent="{!this}" />
+                                        {!dLabel['DL50']}&nbsp;
+                                        <apex:inputfield rendered="{!canEdit}" value="{!Delegate__c.Project_Revenue_Budget__c}" />
+
+
+                                        <apex:outputtext rendered="{!not(canEdit)}" value="{0, number, ###,###}" >
+                                            <apex:param value="{!Delegate__c.Project_Revenue_Budget__c}" />
+                                        </apex:outputtext>
+
+                                        &nbsp;{!Delegate__c.CurrencyIsoCode}
+                                    </td>
+                                    <td>
+                                        <apex:outputfield value="{!delegateLimitSettings.Project_Revenue_Budget__c}" styleclass="maximumColumn" />
+                                    </td>
+                                    <td>
+                                        <apex:selectradio disabled="{!not(canEdit)}" value="{!projectRevenueBudgetBypass}" styleclass="selectRadio" >
+                                            <apex:selectoptions value="{!yesNoOptions}" />
+                                        </apex:selectradio>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <apex:outputlabel styleclass="limitsLabel" value="{!$ObjectType.Delegate__c.fields.Project_Revenue_Budget_lt__c.label}" />
+                                    </td>
+                                    <td class="limitColumn" style="padding-left:15px;" ><nttdcore:DLabel name="DL51" default="Less Than" labelParent="{!this}" />
+                                        {!dLabel['DL51']}&nbsp;
+                                        <apex:inputfield rendered="{!canEdit}" value="{!Delegate__c.Project_Revenue_Budget_lt__c}" />
+
+
+                                        <apex:outputtext rendered="{!not(canEdit)}" value="{0, number, ###,###}" >
+                                            <apex:param value="{!Delegate__c.Project_Revenue_Budget_lt__c}" />
+                                        </apex:outputtext>
+
+
+                                        &nbsp;{!Delegate__c.CurrencyIsoCode}
+                                    </td>
+                                    <td>
+                                        <apex:outputfield value="{!delegateLimitSettings.Project_Revenue_Budget_lt__c}" styleclass="maximumColumn" />
+                                    </td>
+                                    <td>
+                                        <apex:selectradio disabled="{!not(canEdit)}" value="{!projectRevenueBudgetBypassLT}" styleclass="selectRadio" >
+                                            <apex:selectoptions value="{!yesNoOptions}" />
+                                        </apex:selectradio>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <apex:outputlabel styleclass="limitsLabel" value="{!$ObjectType.Delegate__c.fields.Backlog_Value__c.label}" />
+                                    </td>
+                                    <td class="limitColumn" ><nttdcore:DLabel name="DL52" default="Greater Than" labelParent="{!this}" />
+                                        {!dLabel['DL52']}&nbsp;
+                                        <apex:inputfield rendered="{!canEdit}" value="{!Delegate__c.Backlog_Value__c}" />
+
+                                        <apex:outputtext rendered="{!not(canEdit)}" value="{0, number, ###,###}" >
+                                            <apex:param value="{!Delegate__c.Backlog_Value__c}" />
+                                        </apex:outputtext>
+                                        &nbsp;{!Delegate__c.CurrencyIsoCode}
+                                    </td>
+                                    <td>
+                                        <apex:outputfield value="{!delegateLimitSettings.Backlog_Value__c}" styleclass="maximumColumn" />
+                                    </td>
+                                    <td>
+                                        <apex:selectradio disabled="{!not(canEdit)}" value="{!backlogValueBypass}" styleclass="selectRadio" >
+                                            <apex:selectoptions value="{!yesNoOptions}" />
+                                        </apex:selectradio>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <apex:outputlabel styleclass="limitsLabel" value="{!$ObjectType.Delegate__c.fields.Backlog_Value_lt__c.label}" />
+                                    </td>
+                                    <td class="limitColumn" style="padding-left:15px;" ><nttdcore:DLabel name="DL53" default="Less Than" labelParent="{!this}" />
+                                        {!dLabel['DL53']}&nbsp;
+                                        <apex:inputfield rendered="{!canEdit}" value="{!Delegate__c.Backlog_Value_lt__c}" />
+
+                                        <apex:outputtext rendered="{!not(canEdit)}" value="{0, number, ###,###}" >
+                                            <apex:param value="{!Delegate__c.Backlog_Value_lt__c}" />
+                                        </apex:outputtext>
+
+                                        &nbsp;{!Delegate__c.CurrencyIsoCode}
+                                    </td>
+                                    <td>
+                                        <apex:outputfield value="{!delegateLimitSettings.Backlog_Value_lt__c}" styleclass="maximumColumn" />
+                                    </td>
+                                    <td>
+                                        <apex:selectradio disabled="{!not(canEdit)}" value="{!backlogValueBypassLT}" styleclass="selectRadio" >
+                                            <apex:selectoptions value="{!yesNoOptions}" />
+                                        </apex:selectradio>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <apex:outputlabel styleclass="limitsLabel" value="{!$ObjectType.Delegate__c.fields.Project_Net_Margin_Value__c.label}" />
+                                    </td>
+                                    <td class="limitColumn" ><nttdcore:DLabel name="DL54" default="Greater Than" labelParent="{!this}" />
+                                        {!dLabel['DL54']}&nbsp;
+                                        <apex:inputfield rendered="{!canEdit}" value="{!Delegate__c.Project_Net_Margin_Value__c}" />
+
+                                        <apex:outputtext rendered="{!not(canEdit)}" value="{0, number, ###,###}" >
+                                            <apex:param value="{!Delegate__c.Project_Net_Margin_Value__c}" />
+                                        </apex:outputtext>
+
+                                        &nbsp;{!Delegate__c.CurrencyIsoCode}
+                                    </td>
+                                    <td>
+                                        <apex:outputfield value="{!delegateLimitSettings.Project_Net_Margin_Value__c}" styleclass="maximumColumn" />
+                                    </td>
+                                    <td>
+                                        <apex:selectradio disabled="{!not(canEdit)}" value="{!projectNetMarginValueBypass}" styleclass="selectRadio" >
+                                            <apex:selectoptions value="{!yesNoOptions}" />
+                                        </apex:selectradio>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <apex:outputlabel styleclass="limitsLabel" value="{!$ObjectType.Delegate__c.fields.Project_Net_Margin_Value_lt__c.label}" />
+                                    </td>
+                                    <td class="limitColumn" style="padding-left:15px;" ><nttdcore:DLabel name="DL55" default="Less Than" labelParent="{!this}" />
+                                        {!dLabel['DL55']}&nbsp;
+                                        <apex:inputfield rendered="{!canEdit}" value="{!Delegate__c.Project_Net_Margin_Value_lt__c}" />
+
+
+                                        <apex:outputtext rendered="{!not(canEdit)}" value="{0, number, ###,###}" >
+                                            <apex:param value="{!Delegate__c.Project_Net_Margin_Value_lt__c}" />
+                                        </apex:outputtext>
+
+                                        &nbsp;{!Delegate__c.CurrencyIsoCode}
+                                    </td>
+                                    <td>
+                                        <apex:outputfield value="{!delegateLimitSettings.Project_Net_Margin_Value_lt__c}" styleclass="maximumColumn" />
+                                    </td>
+                                    <td>
+                                        <apex:selectradio disabled="{!not(canEdit)}" value="{!projectNetMarginValueBypassLT}" styleclass="selectRadio" >
+                                            <apex:selectoptions value="{!yesNoOptions}" />
+                                        </apex:selectradio>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <apex:outputlabel styleclass="limitsLabel" value="{!$ObjectType.Delegate__c.fields.Project_Net_Margin_age_of_NSR__c.label}" />
+                                    </td>
+                                    <td class="limitColumn" ><nttdcore:DLabel name="DL56" default="Greater Than" labelParent="{!this}" /><nttdcore:DLabel name="DL57" default="%" labelParent="{!this}" />
+                                        {!dLabel['DL56']}&nbsp;
+                                        <apex:inputfield rendered="{!canEdit}" value="{!Delegate__c.Project_Net_Margin_age_of_NSR__c}" />
+                                        <apex:outputtext rendered="{!not(canEdit)}" value="{!Delegate__c.Project_Net_Margin_age_of_NSR__c}" />
+                                        &nbsp;{!dLabel['DL57']}
+                                    </td>
+                                    <td>
+                                        <apex:outputfield value="{!delegateLimitSettings.Project_Net_Margin_age_of_NSR__c}" styleclass="maximumColumn" />
+                                    </td>
+                                    <td>
+                                        <apex:selectradio disabled="{!not(canEdit)}" value="{!projectNetMarginNSRBypass}" styleclass="selectRadio" >
+                                            <apex:selectoptions value="{!yesNoOptions}" />
+                                        </apex:selectradio>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <apex:outputlabel styleclass="limitsLabel" value="{!$ObjectType.Delegate__c.fields.Project_Net_Margin_age_of_NSR_lt__c.label}" />
+                                    </td>
+                                    <td class="limitColumn" style="padding-left:15px;" ><nttdcore:DLabel name="DL58" default="Less Than" labelParent="{!this}" /><nttdcore:DLabel name="DL59" default="%" labelParent="{!this}" />
+                                        {!dLabel['DL58']}&nbsp;
+                                        <apex:inputfield rendered="{!canEdit}" value="{!Delegate__c.Project_Net_Margin_age_of_NSR_lt__c}" />
+                                        <apex:outputtext rendered="{!not(canEdit)}" value="{!Delegate__c.Project_Net_Margin_age_of_NSR_lt__c}" />
+                                        &nbsp;{!dLabel['DL59']}
+                                    </td>
+                                    <td>
+                                        <apex:outputfield value="{!delegateLimitSettings.Project_Net_Margin_age_of_NSR_lt__c}" styleclass="maximumColumn" />
+                                    </td>
+                                    <td>
+                                        <apex:selectradio disabled="{!not(canEdit)}" value="{!projectNetMarginNSRBypassLT}" styleclass="selectRadio" >
+                                            <apex:selectoptions value="{!yesNoOptions}" />
+                                        </apex:selectradio>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <apex:outputlabel styleclass="limitsLabel" value="{!$ObjectType.Delegate__c.fields.age_Change_in_Forecast_Net_Margin__c.label}" />
+                                    </td>
+                                    <td class="limitColumn" ><nttdcore:DLabel name="DL60" default="Greater Than" labelParent="{!this}" /><nttdcore:DLabel name="DL61" default="%" labelParent="{!this}" />
+                                        {!dLabel['DL60']}&nbsp;
+                                        <apex:inputfield rendered="{!canEdit}" value="{!Delegate__c.age_Change_in_Forecast_Net_Margin__c}" />
+                                        <apex:outputtext rendered="{!not(canEdit)}" value="{!Delegate__c.age_Change_in_Forecast_Net_Margin__c}" />
+                                        &nbsp;{!dLabel['DL61']}
+                                    </td>
+                                    <td>
+                                        <apex:outputfield value="{!delegateLimitSettings.age_Change_in_Forecast_Net_Margin__c}" styleclass="maximumColumn" />
+                                    </td>
+                                    <td>
+                                        <apex:selectradio disabled="{!not(canEdit)}" value="{!percentageChangeInForecastBypass}" styleclass="selectRadio" >
+                                            <apex:selectoptions value="{!yesNoOptions}" />
+                                        </apex:selectradio>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <apex:outputlabel styleclass="limitsLabel" value="{!$ObjectType.Delegate__c.fields.age_Change_in_Forecast_Net_Margin_lt__c.label}" />
+                                    </td>
+                                    <td class="limitColumn" style="padding-left:15px;" ><nttdcore:DLabel name="DL62" default="Less Than" labelParent="{!this}" /><nttdcore:DLabel name="DL63" default="%" labelParent="{!this}" />
+                                        {!dLabel['DL62']}&nbsp;
+                                        <apex:inputfield rendered="{!canEdit}" value="{!Delegate__c.age_Change_in_Forecast_Net_Margin_lt__c}" />
+                                        <apex:outputtext rendered="{!not(canEdit)}" value="{!Delegate__c.age_Change_in_Forecast_Net_Margin_lt__c}" />
+                                        &nbsp;{!dLabel['DL63']}
+                                    </td>
+                                    <td>
+                                        <apex:outputfield value="{!delegateLimitSettings.age_Change_in_Forecast_Net_Margin_lt__c}" styleclass="maximumColumn" />
+                                    </td>
+                                    <td>
+                                        <apex:selectradio disabled="{!not(canEdit)}" value="{!percentageChangeInForecastBypassLT}" styleclass="selectRadio" >
+                                            <apex:selectoptions value="{!yesNoOptions}" />
+                                        </apex:selectradio>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <apex:outputlabel styleclass="limitsLabel" value="{!$ObjectType.Delegate__c.fields.Value_change_in_Forecast_Net_Margin__c.label}" />
+                                    </td>
+                                    <td class="limitColumn" ><nttdcore:DLabel name="DL64" default="Greater Than" labelParent="{!this}" />
+                                        {!dLabel['DL64']}&nbsp;
+                                        <apex:inputfield rendered="{!canEdit}" value="{!Delegate__c.Value_change_in_Forecast_Net_Margin__c}" />
+
+                                        <apex:outputtext rendered="{!not(canEdit)}" value="{0, number, ###,###}" >
+                                            <apex:param value="{!Delegate__c.Value_change_in_Forecast_Net_Margin__c}" />
+                                        </apex:outputtext>
+
+                                        &nbsp;{!Delegate__c.CurrencyIsoCode}
+                                    </td>
+                                    <td>
+                                        <apex:outputfield value="{!delegateLimitSettings.Value_Change_In_Forecast_Net_Margin__c}" styleclass="maximumColumn" />
+                                    </td>
+                                    <td>
+                                        <apex:selectradio disabled="{!not(canEdit)}" value="{!valueChangeInForecastNetMarginBypass}" styleclass="selectRadio" >
+                                            <apex:selectoptions value="{!yesNoOptions}" />
+                                        </apex:selectradio>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <apex:outputlabel styleclass="limitsLabel" value="{!$ObjectType.Delegate__c.fields.Value_change_in_Forecast_Net_Margin_lt__c.label}" />
+                                    </td>
+                                    <td class="limitColumn" style="padding-left:15px;" ><nttdcore:DLabel name="DL65" default="Less Than" labelParent="{!this}" />
+                                        {!dLabel['DL65']}&nbsp;
+                                        <apex:inputfield rendered="{!canEdit}" value="{!Delegate__c.Value_change_in_Forecast_Net_Margin_lt__c}" />
+
+                                        <apex:outputtext rendered="{!not(canEdit)}" value="{0, number, ###,###}" >
+                                            <apex:param value="{!Delegate__c.Value_change_in_Forecast_Net_Margin_lt__c}" />
+                                        </apex:outputtext>
+
+                                        &nbsp;{!Delegate__c.CurrencyIsoCode}
+                                    </td>
+                                    <td>
+                                        <apex:outputfield value="{!delegateLimitSettings.Value_change_in_Forecast_Net_Margin_lt__c}" styleclass="maximumColumn" />
+                                    </td>
+                                    <td>
+                                        <apex:selectradio disabled="{!not(canEdit)}" value="{!valueChangeInForecastNetMarginBypassLT}" styleclass="selectRadio" >
+                                            <apex:selectoptions value="{!yesNoOptions}" />
+                                        </apex:selectradio>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <nttdcore:DLabel name="DL66" default="Project Review Category" labelParent="{!this}" /><apex:outputlabel styleclass="limitsLabel" value="{!dLabel['DL66']}" />
+                                    </td>
+                                    <td>
+                                        <nttdcore:DLabel name="DL67" default="C-0" labelParent="{!this}" /><apex:outputlabel value="{!dLabel['DL67']}" />&nbsp;
+                                        <apex:inputfield rendered="{!canEdit}" value="{!Delegate__c.Project_Review_Category_C_0__c}" />
+                                        <apex:outputfield rendered="{!not(canEdit)}" value="{!Delegate__c.Project_Review_Category_C_0__c}" />
+                                    </td>
+                                    <td/>
+                                    <td>
+                                        <apex:selectradio disabled="{!not(canEdit)}" value="{!c0Bypass}" styleclass="selectRadio" >
+                                            <apex:selectoptions value="{!yesNoOptions}" />
+                                        </apex:selectradio>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td/>
+                                    <td>
+                                        <nttdcore:DLabel name="DL68" default="C-1" labelParent="{!this}" /><apex:outputlabel value="{!dLabel['DL68']}" />&nbsp;
+                                        <apex:inputfield rendered="{!canEdit}" value="{!Delegate__c.Project_Review_Category_C_1__c}" />
+                                        <apex:outputfield rendered="{!not(canEdit)}" value="{!Delegate__c.Project_Review_Category_C_1__c}" />
+                                    </td>
+                                    <td/>
+                                    <td>
+                                        <apex:selectradio disabled="{!not(canEdit)}" value="{!c1Bypass}" styleclass="selectRadio" >
+                                            <apex:selectoptions value="{!yesNoOptions}" />
+                                        </apex:selectradio>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td/>
+                                    <td>
+                                        <nttdcore:DLabel name="DL69" default="C-2" labelParent="{!this}" /><apex:outputlabel value="{!dLabel['DL69']}" />&nbsp;
+                                        <apex:inputfield rendered="{!canEdit}" value="{!Delegate__c.Project_Review_Category_C_2__c}" />
+                                        <apex:outputfield rendered="{!not(canEdit)}" value="{!Delegate__c.Project_Review_Category_C_2__c}" />
+                                    </td>
+                                    <td/>
+                                    <td>
+                                        <apex:selectradio disabled="{!not(canEdit)}" value="{!c2Bypass}" styleclass="selectRadio" >
+                                            <apex:selectoptions value="{!yesNoOptions}" />
+                                        </apex:selectradio>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td/>
+                                    <td>
+                                        <nttdcore:DLabel name="DL70" default="C-3" labelParent="{!this}" /><apex:outputlabel value="{!dLabel['DL70']}" />&nbsp;
+                                        <apex:inputfield rendered="{!canEdit}" value="{!Delegate__c.Project_Review_Category_C_3__c}" />
+                                        <apex:outputfield rendered="{!not(canEdit)}" value="{!Delegate__c.Project_Review_Category_C_3__c}" />
+                                    </td>
+                                    <td/>
+                                    <td>
+                                        <apex:selectradio disabled="{!not(canEdit)}" value="{!c3Bypass}" styleclass="selectRadio" >
+                                            <apex:selectoptions value="{!yesNoOptions}" />
+                                        </apex:selectradio>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td/>
+                                    <td>
+                                        <nttdcore:DLabel name="DL71" default="C-4" labelParent="{!this}" /><apex:outputlabel value="{!dLabel['DL71']}" />&nbsp;
+                                        <apex:inputfield rendered="{!canEdit}" value="{!Delegate__c.Project_Review_Category_C_4__c}" />
+                                        <apex:outputfield rendered="{!not(canEdit)}" value="{!Delegate__c.Project_Review_Category_C_4__c}" />
+                                    </td>
+                                    <td/>
+                                    <td>
+                                        <apex:selectradio disabled="{!not(canEdit)}" value="{!c4Bypass}" styleclass="selectRadio" >
+                                            <apex:selectoptions value="{!yesNoOptions}" />
+                                        </apex:selectradio>
+                                    </td>
+                                </tr>
+                            </table>
+                        </fieldset>
+                    </apex:outputpanel>
+                    <apex:outputpanel rendered="{!extensionDelegate.RecordType.Name == 'Key Roles'}" >
+                        <fieldset>
+                            <legend><nttdcore:DLabel name="DL72" default="Notes" labelParent="{!this}" />{!dLabel['DL72']}</legend>
+                            <apex:inputfield rendered="{!canEdit}" value="{!Delegate__c.Notes__c}" style="width:100%; height:45px;" />
+                            <apex:outputfield rendered="{!not(canEdit)}" value="{!Delegate__c.Notes__c}" style="width:100%; height:45px;" />
+                        </fieldset>
+                    </apex:outputpanel>
+                    <apex:outputpanel rendered="{!AND(AND(owningOrganizations != NULL, owningOrganizations.SIZE > 0), extensionDelegate.RecordType.Name == 'Key Roles')}" >
+                        <fieldset><nttdcore:DLabel name="DL74" default="Office" labelParent="{!this}" />
+                            <legend><nttdcore:DLabel name="DL73" default="Allowed Organizations" labelParent="{!this}" />{!dLabel['DL73']}</legend>
+                            <apex:pageblocktable value="{!owningOrganizations}" var="owningOrganization" >
+                                <apex:column >
+                                    <apex:facet name="header" >
+                                        <apex:inputcheckbox disabled="{!not(canEdit)}" onclick="selectAllOrganizations()" id="organizationCheckAll" />
+                                    </apex:facet>
+                                    <apex:inputcheckbox disabled="{!not(canEdit)}" value="{!owningOrganization.checked}" styleclass="organizationCheckBox" />
+                                </apex:column>
+                                <apex:repeat value="{!$ObjectType.OrganizationString__c.Fieldsets.Delegate_Owning_Organization_Table}" var="orgField" >
+                                    <apex:column value="{!owningOrganization.organization[orgField]}" />               
+                                </apex:repeat>
+                                <apex:column headervalue="{!dLabel['DL74']}" value="{!owningOrganization.organization.LocationName__c}" />
+                            </apex:pageblocktable>
+                        </fieldset>
+                    </apex:outputpanel>
+        </apex:pageblock>
+    </apex:form>
+    <apex:relatedlist list="CombinedAttachments" />
+    <apex:relatedlist list="ProcessSteps" />
+    <script type="text/javascript" >
+        $x(document).ready(function() {
+            //Hide Reassign link for Approval Process
+            var reassign;
+            $x( "a" ).each(function( index ) {
+               var href= $x( this ).attr("href");
+    
+               if (typeof href != 'undefined') {
+                   if (href.includes("REASSIGN")) {
+                       reassign = $x(this).parent();
+                       return false; //break
+                   }
+               }
+            });
+            reassign.html(reassign.children().eq(1));
+        }); 
+    </script>
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

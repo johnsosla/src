@@ -1,0 +1,11 @@
+<apex:component language="{!theLanguage}" controller="nttdcore.DLabelChildController" access="global" ><nttdcore:DLabel name="DL1" default="You have been named as a/an {{1}} on the project below. Please click on the link below to review the project plan or contact the Project Manager for further details.
+    
+    Project Number: {{2}}
+    Project Name: {{3}}
+    Project Manager: {{4}}
+    
+    
+    Click on the link below to view the details:
+    {{5}}{{6}}" labelParent="{!this}" componentContext="Eco_Review_Member_Approval_AlertVF401_3" p1="{!theRelatedTo.Role__c}" p2="{!theRelatedTo.ProjectNumber__c}" p3="{!theRelatedTo.ProjectName__c}" p4="{!theRelatedTo.ProjectManager__c}" p5="{!LEFT($Api.Partner_Server_URL_290,FIND('services',$Api.Partner_Server_URL_290)-1)}" p6="{!theRelatedTo.Id}" /><apex:attribute name="theLanguage" type="String" required="true" description="language" access="global" /><apex:attribute name="theRecipient" type="Contact" required="true" description="recipient" access="global" /><apex:attribute name="theRelatedTo" type="ReviewMember__c" required="true" description="related to" access="global" />
+    {!dlRoot.dLabel['DL1']}  
+<nttdcore:DLabelInit language="{!theLanguage}" labelParentInit="{!this}" /></apex:component>

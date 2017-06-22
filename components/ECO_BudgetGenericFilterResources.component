@@ -1,0 +1,139 @@
+<apex:component controller="ECO_BudgetGenericFilterController">
+<apex:attribute name="resourceType" description="ResourceType" type="String" required="true" assignto="{!strResourceType}" />
+    <apex:attribute name="budgetHeader" description="The Budget Header ID" type="String" required="true" assignto="{!budgetHeaderId}" />
+     <apex:attribute name="parentCon" description="Parent Controller" type="IBudgetSave" required="true" assignto="{!parentController}" />
+
+    <apex:includeScript value="{!URLFOR($Resource.ECO_jQueryUI_1_11_2, 'jquery-ui.min.js')}" />
+
+    <apex:stylesheet value="{!URLFOR($Resource.ECO_jQueryUI_1_11_2_Themes, 'themes/smoothness/jquery-ui.css')}" />
+
+    <script type="text/javascript" >
+        $f = jQuery.noConflict();
+
+        function loading(val) {
+            if (val) {
+              document.getElementById('spinner1').style.display = 'block';
+            }
+            else {
+              document.getElementById('spinner1').style.display = 'none';
+            }
+          }
+
+        function clearAll() {
+            $f('.searchField').val('');
+        }  
+
+        function toggleAll(inx) {
+            $f('.check1').prop('checked', $f(inx).is(":checked"));
+        }
+
+        function setupAddExisting() {
+            var tmp = "";
+
+            $z('.check1:checked').next('.memberid').each(function() {
+                tmp += $z(this).html() + ",";
+            });
+
+            $z('.memberids').val(tmp);
+        }
+    </script>
+
+    <style>
+        .tabs { 
+            padding: 0px; 
+            background: none; 
+            border-width: 0px;
+        }
+
+        .ui-tabs-nav { 
+            padding-left: 0px; 
+            background: transparent; 
+            border-width: 0px 0px 1px 0px; 
+            -moz-border-radius: 0px; 
+            -webkit-border-radius: 0px; 
+            border-radius: 0px; 
+        } 
+
+        .ui-tabs-panel { 
+            background: #ffffff;
+            border-width: 0px 1px 1px 1px;
+        }
+
+        .tableClass {
+            background-color: black;
+            border-spacing: 1px;
+            border-collapse: inherit;
+        }
+
+        td.textCell {
+            background-color: white;
+        }
+
+        th.headerCell {
+            background-color: #f0f0f0;
+            text-align: center;
+            font-family: Arial, Helvetica;
+            font-size: 10pt;
+            font-weight: bold;
+        }
+    </style>
+
+    <apex:actionStatus id="loading" onstart="loading(true)" onstop="loading(false)" />
+        <apex:inputText value="{!memberids}" styleclass="memberids" style="display:none;" />
+
+        <span style="font-size:14pt;font-weight:bold;" >
+        <!--<nttdcore:DLabel name="DL1" default="Select Resources to Show" labelParent="{!this}" componentContext="ECO_BudgetGenericFilterResources" />-->
+        {!$Label.Select_Resources_to_Show}</span>
+
+        <div style="display:none; float: right;" id="spinner1" >
+            <img height="15" width="15" class="spinner" src="{!$Resource.loading}" alt="loading" title="loading" />
+        </div>
+
+        <div style="clear:both;" />
+
+        <div id="tabs" class="tabsForResource tabs" style="height:400px; margin-top:20px" >
+            <ul class="ui-tabs-nav" >
+                <li><a class="tabs-1" href="#tabs-1" ><!--<nttdcore:DLabel name="DL2" default="Project Team" labelParent="{!this}" componentContext="ECO_BudgetGenericFilterResources" />-->{!$Label.Project_Team_Budget}</a></li>
+            </ul>
+            
+            <div id="tabs-1" class="ui-tabs-panel" >
+                <div style="height:325px;" >
+                    <table class="tableClass" cellspacing="1" cellpadding="5" border="0" width="550" style="table-layout:fixed;" >
+                        <tr>
+                            <th class="headerCell" style="width: 25px;" ><apex:inputCheckbox onclick="toggleAll(this);" /></th>
+                            <th class="headerCell" >{!$Label.Name}</th>
+                            
+                        </tr>
+                    </table>
+
+                    <div style="height:280px; overflow:scroll;" >
+                        <table class="tableClass" cellspacing="1" cellpadding="5" border="0" width="550" style="table-layout:fixed;" >
+                            <apex:repeat value="{!brList}" var="member" >
+                                <tr>
+                                    <td class="textCell" style="width: 25px; text-align: center;" >
+                                        <apex:inputCheckbox styleclass="check1" selected="{!mapSelected[member.id]}" />
+
+                                        <div style="display:none;" class="memberid" >{!member.id}</div>
+                                    </td>
+
+                                    <td class="textCell" >
+                                        <!-- <apex:outputLink value="/{!member.id}" target="_blank"> -->
+                                            <apex:outputText value="{!member.ColumnHeader__c}" />
+                                        <!-- </apex:outputLink> -->
+                                    </td>
+                                </tr>
+                            </apex:repeat>                    
+                        </table>
+                    </div>
+                </div>
+
+                <div style="float: right;" >
+           
+                    <apex:commandButton action="{!filterResources}" value="{!$Label.Filter_By_Resource_s}" status="loading" onclick="setupAddExisting(); return disableButtonsNoSave();" style="font-size:11px !important; font-family: Arial;" styleclass="addResourceBtn" />
+                    <apex:commandButton value="{!$Label.Cancel_ECO}" onclick="closeModal('modalFilterDialog');return false;" style="font-size:11px !important; font-family: Arial;" />
+                </div>
+
+                <div style="clear: both;" />
+            </div>
+        </div>
+</apex:component>

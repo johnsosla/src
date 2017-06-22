@@ -1,0 +1,200 @@
+<apex:component allowDML="true" controller="rsUpdateTrackingController">
+    <apex:attribute name="rsProfile" assignTo="{!profile}" description="" type="rsProfile" required="true"/>
+    <apex:attribute name="reRender" description="" type="String" required="false"/>
+
+    <script type="text/javascript">
+        var $ = jQuery.noConflict();
+        $(document).ready(function() {
+            helpTextSetup();
+            setUpdateTrackingRequiredFields();
+        });
+
+        function setUpdateTrackingRequiredFields() {
+            requiredFields = ['[id$=utSource]','[id$=utDetails]'];
+        }
+
+        function setupFields() {
+            $.each(requiredFields, function(index, item) {
+
+            //Date Fields and Select lists do not fire off input event with DatePicker
+                if($(item).is('select')) {
+                    $(item).on('change',function() {
+                        var input = $(this);
+                        var notEmpty = input.val().trim();
+                        if(notEmpty) {
+                            input.removeClass('invalid').addClass('valid');
+                        } else {
+                            input.removeClass('valid').addClass('invalid');
+                        }
+                    });
+                } else {
+                    $(item).on('input',function() {
+                        var input = $(this);
+                        var notEmpty = input.val().trim();
+                        if(notEmpty) {
+                            input.removeClass('invalid').addClass('valid');
+                        } else {
+                            input.removeClass('valid').addClass('invalid');
+                        }
+                    });
+                    $(item).on('focus',function() {
+                        var input = $(this);
+                        var notEmpty = input.val().trim();
+                        if(notEmpty) {
+                            input.removeClass('invalid').addClass('valid');
+                        } else {
+                            input.removeClass('valid').addClass('invalid');
+                        }
+                    });
+                }
+            });
+        }
+
+        function checkRequiredFields() {
+            var notValid = true;
+            $.each(requiredFields, function(index, item) {
+                console.log(!$(item).val());
+                var errorMsg = $('span.rsError',$(item).parent());
+                if(!$(item).val().trim()) {
+                    $(item).removeClass('valid').addClass('invalid');
+                if($(item).parent().hasClass('dateInput')) {
+                    errorMsg = $('span.rsError',$(item).parent().parent());
+                }
+                errorMsg.show();
+                notValid = false;
+                } else {
+                    $(item).removeClass('invalid').addClass('valid');
+                    if($(item).parent().hasClass('dateInput')) {
+                        errorMsg = $('span.rsError',$(item).parent().parent());
+                    }
+                    errorMsg.hide();
+                }
+            });
+            return notValid;
+        }
+    </script>
+
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h5 class="panel-title has-spinner pull-left" id="utHeader">{!$Label.Update_Tracker_Header}&nbsp;<img height="15" width="15" class="spinner" src="{!URLFOR($Resource.rs_bundle, '/images/loading.gif')}" alt="loading" title="loading"/></h5>
+
+            <apex:commandLink value="" styleClass="{!IF(canEdit, '', 'disabled')} has-spiiner pull-right" reRender="{!reRender}" action="{!newPart}" onclick="if(inProgress) return false; showSectionSpinner('utHeader'); inProgress = true;" oncomplete="resetProgress(); setupFields(); focusField('utSource');" rendered="{!IsListMode && canEdit}">
+                <span title="{!$Label.Add}" class="glyphicon glyphicon-plus"></span>
+            </apex:commandLink>
+            <div class="clearfix"/>
+        </div>
+
+        <div class="panel-body">
+            <apex:outputPanel rendered="{!IsEditMode}">
+                <apex:actionRegion >
+                    <apex:outputLabel for="utSource" value="{!$ObjectType['rs_Update_Tracking__c'].fields['Source__c'].Label}"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['rs_Update_Tracking__c'].fields['Source__c'].inlineHelpText}"/></apex:outputLabel>
+                    <div class="rsRequired">
+                        <div class="rsRequiredBlock"/>
+                        <apex:inputText id="utSource" value="{!CurrentTrackUpdate.Source}" styleClass="aecom-input" maxlength="255"/>
+                        <span class="rsError"><br/>{!$ObjectType['rs_Update_Tracking__c'].fields['Source__c'].Label} {!$Label.Is_Required}</span>
+                    </div>
+
+                    <br/>
+
+                    <apex:outputLabel for="utDetails" value="{!$ObjectType['rs_Update_Tracking__c'].fields['Details__c'].Label}"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['rs_Update_Tracking__c'].fields['Details__c'].inlineHelpText}"/></apex:outputLabel>
+                    <div class="rsRequired">
+                        <div class="rsRequiredBlock"/>
+                        <apex:inputTextarea rows="5" id="utDetails" value="{!CurrentTrackUpdate.Details}" styleClass="aecom-input" html-maxlength="32768"/>
+                        <span class="rsError"><br/>{!$ObjectType['rs_Update_Tracking__c'].fields['Details__c'].Label} {!$Label.Is_Required}</span>
+                    </div>
+
+                    <br/>
+
+                    <div class="text-center">
+                        <apex:commandLink action="{!savePart}" value="{!$Label.Save}" styleClass="btn btn-sm brandStyledBtn" reRender="{!reRender}" onclick="if(inProgress) return false; setUpdateTrackingRequiredFields(); if(!checkRequiredFields()) return false; showSectionSpinner('utHeader'); inProgress = true;" oncomplete="resetProgress();">
+                            <span class="glyphicon glyphicon-ok-circle"></span>
+                        </apex:commandLink>
+                        &nbsp;
+                        <apex:commandLink action="{!cancelPart}" value="{!$Label.Cancel}" styleClass="btn btn-sm btn--neutral" reRender="{!reRender}" onclick="if(inProgress) return false; showSectionSpinner('utHeader'); inProgress = true;" oncomplete="resetProgress();">
+                            <span class="glyphicon glyphicon-remove-circle"></span>
+                        </apex:commandLink>
+                    </div>
+                </apex:actionRegion>
+            </apex:outputPanel>
+
+            <apex:outputPanel rendered="{!IsListMode}" id="utPanel">
+                <table class="table updateTrackingTable">
+                    <thead>
+                        <tr>
+                            <th width="1%">{!$Label.Action}</th>
+                            <th width="13%">
+                                <apex:commandLink action="{!sortParts}" reRender="utPanel" onclick="if(inProgress) return false; inProgress = true;" oncomplete="resetProgress(); sortOrderArrow(this.id);" value="{!$Label.Date}">
+                                    <apex:param name="sortField" value="CreatedDate"/>
+                                    <span class="toggleClassDown glyphicon glyphicon-chevron-down"></span>
+                                    <span class="toggleClassUp glyphicon glyphicon-chevron-up"></span>
+                                </apex:commandLink>
+                            </th>
+                            <th width="15%">
+                                <apex:commandLink action="{!sortParts}" reRender="utPanel" onclick="if(inProgress) return false; inProgress = true;" oncomplete="resetProgress(); sortOrderArrow(this.id);" value="{!$ObjectType['rs_Update_Tracking__c'].fields['Source__c'].Label}">
+                                    <apex:param name="sortField" value="Source__c"/>
+                                    <span class="toggleClassDown glyphicon glyphicon-chevron-down"></span>
+                                    <span class="toggleClassUp glyphicon glyphicon-chevron-up"></span>
+                                </apex:commandLink>
+                            </th>
+                            <th>
+                                <apex:commandLink action="{!sortParts}" reRender="utPanel" onclick="if(inProgress) return false; inProgress = true;" oncomplete="resetProgress(); sortOrderArrow(this.id);" value="{!$ObjectType['rs_Update_Tracking__c'].fields['Details__c'].Label}">
+                                    <apex:param name="sortField" value="Details__c"/>
+                                    <span class="toggleClassDown glyphicon glyphicon-chevron-down"></span>
+                                    <span class="toggleClassUp glyphicon glyphicon-chevron-up"></span>
+                                </apex:commandLink>
+                            </th>
+                            <th width="14%">
+                                <apex:commandLink action="{!sortParts}" reRender="utPanel" onclick="if(inProgress) return false; inProgress = true;" oncomplete="resetProgress(); sortOrderArrow(this.id);" value="{!$Label.Created_By}">
+                                    <apex:param name="sortField" value="CreatedById"/>
+                                    <span class="toggleClassDown glyphicon glyphicon-chevron-down"></span>
+                                    <span class="toggleClassUp glyphicon glyphicon-chevron-up"></span>
+                                </apex:commandLink>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <apex:repeat value="{!TrackingViewParts}" var="track">
+                            <tr>
+                                <td>
+                                    <div class="iconGroup--spread">
+                                        <apex:commandLink tabindex="-1" html-data-role="menuitem" action="{!editPart}" value="" reRender="{!reRender}" onclick="if(inProgress) return false; showSectionSpinner('utHeader'); inProgress = true;" oncomplete="resetProgress(); setupFields(); focusField('utSource');" title="{!$Label.Edit}">
+                                            <apex:param value="{!track.Obj.Id}" name="trackId"/>
+                                            <!-- Edit -->
+                                            <!-- <svg role="img" title="edit">
+                                                <use href="{!URLFOR($Resource.rs_bundle, 'icons/edit.svg')}"/>
+                                            </svg> -->
+                                            <svg width="52" height="52" viewBox="0 0 52 52"><g fill="#000"><path d="m9.5 33.4l8.9 8.9c0.4 0.4 1 0.4 1.4 0l22.2-22.3c0.4-0.4 0.4-1 0-1.4l-8.8-8.8c-0.4-0.4-1-0.4-1.4 0l-22.3 22.3c-0.4 0.4-0.4 1 0 1.3z m26.6-27.7c-0.4 0.4-0.4 1 0 1.4l8.8 8.8c0.4 0.4 1 0.4 1.4 0l2.5-2.5c1.6-1.5 1.6-3.9 0-5.5l-4.7-4.7c-1.6-1.6-4.1-1.6-5.7 0l-2.3 2.5z m-34 42.5c-0.2 1 0.7 1.9 1.7 1.7l10.9-2.6c0.4-0.1 0.7-0.3 0.9-0.5l0.2-0.2c0.2-0.2 0.3-0.9-0.1-1.3l-9-9c-0.4-0.4-1.1-0.3-1.3-0.1l-0.2 0.2c-0.3 0.3-0.4 0.6-0.5 0.9l-2.6 10.9z"></path></g></svg>
+                                        </apex:commandLink>
+
+                                        <apex:commandLink tabindex="-1" html-data-role="menuitem" action="{!deletePart}" value="" reRender="{!reRender}" onclick="if(inProgress) return false; if(!confirmDeletePart()) return false; inProgress = true; showSectionSpinner('utHeader');" oncomplete="resetProgress();" title="{!$Label.Delete}">
+                                            <apex:param value="{!track.Obj.Id}" name="trackId"/>
+                                            <!-- Delete -->
+                                            <!-- <svg role="img" title="delete">
+                                                <use href="{!URLFOR($Resource.rs_bundle, 'icons/delete.svg')}"/>
+                                            </svg> -->
+                                            <svg width="52" height="52" viewBox="0 0 52 52"><g fill="#000"><path d="m45.5 10h-12.5v-4c0-2.2-1.8-4-4-4h-6c-2.2 0-4 1.8-4 4v4h-12.5c-0.8 0-1.5 0.7-1.5 1.5v3c0 0.8 0.7 1.5 1.5 1.5h39c0.8 0 1.5-0.7 1.5-1.5v-3c0-0.8-0.7-1.5-1.5-1.5z m-22.5-3c0-0.6 0.4-1 1-1h4c0.6 0 1 0.4 1 1v3h-6v-3z m18.5 13h-31c-0.8 0-1.5 0.7-1.5 1.5v23.5c0 2.8 2.2 5 5 5h24c2.8 0 5-2.2 5-5v-23.5c0-0.8-0.7-1.5-1.5-1.5z m-18.5 22c0 0.6-0.4 1-1 1h-2c-0.6 0-1-0.4-1-1v-14c0-0.6 0.4-1 1-1h2c0.6 0 1 0.4 1 1v14z m10 0c0 0.6-0.4 1-1 1h-2c-0.6 0-1-0.4-1-1v-14c0-0.6 0.4-1 1-1h2c0.6 0 1 0.4 1 1v14z"></path></g></svg>
+                                        </apex:commandLink>
+                                    </div>
+                                </td>
+                                <td>{!track.Obj.CreatedDate}</td>
+                                <td>
+                                <textarea name="" id="" cols="30" rows="10" readonly="true" style="width: 100%;max-width: 100%;
+                                height: 44px;
+                                border: 0px;">{!track.Obj.Source}</textarea></td>
+                                <td>
+                                    <textarea name="" id="" cols="30" rows="10" readonly="true" style="width: 100%;max-width: 100%;
+                                    height: 44px;
+                                    border: 0px;">{!track.Obj.Details}</textarea>
+                                </td>
+                                <td>{!track.Obj.CreatedByName}</td>
+                            </tr>
+                        </apex:repeat>
+                    </tbody>
+                </table>
+                <c:rsPaginationComponent nextPage="{!getNextPage}" previousPage="{!getPreviousPage}" firstPage="{!getFirstPage}" lastPage="{!getLastPage}" viewIndex="{!ViewIndex}" viewLimit="{!ViewLimit}" totalParts="{!TotalParts}" pageNumber="{!PageNum}" numberOfPages="{!NumberOfPages}" rendered="{!TotalParts > ResultLimit}" reRender="{!reRender}"/>
+            </apex:outputPanel>
+
+        </div>
+    </div>
+
+</apex:component>

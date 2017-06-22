@@ -1,0 +1,51 @@
+<apex:page standardController="ProjectTeamMember__c" showHeader="false" sidebar="false" tabstyle="ProjectTeamMember__c">
+    <apex:includeScript value="{!$Resource.ECO_jQuery_1_11_2_min_js}"/>
+    <script>
+
+        $(document).ready(function() {
+        
+        //Hide Reassign link for Approval Process
+        var reassign;
+        $( "a" ).each(function( index ) {
+           var href= $( this ).attr("href");
+
+           if (typeof href != 'undefined') {
+               if (href.includes("REASSIGN")) {
+                   reassign = $(this).parent();
+                   return false; //break
+               }   
+           }               
+        });
+        reassign.html(reassign.children().eq(1));      
+        
+        
+        
+        $('td.actionColumn>a').attr('target','_blank');
+            $("input[name='piSubmit']").hide();
+            $(".pShowMore").hide();
+
+            $(".pShowMore").on("click", "a", function(){                
+                //SINCE BUTTON LOADS ASYNCHRONOUSLY WE NEED TO POLL FOR 5 SECONDS 
+                //TO HIDE SUBMIT FOR APPROVAL BUTTON WHEN 'SHOW MORE' IS CLICKED
+                pollFunc(hideBtn, 5000, 1);                
+            });
+            function hideBtn(){
+                $("[name='piSubmit']").hide();                 
+            }
+            function pollFunc(fn, timeout, interval) { 
+                var startTime = (new Date()).getTime();
+                interval = interval || 1000;
+                (function p() {
+                    fn();
+                    //console.log(((new Date).getTime() - startTime ));
+                    if (((new Date).getTime() - startTime ) <= timeout)  {
+                        setTimeout(p, interval);
+                    }
+                })();                
+            }            
+        });   
+
+    </script>
+    <br/>
+    <apex:relatedList id="ApprovalHistory" list="ProcessSteps" />
+</apex:page>

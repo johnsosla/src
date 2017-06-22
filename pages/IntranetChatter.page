@@ -1,0 +1,31 @@
+<apex:page showHeader="false" controller="IntranetChatter">
+    <style type="text/css">        
+        body{
+        	padding: 1em;
+        }
+        a, .zen .publisherTypeOverflow a, .publisherTypeOverflow span, .publisherTypeOverflow div {
+        	color: #337ab7 !important;
+        }
+		.publishercontainer.defaultState #publishersharebutton {
+        	background-image: none;
+    		background-color: #00b5e5;
+        	border: solid 1px #fff;
+            border-radius: 0;
+        	cursor: pointer;
+        	box-shadow: none;
+        }        
+        #publishersharebutton, .publishercontainer.defaultState #publishersharebutton:hover, .publishercontainer.defaultState #publishersharebutton:active, .publishercontainer.defaultState #publishersharebutton:focus, .publishercontainer.defaultState #publishersharebutton.onHover {
+        	background-image: none;
+    		background-color: #00b5e5;
+        	border-color: #00b5e5; 
+        	border-radius: 2px;
+        }
+        .publishercontainer, .feedcontainer {
+        	max-width: none;
+        }
+        .cxallfeedactions .feeditemActionMenu .zen-options {
+        	left: -85px;
+        }
+    </style>
+    <chatter:feed entityId="{!feedID}" />
+</apex:page>

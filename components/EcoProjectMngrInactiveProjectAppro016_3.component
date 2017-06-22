@@ -1,0 +1,10 @@
+<apex:component language="{!theLanguage}" controller="nttdcore.DLabelChildController" access="global" ><nttdcore:DLabel name="DL1" default="The current Project Manager {{1}} for the subject project is no longer active in the system.  The employee''s supervisor has automatically been assigned as the interim Project Manager pending indentification and assignment of a new Project Manager.
+    
+    Project Number: {{2}}
+    Project Name: {{3}}
+    Client: {{4}}" labelParent="{!this}" componentContext="EcoProjectMngrInactiveProjectAppro016_3" p1="{!theRelatedTo.TeamMemberName__c}" p2="{!theRelatedTo.OracleProjectNumber__c}" p3="{!theRelatedTo.ProjectLongName__c}" p4="{!theRelatedTo.InvoicingClient__c}" /><nttdcore:DLabel name="DL2" default="Project Link: {{1}}{{2}}" labelParent="{!this}" componentContext="EcoProjectMngrInactiveProjectAppro016_3" p1="{!LEFT($Api.Partner_Server_URL_290,FIND('services',$Api.Partner_Server_URL_290)-1)}" p2="{!theRelatedTo.Id}" /><apex:attribute name="theLanguage" type="String" required="true" description="language" access="global" /><apex:attribute name="theRecipient" type="Contact" required="true" description="recipient" access="global" /><apex:attribute name="theRelatedTo" type="ProjectTeamMember__c" required="true" description="related to" access="global" />
+    {!dlRoot.dLabel['DL1']}
+    
+    <!--Project Link: {!theRelatedTo.ProjectLink__c}-->
+    {!dlRoot.dLabel['DL2']}
+<nttdcore:DLabelInit language="{!theLanguage}" labelParentInit="{!this}" /></apex:component>

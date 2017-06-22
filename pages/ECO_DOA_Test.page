@@ -1,0 +1,5 @@
+<apex:page showHeader="true" sidebar="true" standardController="DOAApprovalRequest__c" extensions="ECO_DOAApprovalsController">
+    <apex:form >
+    	<apex:outputField value="{!oDOA.Test_DoA_Approver_Page__c}"/>
+    </apex:form>
+</apex:page>

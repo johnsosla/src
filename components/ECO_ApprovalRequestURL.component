@@ -1,0 +1,8 @@
+<apex:component controller="ECO_ApprovalRequestUrlController" access="global">
+    <apex:attribute name="relatedToId" assignTo="{!targetObjectId}" type="String" description="ID of the record whose last approval comments to retrieve"/>
+    <apex:attribute name="textType" type="String" description="Return either HTML Link or PlainText. Values should be either HTML or PlainText"/>
+    
+    <apex:outputText rendered="{!IF(textType<>'PlainText',True,False)}"><a href="{!url}">Approval Link</a></apex:outputText>
+    <apex:outputText rendered="{!IF(textType='PlainText',True,False)}" value="{!url}" />
+    
+</apex:component>

@@ -1,0 +1,35 @@
+<apex:component controller="ECO_HelpTextController">
+	<apex:stylesheet value="{!URLFOR($Resource.ECO_Blink, 'blink.css')}"/>
+
+	<apex:attribute name="HelpID" type="String" description="The name from HelpText__c" assignTo="{!theHelpId}" />
+
+	<apex:outputPanel layout="none" rendered="{!!editMode && !ISNULL(helpValue)}">
+		<div class="mouseOverInfoOuter" onfocus="addMouseOver(this)" onmouseover="addMouseOver(this)" tabindex="0">
+			<img src="/s.gif" alt="" class="helpIcon" title="" style="margin-bottom:1px" />
+		    
+		    <div class="mouseOverInfo" style="display: none; left: 16px;">
+		        <div class="body"><apex:outputText escape="false" value="{!helpValue}" /></div>
+		    </div>
+		</div>
+	</apex:outputPanel>
+
+	<apex:outputPanel layout="none" rendered="{!editMode && !ISNULL(helpValue)}">
+		<apex:outputLink value="/{!helpEditId}/e" style="text-decoration:none;" target="helpEdit">
+			<div class="mouseOverInfoOuter" onfocus="addMouseOver(this)" onmouseover="addMouseOver(this)" tabindex="0">
+				<img src="/s.gif" alt="" class="helpIcon" title="" style="margin-bottom:1px" />
+			    
+			    <div class="mouseOverInfo" style="display: none; left: 16px;">
+			        <div class="body"><apex:outputText escape="false" value="{!helpValue}" /></div>
+			    </div>
+			</div>
+		</apex:outputLink>
+	</apex:outputPanel>
+
+	<apex:outputPanel layout="none" rendered="{!editMode && ISNULL(helpValue)}">
+		<apex:outputLink value="/apex/ECO_CreateHelpText?helpName={!theHelpId}" style="text-decoration:none;" target="helpEdit">
+			<div class="mouseOverInfoOuter blink" tabindex="0">
+				<img src="/s.gif" alt="" class="helpIcon" title="" style="margin-bottom:1px" />
+			</div>
+		</apex:outputLink>
+	</apex:outputPanel>
+</apex:component>

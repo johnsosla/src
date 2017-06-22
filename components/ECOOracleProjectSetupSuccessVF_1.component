@@ -1,0 +1,18 @@
+<apex:component language="{!theLanguage}" controller="nttdcore.DLabelChildController" access="global" ><apex:attribute name="theLanguage" type="String" required="true" description="language" access="global" /><apex:attribute name="theRecipient" type="Contact" required="true" description="recipient" access="global" /><apex:attribute name="theRelatedTo" type="pse__Proj__c" required="true" description="related to" access="global" />
+ <apex:outputpanel > 
+        <p><nttdcore:DLabel name="DL1" default="The subject project has been successfully setup in Oracle.   The charge number and associated task structure is provided below." labelParent="{!this}" componentContext="ECOOracleProjectSetupSuccessVF_1" />
+        {!dlRoot.dLabel['DL1']}  
+        </p><p>
+        <b><nttdcore:DLabel name="DL2" default="Project Name:" labelParent="{!this}" componentContext="ECOOracleProjectSetupSuccessVF_1" />{!dlRoot.dLabel['DL2']}</b> {!theRelatedTo.ProjectLongName__c}
+        <br/>
+        <b><nttdcore:DLabel name="DL3" default="Oracle Project Number:" labelParent="{!this}" componentContext="ECOOracleProjectSetupSuccessVF_1" />{!dlRoot.dLabel['DL3']}</b>  {!theRelatedTo.OracleProjectnumber__c}
+        </p><p>
+        <a href="{!theRelatedTo.ChargeableProjectTasksReportId__c}" ><nttdcore:DLabel name="DL4" default="Chargeable Task Report" labelParent="{!this}" componentContext="ECOOracleProjectSetupSuccessVF_1" /> {!dlRoot.dLabel['DL4']} </a>
+        <br/>
+        <!--<a href="{!theRelatedTo.Link}"> Project Link </a>-->
+        <a href="{!LEFT($Api.Partner_Server_URL_290,FIND('services',$Api.Partner_Server_URL_290)-1)}{!theRelatedTo.Id}" ><nttdcore:DLabel name="DL5" default="Project Link" labelParent="{!this}" componentContext="ECOOracleProjectSetupSuccessVF_1" />
+         {!dlRoot.dLabel['DL5']}
+         </a>
+         </p>
+ </apex:outputpanel> 
+<nttdcore:DLabelInit language="{!theLanguage}" labelParentInit="{!this}" /></apex:component>

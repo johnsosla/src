@@ -1,0 +1,5 @@
+<apex:page showHeader="true" sidebar="false" controller="ECO_ActivityExtension" action="{!redirect}">
+	<apex:form >
+		<apex:pageMessages />
+	</apex:form>
+</apex:page>

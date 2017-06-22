@@ -1,0 +1,527 @@
+<apex:page standardcontroller="pse__Proj__c" extensions="ECO_BudgetQuestionnaireController,nttdcore.DLabelParentController" id="thePage" sidebar="false" title="{!theProject.Name} - Budget Setup Questionnaire" >
+    <script>
+    /*** Prevents DatePicker from getting focus on load ***/
+    function setFocusOnLoad() {}
+    </script>
+	<apex:includescript value="{!$Resource.ECO_jQuery_1_11_2_min_js}" />
+	<apex:includescript value="{!URLFOR($Resource.ECO_jQueryUI_1_11_2, 'jquery-ui.min.js')}" />
+	<apex:includescript value="{!URLFOR($Resource.ECO_Bootstrap_3_3_2, 'js/bootstrap.min.js')}" />
+	<apex:includescript value="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/js/nifty.min.js')}" />
+	
+	<apex:stylesheet value="{!URLFOR($Resource.ECO_jQueryUI_1_11_2_Themes, 'themes/smoothness/jquery-ui.css')}" />
+	<apex:stylesheet value="{!URLFOR($Resource.ECO_Bootstrap_3_3_2, 'css/bootstrap.min.css')}" /> 
+	<apex:stylesheet value="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/css/nifty.css')}" />
+	<apex:stylesheet value="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/css/font-awesome.min.css')}" /> <!-- -->
+	
+	<script type="text/javascript" >
+		var activeItem;
+		
+		$(document).ready(function () {
+			onCompleteAction();
+			
+			$('#spinnerModal').modal({
+				show: false
+			});
+
+			$('[id$=budgetStrategy').each(function() {
+                $.data(this, 'current', $(this).val());
+            });
+
+            $('[id$=budgetStrategy').change( function() {
+                var selected = $(this).val();
+                if ( {!pse__Proj__c.DateLastCompletedBudgetQuestionnaire__c != null} ) {
+                    if(!confirm('Are you sure you want to change your Budget strategy?\nThis will reset all hours/costs/revenue to 0')) {
+                       $(this).val($.data(this, 'current')); 
+                        return false;
+                    }
+                }
+
+                $.data(this, 'current', selected);
+            });
+		});
+		
+		function onCompleteAction () {
+			attachModal();
+			hideGearModal();
+		}
+		
+		function showGearModal () {
+			$('#spinnerModal').modal({
+				show: true
+			});
+		}
+		
+		function hideGearModal () {
+			$('#spinnerModal').modal('hide');
+		}
+		
+		function attachModal () {
+			$('#modalWindow').modal({
+				show: true
+				, backdrop: 'static'
+				, keyboard: false
+			});
+	    }
+	    
+	    function showAttachmentModal () {
+	    	$('#attachmentModal').show();
+	    }
+
+    	function fileChosen(attachButton,documentField,overrideField)
+    	{
+    		if(documentField.value != '')
+    		{
+				document.getElementById(attachButton).style.visibility = 'visible';			
+				document.getElementById(overrideField).value = '';
+				document.getElementById(overrideField).style.visibility = 'visible';				
+			}
+			else
+			{
+				document.getElementById(attachButton).style.visibility= 'hidden';
+				document.getElementById(overrideField).style.visibility= 'hidden';			
+			}		
+    	}
+
+        function confirmStrategyChange(elem, confirmString) {
+            return true;
+            var oldValue = elem.defaultValue;
+            var newValue = elem.value;
+            if ( {!pse__Proj__c.DateLastCompletedBudgetQuestionnaire__c != null} ) {
+                if( confirm('Are you sure you want to change your Budget strategy?\nThis will reset all '+ confirmString + ' to 0')) {
+                    elem.defaultValue = elem.value;
+                } else {
+                    elem.value = elem.defaultValue
+                }
+            }
+
+            return true;
+        }
+	    	    
+	</script>
+	
+	<style>
+		.largerTextBox {
+			width: 85%;
+		}
+		
+		div.attachmentModal {
+			//display: none;
+		}
+		
+		.percentInput{
+		  float: right;
+		  z-index: 999;
+		  margin-right: -45px;
+		  margin-top: 1px;
+		  color: #A7A7A7;
+		}
+		
+		.smallInput {
+			width: 46px;
+			float:right;
+			line-height:14px;
+			height: 19px;
+		}
+		.fileList
+		{
+			padding-top: 5px;
+			padding-bottom: 5px;
+		}		
+		
+  		.attachNewFile{
+  			visibility: hidden;
+  		}	
+        
+        .customHelpText{
+            padding:7px;
+            border:1px solid #85B3CE;
+            min-height:30px;
+            display:block;
+            width:auto;
+            margin:0;
+        //  background-color:#C6E4EE;
+            background-color:#A2D3F1;
+            background-repeat:no-repeat;
+            border-radius:4px;
+        }
+        
+        .customHelpBody{
+            display:block;
+            color:#;
+            max-width:95%;
+        }
+        
+        .mouseOverInfoOuter{
+        	text-align:left;
+        }
+	</style>
+	
+	<nttdcore:DLabel name="DL56" default="Budget Setup Questionnaire" labelParent="{!this}" /><apex:sectionheader title="{!theProject.Name}" subtitle="{!dLabel['DL56']}" id="sectionHeader" />
+	
+	<apex:pagemessages id="pageMessages" />
+	
+	<apex:form id="theForm" >
+		<apex:pageblock id="theBlock" ><nttdcore:DLabel name="DL107" default="Budget Questionnaire Attachments" labelParent="{!this}" /><nttdcore:DLabel name="DL108" default="Attach any supporting documents (e.g., external cost estimates, escalation rate tables, client bill rates).  If the details of the budget are calculated outside of this budget tool, then supporting detailed documentation MUST be provided here." labelParent="{!this}" /><nttdcore:DLabel name="DL109" default="File Name" labelParent="{!this}" /><nttdcore:DLabel name="DL110" default="Attach" labelParent="{!this}" />
+			<apex:pageblockbuttons >
+				<nttdcore:DLabel name="DL57" default="Save" labelParent="{!this}" /><apex:commandbutton action="{!saveAndReturn}" value="{!dLabel['DL57']}" />
+				<nttdcore:DLabel name="DL58" default="Return to Budget" labelParent="{!this}" /><apex:commandbutton action="{!cancelAndReturn}" value="{!dLabel['DL58']}" immediate="true" />
+			</apex:pageblockbuttons>
+			<div class="customHelpText" >
+                <div class="customHelpBody" ><nttdcore:DLabel name="DL59" default="The first step to setting up the project budget is completing a questionnaire to define the parameters and defaults for calculating cost and revenue.  This questionnaire also sets the basis for the cash flow analysis and captures relevant information on project team relocations to inform budget costs." labelParent="{!this}" />
+                    {!dLabel['DL59']}
+                </div>
+            </div>
+            <br/>
+             <apex:actionregion ><nttdcore:DLabel name="DL60" default="Project Info" labelParent="{!this}" /><nttdcore:DLabel name="DL61" default="Select the desired budget level for project cost and revenue (top task, bottom task or project level).  These setting will control at which level of the WBS you be entering budget details.   Refer to the help text for each budget type for further guidance." labelParent="{!this}" /><nttdcore:DLabel name="DL62" default="Check &ldquo;This project is offline&rdquo; if an estimate was created outside of ePM (e.g., AECOM Bid Model, Excel) and attach the estimate in the Attachments section.  External cost estimating tools cannot be imported into ePM." labelParent="{!this}" /><nttdcore:DLabel name="DL63" default="Budget Levels - Cost" labelParent="{!this}" /><nttdcore:DLabel name="DL64" default="Budget Levels - Revenue" labelParent="{!this}" /><nttdcore:DLabel name="DL65" default="This project is offline." labelParent="{!this}" /><nttdcore:DLabel name="DL77" default="ADD" labelParent="{!this}" /><nttdcore:DLabel name="DL78" default="DEL" labelParent="{!this}" /><nttdcore:DLabel name="DL79" default="Date Effective" labelParent="{!this}" /><nttdcore:DLabel name="DL80" default="Description" labelParent="{!this}" /><nttdcore:DLabel name="DL81" default="Assigned To" labelParent="{!this}" /><nttdcore:DLabel name="DL82" default="Billing Schedule" labelParent="{!this}" /><nttdcore:DLabel name="DL83" default="Select the project payment terms and billing structure (e.g., milestone or progress) to calculate the anticipated billing schedule.  This information is used to assess cash flow for the project." labelParent="{!this}" /><nttdcore:DLabel name="DL84" default="Payment Terms" labelParent="{!this}" /><nttdcore:DLabel name="DL85" default="Billing Structure" labelParent="{!this}" /><nttdcore:DLabel name="DL86" default="Frequency" labelParent="{!this}" /><nttdcore:DLabel name="DL87" default="Project Start Date" labelParent="{!this}" /><nttdcore:DLabel name="DL88" default="Project End Date" labelParent="{!this}" /><nttdcore:DLabel name="DL89" default="First Invoice date" labelParent="{!this}" /><nttdcore:DLabel name="DL90" default="Calculate Milestones" labelParent="{!this}" /><nttdcore:DLabel name="DL91" default="ADD" labelParent="{!this}" /><nttdcore:DLabel name="DL92" default="DEL" labelParent="{!this}" /><nttdcore:DLabel name="DL93" default="Expected Date" labelParent="{!this}" /><nttdcore:DLabel name="DL94" default="Description" labelParent="{!this}" /><nttdcore:DLabel name="DL95" default="Amount" labelParent="{!this}" /><nttdcore:DLabel name="DL96" default="Relocations / Secondments" labelParent="{!this}" /><nttdcore:DLabel name="DL97" default="For projects that require relocation or secondment of staff from another AECOM office use this section to capture the staff details and estimated costs to inform your budget (e.g., visa fees, relocation costs, lodging).  Contact the Global Mobility team for assistance and guidance on estimating the costs of relocation.  Cost estimates can be uploaded against each seconded resource." labelParent="{!this}" /><nttdcore:DLabel name="DL98" default="ADD" labelParent="{!this}" /><nttdcore:DLabel name="DL99" default="DEL" labelParent="{!this}" /><nttdcore:DLabel name="DL100" default="Name" labelParent="{!this}" /><nttdcore:DLabel name="DL101" default="Home Location" labelParent="{!this}" /><nttdcore:DLabel name="DL102" default="Secondment Location" labelParent="{!this}" /><nttdcore:DLabel name="DL103" default="Estimated Costs" labelParent="{!this}" /><nttdcore:DLabel name="DL104" default="Attachments" labelParent="{!this}" /><nttdcore:DLabel name="DL105" default="+" labelParent="{!this}" /><nttdcore:DLabel name="DL106" default="Total Relocation/Secondment Costs to be included" labelParent="{!this}" />
+			<apex:pageblocksection id="projectInfo" title="{!dLabel['DL60']}" columns="1" collapsible="false" >
+                <apex:pageblocksection columns="1" >
+                	<div class="customHelpText" >
+                        <div class="customHelpBody" >
+                            {!dLabel['DL61']}
+                            <br/><br/>
+                        	{!dLabel['DL62']}
+                        </div>
+                    </div>
+                    <br/>
+                </apex:pageblocksection>
+                <apex:pageblocksection columns="2" >
+                <apex:pageblocksectionitem >					
+                    <apex:outputpanel >
+                    	<apex:outputlabel value="{!dLabel['DL63']}" />                    
+                        <c:ECO_HelpIcon helptext="<b>Budget Levels – Cost</b><br/>
+                                                  Select here the level at which financial costs will be budgeted on the project, the options available are:<br/>
+                                                  <ul>
+                                                  	<li>Top Task</li>
+                                                  	<li>Bottom Task</li>
+                                                  </ul>" />
+                    </apex:outputpanel>
+                    <apex:outputpanel layout="inline" >
+                    <apex:inputfield value="{!theProject.BudgetStrategy__c}" required="true" rendered="{!NOT(IsSynced)}" id="budgetStrategy" onchange="confirmStrategyChange(this, 'hours and costs');" />
+                    <apex:outputfield value="{!theProject.BudgetStrategy__c}" rendered="{!(IsSynced)}" />
+                    </apex:outputpanel>
+				</apex:pageblocksectionitem>
+                <apex:pageblocksectionitem >
+					<apex:outputpanel >
+                        <apex:outputlabel value="{!dLabel['DL64']}" />
+                        <c:ECO_HelpIcon helptext="<b>Budget Levels – Revenue</b><br/>
+                                                  The level at which revenue is budgeted.  Options are either Project (typical projects are at the project level) or Top Task<br/><br/>
+ 
+                                                  At Project level, the Revenue Budget is only entered as one amount for the entire project. At Top Task level, revenue may be budgeted among the parent (top) tasks. These totals will then be rolled up to create the total Revenue Budget for the project.<br/><br/>
+                                                  
+                                                  If Funding for the project is/was at the Top Task level, then the Revenue Budget must also be at the Top Task level. If Funding is/was at the Project level, then the Revenue Budget can be either at the Project Level or the Top Task level.<br/><br/>
+                                                  
+                                                  In all cases, the Revenue Budget amount on the Budget Maintenance worksheet needs to equal the amount of the Agreement functional funding amount on the Clients and Agreement worksheet." />
+                        </apex:outputpanel>
+                     <apex:outputpanel layout="inline" >   
+					<apex:inputfield value="{!theProject.BudgetStrategyRevenue__c}" required="true" rendered="{!NOT(IsSynced)}" id="budgetStrategy" onchange="confirmStrategyChange(this, 'revenue');" />
+                    <apex:outputfield value="{!theProject.BudgetStrategyRevenue__c}" rendered="{!(IsSynced)}" />
+                    </apex:outputpanel>
+				</apex:pageblocksectionitem>
+				<apex:pageblocksectionitem >
+					<apex:outputpanel layout="inline" >
+						<apex:inputfield value="{!theProject.BudgetOffline__c}" />
+						<apex:outputlabel value="{!dLabel['DL65']}" />
+					</apex:outputpanel>
+				</apex:pageblocksectionitem>
+                </apex:pageblocksection>
+			</apex:pageblocksection>
+			
+            <apex:actionregion ><nttdcore:DLabel name="DL66" default="Fee Basis" labelParent="{!this}" /><nttdcore:DLabel name="DL67" default="Select the project fee basis to inform the budget tool on how revenue/bill rates will be calculated (e.g., multiplier, lump sum, bill rate).  The values entered here will be the default settings on the budget and can be modified later on a person-by-person basis (as needed)." labelParent="{!this}" /><nttdcore:DLabel name="DL68" default="Commercial Structure" labelParent="{!this}" /><nttdcore:DLabel name="DL69" default="Default Bill Rate" labelParent="{!this}" /><nttdcore:DLabel name="DL70" default="Default Labour %age" labelParent="{!this}" /><nttdcore:DLabel name="DL71" default="Default subs %age" labelParent="{!this}" /><nttdcore:DLabel name="DL72" default="Default ODC %age" labelParent="{!this}" /><nttdcore:DLabel name="DL73" default="Default Labour Multiplier" labelParent="{!this}" /><nttdcore:DLabel name="DL74" default="Default subs Multiplier" labelParent="{!this}" /><nttdcore:DLabel name="DL75" default="Default ODC Multiplier" labelParent="{!this}" /><nttdcore:DLabel name="DL76" default="Escalation Applies" labelParent="{!this}" />
+                <apex:actionfunction name="toggleEscalationSectionApex" action="{!toggleEscalationSection}" rerender="escalationSection, pageMessages, taskSection" />
+                
+                <apex:pageblocksection title="{!dLabel['DL66']}" collapsible="false" columns="1" id="escalationSection" >
+                    <div class="customHelpText" >
+                        <div class="customHelpBody" >
+                            {!dLabel['DL67']}
+						</div>
+                    </div>
+                    <br/>
+                    <apex:pageblocksectionitem >
+                        <apex:outputpanel >
+                        	<apex:outputlabel value="{!dLabel['DL68']}" />
+                            <c:ECO_HelpIcon helptext="<b>Commercial Structure</b><br/>
+                                                  Select the commercial structure/fee basis for the project.  This will  inform the budget  on how revenue/bill rates will be calculated (e.g., multiplier, lump sum, percent markup and bill rate).  The values entered here will be the default settings on the budget which  can then be modified later on a person-by-person basis (as needed)." />
+                        </apex:outputpanel>
+                        <apex:inputfield value="{!theProject.DefaultMarginType__c}" onchange="toggleEscalationSectionApex();" required="true" />
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem >
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem rendered="{!theProject.DefaultMarginType__c == 'T&M Bill Rate'}" >
+                        <apex:outputlabel value="{!dLabel['DL69']}" />
+                        <apex:inputfield value="{!theProject.DefaultBillRate__c}" />
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem rendered="{!theProject.DefaultMarginType__c == 'T&M FBLR Markup'}" >
+                        <apex:outputlabel value="{!dLabel['DL70']}" />
+                        <apex:inputfield value="{!theProject.DefaultUpliftLabor__c}" />
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem rendered="{!theProject.DefaultMarginType__c == 'T&M FBLR Markup'}" >
+                        <apex:outputlabel value="{!dLabel['DL71']}" />
+                        <apex:inputfield value="{!theProject.DefaultUpliftSubs__c}" />
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem rendered="{!theProject.DefaultMarginType__c == 'T&M FBLR Markup'}" >
+                        <apex:outputlabel value="{!dLabel['DL72']}" />
+                        <apex:inputfield value="{!theProject.DefaultUpliftODCs__c}" />
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem rendered="{!theProject.DefaultMarginType__c == 'T&M Direct Labour Multiplier'}" >
+                        <apex:outputlabel value="{!dLabel['DL73']}" />
+                        <apex:inputfield value="{!theProject.DefaultUpliftLabor__c}" />
+                        <!--apex:inputText value="{!defaulLabourMultiplier}" /-->
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem rendered="{!theProject.DefaultMarginType__c == 'T&M Direct Labour Multiplier'}" >
+                        <apex:outputlabel value="{!dLabel['DL74']}" />
+                        <apex:inputfield value="{!theProject.DefaultUpliftSubs__c}" />
+                        <!--apex:inputText value="{!defaulSubsMultiplier}" /-->
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem rendered="{!theProject.DefaultMarginType__c == 'T&M Direct Labour Multiplier'}" >
+                        <apex:outputlabel value="{!dLabel['DL75']}" />
+                        <apex:inputfield value="{!theProject.DefaultUpliftODCs__c}" />
+                        <!--apex:inputText value="{!defaulODCMultiplier}" /-->
+                    </apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem >
+                        <apex:outputpanel >
+                            <apex:outputlabel value="{!dLabel['DL76']}" />
+                            <c:ECO_HelpIcon helptext="<b>Escalation</b><br/>
+                                                      Check the “Escalation  Applies” box to enter the effective date and description of the anticipated escalation rate.  The owner assigned to the item will receive a reminder before the effective date so any necessary actions can be taken (i.e., adjust EAC, negotiate with client, etc.). <br/><br/>
+                                                      It will not automatically apply escalation to the project.  If there is significant escalation this can be dealt with by either:<br/>
+													  <ul>
+                                                      	<li type='A'>Adding resources to the project multiple times (once for each cost escalation period) and updating the cost /revenue rates for each entry, then allocating hours appropriately.</li>
+                                                      	<li type='A'>Over-riding the raw cost of any given individual with a higher rate which approximates the value of escalation which may apply.</li>            
+                                                      </ul>" />
+                        </apex:outputpanel>
+                        <apex:inputfield value="{!theProject.EscalationApplies__c}" onchange="toggleEscalationSectionApex();" />
+                    </apex:pageblocksectionitem>                        
+                </apex:pageblocksection>
+            </apex:actionregion>
+            <apex:pageblocksection id="taskSection" columns="1" >
+                <apex:actionregion >
+                    <apex:pageblocksectionitem rendered="{!theProject.EscalationApplies__c}" >
+                        <apex:pageblocktable value="{!tasks}" var="taskNumber" id="taskTable" >
+                            <apex:column >
+                                <apex:facet name="header" >
+                                    <apex:commandbutton action="{!addTask}" rerender="pageMessages, taskTable" value="{!dLabel['DL77']}" immediate="true" />
+                                </apex:facet>
+                                <apex:commandbutton action="{!removeTask}" value="{!dLabel['DL78']}" rerender="pageMessages, taskTable" immediate="true" >
+                                    <apex:param name="selectedTaskNumber" assignto="{!selectedTaskNumber}" value="{!taskNumber}" />
+                                </apex:commandbutton>
+                            </apex:column>
+                            <apex:column >
+                                <apex:facet name="header" >
+                                    {!dLabel['DL79']}
+                                </apex:facet>
+                                <apex:inputfield value="{!tasks[taskNumber].ActivityDate}" />
+                            </apex:column>
+                            <apex:column >
+                                <apex:facet name="header" >
+                                    {!dLabel['DL80']}
+                                </apex:facet>
+                                <apex:inputfield value="{!tasks[taskNumber].Description}" />
+                            </apex:column>
+                            <apex:column >
+                                <apex:facet name="header" >
+                                    {!dLabel['DL81']}
+                                </apex:facet>
+                                <apex:inputfield value="{!tasks[taskNumber].OwnerId}" required="false" />
+                            </apex:column>
+                        </apex:pageblocktable>
+                    </apex:pageblocksectionitem>
+                </apex:actionregion>            		
+            </apex:pageblocksection>
+				
+            <apex:pageblocksection title="{!dLabel['DL82']}" collapsible="false" columns="1" id="milestoneSection" >
+                <div class="customHelpText" >
+                    <div class="customHelpBody" >
+                        {!dLabel['DL83']}  
+                        <br/><br/>
+						<!-- Click the Cash Flow flyout tab on the main budget screen to view the cash flow graph for the project. --></div>
+                </div>
+                <apex:actionregion >
+                    <apex:pageblocksection columns="1" >
+                        <apex:pageblocksectionitem >
+                            <apex:outputpanel >
+                                <apex:outputlabel value="{!dLabel['DL84']}" for="paymentTerms" />
+                                <c:ECO_HelpIcon helptext="<b>Payment Terms</b><br/>
+                                                      Select the agreed/anticipated payment terms  for the contract.  This will determine the default timing of “cash in” for the project cashflow." />
+                        	</apex:outputpanel>
+                            <apex:inputfield value="{!theProject.PaymentTerms__c}" required="true" id="paymentTerms" />
+                        </apex:pageblocksectionitem>
+                        <apex:pageblocksectionitem >
+                            <apex:outputpanel >
+                                <apex:outputlabel value="{!dLabel['DL85']}" />
+                                <c:ECO_HelpIcon helptext="<b>Billing Structure</b><br/>
+                                                      Select the agreed/anticipated structure of billing for the project:<br/>
+													  <ul>
+                                                      	<li>Progress – regular invoicing at set intervals billing for cost/work done to date.  When selecting this option, you will be prompted to provide the invoicing frequency (days) and the date of the first invoice.  The system will then be able to calculate the billing dates fo r you.  Once your budget is completed, the system can then provide estimated billing  values for each progress claim based on the plan spend.</li>
+                                                      	<li>Milestone – invoicing at pre-determined milestone intervals, not based upon a recurring or regular schedule.  When selecting this option, you can manually enter the dates and values of each anticipated milestone invoice.</li>            
+                                                      </ul>" />
+                        	</apex:outputpanel>
+                            <apex:inputfield value="{!theProject.BillingStructure__c}" onchange="toggleMilestoneSectionApex();" required="true" />
+                        </apex:pageblocksectionitem>
+                    </apex:pageblocksection>
+                    
+                    <apex:pageblocksection columns="1" rendered="{!theProject.BillingStructure__c == 'Progress'}" >
+                        <apex:pageblocksectionitem >
+                            <apex:outputlabel value="{!dLabel['DL86']}" />
+                            <apex:inputfield value="{!theProject.MilestoneFrequency__c}" />
+                        </apex:pageblocksectionitem>
+                        <apex:pageblocksectionitem >
+                            <apex:outputlabel value="{!dLabel['DL87']}" />
+                            <apex:outputfield value="{!theProject.pse__Start_Date__c}" />
+                        </apex:pageblocksectionitem>
+                        <apex:pageblocksectionitem >
+                            <apex:outputlabel value="{!dLabel['DL88']}" />
+                            <apex:outputfield value="{!theProject.pse__End_Date__c}" />
+                        </apex:pageblocksectionitem>
+                        <apex:pageblocksectionitem >
+                            <apex:outputlabel value="{!dLabel['DL89']}" />
+                            <apex:inputfield value="{!theProject.DateOfFirstInvoice__c}" />
+                        </apex:pageblocksectionitem>
+                        <apex:pageblocksectionitem >
+                            <apex:commandbutton action="{!calculateMilestones}" value="{!dLabel['DL90']}" rerender="pageMessages, milestoneSection" />
+                        </apex:pageblocksectionitem>
+                    </apex:pageblocksection>
+                    <apex:actionfunction name="toggleMilestoneSectionApex" action="{!toggleMilestoneSection}" rerender="milestoneSection, pageMessages" immediate="false" />
+                    
+                </apex:actionregion>
+                <apex:pageblocksectionitem >
+                    <apex:actionregion >
+                        <apex:pageblocktable value="{!milestones}" var="milestoneNumber" id="milestoneTable" >
+                            <apex:column >
+                                <apex:facet name="header" >
+                                    <apex:commandbutton action="{!addMilestone}" rerender="pageMessages, milestoneTable" value="{!dLabel['DL91']}" immediate="true" />
+                                </apex:facet>
+                                <apex:commandbutton action="{!removeMilestone}" value="{!dLabel['DL92']}" rerender="pageMessages, milestoneTable" immediate="true" >
+                                    <apex:param name="selectedRecordNumber" assignto="{!selectedRecordNumber}" value="{!milestoneNumber}" />
+                                </apex:commandbutton>
+                            </apex:column>
+                            <apex:column >
+                                <apex:facet name="header" >
+                                    {!dLabel['DL93']}
+                                </apex:facet>
+                                <apex:inputfield value="{!milestones[milestoneNumber].ExDate__c}" />
+                            </apex:column>
+                            <apex:column >
+                                <apex:facet name="header" >
+                                    {!dLabel['DL94']}
+                                </apex:facet>
+                                <apex:inputfield value="{!milestones[milestoneNumber].Description__c}" />
+                            </apex:column>
+                            <apex:column >
+                                <apex:facet name="header" >
+                                    {!dLabel['DL95']}
+                                </apex:facet>
+                                <apex:inputfield value="{!milestones[milestoneNumber].Amount__c}" />
+                            </apex:column>
+                        </apex:pageblocktable>
+                    </apex:actionregion>
+                    
+                </apex:pageblocksectionitem>
+            </apex:pageblocksection>
+				
+				<!--apex:pageBlockSection title="Forex" collapsible="false" columns="1">
+					Coming Soon!
+				</apex:pageBlockSection-->
+				
+				<apex:pageblocksection title="{!dLabel['DL96']}" collapsible="false" columns="1" >
+					<div class="customHelpText" >
+                        <div class="customHelpBody" >
+                            {!dLabel['DL97']}
+                        </div>
+                    </div>
+                    <apex:pageblocksectionitem id="relocSection" >
+                       
+                        	<apex:pageblocktable value="{!relocs}" var="relocNumber" id="relocTable" >
+                                <apex:column >
+                                    <apex:facet name="header" >
+                                        <apex:commandbutton action="{!addReloc}" rerender="pageMessages, relocTable" value="{!dLabel['DL98']}" immediate="true" />
+                                    </apex:facet>
+                                    <apex:commandbutton action="{!removeReloc}" value="{!dLabel['DL99']}" rerender="pageMessages, relocTable" immediate="true" >
+                                        <apex:param name="selectedRecordNumber" assignto="{!selectedRecordNumber}" value="{!relocNumber}" />
+                                    </apex:commandbutton>
+                                </apex:column>
+                                <apex:column >
+                                    <apex:facet name="header" >
+                                        {!dLabel['DL100']}
+                                    </apex:facet>
+                                    <apex:inputfield value="{!relocs[relocNumber].Name__c}" />
+                                </apex:column>
+                                <apex:column >
+                                    <apex:facet name="header" >
+                                        {!dLabel['DL101']}
+                                    </apex:facet>
+                                    <apex:inputfield value="{!relocs[relocNumber].HomeLocation__c}" />
+                                </apex:column>
+                                <apex:column >
+                                    <apex:facet name="header" >
+                                        {!dLabel['DL102']}
+                                    </apex:facet>
+                                    <apex:inputfield value="{!relocs[relocNumber].SecondmentLocation__c}" />
+                                </apex:column>
+                                <apex:column >
+                                    <apex:facet name="header" >
+                                        {!dLabel['DL103']}
+                                    </apex:facet>
+                                    <apex:inputfield value="{!relocs[relocNumber].EstimatedCost__c}" />
+                                </apex:column>
+                                <apex:column >
+                                    <apex:facet name="header" >
+                                        {!dLabel['DL104']}
+                                    </apex:facet>
+                                    <apex:repeat value="{!relocs[relocNumber].Attachments}" var="attach" >
+                                        <a href="/servlet/servlet.FileDownload?file={!attach.Id}" alt="{!attach.Name}" title="{!attach.Name}" >
+                                            {!attach.Name}
+                                        </a>
+                                    </apex:repeat>
+
+                                    <apex:commandbutton action="{!goToAttachmentPage}" value="{!dLabel['DL105']}" rerender="pageMessages,theBlock" >
+                                        <apex:param name="relocNumber" value="{!relocNumber}" assignto="{!selectedRecordNumber}" />
+                                    </apex:commandbutton>
+                                   							
+                                </apex:column>
+                            </apex:pageblocktable>
+						
+					</apex:pageblocksectionitem>
+                    <apex:pageblocksectionitem >
+                        <apex:outputlabel value="{!dLabel['DL106']}" />
+                        <apex:inputfield value="{!theProject.TotalEstSecondmentCost__c}" />
+                    </apex:pageblocksectionitem>
+				</apex:pageblocksection>
+				</apex:actionregion>
+				<!--apex:pageBlockSection title="Custom Multiplier" collapsible="false" columns="1">
+					Coming Soon!
+				</apex:pageBlockSection-->
+			<!--/apex:pageBlockSection-->
+			
+			<apex:pageblocksection title="{!dLabel['DL107']}" collapsible="false" columns="1" >
+				<div class="customHelpText" >
+                    <div class="customHelpBody" >
+                        {!dLabel['DL108']}
+					</div>
+                </div>
+                <div class="fileList" >
+				<apex:pageblocktable value="{!AttachedBudgetQuestionnaireFiles}" var="attachedBudgetQuestionnaireFile" style="width: 825px;" rendered="{!theProject.BudgetQuestionnaireAttachments__c != null}" >
+					<apex:column headervalue="{!dLabel['DL109']}" >
+						<apex:outputlink value="{!URLFOR($Action.Attachment.Download, attachedBudgetQuestionnaireFile.Id)}" target="_blank" >
+							<apex:outputtext value="{!attachedBudgetQuestionnaireFile.Name}" />
+						</apex:outputlink>
+					</apex:column>
+					<apex:column value="{!attachedBudgetQuestionnaireFile.ContentType}" />	
+					<apex:column value="{!attachedBudgetQuestionnaireFile.LastModifiedDate}" />	
+					<apex:column value="{!attachedBudgetQuestionnaireFile.LastModifiedById}" />
+				</apex:pageblocktable>
+				</div>			
+				<apex:inputfile id="docBudgetQuestionnaireAttachment" value="{!docBudgetQuestionnaireAttachment.Body}" contenttype="{!docBudgetQuestionnaireAttachment.ContentType}" filename="{!docBudgetQuestionnaireAttachment.Name}" onchange="fileChosen('{!$Component.cmdBudgetQuestionnaireAttachment}', this, '{!$Component.overrideBudgetQuestionnaireName}'); return false;" />
+				<apex:inputtext id="overrideBudgetQuestionnaireName" value="{!overrideBudgetQuestionnaireName}" maxlength="80" html-placeholder="Override File Name" styleclass="attachNewFile" />
+				<apex:commandbutton id="cmdBudgetQuestionnaireAttachment" value="{!dLabel['DL110']}" action="{!saveBudgetQuestionnaireAttachmentAndProject}" styleclass="attachNewFile" /><br/>			
+			</apex:pageblocksection>
+		</apex:pageblock>
+		
+		<div class="modal" id="spinnerModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" >
+			<div class="modal-dialog modal-sm" >
+				<i class="fa fa-cog fa-spin" />
+			</div>
+		</div>
+		
+		<apex:pageblock id="dummyBlock" />
+
+	</apex:form>
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

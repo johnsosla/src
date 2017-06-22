@@ -1,0 +1,96 @@
+<apex:component layout="block" controller="nttdcore.DLabelChildController" >
+  <apex:attribute name="PageTitle" description="Page Title" type="String" required="true" />
+  <apex:attribute name="ProjectName" description="Project Name" type="String" required="true" />
+  <apex:attribute name="ProjectNumber" description="Project Number" type="String" required="true" />
+  <apex:attribute name="ProjectId" description="Project ID" type="String" required="true" />
+    
+    <nav class="navbar navbar-default customNavbar" >
+        <div class="container-fluid navbarBackground" >
+            <div class="navbar-header" style="width:100%" >
+                    <a class="navbar-brand navbarText" href="#" ><nttdcore:DLabel name="DL1" default="{{1}} - {{2}} - {{3}}" labelParent="{!this}" componentContext="ECO_PMD_NavigationBar" p1="{!ProjectNumber}" p2="{!ProjectName}" p3="{!pageTitle}" />{!dlRoot.dLabel['DL1']}</a> 
+                    <div style="float:right;display:inline;" >
+
+                        <div ng-controller="DropdownCtrl" >
+
+                            <!-- Single button with keyboard nav - ->
+                            <div class="btn-group" uib-dropdown="" uib-keyboard-nav="" on-toggle="toggled(open)">
+                                <button id="simple-btn-keyboard-nav" type="button" class="btn btn-primary" uib-dropdown-toggle="">
+                                    Dropdown with keyboard navigation <span class="caret"></span>
+                                </button>
+                                <ul class="uib-dropdown-menu" role="menu" aria-labelledby="simple-btn-keyboard-nav">
+                                    <li role="menuitem"><a href="javascript:history.go(-1);">Back</a></li>
+                                    <li role="menuitem"><a href="#">Action</a></li>
+                                    <li role="menuitem"><a href="#">Another action</a></li>
+                                    <li role="menuitem"><a href="#">Something else here</a></li>
+                                    <li class="divider"></li>
+                                    <li role="menuitem"><a href="#">Separated link</a></li>
+                                </ul>
+                            </div>
+                            -->
+                            <div>
+                                <br/>
+                                <select name="singleSelect" ng-model="data.singleSelect" ng-change="Selected()" >
+                                      
+                                    <option value="/{!ProjectId}" ><nttdcore:DLabel name="DL2" default="Project Command Console" labelParent="{!this}" componentContext="ECO_PMD_NavigationBar" />{!dlRoot.dLabel['DL2']}</option>
+                                    <option value="/apex/eco_pmd_projectdashboard?id={!ProjectId}" ><nttdcore:DLabel name="DL3" default="Project Dashboard" labelParent="{!this}" componentContext="ECO_PMD_NavigationBar" />{!dlRoot.dLabel['DL3']}</option>
+                                    <option value="/apex/eco_pmd_financialdashboard?id={!ProjectId}" ><nttdcore:DLabel name="DL4" default="Financial Dashboard" labelParent="{!this}" componentContext="ECO_PMD_NavigationBar" />{!dlRoot.dLabel['DL4']}</option>
+                                    <option value="/apex/eco_pmd_costdetail_labourhours?id={!ProjectId}" ><nttdcore:DLabel name="DL5" default="Cost Detail - Labour Hours" labelParent="{!this}" componentContext="ECO_PMD_NavigationBar" />{!dlRoot.dLabel['DL5']}</option>
+                                    <option value="/apex/eco_pmd_costdetail_labourcost?id={!ProjectId}" ><nttdcore:DLabel name="DL6" default="Cost Detail - Labour Costs" labelParent="{!this}" componentContext="ECO_PMD_NavigationBar" />{!dlRoot.dLabel['DL6']}</option>
+                                    <option value="/apex/eco_pmd_costdetail_odcexpenses?id={!ProjectId}" ><nttdcore:DLabel name="DL7" default="Cost Detail - ODC Expenses" labelParent="{!this}" componentContext="ECO_PMD_NavigationBar" />{!dlRoot.dLabel['DL7']}</option>
+                                    <option value="/apex/eco_pmd_costdetail_odcsubs?id={!ProjectId}" ><nttdcore:DLabel name="DL8" default="Cost Detail - ODC Subs" labelParent="{!this}" componentContext="ECO_PMD_NavigationBar" />{!dlRoot.dLabel['DL8']}</option>
+                                    <option value="/apex/eco_pmd_accountsreceivablereport?id={!ProjectId}" ><nttdcore:DLabel name="DL9" default="Billing &amp; A/R" labelParent="{!this}" componentContext="ECO_PMD_NavigationBar" />{!dlRoot.dLabel['DL9']}</option>
+                                    <option value="/apex/eco_pmd_RevenueDetails?id={!ProjectId}" ><nttdcore:DLabel name="DL10" default="Revenue Details" labelParent="{!this}" componentContext="ECO_PMD_NavigationBar" />{!dlRoot.dLabel['DL10']}</option>
+                                    <option value="/apex/eco_pmd_TrendAnalysis?id={!ProjectId}" ><nttdcore:DLabel name="DL11" default="Snapshot Trend Analysis" labelParent="{!this}" componentContext="ECO_PMD_NavigationBar" />{!dlRoot.dLabel['DL11']}</option>
+                                    <option value="/apex/eco_pmd_tasksummaryreport?id={!ProjectId}" ><nttdcore:DLabel name="DL12" default="Task Summary" labelParent="{!this}" componentContext="ECO_PMD_NavigationBar" />{!dlRoot.dLabel['DL12']}</option>
+                                    <option value="/apex/eco_pmd_earnedvaluedetail?id={!ProjectId}" ><nttdcore:DLabel name="DL13" default="Earned Value Detail" labelParent="{!this}" componentContext="ECO_PMD_NavigationBar" />{!dlRoot.dLabel['DL13']}</option>
+                                    <option value="/apex/eco_pmd_CommitmentsReport?id={!ProjectId}" ><nttdcore:DLabel name="DL14" default="x-Commitments" labelParent="{!this}" componentContext="ECO_PMD_NavigationBar" />{!dlRoot.dLabel['DL14']}</option>
+                                    
+                                </select>
+                            </div>
+                            
+                            
+                        </div> 
+
+                    </div>
+            </div>
+        </div>
+    </nav>
+<script>
+    (function () {
+        'use strict';
+        console.log('ecopmd.navigator - start');
+        angular.module('ecopmd.navigator', ['ngAnimate','ui.bootstrap']);
+        angular.module('ecopmd.navigator').controller('DropdownCtrl',  ['$scope',ddc]);
+
+        function ddc($scope){
+            console.log('ecopmd.navigator.dropdownctrl - start');
+            $scope.data = {singleSelect: null};
+
+             $scope.Selected = function(){
+              console.log($scope.data.singleSelect);
+              location.replace($scope.data.singleSelect);
+              // var redirectWindow = window.open($scope.data.singleSelect, '_blank');
+              // redirectWindow.location;
+
+            };
+        }
+
+        function dropdownCtrl($scope) {
+          
+          $scope.status = {
+            isopen: false
+          };
+
+          $scope.toggled = function(open) {
+            $log.log('Dropdown is now: ', open);
+          };
+
+          $scope.toggleDropdown = function($event) {
+            $event.preventDefault();
+            $event.stopPropagation();
+            $scope.status.isopen = !$scope.status.isopen;
+          };
+        };
+    })();
+</script>
+</apex:component>

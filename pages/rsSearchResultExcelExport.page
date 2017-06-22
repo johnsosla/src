@@ -1,0 +1,62 @@
+<apex:page sidebar="false" showHeader="false" controller="rsSearchResultExcelExportController" applyhtmltag="false" contentType="txt/xml#SearchResults.xls" cache="true" action="{!deleteSearchRecord}">
+<apex:outputText value="{!xlsHeader}"/>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+    xmlns:o="urn:schemas-microsoft-com:office:office"
+    xmlns:x="urn:schemas-microsoft-com:office:excel"
+    xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
+    xmlns:html="http://www.w3.org/TR/REC-html40">
+    <Styles>
+        <Style ss:ID="s1">
+        <Alignment/>
+        <Borders/>
+        <Font ss:Bold="1"/>
+        <Interior/>
+        <NumberFormat/>
+        <Protection/>
+        </Style>
+    </Styles>
+    <Worksheet ss:Name="People">
+        <Table x:FullColumns="1" x:FullRows="1">
+            <Column ss:Width="170"/>
+            <apex:repeat var="header" value="{!Headers}">
+                <Column ss:Width="170"/>
+            </apex:repeat>
+            <Row>
+            <Cell ss:StyleID="s1"><Data ss:Type="String" >{!$Label.Name}</Data></Cell>
+            <apex:repeat var="header" value="{!Headers}">
+                <Cell ss:StyleID="s1"><Data ss:Type="String" >{!header}</Data></Cell>
+            </apex:repeat>
+            </Row>
+            <apex:repeat value="{!Results}" var="result">
+                <Row>
+                <Cell><Data ss:Type="String">{!result.userName}</Data></Cell>
+                <apex:repeat var="cell" value="{!result.cells}">
+                    <Cell><Data ss:Type="String" >{!cell}</Data></Cell>
+                </apex:repeat>
+                </Row>
+            </apex:repeat>
+        </Table>
+    </Worksheet>
+</Workbook>
+
+<!-- <apex:pageBlock>
+	<apex:pageBlockTable value="{!Results}" var="result" id="resultTable">
+
+                    <apex:column >
+                        <apex:facet name="header">{!$Label.Name}</apex:facet>
+                        <apex:outputText value="{!result.userName}"/>
+                    </apex:column>
+
+                    <apex:repeat var="cell" value="{!result.cells}">
+                        <apex:column headerValue="test">
+                            <apex:outputText value="{!cell}"/>
+                        </apex:column>
+                    </apex:repeat>
+
+                    <apex:repeat var="header" value="{!headers}">
+                        <apex:column headerValue="{!header}" styleClass="empty-column-content"/>
+                    </apex:repeat>
+
+    </apex:pageBlockTable>
+</apex:pageBlock> -->
+</apex:page>

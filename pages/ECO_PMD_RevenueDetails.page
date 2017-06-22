@@ -1,0 +1,495 @@
+<apex:page standardcontroller="pse__Proj__c" extensions="ECO_PMD_RevenueDetails_Controller,nttdcore.DLabelParentController" >
+
+    <style type="text/css" >
+        .ag-header-cell-text {
+            white-space: normal;
+            font-size: smaller;
+        }
+        .watermark {
+            position: absolute;
+            top: 50%;                    
+            transform: translateY(-50%); 
+            opacity: 0.25;
+            font-size: 3em;
+            width: 100%;
+            text-align: center;
+            z-index: 1000;
+        }
+        .hidden{
+            display: none;
+        }
+        @media screen and (-ms-high-contrast: active), (-ms-high-contrast: none) {  
+           /* IE10+ specific styles go here */  
+           .ag-header-cell-text{ font-size:80%;}
+        }
+    </style>
+    <div ng-app="ecopmd" >
+        <apex:composition template="ECO_PMD_Chrome2" >
+
+            <apex:define name="head" >
+              <c:ECO_PMD_ag_grid_js />
+            </apex:define>
+
+            <apex:define name="mainContent" >
+                <div class="ecopmd-ag-wrap" >
+                    <div ng-controller="revenueDetailsController as ctrl" >
+                        <eco-pmd-revenue-details data="ctrl.revenueData" project-id="{!projectId}" project-name="{!projectName}" labels="ctrl.labels" />
+                    </div>
+                </div>
+            </apex:define>
+
+            <apex:define name="belowFooter" >
+
+                <script type="text/ng-template" id="eco-pmd-revenue-details-template" >
+                    <div class="container-fluid">
+                        <style>
+                        div.ag-fresh div#borderLayout_eRootPanel div#centerRow div#east {
+                            float: left !important;
+                        }
+                        </style>
+                        <div class="clearfix">
+                        </div>
+                        <div class="row">
+                            <div class="col-md-2 lead"> <!--ng-bind="vm.projectName">--></div>
+                            <div class="col-md-10">
+                                <div class="form-inline pull-right">
+                                    <label for="paPeriodSelect" ng-bind="vm.labels.lookbackPeriod"></label>
+                                    <select id="paPeriodSelect" class="form-control" ng-model="vm.selectedPeriod" ng-options="period.periodName for period in vm.paPeriods" ></select>
+                                     
+                                    <label for="lookbackCountInput" ng-bind="vm.labels.lookbackCount"></label>
+                                    <input id="lookbackCountInput" type="text" class="form-control" style="width: 50px;" ng-model="vm.lookbackCount" >
+                                       
+                                    <input type="text" class="form-control" ng-model="vm.grid.quickFilterText" style="width: 100px;" placeholder="{{vm.labels.filter}}" >
+                                       
+                                    <button class="btn btn-info" ng-click="vm.toggleColumnGroups(true)" ng-bind="vm.labels.expandAllColumns"></button>
+                                    <button class="btn btn-info" ng-click="vm.toggleColumnGroups(false)" ng-bind="vm.labels.collapseAllColumns"></button>
+                                    <button class="btn btn-info" ng-click="vm.grid.api.expandAll()" ng-bind="vm.labels.expandAll"></button>
+                                    <button class="btn btn-info" ng-click="vm.grid.api.collapseAll()" ng-bind="vm.labels.collapseAll"></button>
+                                    <button class="btn btn-primary" ng-click="vm.export()" ng-bind="vm.labels.export"></button>
+                                    <button class="btn btn-primary" ng-click="vm.toggleToolPanel()" ng-bind="vm.showToolPanel ? vm.labels.hideToolPanel : vm.labels.showToolPanel"></button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="clearfix">
+                        </div>
+                        <div id="grid" ng-style="{width: vm.getWrapWidth()}" class="row">
+                            <div ag-grid="vm.grid" class="ag-fresh" 
+                                 auto-height="yes" additional-height="80"
+                                 ng-style="{width: vm.showToolPanel ? 'calc(100% + 200px)' : '100%'}" >
+                                <div class="watermark hidden" ng-show="!gridOptions.data.length">No data available</div>
+                            </div>
+                        </div>
+
+                        <!--<div class="row">
+                            <div ag-grid="vm.grid" ng-style="{width: vm.showToolPanel ? 'calc(100% + 200px)' : '100%'}" class="ag-fresh" auto-height="yes" additional-height="50" >
+                                <!-- <div ui-grid="gridOptions" ui-grid-selection ui-grid-exporter class="grid"> - ->
+                                    <div class="watermark" ng-show="!gridOptions.data.length">No data available</div>
+                                <!-- </div> - ->
+                            </div>
+                        </div> -->
+                    </div>
+                </script>
+
+                <script id="revenueDetailsController" >
+                    (function() {
+                        'use strict';
+
+                        angular.module('ecopmd', ['ecopmd.revenuedetails', 'components', 'ui.bootstrap']); //'ecopmd.navigator'
+                        angular.module('components', []);
+
+                        angular.module('ecopmd')
+                            .controller('revenueDetailsController', revenueDetailsController);
+
+                        revenueDetailsController.$inject = ['$timeout'];
+                        function revenueDetailsController($timeout) {
+                            var vm = this;
+
+                            function loadData() {
+                                var projectId = '{!projectId}';
+                                Visualforce.remoting.Manager.invokeAction(
+                                    '{!$RemoteAction.ECO_PMD_RevenueDetails_Controller.GetRevenueData}',
+                                    projectId,
+                                    function (result, event) {
+                                        if (event.status && result.length > 0) {
+                                            $timeout(function () { vm.revenueData = result; });
+                                        } else {                                                     
+                                            //Handle error when there is no data returned
+                                            $('.watermark').hide();
+                                            if(result.length == 0){
+                                                $('.ag-overlay-panel').addClass('hidden')
+                                                $('.watermark').removeClass('hidden').show();
+                                            }
+                                        }
+                                    },
+                                    {escape: true});
+                            }
+
+                            function establishLabels() {
+                                vm.labels = {
+                                    // Columns
+                                    task:                           '{!SUBSTITUTE($ObjectType.Revenue__c.Fields.TaskNumber__c.Label, "'", "\'")}',
+                                    agreementNumber:                '{!SUBSTITUTE($ObjectType.Revenue__c.Fields.AgreementNumber__c.Label, "'", "\'")}',
+                                    adjustingRevenueFlag:           '{!SUBSTITUTE($ObjectType.Revenue__c.Fields.AdjustingRevenueFlag__c.Label, "'", "\'")}',
+                                    draftRevenueNumber:             '{!SUBSTITUTE($ObjectType.Revenue__c.Fields.DraftRevenueNum__c.Label, "'", "\'")}',
+                                    draftRevenueNumberCredited:     '{!SUBSTITUTE($ObjectType.Revenue__c.Fields.DraftRevenueNumCredited__c.Label, "'", "\'")}',
+                                    revenueSource:                  '{!SUBSTITUTE($ObjectType.Revenue__c.Fields.RevenueSource__c.Label, "'", "\'")}',
+                                    lineNumber:                     '{!SUBSTITUTE($ObjectType.Revenue__c.Fields.LineNum__c.Label, "'", "\'")}',
+                                    currencyCode:                   '{!SUBSTITUTE($ObjectType.Revenue__c.Fields.CurrencyIsoCode.Label, "'", "\'")}',
+                                    projectFunctionalCurrencyCode:  '{!SUBSTITUTE($Label.ECOPMDProjectFunctionalCurrencyCode, "'", "\'")}',
+                                    amount:                         '{!SUBSTITUTE($ObjectType.Revenue__c.Fields.Amount__c.Label, "'", "\'")}',
+                                    inceptionToDate:                '{!SUBSTITUTE($Label.ECOPMDInceptionToDate, "'", "\'")}',
+                                    monthToDate:                    '{!SUBSTITUTE($Label.ECOPMDMonthToDate, "'", "\'")}',
+                                    yearToDate:                     '{!SUBSTITUTE($Label.ECOPMDYearToDate, "'", "\'")}',
+                                    priorPeriods:                   '{!SUBSTITUTE($Label.ECOPMDPriorPeriods, "'", "\'")}',
+                                    glPeriodName:                   '{!SUBSTITUTE($ObjectType.Revenue__c.Fields.GLPeriodName__c.Label, "'", "\'")}',
+                                    paPeriodName:                   '{!SUBSTITUTE($ObjectType.Revenue__c.Fields.PAPeriodName__c.Label, "'", "\'")}',
+                                    paPeriodDate:                   '{!SUBSTITUTE($ObjectType.Revenue__c.Fields.PADate__c.Label, "'", "\'")}',
+                                    accruedThroughDate:             '{!SUBSTITUTE($ObjectType.Revenue__c.Fields.AccrueThroughDate__c.Label, "'", "\'")}',
+                                    // Column Groups
+                                    group:                          '{!SUBSTITUTE($Label.ECOPMDGroup, "'", "\'")}',
+                                    details:                        '{!SUBSTITUTE($Label.ECOPMDDetails, "'", "\'")}',
+                                    business:                       '{!SUBSTITUTE($Label.ECOPMDBusiness, "'", "\'")}',
+                                    cost:                           '{!SUBSTITUTE($Label.ECOPMDCost, "'", "\'")}',
+                                    periods:                        '{!SUBSTITUTE($Label.ECOPMDPeriods, "'", "\'")}',
+                                    // Button and other labels
+                                    lookbackPeriod:                 '{!SUBSTITUTE($Label.ECOPMDLookBackPeriod, "'", "\'")}',
+                                    lookbackCount:                  '{!SUBSTITUTE($Label.ECOPMDLookBackCount, "'", "\'")}',
+                                    filter:                         '{!SUBSTITUTE($Label.ECOPMDFilter, "'", "\'")}',
+                                    export:                         '{!SUBSTITUTE($Label.ECOPMDExport, "'", "\'")}',
+                                    expandAll:                      '{!SUBSTITUTE($Label.ECOPMDExpandAll, "'", "\'")}',
+                                    collapseAll:                    '{!SUBSTITUTE($Label.ECOPMDCollapseAll, "'", "\'")}',
+                                    expandAllColumns:               '{!SUBSTITUTE($Label.ECOPMDExpandAllColumns, "'", "\'")}',
+                                    collapseAllColumns:             '{!SUBSTITUTE($Label.ECOPMDCollapseAllColumns, "'", "\'")}',
+                                    hideToolPanel:                  '{!SUBSTITUTE($Label.ECOPMDHideToolPanel, "'", "\'")}',
+                                    showToolPanel:                  '{!SUBSTITUTE($Label.ECOPMDShowToolPanel, "'", "\'")}'
+                                };
+                            }
+
+                            establishLabels();
+                            loadData();
+                        }
+                    }());
+                </script>
+
+                <script id="eco-pmd-revenue-details-module" >
+                    (function() {
+                        'use strict';
+
+                        var ngModule = angular.module('ecopmd.revenuedetails', ['agGrid', 'twygmbh.auto-height']);
+
+                        ngModule.service('faker', function() { return window.faker; });
+                        ngModule.service('underscore', function() { return window._; });
+                    }());
+                </script>
+
+                <script id="eco-pmd-revenue-details-directive" >
+                    (function() {
+                        'use strict';
+
+                        angular
+                            .module('ecopmd.revenuedetails')
+                            .directive('ecoPmdRevenueDetails', revenueDetails);
+
+                        revenueDetails.$inject = [];
+                        function revenueDetails() {
+                            return {
+                                restrict: 'EA',
+                                scope: {
+                                    projectName: '@',
+                                    projectId: '@',
+                                    data: '=',
+                                    labels: '='
+                                },
+                                bindToController: true,
+                                controllerAs: 'vm',
+                                controller: LabourHoursDetailController,
+                                template: document.getElementById('eco-pmd-revenue-details-template').text
+                            };
+                        }
+
+                        LabourHoursDetailController.$inject = ['$filter', 'underscore', 'revenueDetailsTransformer'];
+                        function LabourHoursDetailController($filter, _, revenueDetailsTransformer) {
+                            var vm = this;
+
+                            vm._lookbackCount = 6;
+                            vm._data = [];
+                            vm._selectedPeriod = null;
+                            vm.showToolPanel = true;
+
+                            //vm.projectName = '123456 - Project Name';
+                            vm.grid = {
+                                groupHeaders: true,
+                                groupKeys: ['agreementNumber'],
+                                groupHidePivotColumns: true,
+                                groupIncludeFooter: false,
+                                groupColumnDef: {
+                                    width: 200,
+                                    headerName: vm.labels.group,
+                                    cellRenderer: {
+                                        renderer: 'group'
+                                    },
+                                    cellStyle: cellStyler
+                                },
+                                pinnedColumnCount: 1,
+                                showToolPanel: vm.showToolPanel,
+                                toolPanelSuppressValues: true,
+                                enableColResize: true,
+                                enableSorting: true,
+                                enableFilter: true,
+                                pmdShowInThousands: false,
+                                pmdShowCents: true,
+                                onReady: onReady
+                            };
+
+                            function buildColumnDefs(periodNames) {
+                                var beforeColumnDefs = [
+                                    { field: 'task', headerName: vm.labels.task, headerGroup: vm.labels.details, cellStyle: cellStyler },
+                                    { field: 'agreementNumber', headerName: vm.labels.agreementNumber, headerGroup: vm.labels.details, cellStyle: cellStyler, width: 130 },
+                                    { field: 'adjustingRevenueFlag', headerName: vm.labels.adjustingRevenueFlag, headerGroup: vm.labels.details, headerGroupShow: 'open', cellStyle: cellStyler, width: 120
+                                    , cellRenderer: function (params) { return params.value ? 'Yes': 'No'; } },
+                                    { field: 'draftRevenueNumber', headerName: vm.labels.draftRevenueNumber, headerGroup: vm.labels.details, headerGroupShow: 'open', cellStyle: cellStyler, width: 180 },
+                                    { field: 'draftRevenueNumberCredited', headerName: vm.labels.draftRevenueNumberCredited, headerGroup: vm.labels.details, headerGroupShow: 'open', cellStyle: cellStyler, width: 210 },
+                                    { field: 'revenueSource', headerName: vm.labels.revenueSource, headerGroup: vm.labels.details, headerGroupShow: 'open', cellStyle: cellStyler, width: 150 },
+                                    { field: 'lineNumber', headerName: vm.labels.lineNumber, headerGroup: vm.labels.details, headerGroupShow: 'open', cellStyle: cellStyler, width: 100 },
+                                    { field: 'accruedThroughDate', headerName: vm.labels.accruedThroughDate, headerGroup: vm.labels.details, headerGroupShow: 'open', cellStyle: cellStyler, width: 150
+                                    , cellRenderer: function (params) { return $filter('date')(params.value, 'longDate'); } },
+                                    { field: 'paPeriodName', headerName: vm.labels.paPeriodName, headerGroup: vm.labels.details, headerGroupShow: 'open', cellStyle: cellStyler, width: 130 },
+                                    { field: 'glPeriodName', headerName: vm.labels.glPeriodName, headerGroup: vm.labels.details, headerGroupShow: 'open', cellStyle: cellStyler, width: 130 },
+                                    { field: 'amount', headerName: vm.labels.amount, headerGroup: vm.labels.details, headerGroupShow: 'open', cellRenderer: numberCellRenderer, cellStyle: cellStyler, width: 130 },
+                                    { field: 'currencyCode', headerName: vm.labels.currencyCode, headerGroup: vm.labels.details, headerGroupShow: 'open', cellStyle: cellStyler, width: 90 },
+                                    { field: 'projectFunctionalCurrencyCode', headerName: vm.labels.projectFunctionalCurrencyCode, headerGroup: vm.labels.details, headerGroupShow: 'open', cellStyle: cellStyler, width: 90 },
+                                    { field: 'itdPriorToLookbacks', headerName: vm.labels.priorPeriods, cellRenderer: numberCellRenderer, headerGroup: vm.labels.periods, headerGroupShow: 'open', width: 100, cellStyle: cellStyler }
+                                ];
+                                var afterColumnDefs = [
+                                    { field: 'inceptionToDate', headerName: vm.labels.inceptionToDate, cellRenderer: detailSummaryCellRenderer, headerGroup: vm.labels.periods, width: 80, cellStyle: cellStyler },
+                                    { field: 'monthToDate', headerName: vm.labels.monthToDate, width: 80, cellRenderer: detailSummaryCellRenderer, cellStyle: cellStyler },
+                                    { field: 'yearToDate', headerName: vm.labels.yearToDate, width: 80, cellRenderer: detailSummaryCellRenderer, cellStyle: cellStyler }
+                                ];
+                                return beforeColumnDefs
+                                    .concat(periodNames.map(function (period) {
+                                        return { field: period, headerName: period, cellRenderer: numberCellRenderer, headerGroup: vm.labels.periods, headerGroupShow: 'open', width: 130, cellStyle: cellStyler };
+                                    }))
+                                    .concat(afterColumnDefs);
+                            }
+
+                            function detailSummaryCellRenderer(params) {
+                                if (params.node.allChildrenCount) {
+                                    return numberCellRenderer(params);
+                                } else {
+                                    return '';  // for fields that are just there to provide summaries, do not display values at the detail level
+                                }
+                            }
+
+                            function numberCellRenderer(params) {
+                                //return $filter('number')(params.value || 0, 0);
+                                 var showInThousands = false;
+                                 var showCents =  showInThousands?false:true;
+                                 return (typeof params.value === 'number')?$filter('number')(params.value/(showInThousands?1000:1), (showCents?2:0)):params.value;
+                            }
+
+                            function cellStyler(params) {
+                               var result = {};
+                               if (params.colDef.headerName === vm.labels.priorPeriods || params.colDef.headerName === vm.labels.inceptionToDate) {
+                                   result['background-color'] = '#D9EAF7';
+                               }
+                               if (params.node.level === 0) {
+                                   result['font-weight'] = 'bold';
+                                   result['font-style'] = 'normal';
+                                   result['background-color'] = '#D9EAF7';
+                               }
+                               if (params.node.level > 0) {
+                                   result['font-style'] = 'normal';
+                               }
+                               if (typeof(params.value) === 'number' || params.colDef.headerGroup === vm.labels.periods) {
+                                   result['text-align'] = 'right';
+                                   if (params.value < 0) {
+                                       result['color'] = '#d81e05';
+                                   }
+                               }
+                               return result;
+                            }
+
+                            vm.toggleToolPanel = function (ev) {
+                               var elWrap = $("div.ag-fresh")[0];
+                               elWrap.style.display = 'none';
+                               vm.showToolPanel = !vm.showToolPanel;
+                               vm.grid.api.showToolPanel(vm.showToolPanel);
+                               elWrap.style.display = '';
+                            };
+
+                            vm.getWrapWidth = function(){
+                              var elWrap = document.querySelector("div#AppBodyHeader")
+                                , elSide = document.querySelector("td#sidebarCell")
+                                , desiredWidth = elWrap.clientWidth - elWrap.offsetLeft - elSide.offsetWidth
+                                , desiredWidthPx =  desiredWidth.toString() + "px";
+                              //console.log(elWrap.clientWidth);console.log(elSide.offsetWidth);console.log(desiredWidthPx);
+                              return desiredWidthPx;
+                            };
+
+                
+                            vm.toggleColumnGroups = function (expand) {
+                               var groups = ['Details', 'Business', 'Cost', 'Periods'];
+                               groups = [vm.labels.details,vm.labels.business, vm.labels.cost,vm.labels.periods];
+                               groups.forEach(function (name) {
+                                   var group = vm.grid.columnApi.getColumnGroup(name);
+                                   if (group) {
+                                       vm.grid.columnApi.columnGroupOpened(group, expand);
+                                   }
+                               });
+                            };
+
+                            vm.export = function () {
+                                var fileName = 'Revenue Details - ' + vm.projectName + '.csv';
+                                console.debug('exporting as', fileName);
+                                vm.grid.api.exportDataAsCsv({
+                                    skipHeader: false,
+                                    skipFooters: false,
+                                    skipGroups: false,
+                                    fileName: fileName
+                                });
+                            }
+
+                            function dataSort(it) {
+                                return it.task.split(".").map(function(v) { return v.length > 10 ? v : ('0000000000'+v).substr(-10); } ).join('.')
+                                    + '.' + it.agreementNumber
+                                    + '.' + it.lineNumber
+                                    + '.' + it.paPeriodDate;
+                            }
+
+                            function buildGrid() {
+                                var result = revenueDetailsTransformer.transformData(vm.data, vm.selectedPeriod.periodDate, vm.lookbackCount);
+                                vm.grid.api.setColumnDefs(buildColumnDefs(result.periodNames));
+                                vm.grid.groupAggFields = [ 'draftRevenueNumber', 'draftRevenueNumberCredited', 'amount', 'itdPriorToLookbacks', 'inceptionToDate', 'monthToDate', 'yearToDate' ].concat(result.periodNames);
+                                var group = vm.grid.columnApi.getColumnGroup(vm.labels.periods);
+                                vm.grid.columnApi.columnGroupOpened(group, true);
+                                vm.grid.api.setRowData(_.sortBy(result.data, dataSort));
+                            }
+
+                            function setPaPeriods() {
+                                vm.paPeriods = _.chain(vm.data)
+                                    .map(function (it) {
+                                        return { periodName: it.PAPeriodName__c, periodDate: it.PADate__c };
+                                    })
+                                    .uniq(false, function (it) { return it.periodName; })
+                                    .sortBy('periodDate')
+                                    .value();
+                                vm.selectedPeriod = _.last(vm.paPeriods);
+                            }
+
+                            Object.defineProperty(vm, 'lookbackCount', {
+                                get: function () {
+                                    return vm._lookbackCount;
+                                },
+                                set: function (value) {
+                                    vm._lookbackCount = parseInt(value);
+                                    buildGrid();
+                                }
+                            });
+
+                            Object.defineProperty(vm, 'selectedPeriod', {
+                                get: function () {
+                                    return vm._selectedPeriod;
+                                },
+                                set: function (value) {
+                                    vm._selectedPeriod = value;
+                                    buildGrid();
+                                }
+                            });
+
+                            Object.defineProperty(vm, 'data', {
+                                get: function () { return vm._data; },
+                                set: function (value) {
+                                    vm._data = value;
+                                    setPaPeriods();
+                                }
+                            });
+
+                            function onReady() {
+                                if (vm.data.length > 0) vm.grid.api.setRowData(vm.data);
+                            }
+                        }
+                    }());
+                </script>
+
+                <script id="eco-pmd-revenue-details-transformer" >
+                    (function() {
+                        'use strict';
+
+                        angular
+                            .module('ecopmd.revenuedetails')
+                            .service('revenueDetailsTransformer', revenueDetailsTransformer);
+
+                        revenueDetailsTransformer.$inject = ['$filter', '$timeout', 'underscore'];
+                        function revenueDetailsTransformer($filter, $timeout, _) {
+                            var lookbackPeriodNames = [];
+
+                            function transformData(data, lookback, lookbackCount, fieldForPeriodColumns) {
+                                lookbackPeriodNames = [];
+                                fieldForPeriodColumns = fieldForPeriodColumns || 'Amount__c';
+                                var sortedData = _.sortBy(data, 'PADate__c');
+                                var lookbackPeriods = calculateLookbackPeriods(sortedData, lookback, lookbackCount);
+                                return {
+                                    periodNames: lookbackPeriodNames,
+                                    data: sortedData.map(transformRow(lookbackPeriods, fieldForPeriodColumns))
+                                };
+                            }
+
+                            function calculateLookbackPeriods(data, lookback, lookbackCount) {
+                                var allPeriods = _.uniq(data.map(function (it) { return it.PADate__c; }));
+                                lookback = lookback || _.last(allPeriods); // use most recent period if lookback is not specified
+                                lookbackCount = lookbackCount || 6;
+                                var periods = _.last(allPeriods.filter(function (it) { return it <= lookback; }), lookbackCount);
+                                return periods;
+                            }
+
+                            function transformRow(lookbackPeriods, fieldForPeriodColumns) {
+                                return function (row) {
+                                    var taskNumber = (row.TaskNumber__r && row.TaskNumber__r.ProjectTaskNumber__c) || ''
+                                    , taskName = (row.TaskNumber__r && row.TaskNumber__r.Name) || ''
+                                    , result = {
+                                        task: taskNumber + " - " + taskName,
+                                        agreementNumber: row.AgreementNumber__c,
+                                        adjustingRevenueFlag: row.AdjustingRevenueFlag__c,
+                                        draftRevenueNumber: row.DraftRevenueNum__c,
+                                        draftRevenueNumberCredited: row.DraftRevenueNumCredited__c,
+                                        revenueSource: row.RevenueSource__c,
+                                        lineNumber: row.LineNum__c,
+                                        currencyCode: row.CurrencyIsoCode,
+                                        projectFunctionalCurrencyCode: row.ProjFunCurrencyCode__c,
+                                        amount: row.Amount__c,
+                                        inceptionToDate: row[fieldForPeriodColumns],
+                                        monthToDate: 0,
+                                        yearToDate: 0,
+                                        glPeriodName: row.GLPeriodName__c,
+                                        paPeriodName: row.PAPeriodName__c,
+                                        paPeriodDate: row.PADate__c,
+                                        accruedThroughDate: row.AccrueThroughDate__c
+                                    };
+                                    if (_.contains(lookbackPeriods, row.PADate__c)) {
+                                        if (!_.contains(lookbackPeriodNames, row.PAPeriodName__c)) lookbackPeriodNames.push(row.PAPeriodName__c);
+                                        result[row.PAPeriodName__c] = row[fieldForPeriodColumns];
+                                    } else if (row.PADate__c < _.first(lookbackPeriods)) {
+                                        result.itdPriorToLookbacks = row[fieldForPeriodColumns];
+                                    }
+                                    if (row.PAPeriodName__c.indexOf($filter('date')(new Date(), 'MMM') + '-' + $filter('date')(new Date(), 'yy')) !== -1) {
+                                        result.monthToDate = row[fieldForPeriodColumns];
+                                    }
+                                    if (row.PAPeriodName__c.indexOf('F-' + $filter('date')(new Date(), 'yy')) !== -1) {
+                                        result.yearToDate = row[fieldForPeriodColumns];
+                                    }
+                                    return result;
+                                };
+                            }
+
+                            return {
+                                transformData: transformData
+                            };
+                        }
+                    }());
+                </script>
+                <c:ECO_PMD_NavigationBar_ng projectid="{!Id}" pagetitle="Revenue Details" />
+            </apex:define>
+
+        </apex:composition>
+    </div>
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

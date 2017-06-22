@@ -1,0 +1,10 @@
+<apex:component language="{!theLanguage}" controller="nttdcore.DLabelChildController" access="global" ><nttdcore:DLabel name="DL1" default="The subject project's segmentation request has been recalled. 
+    
+    Project Name: {{1}}
+    Project Number: {{2}}
+    Client: {{3}}
+    Project Manager: {{4}}
+
+    Segmentation Link: {{5}}" labelParent="{!this}" componentContext="ACTIONRecallOfProjectSegmentationV665_3" p1="{!theRelatedTo.SegmentationProjectName__c}" p2="{!theRelatedTo.SegmentationProjectNumber__c}" p3="{!theRelatedTo.Account__r.Name}" p4="{!theRelatedTo.SegmentationProjectManager__c}" p5="{!theRelatedTo.Link_to_Segmentation_Page__c}" /><apex:attribute name="theLanguage" type="String" required="true" description="language" access="global" /><apex:attribute name="theRecipient" type="User" required="true" description="recipient" access="global" /><apex:attribute name="theRelatedTo" type="Agreement__c" required="true" description="related to" access="global" />
+    {!dlRoot.dLabel['DL1']}
+<nttdcore:DLabelInit language="{!theLanguage}" labelParentInit="{!this}" /></apex:component>

@@ -1,0 +1,106 @@
+<apex:component layout="none" controller="ECO_PMD_ProjectDetails_Controller" >
+   <!--<apex:attribute name="proj" assignTo="{!wrapper}" description="Project Wrapper" type="ECO_PMD_ProjectWrapper" required="true" /> -->
+   <apex:attribute name="projectId" description="Project Id" assignTo="{!currentProjectId}" type="string" required="true" /> 
+<div class="panel panel-default dashbox">
+	<div class="panel-heading">
+	{!$Label.EcoProjectDetails}
+	</div>
+
+	<div class="panel-body">
+       <!-- <table width='100%'>
+            <!--<tr>
+            	<td width='40%'><apex:outputLabel value="{!$ObjectType['pse__Proj__c'].fields['OracleProjectnumber__c'].Label}" /></td>
+                <td><a href='/{!project.id}'><apex:outputText value="{!project.OracleProjectnumber__c}" /></a> </td>
+            </tr>
+            <tr>
+            	<td><apex:outputLabel value="{!$ObjectType['pse__Proj__c'].fields['name'].Label}" /></td>
+                <td><apex:outputText value="{!project.name}" />  </td>
+            </tr>
+             -- >
+             
+            <tr>
+                <td><apex:outputLabel value="{!$ObjectType['pse__Proj__c'].fields['PrimaryBillingClientNameOnly__c'].Label}" /></td>
+                <td><apex:outputText value="{!project.PrimaryBillingClientNameOnly__c}" />  </td>
+            </tr>
+            <tr>
+            	<td><apex:outputLabel value="{!$ObjectType['pse__Proj__c'].fields['pse__Project_Manager__c'].Label}" /></td>
+                <td><apex:outputText value="{!project.pse__Project_Manager__r.Name}" />  </td>
+            </tr>
+             <tr>
+            	<td><apex:outputLabel value="{!$ObjectType['pse__Proj__c'].fields['ProjectApprover__c'].Label}" /></td>
+                <td><apex:outputText value="{!project.ProjectApprover__r.Name }" />  </td>
+            </tr>
+            <tr>
+                <td><apex:outputLabel value="{!$ObjectType['pse__Proj__c'].fields['clAECOMProjectReviewCategory__c'].Label}" /></td>
+                <td><apex:outputText value="{!project.clAECOMProjectReviewCategory__c}" />  </td>
+            </tr>
+             <tr>
+                <td><apex:outputLabel value="{!$ObjectType['pse__Proj__c'].fields['ContractTypes__c'].Label}" /></td>
+                <td><apex:outputText value="{!project.ContractTypes__c}" />  </td>
+            </tr> 
+             <tr>
+            	<td><apex:outputLabel value="{!$ObjectType['pse__Proj__c'].fields['DefaultTopTaskCustomer__c'].Label}" /></td>
+                <td><apex:outputText value="{!project.DefaultTopTaskCustomer__r.Name }" />  </td>
+            </tr>
+             <tr>
+            	<td><apex:outputLabel value="{!$ObjectType['pse__Proj__c'].fields['BusinessLineOwningOrg__c'].Label}" /></td>
+                <td><apex:outputText value="{!project.BusinessLineOwningOrg__c}" />  </td>
+            </tr>
+             <tr>
+            	<td><apex:outputLabel value="{!$ObjectType['pse__Proj__c'].fields['EndMarketSector__c'].Label}" /></td>
+                <td><apex:outputText value="{!project.EndMarketSector__c}" />  </td>
+            </tr>
+            <tr>
+            	<td><apex:outputLabel value="{!$ObjectType['pse__Proj__c'].fields['pse__Region__c'].Label}" /></td>
+                <td><apex:outputText value="{!project.pse__Region__r.pse__Region_Name_Chain__c }" />  </td>
+            </tr>
+            
+        </table> -->
+        <style> 
+        .pmd-value {font-weight:bold;text-align:left;}
+        .pmd-label {font-weight:normal;font-size:x-small;color:#CCCCCC;}
+        </style>
+
+ <div class="pmd-value"><apex:outputText value="{!project.PrimaryBillingClientNameOnly__c}" /> </div>
+ <div class="pmd-label"><apex:outputLabel value="{!$ObjectType['pse__Proj__c'].fields['PrimaryBillingClientNameOnly__c'].Label}" /> </div>
+ 
+ 
+ <div class="pmd-value"><apex:outputText value="{!project.pse__Project_Manager__r.Name}" /> </div>
+ <div class="pmd-label"><apex:outputLabel value="{!$ObjectType['pse__Proj__c'].fields['pse__Project_Manager__c'].Label}" /> </div>
+ 
+ 
+ <div class="pmd-value"><apex:outputText value="{!project.ProjectApprover__r.Name }" /> </div>
+ <div class="pmd-label"><apex:outputLabel value="{!$ObjectType['pse__Proj__c'].fields['ProjectApprover__c'].Label}" /> </div>
+ 
+ 
+ <div class="pmd-value"><apex:outputText value="{!project.clAECOMProjectReviewCategory__c}" /> </div>
+ <div class="pmd-label"><apex:outputLabel value="{!$ObjectType['pse__Proj__c'].fields['clAECOMProjectReviewCategory__c'].Label}" /> </div>
+ 
+ 
+ <div class="pmd-value"><apex:outputText value="{!project.ContractTypes__c}" /> </div>
+ <div class="pmd-label"><apex:outputLabel value="{!$ObjectType['pse__Proj__c'].fields['ContractTypes__c'].Label}" /> </div>
+ 
+ 
+ <div class="pmd-value"><apex:outputText value="{!project.DefaultTopTaskCustomer__r.Name }" /> </div>
+ <div class="pmd-label"><apex:outputLabel value="{!$ObjectType['pse__Proj__c'].fields['DefaultTopTaskCustomer__c'].Label}" /> </div>
+ 
+ 
+ <div class="pmd-value"><apex:outputText value="{!project.BusinessLineOwningOrg__c}" /> </div>
+ <div class="pmd-label"><apex:outputLabel value="{!$ObjectType['pse__Proj__c'].fields['BusinessLineOwningOrg__c'].Label}" /> </div>
+ 
+ 
+ <div class="pmd-value"><apex:outputText value="{!project.EndMarketSector__c}" /> </div>
+ <div class="pmd-label"><apex:outputLabel value="{!$ObjectType['pse__Proj__c'].fields['EndMarketSector__c'].Label}" /> </div>
+
+	</div>
+    <c:ECO_PMD_PanelFooter panelID="ProjDet">
+      <ul class="list-group">
+        <li class="list-group-item"><a href='/apex/ECO_ProjectReviewRecordType?Id={!project.id}'>{!$Label.EcoProjectReviews}</a></li>
+        <li class="list-group-item"><a href='.com/apex/ProjectTaskGantt?id={!project.id}'>{!$Label.EcoProjectSchedule}</a></li>
+        <li class="list-group-item"><a href='/apex/ECO_ProjectAgreement?CF00Ne0000001Hha5_lkid={!project.id}&sfdc.override=1'>{!$Label.EcoProjectAgreement}</a></li>
+        <li class="list-group-item"><a href='/{!project.id}'>{!$Label.EcoProjectPlan}</a></li>
+      </ul>
+    </c:ECO_PMD_PanelFooter>
+
+</div>
+</apex:component>

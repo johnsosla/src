@@ -1,0 +1,6 @@
+<apex:page >
+  <!-- Begin Default Content REMOVE THIS -->
+  <h1>VFP Test</h1>
+  This page is for baseline VFP testing.
+  <!-- End Default Content REMOVE THIS -->
+</apex:page>

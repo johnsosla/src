@@ -1,0 +1,95 @@
+<apex:component controller="rsMultiSelectPicklistController" allowDML="true">
+    <apex:attribute name="availableOptions" required="true" description="List of all available options" type="SelectOption[]" assignTo="{!allOptions}"/>
+    <apex:attribute name="chosenOptions" required="true" description="List of Selected Options" type="SelectOption[]" assignTo="{!selectedOptions}"/>
+    <apex:attribute name="section" required="true" description="id to append to select options ids, for the case this component is used multiple times on a page" type="String"/>
+    <script type="text/javascript">
+        var j$ = jQuery.noConflict();
+        j$(document).ready(function() {
+            setChosenTextField('{!section}');
+        });
+        function moveFieldsRight(section) {
+            var sortedArray = j$('#chosenFields' + section + ' option').map(function() {return j$(this)}); // We'll add all chosen fields to an array
+            j$('#availableFields' + section + ' option:selected').each(function() {     //Adding all selected options to sortArrayList
+                sortedArray.push(j$(this));
+                j$(this).remove();
+            });
+            sortedArray.sort(function(a,b) {
+                var textA = a[0].value;
+                var textB = b[0].value;
+                return (textA).localeCompare(textB);
+            });
+            j$('#chosenFields' + section + '').empty();         //Empty the list and insert sorted List
+            for(var i = 0; i < sortedArray.length; i++ ) {
+                j$('#chosenFields' + section).append(sortedArray[i])
+            }
+            setChosenTextField(section);
+        }
+
+        function moveFieldsLeft(section) {
+            var sortedArray = j$('#availableFields' + section + ' option').map(function() {return j$(this)}); // We'll add all available fields to an array
+            j$('#chosenFields' + section + ' option:selected').each(function() {        //Adding all selected options to sortArrayList
+                sortedArray.push(j$(this));
+                j$(this).remove();
+            });
+            sortedArray.sort(function(a,b) {
+                var textA = a[0].value;
+                var textB = b[0].value;
+                return (textA).localeCompare(textB);
+            });
+            j$('#availableFields' + section + '').empty();      //Empty the list and insert sorted List
+            for(var i = 0; i < sortedArray.length; i++ ) {
+                j$('#availableFields' + section).append(sortedArray[i])
+            }
+            setChosenTextField(section);
+        }
+
+        function setChosenTextField(section) {                      // Method to set the text value of the hidden input to set the Select options
+            var chosenField = j$('#chosenHolder' + section + ' > input');
+            var chosenFields = j$('#chosenFields' + section + ' option');
+            var chosenLength = chosenFields.length;
+            chosenField.val("");
+            j$.each(chosenFields, function(index, value) {
+                var country = index < chosenLength - 1 ? value.value + ';' : value.value;
+                chosenField.val(chosenField.val()+country);
+            });
+        }
+
+    </script>
+    <table class="multiSelectPicklistTable">
+        <tr><td></td><td colspan="100%" height="5"></td></tr>
+        <tr class="multiSelectPicklistRow">
+            <td>
+                <select multiple="multiple" size="4" ondblclick="moveFieldsRight('{!section}');">
+                    <optgroup style="font-size:9px;text-decoration:none;" id="availableFields{!section}" label="{!$Label.Available_Select_Label}">
+                        <apex:repeat value="{!allOptions}" var="op">
+                            <option value="{!op.value}">{!op.Label}</option>
+                        </apex:repeat>
+                    </optgroup>
+                </select>
+            </td>
+            <td class="multiSelectPicklistCell">
+                <a href="#" onclick="moveFieldsRight('{!section}');">
+                    <img src="/s.gif" alt="Add" class="picklistArrowRight" style="cursor:pointer;" title="Add"></img>
+                </a>
+                <br/>
+                <br/>
+                <a href="#" onclick="moveFieldsLeft('{!section}');">
+                    <img src="/s.gif" alt="Add" class="picklistArrowLeft" style="cursor:pointer;" title="Add"></img>
+                </a>
+            </td>
+            <td>
+                <select multiple="multiple" size="4" ondblclick="moveFieldsLeft('{!section}');">
+                    <optgroup style="font-size:9px;text-decoration:none;" id="chosenFields{!section}" label="{!$Label.Chosen_Select_Label}">
+                        <apex:repeat value="{!selectedOptions}" var="op">
+                            <option value="{!op.value}">{!op.Label}</option>
+                        </apex:repeat>
+                    </optgroup>
+                </select>
+            </td>
+        </tr>
+    </table>
+    <div id="chosenHolder{!section}">
+        <apex:inputHidden id="chosenText" value="{!selectedOptionsValues}"/>
+    </div>
+
+</apex:component>

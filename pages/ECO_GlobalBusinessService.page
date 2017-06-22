@@ -1,0 +1,462 @@
+<apex:page standardcontroller="SharedServicesRequest__c" extensions="ECO_GlobalBusinessService,nttdcore.DLabelParentController" >
+<apex:includeScript value="{!$Resource.ECO_jQuery_1_11_2_min_js}" />
+
+<script type="text/javascript" >
+    var $x = jQuery.noConflict();
+
+    function toggleButtons(buttonsArray, doEnable) {
+        var arrLen = buttonsArray.length;
+        var disableButton = !doEnable;
+
+        var fontColor = (disableButton ? '#C0C0C0' : '');
+
+        for (i = 0; i < arrLen; i++) {
+            $x('.' + buttonsArray[i]).toggleClass('btnDisabled', disableButton).prop('disabled', disableButton);
+            $x('#' + buttonsArray[i] + 'Desc').css('color', fontColor);
+        };
+    }
+
+    function q1(){
+        if($x("input[name='a1']:checked").val() == 'yes'){
+            //enable
+            var buttons = ["butAddSite", "butGeneralRequest", "butUpdateSite"];
+            toggleButtons(buttons, true);
+
+            //disable
+            buttons = ["butCreateCustomer", "butCreateVendor"];
+            toggleButtons(buttons, false);
+
+            //guidance
+            $x('.q1noGuidance').removeClass('hideRow').addClass('hideRow');
+            $x('.q3noGuidance').removeClass('hideRow').addClass('hideRow');
+
+            //next question
+            $x('.q3').removeClass('hideRow');
+            $x('.q2').addClass('hideRow');
+        }
+        else{
+            //enable
+            var buttons = ["butCreateCustomer", "butCreateVendor"];
+            toggleButtons(buttons, true);
+
+            //false
+            var buttons = ["butAddSite", "butGeneralRequest", "butUpdateSite"];
+            toggleButtons(buttons, false);
+
+
+            //guidance
+            $x('.q2').removeClass('hideRow').addClass('hideRow');
+            $x('.q3').removeClass('hideRow').addClass('hideRow');
+            $x('.q4').removeClass('hideRow').addClass('hideRow');
+            $x('.q5').removeClass('hideRow').addClass('hideRow');
+            $x('.q1noGuidance').removeClass('hideRow');
+        }
+
+        $x('.q4').removeClass('hideRow').addClass('hideRow');
+        $x('.q5').removeClass('hideRow').addClass('hideRow');
+
+        //clear prior downstream selections
+        $x("input[name='a2']:checked").prop('checked', false);
+        $x("input[name='a3']:checked").prop('checked', false);
+        $x("input[name='a4']:checked").prop('checked', false);
+        $x("input[name='a5']:checked").prop('checked', false);
+    }
+
+    function q2(){
+        if($x("input[name='a2']:checked").val() == 'yes'){
+            //enable
+            var buttons = ["butGeneralRequest"];
+            toggleButtons(buttons, true);
+
+            //disable
+            buttons = ["butAddSite", "butCreateCustomer", "butCreateVendor", "butUpdateSite"];
+            toggleButtons(buttons, false);
+
+            //guidance
+            $x('.q2yesGuidance').removeClass('hideRow');
+            $x('.q2noGuidance').addClass('hideRow');
+        }
+        else{
+            //enable
+            var buttons = ["butCreateCustomer", "butCreateVendor"];
+            toggleButtons(buttons, true);
+
+            //disable
+            buttons = ["butAddSite", "butGeneralRequest", "butUpdateSite"];
+            toggleButtons(buttons, false);
+
+            //guidance
+            $x('.q2noGuidance').removeClass('hideRow');
+            $x('.q2yesGuidance').addClass('hideRow');
+        }
+
+        $x('.q3').removeClass('hideRow').addClass('hideRow');
+        $x('.q4').removeClass('hideRow').addClass('hideRow');
+        $x('.q5').removeClass('hideRow').addClass('hideRow');
+
+        //clear prior downstream selections
+        $x("input[name='a3']:checked").prop('checked', false);
+        $x("input[name='a4']:checked").prop('checked', false);
+        $x("input[name='a5']:checked").prop('checked', false);
+    }
+
+    function q3(){
+        if($x("input[name='a3']:checked").val() == 'yes'){
+            //enable
+            var buttons = ["butUpdateSite", "butAddSite", "butGeneralRequest"];
+            toggleButtons(buttons, true);
+
+            //guidance
+            $x('.q3noGuidance').addClass('hideRow');
+            $x('.q4yesGuidance').addClass('hideRow');
+
+            //next question
+            $x('.q4').removeClass('hideRow');
+            $x('.q5').removeClass('hideRow').addClass('hideRow');
+        }
+        else{
+            //enable
+            var buttons = ["butAddSite"];
+            toggleButtons(buttons, true);
+
+            //disable
+            buttons = ["butGeneralRequest", "butCreateCustomer", "butCreateVendor", "butUpdateSite"];
+            toggleButtons(buttons, false);
+
+            //guidance
+            $x('.q3noGuidance').removeClass('hideRow');
+            $x('.q4').removeClass('hideRow').addClass('hideRow');
+            $x('.q5').removeClass('hideRow').addClass('hideRow');
+        }
+
+        //clear prior downstream selections
+        $x("input[name='a4']:checked").prop('checked', false);
+        $x("input[name='a5']:checked").prop('checked', false);
+    }
+
+    function q4(){
+        if($x("input[name='a4']:checked").val() == 'yes'){
+            //enable
+            var buttons = ["butAddSite"];
+            toggleButtons(buttons, true);
+
+            //disable
+            buttons = ["butCreateCustomer", "butCreateVendor", "butUpdateSite", "butGeneralRequest"];
+            toggleButtons(buttons, false);
+
+            //guidance
+            $x('.q4yesGuidance').removeClass('hideRow');
+            $x('.q5').removeClass('hideRow').addClass('hideRow');
+            $x('.q5yesGuidance').addClass('hideRow');
+            $x('.q5noGuidance').addClass('hideRow');
+        }
+        else{
+            //enable
+            var buttons = ["butGeneralRequest", "butUpdateSite"];
+            toggleButtons(buttons, true);
+
+            //disable
+            buttons = ["butAddSite"];
+            toggleButtons(buttons, false);
+
+            //guidance
+            $x('.q4yesGuidance').addClass('hideRow');
+
+            //next question
+            $x('.q5').removeClass('hideRow');
+        }
+
+        //clear prior downstream selections
+        $x("input[name='a5']:checked").prop('checked', false);
+    }
+
+    function q5(){
+        if($x("input[name='a5']:checked").val() == 'yes'){
+            //enable
+            var buttons = ["butUpdateSite"];
+            toggleButtons(buttons, true);
+
+            //disable
+            buttons = ["butAddSite", "butCreateCustomer", "butCreateVendor", "butGeneralRequest"];
+            toggleButtons(buttons, false);
+
+            //guidance
+            $x('.q5yesGuidance').removeClass('hideRow');
+            $x('.q5noGuidance').addClass('hideRow');
+        }
+        else{
+            //enable
+            var buttons = ["butGeneralRequest"];
+            toggleButtons(buttons, true);
+
+            //disable
+            buttons = ["butAddSite", "butCreateCustomer", "butCreateVendor", "butUpdateSite"];
+            toggleButtons(buttons, false);
+
+            //guidance
+            $x('.q5noGuidance').removeClass('hideRow');
+            $x('.q5yesGuidance').addClass('hideRow');
+        }
+    }
+</script>
+
+<apex:messages />
+    <style>
+
+        .table{
+            border-collapse:collapse;
+        }
+
+        .table th, .table td {
+          padding: 8px 2px 8px 5px;
+          border: 1px solid #dbdbdb;;
+          border-collapse: collapse;
+        }
+        
+        .table tr {
+          border: 1px solid #dbdbdb;;
+          border-collapse: collapse;
+        }
+        
+        .table td {
+            background-color: white;
+        }
+        
+        td:nth-child(1){
+            font-weight: bold;
+        }
+        .button {
+            width: 150px;
+        }
+        
+
+        .customHelpIcon
+        {
+            display:inline-block;
+            margin:0 5px 0 0;
+            width:24px;
+            height:24px;
+            vertical-align:top !important;
+        }
+        /* CUSTOM HELP / GUIDANCE TEXT BOX */
+        .customHelpText{
+            padding: 7px;
+            border: 1px solid #85B3CE;
+            min-height: 30px;
+            display: block;
+            width: auto;
+            margin: 0 0 5px 0;
+            background-repeat: no-repeat;
+            border-radius: 4px;
+            background-color: #A2D3F1;
+            
+        }
+        .customHelpBody{
+            display:inline-block;
+            color:#;
+            max-width:95%;
+        }   
+        .questionCol {
+            padding-top: 10px;  
+            width: 50%;
+        }
+        .hideRow{
+            display: none;
+        }
+        table tr td:nth-child(1) {
+            font-weight: normal;
+        }
+
+        input[type='radio'], label[for] { cursor: pointer; }
+        .guideDivider { border-bottom: 1px solid #DBDBDB; }
+
+    </style>
+
+<apex:form >
+<apex:outputPanel id="wholeform" >
+
+    <apex:sectionHeader title="{!$Label.EcoGBSTitle}" subtitle="{!$Label.EcoGBSSubTitle}" />
+
+    <apex:pageBlock >
+        <apex:pageBlockButtons location="top" >
+            <apex:commandButton action="{!cancel}" value="{!$Label.ECOGBSRecordTypeCancel}" />
+        </apex:pageBlockButtons>
+            <div class="customHelpText" >
+                <div class="customHelpBody" >
+                    {!$Label.EcoGBSHelpText}
+                </div>
+            </div>
+
+        <apex:outputPanel >
+            <table style="width:100%;" >
+                <th>{!$Label.EcoGBSGuidanceTitle}</th>
+                <th/>
+                <tr class="q1" >
+                    <td class="questionCol" >
+                        {!$Label.EcoGBSGuidanceQuestion1}
+                        <br/>
+                        {!$Label.EcoGBSGuidanceQuestion1Line2}
+                    </td>
+                    <td>
+                        <input type="radio" id="a1Yes" name="a1" value="yes" onclick="q1();" /><label for="a1Yes" >{!$Label.Yes}</label>
+                        <input type="radio" id="a1No" name="a1" value="no" onclick="q1();" /><label for="a1No" >{!$Label.No}</label>
+                    </td>
+                </tr>
+                <tr class="q1" ><td><div class="customHelpText q1noGuidance hideRow" >
+                            <div class="customHelpBody" >
+                                {!$Label.EcoGBSGuidanceQuestion1HelpNo}
+                            </div>
+                </div></td><td/></tr>
+                <tr><td colspan="2" class="guideDivider" /></tr>
+
+
+                <tr class="q2 hideRow" >
+                    <td class="questionCol" >
+                        {!$Label.EcoGBSGuidanceQuestion2}
+                        <br/>
+                        {!$Label.EcoGBSGuidanceQuestion2Line2}
+                    </td>
+                    <td>
+                        <input type="radio" id="a2Yes" name="a2" value="yes" onclick="q2();" /><label for="a2Yes" >{!$Label.Yes}</label>
+                        <input type="radio" id="a2No" name="a2" value="no" onclick="q2();" /><label for="a2No" >{!$Label.No}</label>
+                    </td>
+                </tr>
+                <tr class="q2 hideRow" ><td><div class="customHelpText q2yesGuidance hideRow" >
+                            <div class="customHelpBody" >
+                                {!$Label.EcoGBSGuidanceQuestion2HelpYes}
+                            </div>
+                </div></td><td/></tr>
+                <tr class="q2 hideRow" ><td><div class="customHelpText q2noGuidance hideRow" >
+                            <div class="customHelpBody" >
+                                {!$Label.EcoGBSGuidanceQuestion2HelpNo}
+                            </div>
+                </div></td><td/></tr>
+                <tr class="q2 hideRow" ><td colspan="2" class="guideDivider" /></tr>
+
+
+                <tr class="q3 hideRow" >
+                    <td class="questionCol" >
+                        {!$Label.EcoGBSGuidanceQuestion3}
+                        <br/>
+                        {!$Label.EcoGBSGuidanceQuestion3Line2}
+                    </td>
+                    <td>
+                        <input type="radio" id="a3Yes" name="a3" value="yes" onclick="q3();" /><label for="a3Yes" >{!$Label.Yes}</label>
+                        <input type="radio" id="a3No" name="a3" value="no" onclick="q3();" /><label for="a3No" >{!$Label.No}</label>
+                    </td>
+                </tr>
+                <tr class="q3 hideRow" ><td><div class="customHelpText q3noGuidance hideRow" >
+                            <div class="customHelpBody" >
+                                {!$Label.EcoGBSGuidanceQuestion3HelpNo}
+                            </div>
+                </div></td><td/></tr>
+                <tr class="q3 hideRow" ><td colspan="2" class="guideDivider" /></tr>
+
+
+                <tr class="q4 hideRow" >
+                    <td class="questionCol" >
+                        {!$Label.EcoGBSGuidanceQuestion4}
+                    </td>
+                    <td>
+                        <input type="radio" id="a4Yes" name="a4" value="yes" onclick="q4();" /><label for="a4Yes" >{!$Label.Yes}</label>
+                        <input type="radio" id="a4No" name="a4" value="no" onclick="q4();" /><label for="a4No" >{!$Label.No}</label>
+                    </td>
+                </tr>
+                <tr class="q4 hideRow" ><td><div class="customHelpText q4yesGuidance hideRow" >
+                            <div class="customHelpBody" >
+                                {!$Label.EcoGBSGuidanceQuestion4HelpYes}
+                            </div>
+                </div></td><td/></tr>
+                <tr class="q4 hideRow" ><td colspan="2" class="guideDivider" /></tr>
+
+
+                <tr class="q5 hideRow" >
+                    <td class="questionCol" >
+                        {!$Label.EcoGBSGuidanceQuestion5}
+                    </td>
+                    <td>
+                        <input type="radio" id="a5Yes" name="a5" value="yes" onclick="q5();" /><label for="a5Yes" >{!$Label.Yes}</label>
+                        <input type="radio" id="a5No" name="a5" value="no" onclick="q5();" /><label for="a5No" >{!$Label.No}</label>
+                    </td>
+                </tr>
+                <tr class="q5 hideRow" ><td><div class="customHelpText q5yesGuidance hideRow" >
+                            <div class="customHelpBody" >
+                                {!$Label.EcoGBSGuidanceQuestion5HelpYes}
+                            </div>
+                </div></td><td/></tr>
+                <tr class="q5 hideRow" ><td><div class="customHelpText q5noGuidance hideRow" >
+                            <div class="customHelpBody" >
+                                {!$Label.EcoGBSGuidanceQuestion5HelpNo}
+                            </div>
+                </div></td><td/></tr>
+                <tr class="q5 hideRow" ><td colspan="2" class="guideDivider" /></tr>
+
+            </table>   
+        </apex:outputPanel>
+
+        <br/>
+
+        <apex:outputPanel >
+        <table class="table" style="width:100%;" >
+            <tr>
+                <th>{!$Label.Form}</th>
+                <th><nttdcore:DLabel name="DL1" default="Description" labelParent="{!this}" />{!dLabel['DL1']}</th>
+            </tr>
+            <apex:outputPanel >
+            <tr>
+                <td>
+                <apex:commandButton value="{!$Label.ECOGBSRecCreateCustomer}" action="{!goGBSSelector}" styleclass="button butCreateCustomer" rerender="dummy" rendered="true" >
+                    <nttdcore:DLabel name="DL2" default="CreateCustomer" labelParent="{!this}" /><apex:param name="requestType" value="{!dLabel['DL2']}" assignto="{!requestType}" />
+                </apex:commandButton>
+                </td>
+                <td id="butCreateCustomerDesc" >{!$Label.ECOGBSRecCreateCustomerDesc}</td>
+            </tr>
+            </apex:outputPanel>
+            <apex:outputPanel >
+            <tr>
+                <td>
+                <apex:commandButton value="{!$Label.ECOGBSRecCreateVendor}" action="{!goGBSSelector}" styleclass="button butCreateVendor" rerender="dummy" >
+                    <nttdcore:DLabel name="DL3" default="CreateVendor" labelParent="{!this}" /><apex:param name="requestType" value="{!dLabel['DL3']}" assignto="{!requestType}" />
+                </apex:commandButton>
+                </td>
+                <td id="butCreateVendorDesc" >{!$Label.ECOGBSRecCreateVendorDesc}</td>
+            </tr>
+            </apex:outputPanel>
+            <apex:outputPanel >
+            <tr>
+                <td>
+                <nttdcore:DLabel name="DL4" default="Add Site" labelParent="{!this}" /><apex:commandButton value="{!dLabel['DL4']}" action="{!goGBSSelector}" styleclass="button butAddSite" rerender="dummy" rendered="true" >
+                    <nttdcore:DLabel name="DL5" default="AddSite" labelParent="{!this}" /><apex:param name="requestType" value="{!dLabel['DL5']}" assignto="{!requestType}" />
+                </apex:commandButton>
+                </td>
+                <td id="butAddSiteDesc" >{!$Label.ECOGBSRecAddSiteDesc}</td>
+            </tr>
+            </apex:outputPanel>
+            <apex:outputPanel >
+            <tr>
+                <td>
+                <nttdcore:DLabel name="DL6" default="Update Site" labelParent="{!this}" /><apex:commandButton value="{!dLabel['DL6']}" action="{!goGBSSelector}" styleclass="button butUpdateSite" rerender="dummy" rendered="true" >
+                    <nttdcore:DLabel name="DL7" default="UpdateSite" labelParent="{!this}" /><apex:param name="requestType" value="{!dLabel['DL7']}" assignto="{!requestType}" />
+                </apex:commandButton>
+                </td>
+                <td id="butUpdateSiteDesc" >{!$Label.ECOGBSRecUpdateSiteDesc}</td>
+            </tr>
+            </apex:outputPanel>
+            <apex:outputPanel >
+            <tr>
+                <td>
+                <apex:commandButton value="{!$Label.ECOGBSRecGeneralRequest}" action="{!goGBSSelector}" styleclass="button butGeneralRequest" rerender="dummy" rendered="true" >
+                    <nttdcore:DLabel name="DL8" default="GeneralRequest" labelParent="{!this}" /><apex:param name="requestType" value="{!dLabel['DL8']}" assignto="{!requestType}" />
+                </apex:commandButton>
+                </td>
+                <td id="butGeneralRequestDesc" >{!$Label.ECOGBSRecGeneralRequestDesc}</td>
+            </tr>
+            </apex:outputPanel>
+        </table>
+
+        </apex:outputPanel>
+
+    </apex:pageBlock>
+</apex:outputPanel>
+</apex:form>
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

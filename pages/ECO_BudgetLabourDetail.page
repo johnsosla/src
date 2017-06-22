@@ -1,0 +1,437 @@
+<apex:page standardcontroller="BudgetHeader__c" extensions="ECO_BudgetLabourDetailController" sidebar="false" showheader="false" title="{!BudgetHeader__c.BudgetName__c} - Labor Detail" >
+    <apex:composition template="ECO_BudgetFrame" >
+    <apex:define name="budgetScreen" >
+
+    <apex:includeScript value="{!URLFOR($Resource.ECO_stickyBudgets, 'stickyBudgets.js')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.ECO_stickyBudgets, 'stickyBudgets.css')}" />
+    <script>
+    jQuery(function() {
+     jQuery('#maintable').stickyBudgets();
+    });
+    </script>
+    <style>
+        .laborDetail td, .laborDetail th {
+            border-top: 1px solid black;
+            border-left: 1px solid black;
+            border-right: 1px solid black;
+        }
+        .laborDetail td.lastCell {
+            border-bottom: 1px solid black;
+        }
+        
+        .taskDetailHeader td{
+            border-left: 1px solid black;
+            border-top: 1px solid black;
+            border-bottom: 1px solid black;
+            padding:3px;
+            height: 20px;
+        }
+        
+        .taskDetail td{
+            border-left: 1px solid black;
+            border-top: 1px solid black;
+            padding:3px;
+            height: 20px;
+        }
+        
+        .taskDetail td.lastCell{
+            border-right: 1px solid black;
+        }
+        
+        table.rowHeader th, table.rowHeader td {
+            border-top: 1px solid transparent;
+            border-left: 1px solid transparent;
+            border-right: 1px solid transparent;
+       }
+        table.rowHeader td.lastCell {
+            border-bottom: 1px solid transparent;
+        }
+        table.laborDetail {
+            width: 100%;
+        }
+        table.rowHeader td, table.laborDetail td, table.rowHeader th, table.laborDetail th {
+            padding:3px;
+            height: 20px;
+        }
+        .tableInputs {
+            padding: 0;
+            height: 20px;
+        }
+        
+        .blueHeading {
+            background-color:#00B0F0;
+            color:#fff;
+            font-weight: bold;
+        }
+        
+        .lightBlueHeading {
+            background-color: #C5D9F1;
+            text-align:right;
+        }
+        
+        .bold {
+            font-weight: bold;
+        }
+        
+        .grayHeading {
+            background-color: #BFBFBF;
+            font-weight: bold;
+        }
+        .hiddenRate {
+            display: none;
+        }
+        
+        {!IF(budgetLabourWrapper.hasFieldTasks,'','.fieldRate { display: none; }')}
+        
+        h1 {
+            font-size: 16pt;
+            display: block;
+        }
+
+    </style>
+        <!--h1><nttdcore:DLabel name="DL1" default="{{1}} ({{2}})" labelParent="{!this}" p1="{!BudgetHeader__c.Project__r.Name}" p2="{!BudgetHeader__c.Project__r.OracleProjectnumber__c}" />{!dLabel['DL1']}</h1>
+        <h1><nttdcore:DLabel name="DL2" default="Budget Details - Labor" labelParent="{!this}" />{!dLabel['DL2']}</h1>
+        <p><nttdcore:DLabel name="DL3" default="All values shown in: {{1}}" labelParent="{!this}" p1="{!BudgetHeader__c.Project__r.ProjectFunctionalCurrencyCode__c}" /><nttdcore:DLabel name="DL4" default="Budget Name: {{1}}" labelParent="{!this}" p1="{!BudgetHeader__c.BudgetName__c}" /><nttdcore:DLabel name="DL5" default="Status: {{1}}" labelParent="{!this}" p1="{!BudgetHeader__c.Status__c}" />{!dLabel['DL3']}<br/>
+        {!dLabel['DL4']}<br/>
+        {!dLabel['DL5']}<br/>
+        <apex:outputLink value="/apex/ECO_PDFViewer?bmpx=7.2&path={!URLFOR($Resource.ECO_BudgetHelp)}" target="budgethelp" ><nttdcore:DLabel name="DL6" default="Help for this page" labelParent="{!this}" />{!dLabel['DL6']}</apex:outputLink></p>-->
+
+    <h1>{!BudgetHeader__c.Project__r.Name}&nbsp;({!BudgetHeader__c.Project__r.OracleProjectnumber__c})</h1>
+        <h1>{!$Label.Budget_Details_Labor}</h1>
+        <p>{!$Label.All_values_shown_in}&nbsp;{!BudgetHeader__c.Project__r.ProjectFunctionalCurrencyCode__c}<br/>
+        {!$Label.Budget_Name_EAC}&nbsp;{!BudgetHeader__c.BudgetName__c}<br/>
+        {!$Label.Status_EAC}&nbsp;{!BudgetHeader__c.Status__c}<br/>    
+        <apex:outputLink value="/apex/ECO_PDFViewer?bmpx=7.2&path={!URLFOR($Resource.ECO_BudgetHelp)}" target="budgethelp">{!$Label.Help_for_this_page}</apex:outputLink></p>
+
+    <script>
+        $b = jQuery.noConflict();
+    	function setLineChanged(line) {
+    	    var row = $b(line).closest('tr');
+    	    row.find('[id$=baHasChanged]').val('true');
+    	}
+
+        function showRates() {
+            $b(".hiddenRate").toggle();
+        }
+
+        var btnsEnabled = true;
+        function saveButtonsEnabled(enable) {
+            btnsEnabled = enable;
+            var $buttons = $b('.btn'); // find all buttons in the page
+            var $saveButton = $b('.saveBtn'); 
+            if (enable === false) {
+                $buttons.toggleClass('btnDisabled', true)
+                //.attr('disabled', 'disabled');
+                $saveButton.val('Saving...');
+            } else {
+                $buttons.toggleClass('btnDisabled', false).attr('disabled', null);
+                $saveButton.val('Save');
+            } 
+        }
+
+        function disableButtonsNoSave() {
+            if (!btnsEnabled) return false;
+            saveButtonsEnabled(false);
+
+            return true;
+        }
+        
+        function disableButtons() {
+            if (!btnsEnabled) return false;
+            // saveBudget();
+            saveButtonsEnabled(false);
+
+            return true;
+        }
+
+        function actionComplete() {
+            saveButtonsEnabled(true);
+        }
+        
+        $b(function() {
+            if ({!budgetLabourWrapper.HasRateMismatch}) {
+                alert('Warning: You have selected to budget your costs at the top task level, however you have tasks nominated as being Field.\n\nAs you are budgeting at top task all hours entered will be costed using Home rates and not Field rates.\n\nIn order to correctly calculate labor costs using field rates, you will need to budget at Lowest Task.');
+            }
+        });
+    </script>
+
+    <apex:outputText value="{!$Label.ECO_FinancialForce_Error}" style="font-size:12pt;font-weight:500!important;margin-left: 38px;" rendered="{!NOT(hasFinancialForceAccess)}" />        
+    <apex:form rendered="{!hasFinancialForceAccess}" >
+        <apex:actionFunction name="refreshData" action="{!refreshData}" />
+
+        <p>
+            <!--<nttdcore:DLabel name="DL7" default="Too many tasks to show on the page" labelParent="{!this}" />
+            <nttdcore:DLabel name="DL8" default="Please select a Parent Task from the filter to reduce the number of tasks in the list " labelParent="{!this}" />
+            <nttdcore:DLabel name="DL9" default="This page is only able to display 1000 tasks maximum at one time" labelParent="{!this}" />-->
+
+            <apex:pageMessage rendered="{!tooManyTasks}" title="{!$Label.Too_many_tasks_to_show_on_the_page}" detail="{!$Label.Please_select_a_Parent_Task_from_the_filter_to_reduce_the_number_of_tasks_in_the}" summary="{!SUBSTITUTE($Label.This_page_is_only_able_to_display_n_tasks_maximum_at_one_time, '{0}', TEXT(budgetLabourWrapper.taskLimit))}" severity="error" strength="3" />
+
+            <!-- <nttdcore:DLabel name="DL10" default="Too many tasks to show on the page" labelParent="{!this}" />
+            <nttdcore:DLabel name="DL11" default="This project and the parent task filter you have selected exceeds the 1000 task limit" labelParent="{!this}" />
+            <nttdcore:DLabel name="DL12" default="Only the first 1000 tasks are being shown" labelParent="{!this}" />-->
+
+            <apex:pageMessage rendered="{!budgetLabourWrapper.dtoBudgetTasks.size == 1000}" title="{!$Label.Too_many_tasks_to_show_on_the_page}" detail="{!$Label.This_project_and_the_parent_task_filter_you_have_selected_exceeds_the_1000_task}" summary="{!$Label.Only_the_first_1000_tasks_are_being_shown}" severity="warning" strength="2" />
+
+            <!--<nttdcore:DLabel name="DL13" default="The fringe and OH rates for resources on the Labour/Person budget have been changed from the business standard multipliers. Changing cost rates on this budget will not change the costs allocated to
+                the project - a custom burden multiplier is required to be completed, approved and processed in Oracle to effect any change in actual costs." labelParent="{!this}" />-->
+
+            <apex:pageMessage rendered="{!isBurdenRateRevised}" title="{!$Label.OHRatesChanged}" detail="" summary="" severity="warning" strength="2" />
+
+            <!--<nttdcore:DLabel name="DL14" default="Burden Mutlpliers shown are standard, however a custom burden override has been detected and will be applied on the task in calculation of total costs as appropriate." labelParent="{!this}" />-->
+
+            <apex:pageMessage rendered="{!budgetLabourWrapper.hasCustomBurden}" title="{!$Label.Burden_Mutlpliers_shown_are_standard_however_a_custom_burden_override_has_been}" detail="" summary="" severity="warning" strength="2" />
+            
+        </p>
+    <c:ECO_ModalDialog width="600" padding="20px 20px 20px 20px" name="modalDialog0" >
+        <c:ECO_AddResource parentcon="{!parentExt}" budgetheader="{!BudgetHeader__c.id}" refreshpage="ECO_BudgetLabourDetail" />
+    </c:ECO_ModalDialog>    
+    <apex:actionFunction action="{!save}" name="saveBudget" />
+    <apex:pageMessages />
+    <apex:actionStatus id="buttonStatus" onstop="actionComplete()" />
+<div style="width: 100%; height: 100%" >
+    
+    <table style="width:100%" cellpadding="0" cellspacing="0" id="maintable"  >
+            <tr>
+            <td class="summaryLabelCell2" ><!--nttdcore:DLabel name="DL15" default="Filter by Parent Task" labelParent="{!this}" /-->{!$Label.Filter_by_Parent_Task}</td>
+            <td class="numberCellWidth2" >
+                <apex:selectList value="{!parentTaskFilter}" multiselect="false" size="1" onchange="refreshData();" id="parentTaskFilter" >
+                    <apex:selectOptions value="{!taskFilterOptions}" />
+                </apex:selectList>
+            </td>
+        </tr>
+    <apex:outputPanel rendered="{!!tooManyTasks}" >
+        <tr><th>&nbsp;</th></tr>
+        <tr>
+            <td/>
+            <td>
+                <table class="rowHeader" cellpadding="0" cellspacing="0" >
+                    <thead>
+                        <tr><th><!--<nttdcore:DLabel name="DL24" default="Page {{1}} of {{2}}" labelParent="{!this}" p1="{!brSsc.pageNumber}" p2="{!totalPages}" />-->
+                            <!--<nttdcore:DLabel name="DL18" default="&lt;&lt;" labelParent="{!this}" />-->
+                            <!--<nttdcore:DLabel name="DL19" default="First Page" labelParent="{!this}" />
+                            <nttdcore:DLabel name="DL20" default="First Page" labelParent="{!this}" />--><apex:commandButton value="<<" action="{!pageFirst}" onclick="return disableButtonsNoSave()" title="{!$Label.First_Page}" alt="{!$Label.First_Page}" disabled="{!!brSsc.hasPrevious}" style="width:30px;margin-bottom:5px;" />
+                            <!--<nttdcore:DLabel name="DL21" default="&lt;" labelParent="{!this}" />
+                            <nttdcore:DLabel name="DL22" default="Previous Page" labelParent="{!this}" />
+                            <nttdcore:DLabel name="DL23" default="Previous Page" labelParent="{!this}" />--><apex:commandButton value="<" action="{!pagePrevious}" onclick="return disableButtonsNoSave()" title="{!$Label.Previous_Page}" alt="{!$Label.Previous_Page}" disabled="{!!brSsc.hasPrevious}" style="width:30px;" />
+
+                            <span style="min-width:5px;" >&nbsp;</span>
+                            <!--{!dLabel['DL24']}-->
+                            Page&nbsp;{!brSsc.pageNumber}&nbsp;of&nbsp;{!totalPages}
+                            <span style="min-width:5px;" >&nbsp;</span>
+
+
+                            <!--<nttdcore:DLabel name="DL25" default="&gt;" labelParent="{!this}" />
+                            <nttdcore:DLabel name="DL26" default="Next Page" labelParent="{!this}" />
+                            <nttdcore:DLabel name="DL27" default="Next Page" labelParent="{!this}" />--><apex:commandButton value=">" action="{!pageNext}" status="buttonStatus" onclick="return disableButtonsNoSave()" title="{!$Label.Next_Page}" alt="{!$Label.Next_Page}" disabled="{!!brSsc.hasNext}" style="width:30px;" />
+                            <!--<nttdcore:DLabel name="DL28" default="&gt;&gt;" labelParent="{!this}" />
+                            <nttdcore:DLabel name="DL29" default="Last Page" labelParent="{!this}" />
+                            <nttdcore:DLabel name="DL30" default="Last Page" labelParent="{!this}" />--><apex:commandButton value=">>" action="{!pageLast}" onclick="return disableButtonsNoSave()" title="{!$Label.Last_Page}" alt="{!$Label.Last_Page}" disabled="{!!brSsc.hasNext}" style="width:30px;" />
+
+                            <br/>
+
+                            <!--<nttdcore:DLabel name="DL31" default="Save" labelParent="{!this}" />--><apex:commandButton value="{!$Label.Save}" action="{!save}" styleclass="saveBtn" onclick="return disableButtons();" rendered="{!canModify}" />
+                            <!--<nttdcore:DLabel name="DL32" default="Edit Rates" labelParent="{!this}" />--><apex:commandButton value="{!$Label.Edit_Rates}" styleClass="edit-rates" onclick="showRates(); return false;" rerender="norefresh" />
+                            <!--<nttdcore:DLabel name="DL33" default="Add Resource" labelParent="{!this}" />--><apex:commandButton value="{!$Label.Add_Resource}" onclick="openModal('modalDialog0');return false;" rendered="{!BudgetHeader__c.Status__c != 'Approved' && canModify}" /></th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><th>{!IF(budgetLabourWrapper.hasFieldTasks,'Total Cost Rate (FBLR) (Home/Field)','Total Cost Rate (FBLR)')}
+                            <c:ECO_HelpText helpid="Total Cost Rate" />
+                        </th></tr>
+                        <tr class="hiddenRate" ><th><!--nttdcore:DLabel name="DL34" default="Raw" labelParent="{!this}" /-->{!$Label.Raw_EAC}</th></tr>
+                        <tr class="hiddenRate" ><th>{!IF(budgetLabourWrapper.hasFieldTasks,'% Fringe (Home/Field)','% Fringe')}</th></tr>
+                        <tr class="hiddenRate" ><th>{!IF(budgetLabourWrapper.hasFieldTasks,'% O/H (Home/Field)','% O/H')}</th></tr>
+                    
+                        <tr class="hiddenRate" ><td style="height: 20px;" /></tr> <!-- Validate if we can replace with css padding -->
+                    
+                        <tr><th><!--nttdcore:DLabel name="DL35" default="Revenue Rate" labelParent="{!this}" /-->{!$Label.Revenue_Rate}</th></tr>
+                        <tr><th><!--nttdcore:DLabel name="DL36" default="Margin Type" labelParent="{!this}" /-->{!$Label.Margin_Type}</th></tr>
+                        <tr><th class="lastCell" ><!--nttdcore:DLabel name="DL37" default="Bill Rate or % Markup" labelParent="{!this}" /-->{!$Label.Bill_Rate_or_Markup}}</th></tr>
+                    </tbody>
+                </table>
+            </td>
+
+        <apex:repeat value="{!budgetLabourWrapper.dtoBudgetLabourDetails}" var="budgetLabour" >
+            <td>
+                <table class="laborDetail" cellpadding="0" cellspacing="0" >
+                    <thead>
+                        <tr><th class="blueHeading" >{!budgetLabour.resourceType}</th></tr>
+                        <tr><th class="blueHeading" >
+                            <!--nttdcore:DLabel name="DL38" default="Clone" labelParent="{!this}" /-->
+                            <apex:commandLink title="{!$Label.ECO_Clone}" action="{!cloneResource}" status="buttonStatus" onclick="return disableButtons()" rendered="{!canModify}" >
+                                <apex:param name="budgetLabourId" value="{!budgetLabour.oBudgetResource.Id}" />
+                                <apex:image value="{!URLFOR($Resource.ECO_CustomGraphicAssets, 'clone.png')}" width="12" style="margin-right: 8px;" />
+                            </apex:commandLink>
+                            <!--nttdcore:DLabel name="DL39" default="Delete" labelParent="{!this}" /-->
+                            <apex:commandLink title="{!$Label.Delete_EAC}" action="{!removeEntireColumn}" status="buttonStatus" onclick="return disableButtons()" rendered="{!canModify}">
+                                <apex:param name="budgetLabourId" value="{!budgetLabour.oBudgetResource.Id}" />
+                                <apex:image value="{!URLFOR($Resource.ECO_CustomGraphicAssets, 'trash.png')}" width="12" />
+                            </apex:commandLink>
+                        </th></tr>
+                        <tr><td class="lightBlueHeading" style="text-align:left;" >{!budgetLabour.columnHeader}</td></tr>
+                        <tr><td><apex:inputText value="{!budgetLabour.jobName}" /></td></tr>
+                    </thead>
+                    <tbody class="cost">
+                        <tr><td class="lightBlueHeading bold">
+                            {!budgetLabour.costRate}<apex:outputPanel rendered="{!budgetLabourWrapper.hasFieldTasks}" >&nbsp;/ {!budgetLabour.costRateField}</apex:outputPanel>
+                        </td></tr>
+                        <tr class="hiddenRate"><td class="tableInputs" style="text-align:right;"><apex:inputText value="{!budgetLabour.raw}" style="text-align:right"/></td></tr>
+                        
+                        <tr class="hiddenRate"><td class="tableInputs">
+                            <table border="0" width="100%" style="border:0px;" cellspacing="0" cellpadding="0"><tr>
+                            <td width="50%" style="border:0px;"><apex:inputText value="{!budgetLabour.fringe}" size="7" style="text-align:right;"/>%</td>
+                            <td width="50%" style="border:0px;" class="fieldRate"><apex:inputText value="{!budgetLabour.fringeField}" size="7" style="text-align:right;"/>%</td>
+                            </tr></table>
+                        </td></tr>
+                        
+                        <tr class="hiddenRate"><td class="tableInputs">
+                            <table border="0" width="100%" style="border:0px;" cellspacing="0" cellpadding="0"><tr>
+                            <td width="50%" style="border:0px;"><apex:inputText value="{!budgetLabour.overhead}" size="7" style="text-align:right;"/>%</td>
+                            <td width="50%" style="border:0px;" class="fieldRate"><apex:inputText value="{!budgetLabour.overheadField}" size="7" style="text-align:right;"/>%</td>
+                            </tr></table>
+                        </td></tr>
+                    </tbody>
+                    <tr class="hiddenRate"><td style="height: 20px;">&nbsp;</td></tr> <!-- Validate if we can replace with css padding -->
+                    <tbody class="revenue">
+                        <tr><td class="lightBlueHeading bold"><apex:outputText value="{!budgetLabour.revenueRate}"/></td></tr>
+                        <tr>
+                            <td>
+                                <apex:selectList value="{!budgetLabour.marginType}" size="1">
+                                    <apex:selectOption itemValue="Amount" itemLabel="{!$Label.Amount_Budget}" />
+                                    <apex:selectOption itemValue="Percent" itemLabel="{!$Label.Percent_Budget}" />
+                                    <apex:selectOption itemValue="Multiplier" itemLabel="{!$Label.Multiplier_Budget}" />
+                                </apex:selectList>
+                            </td>
+                        </tr>
+                        <tr><td class="lastCell"><apex:inputText value="{!budgetLabour.billRateOrMarkup}" style="text-align:right;"/>
+                        {! IF(budgetLabour.marginType=='Percent','%','')}
+                        </td></tr>
+                    </tbody>
+                </table>
+            </td>
+        </apex:repeat>
+        </tr>
+        <tr><td style="height: 20px;" colspan="2" >
+        <apex:outputPanel rendered="{!parentTaskFilter!='-1'}" >
+        <!--nttdcore:DLabel name="DL48" default="Select Current Task Range:" labelParent="{!this}" /-->
+          {!$Label.Select_Current_Task_Range}&nbsp;
+              <apex:selectList value="{!budgetLabourWrapper.taskRange}" multiselect="false" size="1" onchange="refreshData();" id="taskRange" >
+                <apex:selectOptions value="{!budgetLabourWrapper.taskPageOptions}" />
+              </apex:selectList>
+            </apex:outputPanel>
+	    </td></tr>
+
+<tbody class="fakeHeader" >
+<tr class="taskDetailHeader " >
+    <td class="grayHeading taskNumberCol" ><!--<nttdcore:DLabel name="DL59" default="Task Number" labelParent="{!this}" />-->{!$Label.Task_Number}</td>
+    <td class="grayHeading taskNameCol" ><!--<nttdcore:DLabel name="DL60" default="Task Name" labelParent="{!this}" />-->{!$Label.Task_Name_Budget}</td>
+        <apex:repeat value="{!budgetLabourWrapper.dtoBudgetLabourDetails}" var="budgetLabour" >
+            <td class="lightBlueHeading bold">Hours</td>
+        </apex:repeat>
+            <td class="blueHeading" style="text-align:right;" ><!--nttdcore:DLabel name="DL52" default="Hours" labelParent="{!this}" /-->{!$Label.Hrs}</td>
+            <td class="blueHeading" style="text-align:right;" ><!--nttdcore:DLabel name="DL53" default="Cost" labelParent="{!this}" /-->{!$Label.ECOPMDCost}</td>
+            <td class="blueHeading" style="text-align:right;" ><!--nttdcore:DLabel name="DL54" default="Revenue" labelParent="{!this}" /-->{!$Label.ECOPMDRevenue}</td>
+        </tr>
+        <tr><td style="height: 5px;" >&nbsp;</td></tr>
+</tbody>
+<tbody class="fixedBody">
+        <tr class="taskDetail" >
+    <td class="bold fixed" ><!--<nttdcore:DLabel name="DL88" default="Project Total" labelParent="{!this}" />-->{!$Label.Project_Total}</td>
+	<td class="fixed">&nbsp;</td>
+        <apex:repeat value="{!budgetLabourWrapper.dtoBudgetLabourDetails}" var="budgetLabour" > <!--list<DTO_BudgetLaborDetail>-->
+            <td class="lightBlueHeading" >{!budgetLabour.totalHours}</td>
+<!--            <td class="lightBlueHeading">{!totalRow.totalLaborHours}</td> -->
+        </apex:repeat>
+            <td class="blueHeading" style="text-align:right;" >{!budgetLabourWrapper.totalRow.totalLaborHours}</td>
+            <td class="blueHeading" style="text-align:right;" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+<!--                    <apex:param value="{!budgetLabourWrapper.getTotalCost}" /> -->
+                    <apex:param value="{!budgetLabourWrapper.totalRow.totalLabourCost}" />
+                </apex:outputText>
+            </td>
+            <td class="blueHeading" style="text-align:right;" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+<!--                    <apex:param value="{!budgetLabourWrapper.getTotalRevenue}" /> -->
+                    <apex:param value="{!budgetLabourWrapper.totalRow.totalLabourRevenue}" />
+                </apex:outputText>
+            </td>
+        </tr>
+        <apex:repeat value="{!budgetLabourWrapper.dtoBudgetTasks}" var="budgetTask" > <!--list<DTO_BudgetTask>-->
+            <tr class="taskDetail" >
+	<td class="fixed">
+                        <div style="margin-left: {!budgetTask.indentLevel * 10}px; width:120px">
+                        {!budgetTask.taskNumber}
+                    </div>
+                </td>
+                    <td class="fixed">
+                        <div style="margin-left: {!budgetTask.indentLevel * 10}px;">
+                        {!budgetTask.taskName}
+                    </div>
+                </td>
+            <apex:repeat value="{!budgetLabourWrapper.dtoBudgetLabourDetails}" var="budgetLabour" > <!--list<DTO_BudgetLaborDetail>-->
+                <td style="text-align:right;" >
+		    <apex:inputHidden id="baHasChanged" value="{!budgetLabourWrapper.baHasChanged['' + budgetLabour.oBudgetResource.Id + budgetTask.budgetTaskId]}" html-data-uniqueid="{!'' + budgetLabour.oBudgetResource.Id + budgetTask.budgetTaskId}" /> 
+
+                    
+		    <apex:inputText onkeyup="setLineChanged(this);" value="{!budgetLabour.mAssignmentMap[budgetTask.budgetTaskId].Quantity__c}" rendered="{!budgetTask.IsEditable}" style="text-align:right;" />
+                    <apex:outputText value="{0, number, ###,###,###,##0.00}" rendered="{!budgetTask.IsVisible}" style="text-align:right;" >
+                                        <apex:param value="{!budgetLabourWrapper.mapTotalByLaborDetailAndTask['' + budgetLabour.oBudgetResource.Id + budgetTask.budgetTaskId]}" />
+                    </apex:outputText>
+                </td>
+            </apex:repeat>
+                <td class="blueHeading" style="text-align:right;" >{!budgetTask.totalLaborHours}</td>
+                <td class="blueHeading" style="text-align:right;" >
+                    <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                        <apex:param value="{!budgetTask.totalLabourCost}" />
+                    </apex:outputText>
+                </td>
+                <td class="blueHeading" style="text-align:right;" >
+                    <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                        <apex:param value="{!budgetTask.totalLabourRevenue}" />
+                    </apex:outputText>
+                </td>
+            </tr>
+        </apex:repeat>
+<tr class="taskDetail">
+	<td>&nbsp;</td>
+            <td><!--nttdcore:DLabel name="DL56" default="Total Cost by Person" labelParent="{!this}" /-->{!$Label.Total_Cost_by_Person}
+            <c:ECO_HelpText helpid="Total Cost by Person" />
+            </td>
+        <apex:repeat value="{!budgetLabourWrapper.dtoBudgetLabourDetails}" var="budgetLabour" > <!--list<DTO_BudgetLaborDetail>-->
+            <td class="lightBlueHeading" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!budgetLabour.totalCostByPerson}" />
+                </apex:outputText>
+            </td>
+        </apex:repeat>
+            <td/>
+            <td/>
+            <td/>
+        </tr>
+<tr class="taskDetailHeader" >
+    <td>&nbsp;</td>
+            <td><!--nttdcore:DLabel name="DL57" default="Total Revenue by Person" labelParent="{!this}" /-->{!$Label.Total_Revenue_by_Person}
+            <c:ECO_HelpText helpid="Total Revenue by Person" />
+            </td>
+        <apex:repeat value="{!budgetLabourWrapper.dtoBudgetLabourDetails}" var="budgetLabour" > <!--list<DTO_BudgetLaborDetail>-->
+            <td class="lightBlueHeading" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!budgetLabour.totalRevenueByPerson}" />
+                </apex:outputText>
+            </td>
+        </apex:repeat>
+            <td/>
+            <td/>
+            <td/>
+        </tr>
+</tbody>
+        </apex:outputPanel>
+    </table>
+</div>
+
+    </apex:form>
+
+    <c:ECO_HelpTextRender ready="1" />
+
+    </apex:define>
+    </apex:composition>
+</apex:page>

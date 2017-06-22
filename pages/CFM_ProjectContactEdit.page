@@ -1,0 +1,248 @@
+<apex:page standardController="Project__c" extensions="CFM_ProjectContactEditController" showHeader="false" sidebar="false">
+<apex:stylesheet value="{!URLFOR($Resource.rs_libs, 'qtip/jquery.qtip.min.css')}"/>
+<script src="{!URLFOR($Resource.rs_libs, 'jquery/jquery.js')}" type="text/javascript" charset="utf-8"></script>
+<script src="{!URLFOR($Resource.rs_libs, 'qtip/jquery.qtip.min.js')}" type="text/javascript" charset="utf-8"></script>
+<style>
+    .pageTitle {
+        padding: 10px;
+        display: block;
+        font-size: 15px;
+    }
+    .pmReviewPage .styledButton, .rejectionDialog .styledButton  {
+        padding: 5px 20px;
+        font-size: 12px;
+        color: white; 
+        background: #1E9EAF;
+        border-radius: 6px;
+        font-weight: normal;
+        margin-top: 10px;
+        margin-left: auto; /*Center the button*/
+        margin-right: auto;
+        display: block;
+    }
+
+    .styledButton:hover {
+      background: #3FCFBF;
+    }
+
+    .projectTable {
+        border: 1px #1E9EAF solid !important;
+        border-top-left-radius: 4px;
+        border-top-right-radius: 4px;
+    }
+    .projectTable th {
+        background: #1E9EAF !important;
+    }
+    .projectTable th div {
+        color: white;
+    }
+    .projectTable tr:first-child {
+        border-top-left-radius: 4px;
+    }
+    .projectTable tr:last-child {
+        border-top-right-radius: 4px;
+    }
+    .projectTable tr:nth-child(even) {
+        background-color: #F0F0F0;
+    }
+    .actionStepText {
+        padding-left: 5px;
+        padding-bottom: 10px;
+    }
+
+    /*Salesforce Overrides*/
+    .pbHeader {
+        background-color: #1E9EAF !important;
+    }
+    .mainTitle {
+        color: white !important;
+    }
+    .secondaryPalette {
+        border-color: #1E9EAF !important;
+    }
+
+    .hiddenPageBlock .bPageBlock {
+        visibility: hidden;
+    }
+    .hiddenPageBlock .pbBody {
+        visibility: visible;
+        margin: 0 !important;
+    }
+
+    .pageTitleIcon {
+        background-image: none !important;
+    }
+
+    .ui-dialog-titlebar {
+      color: white;
+      background: #1E9EAF;
+      background-image: none;
+    }
+
+    .tertiaryPalette {
+        background-color: #1E9EAF !important;
+    }
+
+    .pbHeader>table {
+        padding: 0 !important;
+    }
+
+    .bPageBlock {
+        margin: 10px 2% !important;
+    }
+
+    .bPageTitle {
+        margin: 0 2% !important;
+    }
+</style>
+<script type="text/javascript">
+    $j = jQuery.noConflict();
+    function helpTextSetup() {
+        $j('.helpOrb').each(function() {
+            var elem = $j(this);
+            if(elem.hasClass("cfmLang")) {
+                var langs = elem.attr("title").match(/\S+/g);
+                console.log("langs: ", langs);
+                var newText = "";
+                for(var i = 0; i < langs.length; i++) {
+                    if(langs[i] === langs[i].toUpperCase() && i !== 0 && langs[i] !== "=") {
+                        newText += "<br/>"
+                    }
+                    newText += " " + langs[i];
+                }
+                elem.qtip({
+                    content: {
+                        text: newText
+                    },
+                    events: {
+                        show: function(event, api) { elem.parent().removeClass('helpButton').addClass('helpButtonOn');},
+                        hide: function(event, api) { elem.parent().removeClass('helpButtonOn').addClass('helpButton');}
+                    }
+                });
+            } else {
+                elem.qtip({
+                    content: true,
+                    events: {
+                        show: function(event, api) { elem.parent().removeClass('helpButton').addClass('helpButtonOn');},
+                        hide: function(event, api) { elem.parent().removeClass('helpButtonOn').addClass('helpButton');}
+                    }
+                });
+            }
+        });
+    }
+    $j(document).ready(function() {
+        helpTextSetup();
+    });
+</script>
+    <apex:form id="form">
+       <apex:outputPanel rendered="{!wasSaved}">
+            <script type="text/javascript">
+                // Force reload
+                window.opener.location.href = window.opener.location.href; 
+                window.close();
+            </script>
+        </apex:outputPanel>
+
+        <div class="bPageTitle">
+            <div class="ptBody">
+                <div class="content">
+                    <apex:image url="{!URLFOR($Resource.CFM_Images, 'Survey_Icon.png')}" styleClass="pageTitleIcon" />
+                    <h1 class="pageType">{!$Label.CFM_Update_Project}<span class="titleSeparatingColon">:</span></h1>
+                    <h2 class="pageDescription"> {!$Label.CFM_Contact_Information}</h2>
+                    <div class="blank">&nbsp;</div>
+                </div>
+            </div>
+        </div>
+
+        <apex:pageMessages />
+
+        <apex:pageBlock rendered="{!!wasSaved}">
+            <apex:pageBlockButtons location="both">
+                <apex:commandButton value="{!$Label.Edit}" rendered="{!!isEditMode}" action="{!setEditMode}" reRender="form" oncomplete="helpTextSetup();"/>
+                <apex:commandButton value="{!$Label.Cancel}" rendered="{!isEditMode}" action="{!cancelEdit}" immediate="true" reRender="form" oncomplete="helpTextSetup();"/>
+                <apex:commandButton value="{!$Label.Save}" rendered="{!isEditMode}" action="{!performSave}" />
+            </apex:pageBlockButtons>
+
+            <apex:pageBlockSection title="{!$Label.CFM_Project_Information}" columns="1">
+                <apex:outputField value="{!project.obj.Oracle_Project_Number__c}" />
+                <apex:outputField value="{!project.obj.OracleName__c}" />
+                <apex:pageBlockSectionItem rendered="{!!isEditMode}">
+                    <apex:outputLabel value="{!$ObjectType['Project__c'].fields['Modified_Project_Name__c'].Label}" styleClass="helpButton">
+                        <img src="/s.gif" class="helpOrb" title="{!$ObjectType['Project__c'].fields['Modified_Project_Name__c'].inlineHelpText}"/>
+                    </apex:outputLabel>
+                    <apex:outputField value="{!project.obj.Modified_Project_Name__c}" rendered="{!!isEditMode}" />
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem rendered="{!isEditMode}">
+                    <apex:outputLabel value="{!$ObjectType['Project__c'].fields['Modified_Project_Name__c'].Label}" styleClass="helpButton">
+                        <img src="/s.gif" class="helpOrb" title="{!$ObjectType['Project__c'].fields['Modified_Project_Name__c'].inlineHelpText}"/>
+                    </apex:outputLabel>
+                    <apex:inputText value="{!modifiedProjectName}" />
+                </apex:pageBlockSectionItem>
+
+                
+                
+            </apex:pageBlockSection>
+
+            <apex:pageBlockSection title="{!$Label.CFM_Enter_Contact_Information}" rendered="{!!hasExistingContact}" columns="1">
+                <apex:outputLabel value="{!$Label.CFM_No_Survey_Contact}" rendered="{!!isEditMode}" />
+                <apex:inputField value="{!surveyContact.FirstName}" rendered="{!isEditMode}"  />
+                <apex:inputField value="{!surveyContact.LastName}" rendered="{!isEditMode}"  required="false" />
+                <apex:inputField value="{!surveyContact.Email}" rendered="{!isEditMode}" required="false" />
+                <apex:inputField value="{!surveyContact.Phone}" rendered="{!isEditMode}" />
+                <apex:pageBlockSectionItem rendered="{!isEditMode}">
+                    <apex:outputLabel value="{!$ObjectType['Contact'].fields['Survey_Language__c'].Label}" styleClass="helpButton">
+                        <img src="/s.gif" class="helpOrb cfmLang" title="{!$ObjectType['Contact'].fields['Survey_Language__c'].inlineHelpText}"/>
+                    </apex:outputLabel>
+                    <apex:inputField value="{!surveyContact.Survey_Language__c}"  />
+                </apex:pageBlockSectionItem>
+            </apex:pageBlockSection>
+
+            <apex:pageBlockSection title="{!$Label.CFM_Update_Contact_Information}" rendered="{!hasExistingContact}" columns="1">
+
+                <apex:outputPanel rendered="{!isEditMode}">
+                    <apex:selectRadio layout="pageDirection" value="{!contactMode}">
+                        <apex:selectOptions value="{!contactOptions}"/>
+                        <apex:actionsupport event="onchange" action="{!switchContactMode}" oncomplete="helpTextSetup();" reRender="form"/>
+                    </apex:selectRadio>
+                </apex:outputPanel>
+
+                <!-- Information is correct -->
+                <apex:outputField value="{!surveyContact.FirstName}" rendered="{!contactMode == '1'}"/>
+                <apex:outputField value="{!surveyContact.LastName}" rendered="{!contactMode == '1'}"/>
+                <apex:outputField value="{!surveyContact.Email}" rendered="{!contactMode == '1'}"/>
+                <apex:outputField value="{!surveyContact.Phone}" rendered="{!contactMode == '1'}"/>
+                <apex:pageBlockSectionItem rendered="{!contactMode == '1'}">
+                    <apex:outputLabel value="{!$ObjectType['Contact'].fields['Survey_Language__c'].Label}" styleClass="helpButton">
+                        <img src="/s.gif" class="helpOrb cfmLang" title="{!$ObjectType['Contact'].fields['Survey_Language__c'].inlineHelpText}"/>
+                    </apex:outputLabel>
+                    <apex:outputField value="{!surveyContact.Survey_Language__c}" />
+                </apex:pageBlockSectionItem>
+
+                <!-- Update name -->
+                <apex:outputField value="{!surveyContact.FirstName}" rendered="{!contactMode == '2'}"/>
+                <apex:outputField value="{!surveyContact.LastName}" rendered="{!contactMode == '2'}"/>
+                <apex:inputField value="{!surveyContact.Email}" rendered="{!contactMode == '2'}" required="false" />
+                <apex:inputField value="{!surveyContact.Phone}" rendered="{!contactMode == '2'}"/>
+                <apex:pageBlockSectionItem rendered="{!contactMode == '2'}">
+                    <apex:outputLabel value="{!$ObjectType['Contact'].fields['Survey_Language__c'].Label}" styleClass="helpButton">
+                        <img src="/s.gif" class="helpOrb cfmLang" title="{!$ObjectType['Contact'].fields['Survey_Language__c'].inlineHelpText}"/>
+                    </apex:outputLabel>
+                    <apex:inputField value="{!surveyContact.Survey_Language__c}" />
+                </apex:pageBlockSectionItem>
+
+                <!-- New Contact -->
+                <apex:inputField value="{!surveyContact.FirstName}" rendered="{!contactMode == '3'}"/>
+                <apex:inputField value="{!surveyContact.LastName}" rendered="{!contactMode == '3'}" required="false" />
+                <apex:inputField value="{!surveyContact.Email}" rendered="{!contactMode == '3'}" required="false" />
+                <apex:inputField value="{!surveyContact.Phone}" rendered="{!contactMode == '3'}"/>
+                <apex:pageBlockSectionItem rendered="{!contactMode == '3'}">
+                    <apex:outputLabel value="{!$ObjectType['Contact'].fields['Survey_Language__c'].Label}" styleClass="helpButton">
+                        <img src="/s.gif" class="helpOrb cfmLang" title="{!$ObjectType['Contact'].fields['Survey_Language__c'].inlineHelpText}"/>
+                    </apex:outputLabel>
+                    <apex:inputField value="{!surveyContact.Survey_Language__c}" />
+                </apex:pageBlockSectionItem>
+            </apex:pageBlockSection>
+
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

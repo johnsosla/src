@@ -1,0 +1,1681 @@
+<apex:page standardcontroller="ProjectSnapshot__c" extensions="ECO_ProjectSnapshotController,nttdcore.DLabelParentController" showheader="false" sidebar="false" >
+<apex:form >
+    <style>
+        .infoTable {
+            background: #f5f5f5;
+            border-collapse: separate;
+            font-size: 12px;
+            line-height: 24px;
+            text-align: center;
+            margin:5px 14px 0 14px;
+        }   
+        .infoTable table{
+            width:100%;
+        }
+        .infoTable th {
+            background-color: #a6afa2 !important;
+            color: #fff;
+            font-weight: bold;
+            padding: 3px 9px;
+            position: relative;
+            border:none !important;
+            align: center;
+            text-align: center;
+        }
+        .infoTable th:first-child{
+            border-right:1px solid #fff !important;
+        }
+
+        .infoTable th:after {
+            content: '';
+            display: block;
+            height: 25%;
+            left: 0;
+            margin: 1px 0 0 0;
+            position: absolute;
+            top: 25%;
+            width: 100%;
+        }
+        .infoTable td {
+            border-right: 1px solid #fff;
+            border-left: 1px solid #e8e8e8;
+            border-top: 1px solid #fff;
+            border-bottom: 1px solid #e8e8e8;
+            padding: 3px 9px;
+            position: relative;
+            transition: all 300ms;
+            min-width: 90px;
+        }
+
+        .recordTypeTable{
+            border-collapse:collapse;           
+        }
+
+        .recordTypeTable table{
+            width:100%;
+        }
+        
+        .recordTypeTable th, .recordTypeTable td {
+          padding: 4px 2px 4px 5px;
+          border: 1px solid #dbdbdb;;
+          border-collapse: collapse;
+        }
+        
+        .recordTypeTable tr {
+          border: 1px solid #dbdbdb;;
+          border-collapse: collapse;
+        }
+        
+        .recordTypeTable td {
+            background-color: white;
+            min-width: 90px;            
+        }
+           
+        .sfLabel{
+            font-weight:bold; font-size: 95%; float: right; color: #4d4d4d
+        }  
+        .customInfoText{
+            /*padding: 7px;
+            border: 1px solid #85B3CE;
+            min-height: 30px;
+            display: block;
+            width: auto;
+            margin: 0 0 5px 0;
+            background-repeat: no-repeat;
+            border-radius: 4px;
+            background-color: #f4f487;*/
+            padding-bottom: 5px;
+        }      
+    </style>
+<nttdcore:DLabel name="DL1" default="Project Snapshot" labelParent="{!this}" /><apex:sectionHeader title="{!dLabel['DL1']}" subtitle="{!ProjectSnapshot__c.ProjectName__c}" />
+
+<nttdcore:DLabel name="DL2" default="Project Snapshot" labelParent="{!this}" /><apex:pageBlock title="{!dLabel['DL2']}" ><nttdcore:DLabel name="DL7" default="Snapshot Information" labelParent="{!this}" /><nttdcore:DLabel name="DL8" default="Project Information" labelParent="{!this}" /><nttdcore:DLabel name="DL9" default="Managing Department" labelParent="{!this}" /><nttdcore:DLabel name="DL10" default="Supporting Department" labelParent="{!this}" /><nttdcore:DLabel name="DL11" default="Project Tasks" labelParent="{!this}" /><nttdcore:DLabel name="DL12" default="Task Name" labelParent="{!this}" /><nttdcore:DLabel name="DL13" default="Task Number" labelParent="{!this}" /><nttdcore:DLabel name="DL14" default="Forecast Start Date" labelParent="{!this}" /><nttdcore:DLabel name="DL15" default="Forecast End Date" labelParent="{!this}" /><nttdcore:DLabel name="DL16" default="Actual Start Date" labelParent="{!this}" /><nttdcore:DLabel name="DL17" default="Actual End Date" labelParent="{!this}" /><nttdcore:DLabel name="DL18" default="Contract Information" labelParent="{!this}" /><nttdcore:DLabel name="DL19" default="Record Type" labelParent="{!this}" /><nttdcore:DLabel name="DL20" default="Contract Type" labelParent="{!this}" /><nttdcore:DLabel name="DL21" default="Contract Value" labelParent="{!this}" /><nttdcore:DLabel name="DL22" default="Budget Changes (not yet included in Financials)" labelParent="{!this}" /><nttdcore:DLabel name="DL23" default="Draft Budget Changes" labelParent="{!this}" /><nttdcore:DLabel name="DL24" default="Cost Impact" labelParent="{!this}" /><nttdcore:DLabel name="DL25" default="Revenue Impact" labelParent="{!this}" /><nttdcore:DLabel name="DL26" default="No records to display" labelParent="{!this}" /><nttdcore:DLabel name="DL27" default="Submitted Budget Changes" labelParent="{!this}" /><nttdcore:DLabel name="DL28" default="Cost Impact" labelParent="{!this}" /><nttdcore:DLabel name="DL29" default="Revenue Impact" labelParent="{!this}" /><nttdcore:DLabel name="DL30" default="No records to display" labelParent="{!this}" /><nttdcore:DLabel name="DL31" default="Financial Information(all numbers in functional/operational currency)" labelParent="{!this}" /><nttdcore:DLabel name="DL32" default="Metric" labelParent="{!this}" /><nttdcore:DLabel name="DL33" default="MTD" labelParent="{!this}" /><nttdcore:DLabel name="DL34" default="YTD" labelParent="{!this}" /><nttdcore:DLabel name="DL35" default="ITD" labelParent="{!this}" /><nttdcore:DLabel name="DL36" default="ETC" labelParent="{!this}" /><nttdcore:DLabel name="DL37" default="F&#39;cast EAC" labelParent="{!this}" /><nttdcore:DLabel name="DL38" default="Original Budget" labelParent="{!this}" /><nttdcore:DLabel name="DL39" default="Curr. App. Budget" labelParent="{!this}" /><nttdcore:DLabel name="DL40" default="Prv. F&#39;cast EAC" labelParent="{!this}" /><nttdcore:DLabel name="DL41" default="F&#39;cast Delta" labelParent="{!this}" /><nttdcore:DLabel name="DL42" default="Pending Changes" labelParent="{!this}" /><nttdcore:DLabel name="DL43" default="Draft Changes" labelParent="{!this}" /><nttdcore:DLabel name="DL44" default="Gross Revenue" labelParent="{!this}" /><nttdcore:DLabel name="DL45" default="ODC - Exps" labelParent="{!this}" /><nttdcore:DLabel name="DL46" default="ODC - Subs" labelParent="{!this}" /><nttdcore:DLabel name="DL47" default="ODC - Contingency" labelParent="{!this}" /><nttdcore:DLabel name="DL48" default="---" labelParent="{!this}" /><nttdcore:DLabel name="DL49" default="---" labelParent="{!this}" /><nttdcore:DLabel name="DL50" default="---" labelParent="{!this}" /><nttdcore:DLabel name="DL51" default="---" labelParent="{!this}" /><nttdcore:DLabel name="DL52" default="Net Service Revenue" labelParent="{!this}" /><nttdcore:DLabel name="DL53" default="Labour" labelParent="{!this}" /><nttdcore:DLabel name="DL54" default="Fringe" labelParent="{!this}" /><nttdcore:DLabel name="DL55" default="Gross Margin" labelParent="{!this}" /><nttdcore:DLabel name="DL56" default="Overhead" labelParent="{!this}" /><nttdcore:DLabel name="DL57" default="Net Margin" labelParent="{!this}" /><nttdcore:DLabel name="DL58" default="Cost" labelParent="{!this}" /><nttdcore:DLabel name="DL59" default="Cost Plan" labelParent="{!this}" /><nttdcore:DLabel name="DL60" default="---" labelParent="{!this}" /><nttdcore:DLabel name="DL61" default="---" labelParent="{!this}" /><nttdcore:DLabel name="DL62" default="---" labelParent="{!this}" /><nttdcore:DLabel name="DL63" default="---" labelParent="{!this}" /><nttdcore:DLabel name="DL64" default="---" labelParent="{!this}" /><nttdcore:DLabel name="DL65" default="---" labelParent="{!this}" /><nttdcore:DLabel name="DL66" default="---" labelParent="{!this}" /><nttdcore:DLabel name="DL67" default="---" labelParent="{!this}" /><nttdcore:DLabel name="DL68" default="GM/NSR" labelParent="{!this}" /><nttdcore:DLabel name="DL69" default="NM/NSR" labelParent="{!this}" /><nttdcore:DLabel name="DL70" default="NM/GR" labelParent="{!this}" /><nttdcore:DLabel name="DL71" default="Hours" labelParent="{!this}" /><nttdcore:DLabel name="DL72" default="Avg. Lab Rate / Hr" labelParent="{!this}" /><nttdcore:DLabel name="DL73" default="---" labelParent="{!this}" /><nttdcore:DLabel name="DL74" default="---" labelParent="{!this}" /><nttdcore:DLabel name="DL75" default="---" labelParent="{!this}" /><nttdcore:DLabel name="DL76" default="Labor Mult" labelParent="{!this}" /><nttdcore:DLabel name="DL77" default="SCM" labelParent="{!this}" /><nttdcore:DLabel name="DL78" default="Lost Margin" labelParent="{!this}" /><nttdcore:DLabel name="DL79" default="---" labelParent="{!this}" /><nttdcore:DLabel name="DL80" default="---" labelParent="{!this}" /><nttdcore:DLabel name="DL81" default="---" labelParent="{!this}" /><nttdcore:DLabel name="DL82" default="---" labelParent="{!this}" /><nttdcore:DLabel name="DL83" default="---" labelParent="{!this}" /><nttdcore:DLabel name="DL84" default="---" labelParent="{!this}" /><nttdcore:DLabel name="DL85" default="---" labelParent="{!this}" /><nttdcore:DLabel name="DL86" default="---" labelParent="{!this}" /><nttdcore:DLabel name="DL87" default="---" labelParent="{!this}" /><nttdcore:DLabel name="DL88" default="Surplus Margin" labelParent="{!this}" /><nttdcore:DLabel name="DL89" default="---" labelParent="{!this}" /><nttdcore:DLabel name="DL90" default="---" labelParent="{!this}" /><nttdcore:DLabel name="DL91" default="---" labelParent="{!this}" /><nttdcore:DLabel name="DL92" default="---" labelParent="{!this}" /><nttdcore:DLabel name="DL93" default="---" labelParent="{!this}" /><nttdcore:DLabel name="DL94" default="---" labelParent="{!this}" /><nttdcore:DLabel name="DL95" default="---" labelParent="{!this}" /><nttdcore:DLabel name="DL96" default="---" labelParent="{!this}" /><nttdcore:DLabel name="DL97" default="---" labelParent="{!this}" /><nttdcore:DLabel name="DL98" default="---" labelParent="{!this}" /><nttdcore:DLabel name="DL99" default="---" labelParent="{!this}" /><nttdcore:DLabel name="DL100" default="End Date" labelParent="{!this}" /><nttdcore:DLabel name="DL101" default="---" labelParent="{!this}" /><nttdcore:DLabel name="DL102" default="---" labelParent="{!this}" /><nttdcore:DLabel name="DL103" default="---" labelParent="{!this}" /><nttdcore:DLabel name="DL104" default="---" labelParent="{!this}" /><nttdcore:DLabel name="DL105" default="---" labelParent="{!this}" /><nttdcore:DLabel name="DL106" default="---" labelParent="{!this}" /><nttdcore:DLabel name="DL107" default="---" labelParent="{!this}" /><nttdcore:DLabel name="DL108" default="Last Budget Update" labelParent="{!this}" /><nttdcore:DLabel name="DL109" default="Earned Value Summary" labelParent="{!this}" /><nttdcore:DLabel name="DL110" default="Earned Value" labelParent="{!this}" /><nttdcore:DLabel name="DL111" default="Earned Value Actual Spend" labelParent="{!this}" /><nttdcore:DLabel name="DL112" default="Planned Value" labelParent="{!this}" /><nttdcore:DLabel name="DL113" default="Cash Performance" labelParent="{!this}" /><nttdcore:DLabel name="DL114" default="Unbilled Revenue" labelParent="{!this}" /><nttdcore:DLabel name="DL115" default="Comments" labelParent="{!this}" /><nttdcore:DLabel name="DL116" default="Unbilled 0-30" labelParent="{!this}" /><nttdcore:DLabel name="DL117" default="---" labelParent="{!this}" /><nttdcore:DLabel name="DL118" default="Unbilled 31-60" labelParent="{!this}" /><nttdcore:DLabel name="DL119" default="---" labelParent="{!this}" /><nttdcore:DLabel name="DL120" default="Unbilled &gt; 60" labelParent="{!this}" /><nttdcore:DLabel name="DL121" default="---" labelParent="{!this}" /><nttdcore:DLabel name="DL122" default="Unbilled (Total)" labelParent="{!this}" /><nttdcore:DLabel name="DL123" default="---" labelParent="{!this}" /><nttdcore:DLabel name="DL124" default="BIEE" labelParent="{!this}" /><nttdcore:DLabel name="DL125" default="---" labelParent="{!this}" /><nttdcore:DLabel name="DL126" default="Accounts Receivable" labelParent="{!this}" /><nttdcore:DLabel name="DL127" default="Comments" labelParent="{!this}" /><nttdcore:DLabel name="DL128" default="A/R 0-30" labelParent="{!this}" /><nttdcore:DLabel name="DL129" default="A/R 31-60" labelParent="{!this}" /><nttdcore:DLabel name="DL130" default="A/R 61-90" labelParent="{!this}" /><nttdcore:DLabel name="DL131" default="A/R &gt; 90" labelParent="{!this}" /><nttdcore:DLabel name="DL132" default="A/R (Total)" labelParent="{!this}" /><nttdcore:DLabel name="DL133" default="Retention" labelParent="{!this}" /><nttdcore:DLabel name="DL134" default="DSO" labelParent="{!this}" /><nttdcore:DLabel name="DL135" default="Future Spend" labelParent="{!this}" /><nttdcore:DLabel name="DL136" default="Month 1" labelParent="{!this}" /><nttdcore:DLabel name="DL137" default="Month 2" labelParent="{!this}" /><nttdcore:DLabel name="DL138" default="Month 3" labelParent="{!this}" /><nttdcore:DLabel name="DL139" default="Month 4" labelParent="{!this}" /><nttdcore:DLabel name="DL140" default="Month 5" labelParent="{!this}" /><nttdcore:DLabel name="DL141" default="Month 6" labelParent="{!this}" /><nttdcore:DLabel name="DL142" default="Total Cost (Approved)" labelParent="{!this}" />
+    <div class="customInfoText" ><nttdcore:DLabel name="DL3" default="All values shown are in" labelParent="{!this}" /><nttdcore:DLabel name="DL4" default="(Project Functional Currency)" labelParent="{!this}" />
+        <!-- <img src="/img/msg_icons/info32.png" style="vertical-align: middle !important;"/>&nbsp;<i><b>{!ProjectSnapshot__c.CurrencyIsoCode}</b> Currency - where <b>{!ProjectSnapshot__c.CurrencyIsoCode}</b> is the project functional currency code</i> -->
+        {!dLabel['DL3']} <b>{!ProjectSnapshot__c.CurrencyIsoCode}</b> {!dLabel['DL4']}
+    </div>
+<apex:pageBlockButtons >
+    <nttdcore:DLabel name="DL5" default="Save Summary" labelParent="{!this}" /><apex:commandButton value="{!dLabel['DL5']}" action="{!save}" rendered="{!projectReviewStatus != 'Approved'}" />
+    <nttdcore:DLabel name="DL6" default="Return to PM Handover" labelParent="{!this}" /><apex:commandButton value="{!dLabel['DL6']}" action="{!returnToPMHandover}" rendered="{!ProjectSnapshot__c.ChangeManager__c != null}" />
+    <!--<apex:commandButton value="Return to Project" action="{!ReturnToProject}"/>-->
+</apex:pageBlockButtons>
+<!--<apex:pageBlockSection title="Meeting Participants" collapsible="false">
+<apex:outputField value="{!ProjectSnapshot__c.ProjectManager__c}"/>
+<apex:inputField value="{!ProjectSnapshot__c.OtherParticipant1__c}"/>
+<apex:outputField value="{!ProjectSnapshot__c.ProjectDirector__c}"/> 
+<apex:inputField value="{!ProjectSnapshot__c.OtherParticipant2__c}"/>
+<apex:inputField value="{!ProjectSnapshot__c.OperationsParticipantTitle__c}"/>
+<apex:inputField value="{!ProjectSnapshot__c.OtherParticipant3__c}"/>
+<apex:inputField value="{!ProjectSnapshot__c.FandAParticipantTitle__c}"/>
+</apex:pageBlockSection>-->
+
+<apex:inputHidden value="{!ProjectSnapshot__c.ProjectReview__c}" />
+<apex:pageBlockSection title="{!dLabel['DL7']}" collapsible="false" >
+<!-- <apex:pageBlockSectionItem >
+    <apex:outputLabel for="snapshotdate" value="Snapshot Date" />
+    <apex:outputText value="{0,date,short}" id="snapshotdate">
+        <apex:param value="{!ProjectSnapshot__c.SnapshotDate__c}"/>
+    </apex:outputText>
+</apex:pageBlockSectionItem> -->
+<apex:outputField value="{!ProjectSnapshot__c.SnapshotDate__c}" />
+<apex:outputField value="{!ProjectSnapshot__c.Snapshot_Project_Key__c}" />
+<apex:outputField value="{!ProjectSnapshot__c.SnapshotFiscalMonth__c}" />
+<apex:outputField value="{!ProjectSnapshot__c.SnapshotType__c}" />
+</apex:pageBlockSection>
+
+<apex:pageBlockSection title="{!dLabel['DL8']}" collapsible="false" >
+
+<apex:outputField value="{!ProjectSnapshot__c.ProjectName__c}" />
+<apex:outputField value="{!ProjectSnapshot__c.ProjectNumber__c}" />
+<apex:outputField value="{!ProjectSnapshot__c.ClientName__c}" />
+<apex:outputField value="{!ProjectSnapshot__c.KAMClientManager__c}" />
+<apex:outputField value="{!ProjectSnapshot__c.ProjectManager__c}" />
+<apex:outputField value="{!ProjectSnapshot__c.ProjectDirector__c}" /> 
+<apex:outputField value="{!ProjectSnapshot__c.ProjectStartDate__c}" />
+<apex:outputField value="{!ProjectSnapshot__c.ProjectEndDate__c}" />
+</apex:pageBlockSection>
+<apex:inputHidden value="{!ProjectSnapshot__c.Project__r.Id}" />
+<apex:inputHidden value="{!ProjectSnapshot__c.ProjectTasks__c}" />
+<apex:pageBlockSection columns="1" >
+<apex:pageBlockSectionItem >
+    <apex:outputLabel value="{!dLabel['DL9']}" />
+    <apex:outputText value="{!ProjectSnapshot__c.PrimaryOrganization__c}" />
+</apex:pageBlockSectionItem>
+<apex:repeat value="{!SecondaryOrganizations}" var="org" >
+    <apex:pageBlockSectionItem >
+        <apex:outputLabel value="{!dLabel['DL10']}" />
+        <apex:outputText value="{!org}" />
+    </apex:pageBlockSectionItem>
+</apex:repeat>
+</apex:pageBlockSection>
+
+
+<apex:pageBlockSection title="{!dLabel['DL11']}" collapsible="false" columns="1" >
+    <apex:outputPanel >
+    <div class="recordTypeTable" >
+    <table>
+        <tr>
+            <th>{!dLabel['DL12']}</th>
+            <th>{!dLabel['DL13']}</th>
+            <th>{!dLabel['DL14']}</th>
+            <th>{!dLabel['DL15']}</th>
+            <th>{!dLabel['DL16']}</th>
+            <th>{!dLabel['DL17']}</th>
+        </tr>
+        <apex:repeat value="{!ProjectTasks}" var="projectTask" >
+        <tr>
+            <td><apex:outputText value="{!projectTask.TaskName}" /></td>
+            <td><apex:outputText value="{!projectTask.TaskNumber}" /></td>
+            <td><apex:outputText value="{!projectTask.StartDate}" /></td>
+            <td><apex:outputText value="{!projectTask.EndDate}" /></td>
+            <td><apex:outputText value="{!projectTask.ActualStartDate}" /></td>
+            <td><apex:outputText value="{!projectTask.ActualEndDate}" /></td>
+        </tr>
+        </apex:repeat>
+    </table>
+    </div>
+</apex:outputPanel>
+</apex:pageBlockSection>
+
+<apex:pageBlockSection title="{!dLabel['DL18']}" collapsible="false" columns="1" >
+
+<apex:outputPanel >
+<apex:inputHidden value="{!ProjectSnapshot__c.RelatedAgreements__c}" />
+<apex:inputHidden value="{!ProjectSnapshot__c.SecondaryOrganizations__c }" />
+<apex:inputHidden value="{!ProjectSnapshot__c.PrimaryFutureSpend__c}" /> 
+    <div class="recordTypeTable" >
+    <table>
+        <tr>
+            <th>{!dLabel['DL19']}</th>
+            <th>{!dLabel['DL20']}</th>
+            <th>{!dLabel['DL21']}</th>
+        </tr>
+    <apex:repeat value="{!Agreements}" var="agreement" >
+        <tr>
+            <td><apex:outputText value="{!agreement.RecordType}" /></td>
+            <td><apex:outputText value="{!agreement.ContractType}" /></td>
+            <td align="right" ><apex:outputText value="{!agreement.Amount}" /></td>
+        </tr>
+    </apex:repeat>
+    </table>
+    </div>
+</apex:outputPanel>
+</apex:pageBlockSection>
+
+
+<apex:pageBlockSection title="{!dLabel['DL22']}" collapsible="false" >
+<apex:inputHidden value="{!ProjectSnapshot__c.ChangeOrdersDraft__c}" />
+<apex:inputHidden value="{!ProjectSnapshot__c.ChangeOrdersPending__c}" />
+<apex:outputPanel >
+    <div class="recordTypeTable" >
+    <table>
+        <tr>
+            <th>{!dLabel['DL23']}</th>
+            <th>{!dLabel['DL24']}</th>
+            <th>{!dLabel['DL25']}</th>
+        </tr>
+    <apex:repeat value="{!DraftChangeOrders}" var="changeOrder" >
+        <tr>
+            <td><apex:outputText value="{!changeOrder.BudgetName}" /></td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!changeOrder.TotalCost}" />
+                </apex:outputText>
+            </td>                   
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!changeOrder.TotalRevenue}" />
+                </apex:outputText>              
+            </td>
+        </tr>
+    </apex:repeat>
+    <apex:outputPanel rendered="{!DraftChangeOrders.size == 0}" >
+        <tr><td colspan="3" >{!dLabel['DL26']}</td></tr>
+    </apex:outputPanel> 
+    </table>
+    </div>
+</apex:outputPanel>
+
+<apex:outputPanel >
+    <div class="recordTypeTable" >
+    <table>
+        <tr>
+            <th>{!dLabel['DL27']}</th>
+            <!-- <th>Budget Status</th> -->
+            <th>{!dLabel['DL28']}</th>
+            <th>{!dLabel['DL29']}</th>
+        </tr>
+    <apex:repeat value="{!PendingChangeOrders}" var="changeOrder" >
+        <tr>
+            <td><apex:outputText value="{!changeOrder.BudgetName}" /></td>
+            <!-- <td><apex:outputText value=""/></td>  -->
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!changeOrder.TotalCost}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!changeOrder.TotalRevenue}" />
+                </apex:outputText>
+            </td>
+        </tr>
+    </apex:repeat>
+    <apex:outputPanel rendered="{!PendingChangeOrders.size == 0}" >
+        <tr><td colspan="3" >{!dLabel['DL30']}</td></tr>
+    </apex:outputPanel>
+    </table>
+    </div>
+</apex:outputPanel>
+
+</apex:pageBlockSection>
+
+<apex:pageBlockSection title="{!dLabel['DL31']}" collapsible="false" >
+<apex:outputPanel >
+    <div class="recordTypeTable" >
+    <table>
+        <tr>
+            <th>{!dLabel['DL32']}</th>
+            <th>{!dLabel['DL33']}</th>
+            <th>{!dLabel['DL34']}</th>
+            <th>{!dLabel['DL35']}</th>
+            <th>{!dLabel['DL36']}</th>
+            <th>{!dLabel['DL37']}</th>
+            <th>{!dLabel['DL38']}</th>
+            <th>{!dLabel['DL39']}</th>
+            <th>{!dLabel['DL40']}</th>
+            <th>{!dLabel['DL41']}</th>
+            <th>{!dLabel['DL42']}</th>
+            <th>{!dLabel['DL43']}</th>
+        </tr>
+            
+        <tr>
+            <td><B>{!dLabel['DL44']}</B></td>            
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.GrossRevenueMonthToDate__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.GrossRevenueYearToDate__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.GrossRevenueITD__c}" />
+                </apex:outputText>
+            </td>            
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.GrossRevenueETC__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.GrossRevenueForecast__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.GrossRevenueBudgetOriginal__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.GrossRevenueBudget__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.GrossRevenueForecastPrevME__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.GrossRevenueForecastDelta__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.GrossRevenueUnapproved__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.GrossRevenueDraft__c}" />
+                </apex:outputText>
+            </td>                                               
+        </tr>
+        <tr>
+            <td>{!dLabel['DL45']}</td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.CostsODCEXPSMonthtoDate__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.CostsODCEXPSYearToDate__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.CostsODCEXPSITD__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.CostsODCEXPSETC__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.CostsODCEXPSForecast__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.CostsODCEXPSBudgetOriginal__c}" />
+                </apex:outputText>
+            </td>  
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.CostsODCEXPSBudget__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.CostsODCEXPSForecastPrevME__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.CostsODCEXPSForecastDelta__c}" />
+                </apex:outputText>
+            </td>   
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.CostsODCEXPSUnapproved__c}" />
+                </apex:outputText>
+            </td>                     
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.CostsODCEXPSDraft__c}" />
+                </apex:outputText>
+            </td>                   
+        </tr>
+        <tr>
+            <td>{!dLabel['DL46']}</td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.CostsODCSUBSMonthtoDate__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.CostsODCSUBSYearToDate__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.CostsODCSUBSITD__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.CostsODCSUBSETC__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.CostsODCSUBSForecast__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.CostsODCSUBSBudgetOriginal__c}" />
+                </apex:outputText>
+            </td>  
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.CostsODCSUBSBudget__c}" />
+               </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.CostsODCSUBSForecastPrevME__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.CostsODCSUBSForecastDelta__c}" />
+                </apex:outputText>
+            </td>   
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.CostsODCSUBSUnapproved__c}" />
+                </apex:outputText>
+            </td>                     
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.CostsODCSUBSDraft__c}" />
+                </apex:outputText>
+            </td>                   
+        </tr>
+        <tr><td>{!dLabel['DL47']}</td>
+            <td align="center" >{!dLabel['DL48']}</td>
+            <td align="center" >{!dLabel['DL49']}</td>
+            <td align="center" >{!dLabel['DL50']}</td>
+            <td align="center" >{!dLabel['DL51']}</td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.ContingencyForecast__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.ContingencyBudgetOriginal__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.ContingencyBudget__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.ContingencyForecastPrevME__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.ContingencyForecastDelta__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.ContingencyUnapproved__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.ContingencyDraft__c}" />
+                </apex:outputText>
+            </td>                            
+        </tr>
+        <tr><td><B>{!dLabel['DL52']}</B></td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.NetServiceMonthToDate__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.NetServiceYearToDate__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.NetServiceITD__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.NetServiceETC__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.NetServiceForecast__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.NetServiceBudgetOriginal__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.NetServiceBudget__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.NetServiceForecastPrevME__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.NetServiceForecastDelta__c}" />
+                </apex:outputText>
+            </td> 
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.NetServiceUnapproved__c}" />
+                </apex:outputText>
+            </td>                        
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.NetServiceDraft__c}" />
+                </apex:outputText>
+            </td>         
+        </tr>
+        <tr><td>{!dLabel['DL53']}</td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.LaborMonthToDate__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.LaborYearToDate__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.LaborITD__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.LaborETC__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.LaborForecast__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.LaborBudgetOriginal__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.LaborBudget__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.LaborForecastPrevME__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.LaborForecastDelta__c}" />
+                </apex:outputText>
+            </td> 
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.LaborUnapproved__c}" />
+                </apex:outputText>
+            </td>                        
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.LaborDraft__c}" />
+                </apex:outputText>
+            </td>          
+        </tr>
+        <tr><td>{!dLabel['DL54']}</td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.FringeMonthToDate__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.FringeYearToDate__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.FringeITD__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.FringeETC__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.FringeForecast__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.FringeBudgetOriginal__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.FringeBudget__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.FringeForecastPrevME__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.FringeForecastDelta__c}" />
+                </apex:outputText>
+            </td> 
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.FringeUnapproved__c}" />
+                </apex:outputText>
+            </td>                        
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.FringeDraft__c}" />
+                </apex:outputText>
+            </td>          
+        </tr>
+        <tr><td><B>{!dLabel['DL55']}</B></td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.GrossMarginMonthToDate__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.GrossMarginYearToDate__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.GrossMarginITD__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.GrossMarginETC__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.GrossMarginForecast__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.GrossMarginBudgetOriginal__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.GrossMarginBudget__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.GrossMarginForecastPrevME__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.GrossMarginForecastDelta__c}" />
+                </apex:outputText>
+            </td>   
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.GrossMarginUnapproved__c}" />
+                </apex:outputText>
+            </td>                     
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.GrossMarginDraft__c}" />
+                </apex:outputText>
+            </td>          
+        </tr>
+        <tr><td>{!dLabel['DL56']}</td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.OverheadMonthToDate__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.OverheadYearToDate__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.OverheadITD__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.OverheadETC__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.OverheadForecast__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.OverheadBudgetOriginal__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.OverheadBudget__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.OverheadForecastPrevME__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.OverheadForecastDelta__c}" />
+                </apex:outputText>
+            </td> 
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.OverheadUnapproved__c}" />
+                </apex:outputText>
+            </td>                        
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.OverheadDraft__c}" />
+                </apex:outputText>
+            </td>          
+        </tr>
+        <tr><td><B>{!dLabel['DL57']}</B></td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.NetMarginMonthToDate__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.NetMarginYearToDate__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.NetMarginITD__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.NetMarginETC__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.NetMarginForecast__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.NetMarginBudgetOriginal__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.NetMarginBudget__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.NetMarginForecastPrevME__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.NetMarginForecastDelta__c}" />
+                </apex:outputText>
+            </td>   
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.NetMarginUnapproved__c}" />
+                </apex:outputText>
+            </td>                     
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.NetMarginDraft__c}" />
+                </apex:outputText>
+            </td>          
+        </tr>
+        <tr>
+            <td>{!dLabel['DL58']}</td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.CostMonthToDate__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.CostYearToDate__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.CostITD__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.CostETC__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.CostForecast__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.CostOrigBudget__c}" />
+                </apex:outputText>
+            </td>  
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.CostBudget__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.CostForecastPrevME__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.CostForecastDelta__c}" />
+                </apex:outputText>
+            </td>   
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.CostUnapproved__c}" />
+                </apex:outputText>
+            </td>                     
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.CostDraft__c}" />
+                </apex:outputText>
+            </td>                   
+        </tr>
+        <tr>
+            <td>{!dLabel['DL59']}</td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.CostMonthToDateApproved__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.CostYearToDateApproved__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.CostITDApproved__c}" />
+                </apex:outputText>
+            </td>
+            <td align="center" >
+                <apex:outputText value="{!dLabel['DL60']}" />
+            </td>
+            <td align="center" >
+                <apex:outputText value="{!dLabel['DL61']}" />
+            </td>
+            <td align="center" >
+                <apex:outputText value="{!dLabel['DL62']}" />
+            </td>  
+            <td align="center" >
+                <apex:outputText value="{!dLabel['DL63']}" />
+            </td>
+            <td align="center" >
+                <apex:outputText value="{!dLabel['DL64']}" />
+            </td>
+            <td align="center" >
+                <apex:outputText value="{!dLabel['DL65']}" />
+            </td>   
+            <td align="center" >
+                <apex:outputText value="{!dLabel['DL66']}" />
+            </td>                     
+            <td align="center" >
+                <apex:outputText value="{!dLabel['DL67']}" />
+            </td>                   
+        </tr>
+        <tr><td>{!dLabel['DL68']}</td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.GMNSRMonthToDate__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.GMNSRYearToDate__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.GMNSRITD__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.GMNSRETC__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.GMNSRForecast__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.GMNSRBudgetOriginal__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.GMNSRBudget__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.GMNSRForecastPrevME__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.GMNSRForecastDelta__c}" />
+                </apex:outputText>
+            </td> 
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.GMNSRUnapproved__c}" />
+                </apex:outputText>
+            </td>            
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.GMNSRDraft__c}" />
+                </apex:outputText>
+            </td>           
+        </tr>
+        <tr><td>{!dLabel['DL69']}</td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.NMNSRMonthToDate__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.NMNSRYearToDate__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.NMNSRITD__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.NMNSRETC__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.NMNSRForecast__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.NMNSRBudgetOriginal__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.NMNSRBudget__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.NMNSRForecastPrevME__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.NMNSRForecastDelta__c}" />
+                </apex:outputText>
+            </td> 
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.NMNSRUnapproved__c}" />
+                </apex:outputText>
+            </td>                        
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.NMNSRDraft__c}" />
+                </apex:outputText>
+            </td>          
+        </tr>
+        <tr><td>{!dLabel['DL70']}</td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.NMGRMonthToDate__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.NMGRYearToDate__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.NMGRITD__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.NMGRETC__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.NMGRForecast__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.NMGRBudgetOriginal__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.NMGRBudget__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.NMGRForecastPrevME__c}" />
+                </apex:outputText>
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.NMGRForecastDelta__c}" />
+                </apex:outputText>
+            </td> 
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.NMGRUnapproved__c}" />
+                </apex:outputText>
+            </td>            
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.NMGRDraft__c}" />
+                </apex:outputText>
+            </td>           
+        </tr>
+        <tr><td>{!dLabel['DL71']}</td>
+            <td align="right" ><apex:outputField value="{!ProjectSnapshot__c.HoursMonthToDate__c}" /></td>
+            <td align="right" ><apex:outputField value="{!ProjectSnapshot__c.HoursYearToDate__c}" /></td>
+            <td align="right" ><apex:outputField value="{!ProjectSnapshot__c.HoursITD__c}" /></td>
+            <td align="right" ><apex:outputField value="{!ProjectSnapshot__c.HoursETC__c}" /></td>
+            <td align="right" ><apex:outputField value="{!ProjectSnapshot__c.HoursForecast__c}" /></td>
+            <td align="right" ><apex:outputField value="{!ProjectSnapshot__c.HoursBudgetOriginal__c}" /></td>
+            <td align="right" ><apex:outputField value="{!ProjectSnapshot__c.HoursBudget__c}" /></td>
+            <td align="right" ><apex:outputField value="{!ProjectSnapshot__c.HoursForecastPrevME__c}" /></td>
+            <td align="right" ><apex:outputField value="{!ProjectSnapshot__c.HoursForecastDelta__c}" /></td> 
+            <td align="right" ><apex:outputField value="{!ProjectSnapshot__c.HoursUnapproved__c}" /></td>            
+            <td align="right" ><apex:outputField value="{!ProjectSnapshot__c.HoursDraft__c}" /></td>           
+        </tr>
+        <tr><td>{!dLabel['DL72']}</td>
+            <td align="center" >
+                
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" style="float:right;" rendered="{!ProjectSnapshot__c.AvgLaborHourMonthToDate__c != null && ProjectSnapshot__c.AvgLaborHourMonthToDate__c > 0}" >
+                    <apex:param value="{!ProjectSnapshot__c.AvgLaborHourMonthToDate__c}" />
+                </apex:outputText>
+                <apex:outputText value="{!dLabel['DL73']}" rendered="{!ProjectSnapshot__c.AvgLaborHourMonthToDate__c == null || ProjectSnapshot__c.AvgLaborHourMonthToDate__c <= 0}" />
+            </td>
+            <td align="center" >
+                
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" style="float:right;" rendered="{!ProjectSnapshot__c.AvgLaborHourYearToDate__c != null && ProjectSnapshot__c.AvgLaborHourYearToDate__c > 0}" >
+                    <apex:param value="{!ProjectSnapshot__c.AvgLaborHourYearToDate__c}" />
+                </apex:outputText>
+                <apex:outputText value="{!dLabel['DL74']}" rendered="{!ProjectSnapshot__c.AvgLaborHourYearToDate__c == null || ProjectSnapshot__c.AvgLaborHourYearToDate__c <= 0}" />
+            </td>
+            <td align="center" >
+                
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" style="float:right;" rendered="{!ProjectSnapshot__c.AvgLaborHourITD__c != null && ProjectSnapshot__c.AvgLaborHourITD__c > 0}" >
+                    <apex:param value="{!ProjectSnapshot__c.AvgLaborHourITD__c}" />
+                </apex:outputText>
+                <apex:outputText value="{!dLabel['DL75']}" rendered="{!ProjectSnapshot__c.AvgLaborHourITD__c == null || ProjectSnapshot__c.AvgLaborHourITD__c <= 0}" />
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.AvgLaborHourETC__c}" />
+                </apex:outputText></td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.AvgLaborHourForecast__c}" />
+                </apex:outputText></td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.AvgLaborHourBudgetOriginal__c}" />
+                </apex:outputText></td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.AvgLaborHourBudget__c}" />
+                </apex:outputText></td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.AvgLaborHourForecastPrevME__c}" />
+                </apex:outputText></td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.AvgLaborHourForecastDelta__c}" />
+                </apex:outputText></td> 
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.AvgLaborHourUnapproved__c}" />
+                </apex:outputText></td>            
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.AvgLaborHourDraft__c}" />
+                </apex:outputText></td>           
+        </tr>
+        <tr><td>{!dLabel['DL76']}</td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.LaborMultiplierMonthToDate__c}" />
+                </apex:outputText></td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.LaborMultiplierYearToDate__c}" />
+                </apex:outputText></td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.LaborMultiplierITD__c}" />
+                </apex:outputText></td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.LaborMultiplierETC__c}" />
+                </apex:outputText></td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.LaborMultiplierForecast__c}" />
+                </apex:outputText></td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.LaborMultiplierBudgetOriginal__c}" />
+                </apex:outputText></td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.LaborMultiplierBudget__c}" />
+                </apex:outputText></td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.LaborMultiplierForecastPrevME__c}" />
+                </apex:outputText></td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.LaborMultiplierForecastDelta__c}" />
+                </apex:outputText></td> 
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.LaborMultiplierUnapproved__c}" />
+                </apex:outputText></td>                        
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.LaborMultiplierDraft__c}" />
+                </apex:outputText></td>                  
+        </tr>
+        <tr><td>{!dLabel['DL77']}</td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.SCMMonthToDate__c}" />
+                </apex:outputText></td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.SCMYearToDate__c}" />
+                </apex:outputText></td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.SCMITD__c}" />
+                </apex:outputText></td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.SCMETC__c}" />
+                </apex:outputText></td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.SCMForecast__c}" />
+                </apex:outputText></td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.SCMBudgetOriginal__c}" />
+                </apex:outputText></td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.SCMBudget__c}" />
+                </apex:outputText></td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.SCMForecastPrevME__c}" />
+                </apex:outputText></td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.SCMForecastDelta__c}" />
+                </apex:outputText></td> 
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.SCMUnapproved__c}" />
+                </apex:outputText></td>            
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.SCMDraft__c}" />
+                </apex:outputText></td>           
+        </tr>
+        <tr><td>{!dLabel['DL78']}</td>
+            <td align="center" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" style="float:right;" rendered="{!ProjectSnapshot__c.LostMarginMonthToDate__c != null && ProjectSnapshot__c.LostMarginMonthToDate__c < 0}" >
+                    <apex:param value="{!ProjectSnapshot__c.LostMarginMonthToDate__c}" />
+                </apex:outputText>
+                <apex:outputText value="{!dLabel['DL79']}" rendered="{!ProjectSnapshot__c.LostMarginMonthToDate__c != null && ProjectSnapshot__c.LostMarginMonthToDate__c >= 0}" />
+            </td>
+            <td align="center" >                
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" style="float:right;" rendered="{!ProjectSnapshot__c.LostMarginYearToDate__c != null && ProjectSnapshot__c.LostMarginYearToDate__c < 0}" >
+                    <apex:param value="{!ProjectSnapshot__c.LostMarginYearToDate__c}" />
+                </apex:outputText>
+                <apex:outputText value="{!dLabel['DL80']}" rendered="{!ProjectSnapshot__c.LostMarginYearToDate__c != null && ProjectSnapshot__c.LostMarginYearToDate__c >= 0}" />
+            </td>
+            <td align="center" >
+                
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" style="float:right;" rendered="{!ProjectSnapshot__c.LostMarginITD__c != null && ProjectSnapshot__c.LostMarginITD__c < 0}" >
+                    <apex:param value="{!ProjectSnapshot__c.LostMarginITD__c}" />
+                </apex:outputText>
+                <apex:outputText value="{!dLabel['DL81']}" rendered="{!ProjectSnapshot__c.LostMarginITD__c != null && ProjectSnapshot__c.LostMarginITD__c >= 0}" />
+            </td>
+            <td align="center" >
+                
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" style="float:right;" rendered="{!ProjectSnapshot__c.LostMarginETC__c != null && ProjectSnapshot__c.LostMarginETC__c < 0}" >
+                    <apex:param value="{!ProjectSnapshot__c.LostMarginETC__c}" />
+                </apex:outputText>
+                <apex:outputText value="{!dLabel['DL82']}" rendered="{!ProjectSnapshot__c.LostMarginETC__c != null && ProjectSnapshot__c.LostMarginETC__c >= 0}" />
+            </td>
+            <td align="center" >
+                
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" style="float:right;" rendered="{!ProjectSnapshot__c.LostMarginForecast__c != null && ProjectSnapshot__c.LostMarginForecast__c < 0}" >
+                    <apex:param value="{!ProjectSnapshot__c.LostMarginForecast__c}" />
+                </apex:outputText>
+                <apex:outputText value="{!dLabel['DL83']}" rendered="{!ProjectSnapshot__c.LostMarginForecast__c != null && ProjectSnapshot__c.LostMarginForecast__c >= 0}" />
+            </td>
+            <td align="center" >{!dLabel['DL84']}</td>
+            <td align="center" >{!dLabel['DL85']}</td>
+            <td align="center" >
+                
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" style="float:right;" rendered="{!ProjectSnapshot__c.LostMarginForecastPrevME__c != null && ProjectSnapshot__c.LostMarginForecastPrevME__c < 0}" >
+                    <apex:param value="{!ProjectSnapshot__c.LostMarginForecastPrevME__c}" />
+                </apex:outputText>
+                <apex:outputText value="{!dLabel['DL86']}" rendered="{!ProjectSnapshot__c.LostMarginForecastPrevME__c != null && ProjectSnapshot__c.LostMarginForecastPrevME__c >= 0}" />
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.LostMarginForecastDelta__c}" />
+                </apex:outputText></td>
+            <td align="center" >
+                
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" style="float:right;" rendered="{!ProjectSnapshot__c.LostMarginUnapproved__c != null && ProjectSnapshot__c.LostMarginUnapproved__c < 0}" >
+                    <apex:param value="{!ProjectSnapshot__c.LostMarginUnapproved__c}" />
+                </apex:outputText>
+                <apex:outputText value="{!dLabel['DL87']}" rendered="{!ProjectSnapshot__c.LostMarginUnapproved__c != null && ProjectSnapshot__c.LostMarginUnapproved__c >= 0}" />
+            </td>
+            <td align="right" >
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                    <apex:param value="{!ProjectSnapshot__c.LostMarginDraft__c}" />
+                </apex:outputText></td> 
+        </tr>
+        <tr><td>{!dLabel['DL88']}</td>
+            <td align="center" >
+                
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" style="float:right;" rendered="{!ProjectSnapshot__c.SurMarginMonthToDate__c != null && ProjectSnapshot__c.SurMarginMonthToDate__c > 0}" >
+                    <apex:param value="{!ProjectSnapshot__c.SurMarginMonthToDate__c}" />
+                </apex:outputText>
+                <apex:outputText value="{!dLabel['DL89']}" rendered="{!ProjectSnapshot__c.SurMarginMonthToDate__c != null && ProjectSnapshot__c.SurMarginMonthToDate__c <= 0}" />
+            </td>
+            <td align="center" >
+                
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" style="float:right;" rendered="{!ProjectSnapshot__c.SurMarginYearToDate__c != null && ProjectSnapshot__c.SurMarginYearToDate__c > 0}" >
+                    <apex:param value="{!ProjectSnapshot__c.SurMarginYearToDate__c}" />
+                </apex:outputText>
+                <apex:outputText value="{!dLabel['DL90']}" rendered="{!ProjectSnapshot__c.SurMarginYearToDate__c != null && ProjectSnapshot__c.SurMarginYearToDate__c <= 0}" />
+            </td>
+            <td align="center" >
+                
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" style="float:right;" rendered="{!ProjectSnapshot__c.SurMarginITD__c != null && ProjectSnapshot__c.SurMarginITD__c > 0}" >
+                    <apex:param value="{!ProjectSnapshot__c.SurMarginITD__c}" />
+                </apex:outputText>
+                <apex:outputText value="{!dLabel['DL91']}" rendered="{!ProjectSnapshot__c.SurMarginITD__c != null && ProjectSnapshot__c.SurMarginITD__c <= 0}" />            
+            </td>
+            <td align="center" >
+                
+                <apex:outputText value="{0, number, ###,###,###,##0.00}" style="float:right;" rendered="{!ProjectSnapshot__c.SurMarginETC__c != null && ProjectSnapshot__c.SurMarginETC__c > 0}" >
+                    <apex:param value="{!ProjectSnapshot__c.SurMarginETC__c}" />
+                </apex:outputText>
+                <apex:outputText value="{!dLabel['DL92']}" rendered="{!ProjectSnapshot__c.SurMarginETC__c != null && ProjectSnapshot__c.SurMarginETC__c <= 0}" />            
+            </td>
+            <!-- <td><apex:outputField value="{!ProjectSnapshot__c.SurMarginForecast__c}"/></td>  -->
+            <td align="center" >{!dLabel['DL93']}</td> 
+            <!-- <td><apex:outputField value="{!ProjectSnapshot__c.SurMarginBudgetOriginal__c}"/></td> -->
+            <td align="center" >{!dLabel['DL94']}</td>
+            <!-- <td><apex:outputField value="{!ProjectSnapshot__c.SurMarginBudget__c}"/></td> -->
+            <td align="center" >{!dLabel['DL95']}</td> 
+            <td align="center" >{!dLabel['DL96']}</td> 
+            <td align="center" >{!dLabel['DL97']}</td>
+            <!-- <td><apex:outputField value="{!ProjectSnapshot__c.SurMarginUnapproved__c}"/></td> -->
+            <td align="center" >{!dLabel['DL98']}</td>
+            <!-- <td><apex:outputField value="{!ProjectSnapshot__c.SurMarginDraft__c}"/></td>  -->
+            <td align="center" >{!dLabel['DL99']}</td>                     
+        </tr>
+        <tr><td>{!dLabel['DL100']}</td>
+            <td align="center" >{!dLabel['DL101']}</td> 
+            <td align="center" >{!dLabel['DL102']}</td> 
+            <td align="center" >{!dLabel['DL103']}</td>
+            <td align="center" >{!dLabel['DL104']}</td>
+            <td align="right" ><apex:outputField value="{!ProjectSnapshot__c.ProjectEndDate__c}" /></td>
+            <td align="right" ><apex:outputField value="{!ProjectSnapshot__c.OriginalBudgetAsOfDate__c}" /></td>
+            <td align="right" ><apex:outputField value="{!ProjectSnapshot__c.CurrentBudgetAsOfDate__c}" /></td>
+            <td align="right" ><apex:outputField value="{!ProjectSnapshot__c.ProjectEndDatePrevME__c}" /></td>
+            <td align="center" >{!dLabel['DL105']}</td> 
+            <td align="center" >{!dLabel['DL106']}</td> 
+            <td align="center" >{!dLabel['DL107']}</td>          
+        </tr>
+        <tr><td>{!dLabel['DL108']}</td><td colspan="11" ><apex:outputText value="{!ProjectSnapshot__c.LastUpdatedBudget__c}" /></td></tr>
+    </table>
+    </div>
+</apex:outputPanel>
+</apex:pageBlockSection>
+
+<apex:pageBlockSection title="{!dLabel['DL109']}" collapsible="false" columns="2" >
+    <apex:pageBlockSectionItem >
+        <apex:outputLabel value="{!dLabel['DL110']}" />
+        <apex:outputText escape="false" value="{0, number, ###,###,###,##0.00}" >
+            <apex:param value="{!ProjectSnapshot__c.EarnedValue__c}" />
+        </apex:outputText>
+    </apex:pageBlockSectionItem>
+    <apex:outputField value="{!ProjectSnapshot__c.EarnedValueCostAccruals__c}" />
+    <apex:pageBlockSectionItem >
+        <apex:outputLabel value="{!dLabel['DL111']}" />
+        <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+            <apex:param value="{!ProjectSnapshot__c.EarnedValueActualSpend__c}" />
+        </apex:outputText>
+    </apex:pageBlockSectionItem>
+    <apex:outputField value="{!ProjectSnapshot__c.EarnedValueCPI__c}" />
+    <apex:pageBlockSectionItem >
+        <apex:outputLabel value="{!dLabel['DL112']}" />
+        <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+            <apex:param value="{!ProjectSnapshot__c.EarnedValuePlannedValue__c}" />
+        </apex:outputText>
+    </apex:pageBlockSectionItem>
+    <apex:outputField value="{!ProjectSnapshot__c.EarnedValueSPI__c}" /> 
+    <apex:outputField value="{!ProjectSnapshot__c.EarnedValuePercentBudgetSpent__c}" />
+    <apex:outputField value="{!ProjectSnapshot__c.EarnedValueOverallProgress__c}" />
+    <apex:outputField value="{!ProjectSnapshot__c.EarnedValueLastUpdated__c}" />
+</apex:pageBlockSection>
+
+<apex:pageBlockSection title="{!dLabel['DL113']}" collapsible="false" >
+<apex:outputPanel >
+<div class="recordTypeTable" >
+    <table>
+    <tr>
+        <th colspan="2" >{!dLabel['DL114']}</th>
+        <th>{!dLabel['DL115']}</th>
+    </tr>   
+    <tr><td>{!dLabel['DL116']}</td>
+        <td align="right" >
+            <apex:outputText value="{0, number, ###,###,###,##0.00}" rendered="{!ProjectSnapshot__c.UnbilledTotal__c != null && ProjectSnapshot__c.UnbilledTotal__c >= 0}" >
+                <apex:param value="{!ProjectSnapshot__c.Unbilled0to30__c}" />
+            </apex:outputText>
+            <!-- <apex:outputField value="{!ProjectSnapshot__c.Unbilled0to30__c}" rendered="{!ProjectSnapshot__c.UnbilledTotal__c != null && ProjectSnapshot__c.UnbilledTotal__c >= 0}"/> -->
+            <apex:outputText value="{!dLabel['DL117']}" rendered="{!ProjectSnapshot__c.UnbilledTotal__c != null && ProjectSnapshot__c.UnbilledTotal__c < 0}" />
+        </td>
+        <td>
+            <apex:inputField value="{!ProjectSnapshot__c.Unbilled0to30Comments__c}" rendered="{!projectReviewStatus != 'Approved'}" style="width:400px" />
+            <apex:outputField value="{!ProjectSnapshot__c.Unbilled0to30Comments__c}" rendered="{!projectReviewStatus == 'Approved'}" style="width:400px" />
+        </td>
+    </tr>
+    <tr><td>{!dLabel['DL118']}</td>
+        <td align="right" >
+            <apex:outputText value="{0, number, ###,###,###,##0.00}" rendered="{!ProjectSnapshot__c.UnbilledTotal__c != null && ProjectSnapshot__c.UnbilledTotal__c >= 0}" >
+                <apex:param value="{!ProjectSnapshot__c.Unbilled31to60__c}" />
+            </apex:outputText>
+            <!-- <apex:outputField value="{!ProjectSnapshot__c.Unbilled31to60__c}" rendered="{!ProjectSnapshot__c.UnbilledTotal__c != null && ProjectSnapshot__c.UnbilledTotal__c >= 0}"/> -->
+            <apex:outputText value="{!dLabel['DL119']}" rendered="{!ProjectSnapshot__c.UnbilledTotal__c != null && ProjectSnapshot__c.UnbilledTotal__c < 0}" />
+        </td>
+        <td>
+            <apex:inputField value="{!ProjectSnapshot__c.Unbilled31to60Comments__c}" rendered="{!projectReviewStatus != 'Approved'}" style="width:400px" />
+            <apex:outputField value="{!ProjectSnapshot__c.Unbilled31to60Comments__c}" rendered="{!projectReviewStatus == 'Approved'}" style="width:400px" />
+        </td>
+    </tr>
+    <tr><td>{!dLabel['DL120']}</td>
+        <td align="right" >
+            <apex:outputText value="{0, number, ###,###,###,##0.00}" rendered="{!ProjectSnapshot__c.UnbilledTotal__c != null && ProjectSnapshot__c.UnbilledTotal__c >= 0}" >
+                <apex:param value="{!ProjectSnapshot__c.UnbilledTotal__c-ProjectSnapshot__c.Unbilled0to60__c}" />
+            </apex:outputText>
+            <!-- <apex:outputField value="{!ProjectSnapshot__c.Unbilled61to90__c}" rendered="{!ProjectSnapshot__c.UnbilledTotal__c != null && ProjectSnapshot__c.UnbilledTotal__c >= 0}"/> -->
+            <apex:outputText value="{!dLabel['DL121']}" rendered="{!ProjectSnapshot__c.UnbilledTotal__c != null && ProjectSnapshot__c.UnbilledTotal__c < 0}" />
+        </td>
+        <td>
+            <apex:inputField value="{!ProjectSnapshot__c.Unbilled61to90Comments__c}" rendered="{!projectReviewStatus != 'Approved'}" style="width:400px" />
+            <apex:outputField value="{!ProjectSnapshot__c.Unbilled61to90Comments__c}" rendered="{!projectReviewStatus == 'Approved'}" style="width:400px" />
+        </td>
+    </tr>
+    <tr><td>{!dLabel['DL122']}</td>
+        <td align="right" >
+            <apex:outputText value="{0, number, ###,###,###,##0.00}" rendered="{!ProjectSnapshot__c.UnbilledTotal__c != null && ProjectSnapshot__c.UnbilledTotal__c >= 0}" >
+                <apex:param value="{!ProjectSnapshot__c.UnbilledTotal__c}" />
+            </apex:outputText>
+            <!-- <apex:outputField value="{!ProjectSnapshot__c.UnbilledTotal__c}" rendered="{!ProjectSnapshot__c.UnbilledTotal__c != null && ProjectSnapshot__c.UnbilledTotal__c >= 0}"/> -->
+            <apex:outputText value="{!dLabel['DL123']}" rendered="{!ProjectSnapshot__c.UnbilledTotal__c != null && ProjectSnapshot__c.UnbilledTotal__c < 0}" />
+        </td>
+        <td>
+            <apex:inputField value="{!ProjectSnapshot__c.UnbilledTotalComments__c}" rendered="{!projectReviewStatus != 'Approved'}" style="width:400px" />
+            <apex:outputField value="{!ProjectSnapshot__c.UnbilledTotalComments__c}" rendered="{!projectReviewStatus == 'Approved'}" style="width:400px" />
+        </td>
+    </tr>
+    <tr><td>{!dLabel['DL124']}</td>
+        <td align="right" >
+            <apex:outputText value="{0, number, ###,###,###,##0.00}" rendered="{!ProjectSnapshot__c.ARBIEE__c != null && ProjectSnapshot__c.ARBIEE__c >= 0}" >
+                <apex:param value="{!ProjectSnapshot__c.ARBIEE__c}" />
+            </apex:outputText>
+            <apex:outputText value="{!dLabel['DL125']}" rendered="{!ProjectSnapshot__c.ARBIEE__c != null && ProjectSnapshot__c.ARBIEE__c < 0}" />
+        </td>
+        <td>
+            <apex:inputField value="{!ProjectSnapshot__c.ARBIEEComments__c}" rendered="{!projectReviewStatus != 'Approved'}" style="width:400px" />
+            <apex:outputField value="{!ProjectSnapshot__c.ARBIEEComments__c}" rendered="{!projectReviewStatus == 'Approved'}" style="width:400px" />
+        </td>
+    </tr>
+
+
+    <tr>
+        <th colspan="2" >{!dLabel['DL126']}</th>
+        <th>{!dLabel['DL127']}</th>
+    </tr>
+    <tr><td>{!dLabel['DL128']}</td>
+        <td align="right" >
+            <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                <apex:param value="{!ProjectSnapshot__c.AR0to30__c}" />
+            </apex:outputText>
+            <!-- <apex:outputField value="{!ProjectSnapshot__c.AR0to30__c}"/> -->
+        </td>
+        <td>
+            <apex:inputField value="{!ProjectSnapshot__c.AR0to30Comments__c}" rendered="{!projectReviewStatus != 'Approved'}" style="width:400px" />
+            <apex:outputField value="{!ProjectSnapshot__c.AR0to30Comments__c}" rendered="{!projectReviewStatus == 'Approved'}" style="width:400px" />
+        </td>
+    </tr>
+    <tr><td>{!dLabel['DL129']}</td>
+        <td align="right" >
+            <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                <apex:param value="{!ProjectSnapshot__c.AR31to60__c}" />
+            </apex:outputText>
+            <!-- <apex:outputField value="{!ProjectSnapshot__c.AR31to60__c}"/> -->
+        </td>
+        <td>
+            <apex:inputField value="{!ProjectSnapshot__c.AR31to60Comments__c}" rendered="{!projectReviewStatus != 'Approved'}" style="width:400px" />
+            <apex:outputField value="{!ProjectSnapshot__c.AR31to60Comments__c}" rendered="{!projectReviewStatus == 'Approved'}" style="width:400px" />
+        </td>
+    </tr>
+    <tr><td>{!dLabel['DL130']}</td>
+        <td align="right" >
+            <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                <apex:param value="{!ProjectSnapshot__c.AR61to90__c}" />
+            </apex:outputText>
+        </td>
+        <td>
+            <apex:inputField value="{!ProjectSnapshot__c.AR61to90Comments__c}" rendered="{!projectReviewStatus != 'Approved'}" style="width:400px" />
+            <apex:outputField value="{!ProjectSnapshot__c.AR61to90Comments__c}" rendered="{!projectReviewStatus == 'Approved'}" style="width:400px" />
+        </td>
+    </tr>
+    <tr><td>{!dLabel['DL131']}</td>
+        <td align="right" >
+            <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                <apex:param value="{!ProjectSnapshot__c.AR91Plus__c}" />
+            </apex:outputText>
+            <!-- <apex:outputField value="{!ProjectSnapshot__c.AR91Plus__c}"/> -->
+        </td>
+        <td>
+            <apex:inputField value="{!ProjectSnapshot__c.AR91PlusComments__c}" rendered="{!projectReviewStatus != 'Approved'}" style="width:400px" />
+            <apex:outputField value="{!ProjectSnapshot__c.AR91PlusComments__c}" rendered="{!projectReviewStatus == 'Approved'}" style="width:400px" />
+        </td>
+    </tr>
+    <tr><td>{!dLabel['DL132']}</td>
+        <td align="right" >
+            <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                <apex:param value="{!ProjectSnapshot__c.AR__c}" />
+            </apex:outputText>
+            <!-- <apex:outputField value="{!ProjectSnapshot__c.AR__c}"/> -->
+        </td>
+        <td>
+            <apex:inputField value="{!ProjectSnapshot__c.ARComments__c}" rendered="{!projectReviewStatus != 'Approved'}" style="width:400px" />
+            <apex:outputField value="{!ProjectSnapshot__c.ARComments__c}" rendered="{!projectReviewStatus == 'Approved'}" style="width:400px" />
+        </td>
+    </tr>
+    <tr><td>{!dLabel['DL133']}</td>
+        <td align="right" >
+            <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                <apex:param value="{!ProjectSnapshot__c.ARRetention__c}" />
+            </apex:outputText>
+            <!-- <apex:outputField value="{!ProjectSnapshot__c.ARRetention__c}"/> -->
+        </td>
+        <td>
+            <apex:inputField value="{!ProjectSnapshot__c.ARRetentionComments__c}" rendered="{!projectReviewStatus != 'Approved'}" style="width:400px" />
+            <apex:outputField value="{!ProjectSnapshot__c.ARRetentionComments__c}" rendered="{!projectReviewStatus == 'Approved'}" style="width:400px" />
+        </td>
+    </tr>
+    <tr><td>{!dLabel['DL134']}</td>
+        <td align="right" >
+            <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                <apex:param value="{!ProjectSnapshot__c.DSO__c}" />
+            </apex:outputText>
+        </td>
+    </tr>
+    </table>
+</div>
+</apex:outputPanel>
+</apex:pageBlockSection>
+
+<apex:pageBlockSection title="{!dLabel['DL135']}" collapsible="false" columns="1" >
+<apex:outputPanel >
+<div class="recordTypeTable" >
+    <table>
+    <tr>
+        <th/>
+        <th>{!dLabel['DL136']}</th>
+        <th>{!dLabel['DL137']}</th>
+        <th>{!dLabel['DL138']}</th>
+        <th>{!dLabel['DL139']}</th>
+        <th>{!dLabel['DL140']}</th>
+        <th>{!dLabel['DL141']}</th>
+    </tr>   
+    <tr><td>{!dLabel['DL142']}</td>
+        <td align="right" >
+            <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                <apex:param value="{!ProjectSnapshot__c.FutureSpendMonth1__c}" />
+            </apex:outputText>
+        </td>
+        <td align="right" >
+            <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                <apex:param value="{!ProjectSnapshot__c.FutureSpendMonth2__c}" />
+            </apex:outputText>
+        </td>
+        <td align="right" >
+            <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                <apex:param value="{!ProjectSnapshot__c.FutureSpendMonth3__c}" />
+            </apex:outputText>        
+        </td>
+        <td align="right" >
+            <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                <apex:param value="{!ProjectSnapshot__c.FutureSpendMonth4__c}" />
+            </apex:outputText>        
+        </td>
+        <td align="right" >
+            <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                <apex:param value="{!ProjectSnapshot__c.FutureSpendMonth5__c}" />
+            </apex:outputText>
+        </td>
+        <td align="right" >
+            <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                <apex:param value="{!ProjectSnapshot__c.FutureSpendMonth6__c}" />
+            </apex:outputText>
+        </td>
+    </tr>
+    <apex:repeat value="{!FutureSpendByOrg}" var="spendByOrg" >
+    <tr><td><apex:outputText value="{!spendByOrg.orgName}" /></td>
+        <td align="right" >
+            <apex:outputText value="{0, number, ###,###,###,##0.00}" >   
+                <apex:param value="{!spendByOrg.month1}" />
+            </apex:outputText>
+        </td>
+        <td align="right" >
+            <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                <apex:param value="{!spendByOrg.month2}" />
+            </apex:outputText>
+        </td>
+        <td align="right" >
+            <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                <apex:param value="{!spendByOrg.month3}" />
+            </apex:outputText>
+        </td>
+        <td align="right" >
+            <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                <apex:param value="{!spendByOrg.month4}" />
+            </apex:outputText>
+        </td>
+        <td align="right" >
+            <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                <apex:param value="{!spendByOrg.month5}" />
+            </apex:outputText>
+        </td>
+        <td align="right" >
+            <apex:outputText value="{0, number, ###,###,###,##0.00}" >
+                <apex:param value="{!spendByOrg.month6}" />
+            </apex:outputText>
+        </td>
+    </tr>
+    </apex:repeat>
+    </table>
+</div>
+</apex:outputPanel>
+</apex:pageBlockSection>
+
+<!--<apex:pageBlockSection title="Overall Project Status Commentary" columns="1" collapsible="false">
+<apex:outputPanel >
+<apex:outputField value="{!ProjectSnapshot__c.OverallProjectSummary__c}"/>
+<apex:inputField value="{!ProjectSnapshot__c.OverallProjectSummary__c}"/>
+</apex:outputPanel>
+</apex:pageBlockSection>-->
+
+</apex:pageBlock>
+</apex:form>
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

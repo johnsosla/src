@@ -1,0 +1,56 @@
+<apex:page showHeader="true"
+	sidebar="true"
+	controller="ECO_TaskRecordTypeSelectController"
+	action="{!startHere}"
+	cache="false"
+	tabStyle="Task"
+	title="New Task: Select Task Record Type" >
+	
+	<apex:sectionHeader title="New Task" subtitle="Select Task Record Type" />	
+		
+	<p>
+		<span style="font-family: arial,helvetica,sans-serif; font-size: 108%;">Select a record type for the new task. To skip this page in the future, change your record type settings on your personal setup page.</span><br/>
+	</p>
+
+	<apex:form >
+		<apex:pageBlock title="Select Task Record Type" mode="edit">
+			<apex:pageBlockButtons location="bottom">
+				<apex:commandButton action="{!btnContinue}" value="Continue"/>
+				<apex:commandButton action="{!btnCancel}" value="Cancel"/>
+			</apex:pageBlockButtons>
+			<apex:pageBlockSection columns="1">
+				<apex:pageBlockSectionItem >
+					<apex:outputLabel value="Record Type of new record" />
+					<apex:outputPanel layout="block">
+						<div class="requiredInput">
+							<div class="requiredBlock" />
+							<apex:selectList id="rtList" style="width: 250px;" value="{!selectedRt}" multiselect="false" size="1" required="true">
+								<apex:selectOptions value="{!availableRTList}"/>
+							</apex:selectList>
+						</div>
+					</apex:outputPanel>
+				</apex:pageBlockSectionItem>
+			</apex:pageBlockSection>
+		</apex:pageBlock>
+	</apex:form>
+
+	<br/>
+	<apex:outputText value="Available Task Record Types" style="font-weight:bold;"/>
+	<br/><br/>
+
+	<table class="recordTypeInfo infoTable" border="0" cellpadding="0" cellspacing="0">
+		<tbody>
+			<tr class="headerRow">
+				<th class="recordTypeName" scope="col">Record Type Name</th>
+				<th class="recordTypeDescription" scope="col">Description</th>
+			</tr>
+			<apex:repeat value="{!rtDescriptionList}" var="rt" >
+				<tr>
+					<th class="recordTypeName" scope="row">{!rt.Name}</th>
+					<td class="recordTypeDescription">{!$label['Task_' + rt.devName + '_Desc']}</td>
+				</tr>
+			</apex:repeat>
+		</tbody>
+	</table>
+
+</apex:page>

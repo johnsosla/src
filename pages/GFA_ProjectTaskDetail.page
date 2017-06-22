@@ -1,0 +1,99 @@
+<apex:page standardController="GFA_Project_Task__c" extensions="GFA_ProjectTaskDetailController">
+<!-- <apex:stylesheet value="{!URLFOR($Resource.GFA, 'bootstrap/css/bootstrap.min.css')}"/> -->
+<apex:stylesheet value="{!URLFOR($Resource.GFA, 'bootstrap/css/bootstrap.css')}"/>
+<apex:stylesheet value="{!URLFOR($Resource.GFA, 'custom/css/GFA_app.css')}"/>
+<apex:stylesheet value="{!URLFOR($Resource.GFA, 'font-awesome/css/font-awesome.min.css')}"/>
+<apex:stylesheet value="{!URLFOR($Resource.GFA, 'custom/css/GFA_app2.css')}"/>
+
+<script src="{!URLFOR($Resource.GFA, 'jQuery/jquery-1.12.1.min.js')}" type="text/javascript" charset="utf-8"></script>
+<script src="{!URLFOR($Resource.GFA, 'bootstrap/js/bootstrap.min.js')}" type="text/javascript" charset="utf-8"></script>
+<div class="GFA">
+
+<div class="bPageTitle">
+    <div class="ptBody">
+        <div class="content">
+            <img src="/s.gif" alt="Library Subtask Content" class="pageTitleIcon" title="Library Subtask Content"/>
+            <h4>Task Details for<span class="titleSeparatingColon">:</span> {!projectTask.LibraryTaskName}</h4><br/>
+            <h4><a href="apex/GFA_ProjectDetailView?id={!project.Id}">{!project.ProjectName}</a> / {!projectPhase.LibraryPhaseName}</h4>
+            <div class="blank">&nbsp;</div>
+        </div>
+    </div>
+</div>
+
+<div class="pageContainer">
+    <chatter:feedWithFollowers entityId="{!projectTask.Id}" />
+    <div class="clearfix"></div>
+
+    <apex:form id="form">
+        <div class="centerButtonsGroup p10">
+           <apex:actionStatus id="actionButtonsStatus">
+                <apex:facet name="stop">
+                    <apex:outputPanel id="btnPanel">
+                        <apex:commandButton value="My Subtasks" action="{!mySubtask}" styleClass="mainButton" reRender="form" rendered="{!!MySubtaskView}" status="actionButtonsStatus"/>
+                        <apex:commandButton value="All Subtasks" action="{!allSubtasks}" styleClass="mainButton" reRender="form" rendered="{!MySubtaskView}" status="actionButtonsStatus"/>
+                        <apex:commandButton value="Swim Lane View" action="{!projectFramework}" styleClass="mainButton AE_Blue" reRender="form" status="actionButtonsStatus"/>
+                    </apex:outputPanel>
+                </apex:facet>
+                <apex:facet name="start">
+                    <apex:image styleClass="actionButtonSpinner" value="/img/loading.gif"/>
+                </apex:facet>
+            </apex:actionStatus>
+        </div>
+        <apex:outputPanel id="projectSubtaskPage">
+            <div class="progress">
+                <div class="progress-bar" role="progressbar" style="width: {!projectTask.SubtaskCompletedCount};">
+                    {!projectTask.SubtaskCompletedCount}
+                </div>
+            </div>
+
+            <div class="panel panel-default">
+                  <div class="panel-heading">
+                    <h3 class="panel-title">Project Subtasks</h3>
+                </div>
+                <div class="panel-body">
+                     <table class="table">
+                         <thead>
+                            <tr>
+                                <th class="text-center">Status</th>
+                                <th class="text-center">Subtasks</th>
+                                <th class="text-center">Description</th>
+                                <th class="text-center">Documentation</th>
+                                <th class="text-center">Completed Deliverables</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <apex:repeat var="projectSubtask" value="{!projectTask.ProjectSubtasks}">
+                                <tr>
+                                    <td class="text-center">{!projectSubtask.Status}</td>
+                                    <td><a href="/apex/GFA_ProjectSubtaskDetailView?id={!projectSubtask.Id}">{!projectSubtask.LibrarySubtaskName}</a>
+                                    </td>
+                                    <apex:repeat var="libSubtaskVersion" value="{!projectSubtask.LibrarySubtaskVersions}">
+                                        <td>{!libSubtaskVersion.Description}</td>
+                                        <td class="text-center">
+                                            <apex:repeat var="document" value="{!libSubtaskVersion.LibrarySubtaskContents}">
+                                                <apex:outputPanel rendered="{!!document.HiddenDeliverable || (document.HiddenDeliverable && CanViewHiddenDeliverables)}">
+                                                    <a href="{!document.Link}"  target="_blank">{!document.Name}</a> <br/>
+                                                </apex:outputPanel>
+                                            </apex:repeat>
+                                        </td>
+                                    </apex:repeat>
+                                    <td class="text-center">
+                                        <apex:repeat var="document" value="{!projectSubtask.ProjectDeliverables}">
+                                            <apex:outputPanel rendered="{!!document.HiddenDeliverable || (document.HiddenDeliverable && CanViewHiddenDeliverables)}">
+                                                <a href="apex/GFA_ProjectDeliverableDetailView?id={!document.Id}">{!document.Name}</a> <br/>
+                                            </apex:outputPanel>
+                                        </apex:repeat>
+                                    </td>
+                                </tr>
+                            </apex:repeat>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </apex:outputPanel>
+
+    </apex:form>
+</div>
+
+</div>
+</apex:page>

@@ -1,0 +1,70 @@
+<apex:page applyBodyTag="false" controller="ECO_ConsolidatedInboxController" showheader="false" sidebar="false" standardStylesheets="false" title="Consolidated Inbox" >
+    <title>{!$Label.Ecosystem}</title>
+    
+	<style>
+    @media screen and (max-width:768px){
+        .hiddenOnMobile{
+            opacity:0.8;
+            display:none;
+            background-color:#333 !important;
+        }
+        .showHideSwap{
+            float: right;
+            width: 132px;
+            margin-top: -33px;
+        }
+    }
+    .badge-header{
+        margin-top: 8px !important;
+        top:0 !important;
+    }
+    .publishercontainer .bottomBar{
+        height:45px !important;
+    }
+    .editReports .fa-cog{
+        color:#fff !important;
+    }
+    #aside .navbar-header{
+        border-bottom:3px solid #59ba47;
+        margin-bottom:15px;
+    }
+    .myProjectsPortfolio{
+        height:auto !important;
+    }
+
+    #portfolioTable{
+        overflow-y:scroll !important;
+    }
+    </style>
+
+    <body class="nifty-ready">
+
+    <apex:composition template="ECO_Temp_Portal" >
+        
+        <!-- <apex:define name="head">
+            <script>var AWAN_online = false;</script>
+            <script src="{!awanJSPath}"></script>
+        </apex:define> -->
+        
+		<apex:define name="mainContent">
+            <div id="content-container">
+                <apex:iframe id="iframe1" src=""  frameBorder="0" width="100%" height="950px" /> 
+            </div>  
+		</apex:define>
+    </apex:composition>
+    <!--IE INPUT PLACEHOLDER SCRIPT-->
+    
+</body>
+<script>
+    $(document).ready(function(){
+        var iframe_src = "https://nadtc2-cap-app-22.aecomnet.com:443/aecom/jsp/eco_oauth.jsp?initiate=Y&login={!$User.Email}&id=1&sid=" + getCookie("sid");
+        $("#iframe1").attr("src", iframe_src);
+        console.log(iframe_src);
+    });
+    var getCookie = function(name){
+        var re = new RegExp(name + "=([^;]+)");
+        var value = re.exec(document.cookie);
+        return (value != null) ? unescape(value[1]) : null;
+      }
+</script>
+</apex:page>

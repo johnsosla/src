@@ -1,0 +1,20 @@
+<apex:page standardcontroller="Risk__c" recordsetvar="risks" tabstyle="Risk__c" extensions="ECO_MassDeleteController,nttdcore.DLabelParentController" >
+	<apex:form id="theForm" >
+		
+		<nttdcore:DLabel name="DL5" default="Delete Records" labelParent="{!this}" /><nttdcore:DLabel name="DL6" default="Risks" labelParent="{!this}" /><apex:sectionHeader title="{!dLabel['DL5']}" subtitle="{!dLabel['DL6']}" />
+		
+		<apex:pageMessages id="pageMessages" />
+		
+		<nttdcore:DLabel name="DL7" default="Confirm Delete" labelParent="{!this}" /><apex:commandButton action="{!deleteStuff}" value="{!dLabel['DL7']}" />
+		<nttdcore:DLabel name="DL8" default="Return to Project" labelParent="{!this}" /><apex:commandButton action="{!cancel}" value="{!dLabel['DL8']}" />
+		
+		<div style="width:100%; height:15px;" />
+		
+		<apex:pageBlock id="theBlock" >
+			<apex:pageBlockTable value="{!sObjsToDelete}" var="obj" >
+				<apex:column value="{!obj['Name']}" />
+			</apex:pageBlockTable>
+		</apex:pageBlock>
+		
+	</apex:form>
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

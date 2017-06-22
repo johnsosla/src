@@ -1,0 +1,495 @@
+<apex:page controller="ECO_ApplicationCustomizerController"  showheader="false" sidebar="false" title="{!$Label.ECOAppCusPickApplications}" standardStylesheets="false" action="{!onLoad}">
+	<script>
+	
+        $(document).ready(function(){
+            init();
+            
+           $(".showAllApps").click(function(){
+                $(".hiddenOnMobile").toggle();
+            });
+
+           $(".showAllApps").click(function(){
+                $(".showHideSwap").toggleClass("hidden-xs");
+           });
+
+
+            $(".showAllApps").click(function(){
+              if ($("i").is('.fa-eye')) {
+                $("i.fa-eye").toggleClass("fa-eye-slash");
+              } else {
+                $("i.fa-eye-slash").toggleClass("fa-eye");
+              }
+            });
+            
+            $('img[id$="theImageHidden"]').closest('a').fadeTo(1, .45);
+        });
+
+        
+        function attachSortable() {
+            $( "#sortable" ).sortable({});
+        }
+        
+        function init () {
+            attachSortable();
+            
+            $('.form-control').keydown(function(event){
+
+                if(event.keyCode == 13) {
+                    event.preventDefault();
+                    $('.search').click();
+                    return false;
+                }
+            });
+        }
+        
+        function savePositionsPageFunction(mode) {
+        	// alert('inside savePositionsPageFunction ');
+            var serializedIds = $("#sortable").sortable("serialize", { 
+                key: "id"
+                , attribute: "orderId" 
+            });
+
+			// alert('calling savePositions with serializedIds: ' + serializedIds);
+            savePositions(serializedIds);
+        };
+
+
+		/* Use 'toggleApp' instead
+        function toggleApplication (theId) {
+            if (console) {
+                console.log($("a[orderId='id_"+theId+"']").length);
+            }
+            
+            if ($("a[orderId='id_"+theId+"']").length) {
+                $("a[orderId='id_"+theId+"']").fadeTo(500, .25);
+                $("a[orderId='id_"+theId+"']").attr('orderId', 'id_'+theId+'hidden').find('.fa-times-circle').removeClass('fa-times-circle').addClass('fa-check-circle');
+            } else {
+                $("a[orderId='id_"+theId+"hidden']").fadeTo(500, 1);
+                $("a[orderId='id_"+theId+"hidden']").attr('orderId', 'id_'+theId).find('.fa-check-circle').addClass('fa-times-circle').removeClass('fa-check-circle');
+            }
+        }
+		*/
+
+        function toggleApp (theId){
+        	// alert('in toggle app');
+            if ($("#sortable div[orderId='id_"+theId+"']").length) {
+                $("div[orderId='id_"+theId+"']").appendTo('#availableApps').find('.fa-times-circle').removeClass('fa-times-circle').addClass('fa-check-circle');
+                $("div[orderId='id_"+theId+"']").find('*').removeAttr('id');
+            } else {
+                $("div[orderId='id_"+theId+"']").appendTo('#sortable').find('.fa-check-circle').addClass('fa-times-circle').removeClass('fa-check-circle');
+                $("div[orderId='id_"+theId+"']").find('*').removeAttr('id');
+            }
+        }
+
+        var timer;
+        
+        function applyFilter (theField) {
+            clearTimeout(timer);
+            timer=setTimeout(function validate(){
+                
+                //applyFilterApex();
+            },300);
+        }
+        
+        function applyFilterButton () {
+            applyFilterApex();
+        }
+        
+    </script>
+
+  
+    <style>
+        h2{
+            color:white;
+            font-size: 14px;
+            margin:10px 20px 10px 0;
+            padding:8px;
+            background-color:#338EB1;           
+        }
+
+        .appPanel{
+            display: block;
+        }
+        .panel-body{
+            background-color:#00729d;
+        }
+        .iconMatrix div.appIcon{
+            float:left;
+            width:110px;
+            text-align:center;
+            height:105px;
+        }
+        .iconMatrix div.appIcon div{
+            display:block;
+            height:55px;
+        }
+        .iconMatrix div.appIcon span{
+            color:#CBCBCB !important;
+            line-height:125%;
+        }
+        
+        .iconMatrix div.appIcon span.fa{
+            position:absolute;
+            font-size:16px;
+        }
+        .iconMatrix{ 
+            list-style-type: none; 
+            margin: 0 0 20px 0; 
+            padding: 0; 
+        }
+        .iconMatrix #sortable div.appIcon{
+            cursor:move;
+        }
+
+        .iconMatrix #sortable div.appIcon:hover{
+            animation: jiggle 0.2s infinite;
+            -webkit-animation: jiggle 0.2s infinite;
+            -moz-animation-duration: 0.2s;
+            -moz-animation-name: jiggle;
+            -moz-animation-iteration-count: infinite;
+            -webkit-transform: rotate(-1deg);
+            -moz-transform: rotate(-1deg);
+        }
+        .iconMatrix #sortable div.appIcon:hover span{
+             color:#fff !important;
+        }
+        .ui-state-default, .ui-widget-content .ui-state-default, .ui-widget-header .ui-state-default{
+            border:none !important;
+            background:transparent !important;
+            color:#fff !important;
+        }
+        .panel-default .panel-heading{
+            background-color: #00B0E2 !important;
+            border-color: #18C3F3 !important;
+        }
+        .panel-heading h4{
+            padding:17px;
+        }
+        
+        .saving{
+            color:#CBCBCB !important;
+        }
+        .hoverHand{
+            cursor:pointer;
+        }
+        .buttonsBottom input, .buttonsBottom button{
+            border: none !important;
+        }
+        .buttonsBottom{
+            padding-top:20px;
+        }
+    
+        /* APPLICATION MANAGER STYLES */
+        
+        .ui-state-default{
+            background:none !important;
+            border:none !important;
+        }
+        .smallText{
+            font-size: 1em;
+            padding:3px 0;
+        }
+        .appManager .panel, .reportFinder .panel{
+            margin-top:25px;
+        }
+
+        .appManager .panel-body, .reportFinder .panel-body{
+            padding:10px 0 35px 20px;
+            overflow:visible !important;
+            height:auto !important;
+        }
+        .appManager .panel, .reportFinder .panel{
+            height:auto !important;
+        }
+        .appManager .panel-heading h1, .reportFinder .panel-heading h1{
+            font-size:16px;
+            text-transform:uppercase;
+            font-weight:bold;
+            margin-top:0;
+            margin-bottom:0;
+        }
+        .reportFinder .panel-body input[type="button"], .reportFinder .panel-body input[type="submit"]{
+            margin:5px 8px 5px 0;
+        }
+        .reports .dataCell{
+            text-align:center;
+            vertical-align:middle;
+        }
+        .reports .detailList{
+            width:100%;
+        }
+        .categoryFilterLabel{
+            margin-right:8px;
+            color:#fff;
+            margin-top:-20px;
+        }
+        .categoryFilterInput{
+            margin-bottom:25px;
+        }
+
+        .leftCol{
+            width:550px;
+            float:left;
+        }
+
+        .rightCol{
+            margin-left:570px;
+        }
+
+        .portalPageWrapper .panel .btn-primary{
+            background-color:#59ba47 !important;
+            border:none !important;
+        }
+        .portalPageWrapper .panel .btn-primary:hover{
+            background-color:rgba(89, 186, 71, 0.78) !important;
+        }
+        .portalPageWrapper .panel .btn-danger{
+          color: #fff !important;
+          background-color: #F03732 !important;
+        }
+        .portalPageWrapper .panel .btn-danger:hover{
+            background-color:rgba(240, 55, 50, 0.52) !important;
+        }
+        .searchBox{
+            border:1px solid grey;
+            margin-right:20px;
+            padding:10px 15px 10px 15px;
+            margin-bottom:20px;
+        }
+
+        .searchBox .header{
+            color:white;
+            font-weight: bold;
+        }
+
+        .searchText{
+            text-align:center;
+            font-weight:bold;
+            font-size:20px;
+        }
+        .btn-danger{
+            border:none !important;
+        }
+
+        
+        @keyframes jiggle{
+            0% {
+                transform: rotate(-1deg);
+            }
+            50% {
+                transform: rotate(1deg);
+            }
+        }
+        @-webkit-keyframes jiggle{
+            0% {
+                -webkit-transform: rotate(-1deg);
+            }
+            50% {
+                -webkit-transform: rotate(1deg);
+            }
+        }
+        @-moz-keyframes jiggle{
+            0% {
+                -moz-transform: rotate(-1deg);
+            }
+            50% {
+                -moz-transform: rotate(1deg);
+            }
+        }
+
+        .floatRight{
+            float:right;
+        }
+
+        @media screen and (max-width:786px){
+            .panel-heading h4{
+                font-size:13px;
+            }
+            .navbar-header{
+                display:none;
+            }
+            .hiddenOnMobile{
+                opacity:0.65;
+                display:none;
+            }
+            
+        }
+        
+        .fa-times-circle {
+            z-index: 99999;
+        }
+        
+        .fa-check-circle {
+            z-index: 99999;
+        }
+    </style>
+    
+    <apex:composition template="MES_Temp_Portal">
+        
+        <apex:define name="head">
+            <script>var AWAN_online = false;</script>
+            <script src="{!awanJSPath}"></script>
+        </apex:define>
+
+        <apex:define name="mainContent">
+
+        <apex:form id="theAppCustomizerForm" >
+        <div class="portalPageWrapper"> 
+            
+            
+
+            <div class="container appManager">
+                <div class="row">
+                    <div class="col-sm-12" style="margin:0px 0 10px 0;text-align:center;">
+                        <apex:actionStatus id="statusPanel">
+                            <apex:facet name="start">
+                                <p class="searchText"><img style="position:relative;top:-2px;" src="/img/loading32.gif" /> Updating...</p>
+                            </apex:facet>
+                        </apex:actionStatus>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="panel panel-default appPanel">
+                            <div class="panel-heading">
+                                <h4>{!$Label.ECOAppCusEditVisibleApps}</h4>
+                            </div>
+                            
+
+                            <div class="panel-body">
+                                <div class="row">
+                                    <div style="float:left;padding:10px;position:relative; width:100%;color:#fff; margin-bottom:5px;" class="visible-xs">
+                                        Applications that are <span style="opacity:0.65;font-weight:bold;">greyed out</span> are non-mobile accessible applications
+                                    </div>
+                                    <div style="float:right;padding:0 10px 0 0;position:relative;right:20px;width:100%;" class="visible-xs">
+                                        <button type="button" class="btn btn-default visible-xs btn-lrg showAllApps showHideSwap hidden-xs" style="margin:0 0 10px 10px; float:right;"><i class="fa fa-eye"></i> Hide non-mobile Apps</button>
+
+                                        <button type="button" class="btn btn-default visible-xs btn-lrg showAllApps showHideSwap" style="margin:0 0 10px 10px; float:right;"><i class="fa fa-eye-slash"></i> Show non-mobile Apps</button>
+                                    </div>
+
+                                    <div style="float:right;padding:0 10px 10px 0;position:relative;right:20px;width:100%;">
+
+                                        <apex:commandButton style="float:right;" styleClass="btn btn-danger btn-lrg floatRight" value="{!$Label.ECOCancel}" action="{!returnToPage}" immediate="true" />
+
+                                        <apex:outputPanel layout="none" rendered="{!!inSearchResultsMode}">
+                                            <button type="button" class="btn btn-primary btn-lrg floatRight" style="margin-right:10px;" onclick="savePositionsPageFunction();">
+                                                {!$Label.ECOSaveandReturn}
+                                            </button>
+                                        </apex:outputPanel>
+
+                                    </div>
+                                    <div style="clear:both;"></div>
+                                </div>
+                            
+                                <apex:pageMessages id="pageMessages" />
+                                
+                                
+                                    <apex:actionFunction action="{!savePositions}" name="savePositions" rerender="pageMessages, theBlock" onComplete="init();" status="statusPanel">
+                                        <apex:param name="serializedPositions" assignTo="{!serializedOrder}" value="" />
+                                    </apex:actionFunction>
+                                    
+                                    <apex:actionFunction action="{!applySearchFilter}" name="applySearchFilter" rerender="pageMessages, availableAppsSection" onComplete="init();">
+                                        
+                                    </apex:actionFunction>
+                                    
+                                    <div class="row">
+                                        <apex:pageBlock id="theBlock">
+                                            <apex:pageBlock id="appsBlock" >
+                                                <div class="col-sm-6">
+                                                    <apex:pageBlockSection id="theSelectedApps" columns="1"></apex:pageBlockSection>
+
+                                                        <h2>{!$Label.ECOAppCusSelectedApplications}</h2>
+                                                        <apex:outputPanel styleClass="iconMatrix">
+                                                            <div id="sortable" class="row">
+                                                                <apex:repeat value="{!selectedApplications}" var="configItem">
+                                                                    <apex:outputpanel layout="none" >
+                                                                        <div class="{!IF(configItem.Application__r.MobileEnabled__c, '', 'hiddenOnMobile')} ui-state-default appIcon" orderId="id_{!configItem.Application__c}">
+                                                                        <!-- <div class="ui-state-default appIcon" orderId="id_{!configItem.Application__c}"> -->
+                                                                            <apex:outputpanel layout="inline" styleClass="appPanel">
+                                                                                <apex:image id="theImage" value="{!URLFOR($Resource.ECO_CustomGraphicAssets, configItem.Application__r.ImageName__c)}" width="45px" height="45px" />
+                                                                                <apex:outputPanel rendered="{!configItem.ConfigurationTemplate__r.IsRemovable__c}" layout="none" >
+                                                                                    <apex:outputPanel layout="inline" styleClass="fa fa-times-circle removeApp hoverHand" onClick="toggleApp('{!configItem.Application__c}');"/>
+                                                                                </apex:outputPanel>
+                                                                            </apex:outputpanel>
+                                                                            <apex:outputText value="{!$Label[configItem.Application__r.ApplicationName__c]}" styleClass="smallText" />
+                                                                        </div>
+                                                                    </apex:outputpanel>
+                                                                </apex:repeat>
+                                                            </div>
+                                                        </apex:outputPanel>
+
+                                                    </div>
+                                            
+                                                    <apex:outputPanel id="availableAppsSection" styleClass="col-sm-6">
+                                                        <h2>{!$Label.ECOAppCusAvailableApplications}</h2>
+
+                                                        <div class="searchBox"><span class="header">{!$Label.ECOAppCusSearchCriteria}</span><br/>
+                                                            <apex:inputText html-placeholder="{!$Label.ECOAppCusNameSearch}" style="width:180px;display:inline;margin-right:20px" value="{!searchTerm}" styleClass="categoryFilterInput form-control" />
+
+                                                            <apex:selectList styleClass="categoryFilterInput form-control" style="width:180px;display:inline;margin-right:20px" size="1" value="{!selectedCategory}">
+                                                                <apex:selectOptions value="{!categories}" />
+                                                            </apex:selectList>
+															
+                                                            <apex:outputPanel layout="none" rendered="{!inSearchResultsMode}" id="clearButton" styleClass="hidden-xs">
+                                                                <apex:commandButton style="width:85px;" styleClass="hidden-xs btn btn-primary btn-lrg" value="Clear Filter" action="{!clearSearchTerm}" rerender="pageMessages, availableAppsSection" oncomplete="init();" />
+                                                            </apex:outputPanel>
+
+                                                            <apex:selectList styleClass="categoryFilterInput form-control" style="width:180px;display:inline;margin-right:20px" size="1" value="{!selectedGeography}">
+                                                                <apex:selectOptions value="{!geographies}" />
+                                                            </apex:selectList>
+
+                                                            <apex:selectList styleClass="categoryFilterInput form-control" style="width:180px;display:inline;margin-right:20px" size="1" value="{!selectedBusinessline}">
+                                                                <apex:selectOptions value="{!businesslines}" />
+                                                            </apex:selectList>
+
+                                                            <button class="btn btn-primary btn-lrg search" style="width:85px;" type="button" onclick="applySearchFilter();" >
+                                                                {!$Label.ECOSearch}
+                                                            </button>
+
+                                                            
+                                                        </div>
+                                                        <apex:outputPanel styleClass="iconMatrix">
+                                                            <apex:outputPanel rendered="{!applicationsAvailable.size == 0}">
+                                                                <p style="color:white;font-weight:bold;text-align:center">No Applications Available</p>
+                                                            </apex:outputPanel>
+
+                                                            <div id="availableApps">
+                                                                <apex:repeat value="{!applicationsAvailable}" var="configItem">
+                                                                    <apex:outputpanel layout="none" >
+                                                                        <div class="ui-state-default appIcon {!IF(configItem.Application__r.MobileEnabled__c, '', 'hiddenOnMobile')}" orderId="id_{!configItem.Application__c}">
+                                                                            <apex:outputpanel layout="inline" styleClass="appPanel">
+                                                                                <apex:image id="theImage" value="{!URLFOR($Resource.ECO_CustomGraphicAssets, configItem.Application__r.ImageName__c)}" width="45px" height="45px" />
+                                                                                <apex:outputPanel rendered="{!configItem.IsRemovable__c}" layout="none" >
+                                                                                    <apex:outputPanel layout="inline" styleClass="fa fa-check-circle selectApp hoverHand" onClick="toggleApp('{!configItem.Application__c}');"/>
+                                                                                </apex:outputPanel>
+                                                                            </apex:outputpanel>
+                                                                            <apex:outputText value="{!$Label[configItem.Application__r.ApplicationName__c]}" styleClass="smallText" />
+                                                                        </div>
+                                                                    </apex:outputpanel>
+                                                                </apex:repeat>
+                                                            </div>
+                                                        </apex:outputPanel>
+                                                    </apex:outputPanel>
+                                                
+                                            
+                                            
+                                            </apex:pageBlock>
+                                        </apex:pageBlock>
+                                        
+                                </div>
+                                
+                            </div><!-- .panel-body -->
+                        </div><!-- .panel -->
+                    </div><!-- col-sm-6 -->
+                </div><!-- .row -->
+            </div><!-- .container -->
+        </div><!-- .portalPageWrapper -->
+        </apex:form>
+        </apex:define>
+        
+        <apex:define name="rightNav">
+
+        </apex:define>
+    </apex:composition>
+</apex:page>

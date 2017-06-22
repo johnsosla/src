@@ -1,0 +1,16 @@
+<apex:page controller="ECO_ItemsToApproveController" showheader="false" extensions="nttdcore.DLabelParentController" >
+  <apex:form >
+    <nttdcore:DLabel name="DL1" default="Items to Approve" labelParent="{!this}" /><apex:pageBlock title="{!dLabel['DL1']}" ><nttdcore:DLabel name="DL2" default="Action" labelParent="{!this}" /><nttdcore:DLabel name="DL3" default="Approve / Reject" labelParent="{!this}" /><nttdcore:DLabel name="DL4" default="Related To" labelParent="{!this}" /><nttdcore:DLabel name="DL5" default="Type" labelParent="{!this}" /><nttdcore:DLabel name="DL6" default="Most Recent Approver" labelParent="{!this}" /><nttdcore:DLabel name="DL7" default="Date Submitted" labelParent="{!this}" />
+        <!--<apex:pageBlockButtons location="top">
+            <apex:commandButton action="/04i" value="Manage All"  /> 
+        </apex:pageBlockButtons> -->
+        <apex:pageBlockTable value="{!pws}" var="p" >
+            <apex:column headervalue="{!dLabel['DL2']}" ><a href="/p/process/ProcessInstanceWorkitemWizardStageManager?id={!p.piw.Id}" target="_parent" style="color:#0052cc;" >{!dLabel['DL3']}</a></apex:column>
+            <apex:column headervalue="{!dLabel['DL4']}" ><a href="/{!p.targetId}" target="_parent" >{!p.targetName}</a></apex:column>
+            <apex:column headervalue="{!dLabel['DL5']}" value="{!p.objectLabel}" />
+            <apex:column headervalue="{!dLabel['DL6']}" ><a href="/{!p.piw.ProcessInstance.LastModifiedById}" target="_parent" >{!p.piw.ProcessInstance.LastModifiedBy.Name}</a></apex:column>
+            <apex:column headervalue="{!dLabel['DL7']}" value="{!p.piw.CreatedDate}" />
+        </apex:pageBlockTable>
+    </apex:pageBlock>
+</apex:form>    
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

@@ -1,0 +1,547 @@
+<apex:page showheader="true" sidebar="false" standardcontroller="Risk__c" extensions="ECO_RiskRegisterController,nttdcore.DLabelParentController" id="thePage" >
+    
+        <apex:includeScript value="{!$Resource.ECO_jQuery_1_11_2_min_js}" />
+    
+        <script type="text/javascript" >
+            var budgetHidden = true;
+            var titleHidden = true;
+            var budgetTitleHidden = true;
+    
+            $(document).ready(function(){
+                $("[id$=mlktp]").hide();
+    
+                $('.budget').click(function(){
+                    budgetHidden = !budgetHidden;
+    
+                    toggleSections();
+                })
+    
+                $('.title').click(function(){
+                    titleHidden = !titleHidden;
+    
+                    toggleSections();
+                })
+                $('.showAll').click(function(){
+                    titleHidden = !titleHidden;
+                    budgetHidden = !budgetHidden;
+    
+                    toggleSections();
+                })
+    
+                $('.budget input, .title input, .showAll input').click(function(){
+                    event.stopPropagation();
+                })
+    
+            });
+    
+            function toggleSections(){
+                if(!budgetHidden){
+                    $('.budgetDetail').slideDown(250, function(){
+                        $('.expandable').text("-");
+                    });
+                }else{
+                    $('.budgetDetail').slideUp(250, function(){
+                        $('.expandable').text("+");
+                    });
+                }
+                
+                if(!titleHidden){
+                    $('.titleDetail').slideDown(250, function(){
+                        $('.expandable').text("-");
+                    });
+                }else{
+                    $('.titleDetail').slideUp(250, function(){
+                        $(".expandable").text("+");
+                    });
+                }
+    
+                if(!budgetHidden && !titleHidden){
+                    $('.titleHeader').slideDown(250, function(){
+                        $('.expandable').text("-");
+                    });
+                }else{
+                    $('.titleHeader').slideUp(250, function(){
+                        $('.expandable').text("+");
+                    });
+                }
+    
+            }
+        </script>
+    
+        <style>
+            /* tables */
+            table.tablesorter {
+                font-family:arial;
+                background-color: #919191;
+                margin:10px 0pt 15px;
+                font-size: 9pt; 
+                width: 100%;
+                text-align: left;
+            }
+            table.tablesorter thead tr th, table.tablesorter tfoot tr th, table.tablesorter tr th {
+                background-color: #39c;
+                border: 1px solid #FFF;
+                font-size: 9pt;
+                padding: 4px 7px;
+                color:white;
+            }
+    
+            table.tablesorter thead tr .header {
+                background-image: url(bg.gif);
+                background-repeat: no-repeat;
+                background-position: center right;
+                cursor: pointer;
+            }
+            table.tablesorter tbody td {
+                color: #3D3D3D;
+                padding: 4px 7px;
+                background-color: #FFF;
+                vertical-align: top;
+                height: 20px;
+            }
+    
+            table.tablesorter tbody tr:hover td{
+                background-color:#FFFFEB !important;
+            }
+    
+            table.tablesorter tbody tr.odd td {
+                background-color:#F0F0F6;
+            }
+            table.tablesorter thead tr .headerSortUp {
+                background-image: url(asc.gif);
+            }
+            table.tablesorter thead tr .headerSortDown {
+                background-image: url(desc.gif);
+            }
+            table.tablesorter thead tr .headerSortDown, table.tablesorter thead tr .headerSortUp {
+            background-color: #8dbdd8;
+            }
+    
+            table.tablesorter thead tr th.greenColumn, table.tablesorter thead tr th.greenColumn{
+                background-color:#AFBCA0;
+            }
+    
+            table.tablesorter tbody tr td.budget input, table.tablesorter tbody tr td.budget{
+                text-align:right;
+            }
+    
+            table.tablesorter tbody tr:nth-child(odd) td.greenColumn, table.tablesorter tbody tr:nth-child(odd) td.greenColumn, table.tablesorter tbody tr:nth-child(odd) td.greenColumn, table.tablesorter tbody tr:nth-child(odd) td.greenColumn{
+                background-color:#EDF1E8;
+            }
+    
+            table.tablesorter tbody tr:nth-child(even) td.greenColumn, table.tablesorter tbody tr:nth-child(even) td.greenColumn, table.tablesorter tbody tr:nth-child(even) td.greenColumn, table.tablesorter tbody tr:nth-child(even) td.greenColumn{
+                background-color:#F9FAF8;
+            }
+    
+            table.tablesorter tbody tr:nth-child(odd) td{
+                background-color:#EBF5FA;
+                white-space: nowrap;
+            }
+    
+            table.tablesorter tbody tr:nth-child(even) td{
+                background-color:white;
+                white-space: nowrap;
+            }
+    
+            table.tablesorter tbody tr input, table.tablesorter tbody tr select{
+                width:140px;
+            }
+    
+            .percSign{
+                position:relative;
+                top:1px;
+                padding-left:2px;
+            }
+    
+            .budgetDetail{
+                display:none;
+            }
+    
+            .titleDetail{
+                display:none;
+            }
+    
+            .budgetTotal{
+                cursor:pointer;
+            }
+    
+            .title{
+                cursor:pointer;
+            }
+            .hideThis{
+                display:none !important;
+            }
+    
+    
+    
+            /* EXPANDABLE INDICATORS and RISK TABLE - ANDREW SMITH */
+            .expandable{
+                float:right;
+                display:block;
+                text-align:center;
+                vertical-align:middle;
+                padding:1px 5px;
+                border:1px solid #128506;
+                background-color:#56BD4C;
+                color:#fff;
+                font-weight:bold;
+                border-radius: 10px;
+                margin-left:10px;
+                margin-top:-2px;
+            }
+            .title:hover > .expandable, .budgetTotal:hover > .expandable{
+                background-color:#ebebeb;
+                border: 1px solid #fff;
+                color:#333;
+            }
+            .title, .budgetTotal{
+                vertical-align:middle;
+            }
+            .individualPalette .pbBody table tr th.greenColumn, .individualPalette .pbBody table tr th.greenColumn{
+                background-color:#;
+            }
+            .colorIndicator{
+                background-color:#;
+                width:13px;
+                height:13px;
+                display:inline-block;
+                vertical-align:middle;
+            }
+            .infoSection{
+                width:100%;
+                padding: 5px 0 5px;
+            }
+            .infoSection .expandable{
+                display:inline-block;
+                float:none !important;
+                margin-left:0 !important;
+                padding:1px 5px !important;
+            }
+            .infoSection .expandable:hover{
+                background-color:#ebebeb;
+                border: 1px solid #fff;
+                color:#333;
+            }
+            .showAll{
+                padding:4px 3px 4px 3px !important;
+            }
+            .showAll:hover{
+                text-decoration:none;
+                color:#333 !important;
+            }
+            .riskLikelihood table{
+                border:2px solid #333;
+                background-color:#fff;
+            }
+            .riskLikelihood td, .riskLikelihood th{
+                border-right:1px solid #CCCCCC !important;
+                padding:11px 5px 0 5px;
+                text-align:center;
+                width:75px;
+                height:43px;
+            }
+            .riskLikelihood tr td:first-child, .riskLikelihood tr th:first-child{
+                border-left:1px solid #ccc !important;
+            }
+            .riskLikelihood td{
+                border-bottom:1px solid #ccc !important;
+            }
+            .riskLikelihood td:first-child{
+                font-weight:bold;
+            }
+            .riskLikelihood table th{
+                border-top:1px solid #ccc !important;
+                border-bottom:1px solid #ccc !important;
+            }
+            .riskLikelihood .greenTd{
+                background-color:#6AD360;
+                font-size:18px;
+                font-weight:bold;
+                padding-top:17px;
+            }
+            .riskLikelihood .yellowTd{
+                background-color:#E8E964;
+                font-size:18px;
+                font-weight:bold;
+                padding-top:17px;
+            }
+            .riskLikelihood .redTd{
+                background-color:#F3573D;
+                font-size:18px;
+                font-weight:bold;
+                padding-top:17px;
+            }
+            .leftLabel{
+                float:left;
+                width:70px;
+                padding-top:135px;
+            }
+            .topLabel{
+                width:412px;
+                text-align:center;
+                margin-bottom:8px;
+            }
+            .riskLikelihood{
+                margin-top:30px;
+            }
+            .riskLikelihood h2{
+                font-size:18px;
+            }
+            .riskLikelihood h3{
+                font-size:14px;
+            }
+            
+     /* CUSTOM HELP / GUIDANCE TEXT BOX */
+            .customHelpText{
+                padding: 7px;
+                border: 1px solid #85B3CE;
+                min-height: 30px;
+                display: block;
+                width: auto;
+                margin: 0 0 5px 0;
+                background-repeat: no-repeat;
+                border-radius: 4px;
+                background-color: #A2D3F1;
+                
+            }
+            .customHelpBody{
+                display:inline-block;
+                color:#;
+                max-width:95%;
+            }
+    
+        </style>
+        
+        <nttdcore:DLabel name="DL69" default="Risk Register" labelParent="{!this}" /><apex:sectionHeader title="{!dLabel['DL69']}" subtitle="{!theProject.Name}" id="theSectionHeader" />
+        
+        <apex:pageMessages id="pageMessages" />
+        
+            <div class="customHelpText" >
+                <div class="customHelpBody" ><nttdcore:DLabel name="DL70" default="Consider the following approach when managing risk on a project:" labelParent="{!this}" />
+                {!dLabel['DL70']} 
+                <ul>
+                    <li><nttdcore:DLabel name="DL71" default="Determine the nature of the risk that may or has occurred" labelParent="{!this}" />{!dLabel['DL71']}</li>
+                    <li><nttdcore:DLabel name="DL72" default="Determine appropriate mitigation measures to manage the risk" labelParent="{!this}" />{!dLabel['DL72']}</li>       
+                    <li><nttdcore:DLabel name="DL73" default="Determine the consequence and likelihood of the risk occurring both pre and post mitigation measures" labelParent="{!this}" />{!dLabel['DL73']}</li>
+                    <li><nttdcore:DLabel name="DL74" default="Determine if financial contingencies are appropriate to manage the risk in the event that it does occur" labelParent="{!this}" />{!dLabel['DL74']}</li>               
+                    <li><nttdcore:DLabel name="DL75" default="Ensure all stakeholders are aware of the risks that must be managed throughout the project" labelParent="{!this}" />{!dLabel['DL75']}</li>            
+                </ul>        
+                </div>   
+            </div>
+                
+        <apex:form id="theForm" ><nttdcore:DLabel name="DL76" default="loading" labelParent="{!this}" />
+            
+            <apex:actionStatus starttext="{!dLabel['DL76']}" id="theStatus" />
+            
+            <nttdcore:DLabel name="DL77" default="Project Risk List" labelParent="{!this}" /><apex:pageBlock id="theBlock" title="{!dLabel['DL77']}" ><nttdcore:DLabel name="DL87" default="Project to Copy Risks From:" labelParent="{!this}" /><nttdcore:DLabel name="DL88" default="Copy Risks" labelParent="{!this}" /><nttdcore:DLabel name="DL113" default="Evaluating Risk" labelParent="{!this}" /><nttdcore:DLabel name="DL114" default="Severity" labelParent="{!this}" /><nttdcore:DLabel name="DL115" default="Likelihood" labelParent="{!this}" /><nttdcore:DLabel name="DL116" default="5" labelParent="{!this}" /><nttdcore:DLabel name="DL117" default="Moderate" labelParent="{!this}" /><nttdcore:DLabel name="DL118" default="10" labelParent="{!this}" /><nttdcore:DLabel name="DL119" default="Major" labelParent="{!this}" /><nttdcore:DLabel name="DL120" default="20" labelParent="{!this}" /><nttdcore:DLabel name="DL121" default="Catastrophic" labelParent="{!this}" /><nttdcore:DLabel name="DL122" default="3" labelParent="{!this}" /><nttdcore:DLabel name="DL123" default="Possible" labelParent="{!this}" /><nttdcore:DLabel name="DL124" default="15" labelParent="{!this}" /><nttdcore:DLabel name="DL125" default="30" labelParent="{!this}" /><nttdcore:DLabel name="DL126" default="60" labelParent="{!this}" /><nttdcore:DLabel name="DL127" default="4" labelParent="{!this}" /><nttdcore:DLabel name="DL128" default="Likely" labelParent="{!this}" /><nttdcore:DLabel name="DL129" default="20" labelParent="{!this}" /><nttdcore:DLabel name="DL130" default="40" labelParent="{!this}" /><nttdcore:DLabel name="DL131" default="80" labelParent="{!this}" /><nttdcore:DLabel name="DL132" default="5" labelParent="{!this}" /><nttdcore:DLabel name="DL133" default="Probable" labelParent="{!this}" /><nttdcore:DLabel name="DL134" default="25" labelParent="{!this}" /><nttdcore:DLabel name="DL135" default="50" labelParent="{!this}" /><nttdcore:DLabel name="DL136" default="100" labelParent="{!this}" />
+    
+                <div class="infoSection" ><nttdcore:DLabel name="DL78" default="Click" labelParent="{!this}" /><nttdcore:DLabel name="DL80" default="to expand and collapse additional data" labelParent="{!this}" />
+                    {!dLabel['DL78']}  <div class="expandable showAll" style="cursor:pointer;" ><nttdcore:DLabel name="DL79" default="+" labelParent="{!this}" />{!dLabel['DL79']}</div>  {!dLabel['DL80']}
+                </div>
+            
+                <apex:pageBlockButtons location="top" >
+                    <a value="Show/Hide All Content" class="btn showAll" style="margin:-2px 0 0 -1px;" ><nttdcore:DLabel name="DL81" default="Show/Hide All Content" labelParent="{!this}" />{!dLabel['DL81']}</a>
+                    <nttdcore:DLabel name="DL82" default="Add New Risk" labelParent="{!this}" /><apex:commandButton action="{!addRisk}" value="{!dLabel['DL82']}" rerender="pageMessages, theBlock" />
+                    <nttdcore:DLabel name="DL83" default="Search Knowledge Library" labelParent="{!this}" /><apex:commandButton action="{!searchKnowledge}" value="{!dLabel['DL83']}" />
+                    <nttdcore:DLabel name="DL84" default="Copy Risks From Existing Project" labelParent="{!this}" /><apex:commandButton action="{!showCopyFromExisting}" value="{!dLabel['DL84']}" rerender="pageMessages, theBlock" status="theStatus" rendered="{!!isCopySectionShown}" />
+                    <nttdcore:DLabel name="DL85" default="Save" labelParent="{!this}" /><apex:commandButton action="{!save}" value="{!dLabel['DL85']}" rerender="pageMessages, theBlock" />
+                    <nttdcore:DLabel name="DL86" default="Back to Project" labelParent="{!this}" /><apex:commandButton action="{!backToProject}" value="{!dLabel['DL86']}" immediate="true" />
+                </apex:pageBlockButtons>
+    
+                
+                <apex:pageBlockSection id="existingProjectLookupSection" rendered="{!isCopySectionShown}" >
+                    {!dLabel['DL87']} 
+                    <apex:inputField value="{!projectFieldProvider.Project__c}" />
+                    <apex:commandButton action="{!copyFromExisting}" value="{!dLabel['DL88']}" rerender="pageMessages, theBlock" status="theStatus" />
+                </apex:pageBlockSection>
+                        
+                    <table class="tablesorter" cellspacing="0" cellpadding="0" >
+                        <thead>
+                            <tr>
+                                <th class="budgetDetail" style="background-color:transparent !important;" colspan="6" >
+                                </th>
+                                <th class="titleDetail" style="background-color:transparent !important;" colspan="7" >
+                                </th>
+                                <th class="budget budgetDetail " colspan="2" >
+                                    <div style="width:236px;text-align:center;" ><nttdcore:DLabel name="DL89" default="Raw Contingency" labelParent="{!this}" />{!dLabel['DL89']}</div>
+                                </th>
+                                <th class="budget budgetDetail " colspan="2" >
+                                    <div style="width:236px;text-align:center;" ><nttdcore:DLabel name="DL90" default="Weighted Contingency" labelParent="{!this}" />{!dLabel['DL90']}</div>
+                                </th>
+                            </tr>
+     
+                            <tr>
+                                <th class="title" ><nttdcore:DLabel name="DL91" default="#" labelParent="{!this}" />
+                                    {!dLabel['DL91']}
+                                </th>
+                                <th class="title" ><nttdcore:DLabel name="DL92" default="Risk Title" labelParent="{!this}" />
+                                    {!dLabel['DL92']} <div class="expandable" style="cursor:pointer;" ><nttdcore:DLabel name="DL93" default="+" labelParent="{!this}" />{!dLabel['DL93']}</div> 
+                                </th>
+                                <th class="titleDetail" ><nttdcore:DLabel name="DL94" default="Description" labelParent="{!this}" />
+                                    {!dLabel['DL94']}
+                                </th>
+                                <th class="" ><nttdcore:DLabel name="DL95" default="Mitigation Strategy" labelParent="{!this}" />
+                                    {!dLabel['DL95']}
+                                </th>
+                                <th class="titleDetail" ><nttdcore:DLabel name="DL96" default="Mitigation Effectiveness" labelParent="{!this}" />
+                                    {!dLabel['DL96']}
+                                </th>
+                                <th><nttdcore:DLabel name="DL97" default="Plan Element" labelParent="{!this}" />
+                                    {!dLabel['DL97']}
+                                </th>
+                                <th><nttdcore:DLabel name="DL98" default="Status" labelParent="{!this}" />
+                                    {!dLabel['DL98']}
+                                </th>
+                                <th class="titleDetail" ><nttdcore:DLabel name="DL99" default="Source" labelParent="{!this}" />
+                                    {!dLabel['DL99']}
+                                </th>
+                                <th class="titleDetail" ><nttdcore:DLabel name="DL100" default="Event Phase" labelParent="{!this}" />
+                                    {!dLabel['DL100']}
+                                </th>
+                                <th class="titleDetail" ><nttdcore:DLabel name="DL101" default="Likelihood of Occurence" labelParent="{!this}" />
+                                    {!dLabel['DL101']}
+                                </th>
+                                <th class="titleDetail" ><nttdcore:DLabel name="DL102" default="Consequence Consequence of Occurrence" labelParent="{!this}" />
+                                    {!dLabel['DL102']}
+                                </th>
+                                <th><nttdcore:DLabel name="DL103" default="Risk Status" labelParent="{!this}" />
+                                    {!dLabel['DL103']}
+                                </th>
+                                <th class="titleDetail" ><nttdcore:DLabel name="DL104" default="Assigned to" labelParent="{!this}" />
+                                    {!dLabel['DL104']}
+                                </th>
+                                <th class="budgetDetail" ><nttdcore:DLabel name="DL105" default="Labor Cost" labelParent="{!this}" />
+                                    {!dLabel['DL105']}
+                                </th>
+                                <th class="budgetDetail" ><nttdcore:DLabel name="DL106" default="ODC Cost" labelParent="{!this}" />
+                                    {!dLabel['DL106']}
+                                </th>
+                                <th width="35px" class="budgetDetail " ><nttdcore:DLabel name="DL107" default="%" labelParent="{!this}" />
+                                    {!dLabel['DL107']}
+                                </th>
+                                <th style="text-align:right;" class="budgetTotal budget" ><nttdcore:DLabel name="DL108" default="Contingency Cost" labelParent="{!this}" />
+                                    {!dLabel['DL108']} <div class="expandable" style="cursor:pointer;" ><nttdcore:DLabel name="DL109" default="+" labelParent="{!this}" />{!dLabel['DL109']}</div> 
+                                </th>
+                                <th class="titleDetail" ><nttdcore:DLabel name="DL110" default="Opportunity from Risk" labelParent="{!this}" />
+                                    {!dLabel['DL110']}
+                                </th>
+                                <th class="titleDetail" ><nttdcore:DLabel name="DL111" default="Add Risk to Knowledge Library" labelParent="{!this}" />
+                                    {!dLabel['DL111']}
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <apex:repeat value="{!risks}" var="risk" id="theRiskRepeater" >
+                                <tr class="firstRow" >
+                                    <td class="title" >
+                                        <apex:outputField value="{!risks[risk].RiskNumber__c}" /><br/>
+                                    </td>
+                                    <td class="title" >
+                                        <apex:inputField value="{!risks[risk].Name}" />
+                                    </td>
+                                    <td class="titleDetail" >
+                                        <apex:inputField style="width:350px;height:50px;" value="{!risks[risk].RiskDescription__c}" />
+                                    </td>
+                                    <td class="" >
+                                        <apex:inputField style="width:350px;height:50px;" value="{!risks[risk].RiskMitigation__c}" />
+                                    </td>
+                                    <td class="titleDetail" >
+                                        <apex:inputField value="{!risks[risk].MitigationEffectiveness__c}" />
+                                    </td>
+                                    <td>
+                                        <apex:inputField value="{!risks[risk].PlanElement__c}" />
+                                    </td>
+                                    <td>
+                                        <apex:inputField value="{!risks[risk].CurrentStatus__c}" />
+                                    </td>
+                                    <td class="titleDetail" >
+                                        <apex:inputField value="{!risks[risk].Source__c}" />
+                                    </td>
+                                    <td class="titleDetail" >
+                                        <apex:inputField value="{!risks[risk].EventPhase__c}" />
+                                    </td> 
+                                    <td class="titleDetail" >
+                                        <apex:inputField value="{!risks[risk].LikelihoodofOccurrence__c}" />
+                                    </td>
+                                    <td class="titleDetail" >
+                                        <apex:inputField value="{!risks[risk].RiskConsequence__c}" />
+                                    </td>
+                                    <td style="text-align:center;" >
+                                        <apex:outputField value="{!risks[risk].RiskStatus__c}" />
+                                    </td>
+                                    <td class="titleDetail" >
+                                        <apex:inputField value="{!risks[risk].Assignedto__c}" />
+                                    </td>
+                                    <td class="budget budgetDetail" >
+                                        <apex:inputField style="width:100px" value="{!risks[risk].LaborCost__c}" />
+                                    </td>
+                                    <td class="budget budgetDetail" >
+                                        <apex:inputField style="width:100px" value="{!risks[risk].ODCCost__c}" />
+                                    </td>
+                                    <td class="budget budgetDetail" >
+                                        <apex:inputField style="width:20px" value="{!risks[risk].ContingencyPercent__c}" /><span class="percSign" ><nttdcore:DLabel name="DL112" default="%" labelParent="{!this}" />{!dLabel['DL112']}</span>
+                                    </td>
+                                    <td class="budget budgetTotal" >
+                                        <span style="width:140px" >
+                                            <apex:inputField value="{!risks[risk].ContingencyDollars__c}" />
+                                        </span>
+                                    </td>
+                                    <td class="budget titleDetail" >
+                                        <apex:inputField value="{!risks[risk].OpportunityFromRisk__c}" />
+                                    </td>
+                                    <td class="budget titleDetail" >
+                                        <apex:inputField value="{!risks[risk].AddRiskToKBLib__c}" />
+                                    </td>
+                                </tr>
+                            </apex:repeat>
+                        </tbody>
+                    </table>
+    
+                    <apex:pageBlockSection >
+                        <div class="riskLikelihood" >
+                            <div style="width:100%; height:35px;" >
+                                <h2>{!dLabel['DL113']}</h2>
+                            </div>
+                            <div class="leftLabel" ><h3>{!dLabel['DL114']}</h3></div>
+    
+                            <div class="topLabel" ><h3>{!dLabel['DL115']}</h3></div>
+                            <table cellpadding="0" cellspacing="0" >
+                                <tr>
+                                    <th/>
+                                    <th>{!dLabel['DL116']}<br/>{!dLabel['DL117']}</th>
+                                    <th>{!dLabel['DL118']}<br/>{!dLabel['DL119']}</th>
+                                    <th>{!dLabel['DL120']}<br/>{!dLabel['DL121']}</th>
+                                </tr>
+                                <tbody>
+                                    <tr>
+                                        <td>{!dLabel['DL122']}<br/>{!dLabel['DL123']}</td>
+                                        <td class="greenTd" >{!dLabel['DL124']}</td>
+                                        <td class="yellowTd" >{!dLabel['DL125']}</td>
+                                        <td class="redTd" >{!dLabel['DL126']}</td>
+    
+                                    </tr>
+                                    <tr>
+                                        <td>{!dLabel['DL127']}<br/>{!dLabel['DL128']}</td>
+                                        <td class="yellowTd" >{!dLabel['DL129']}</td>
+                                        <td class="yellowTd" >{!dLabel['DL130']}</td>
+                                        <td class="redTd" >{!dLabel['DL131']}</td>
+    
+                                    </tr>
+                                    <tr>
+                                        <td>{!dLabel['DL132']}<br/>{!dLabel['DL133']}</td>
+                                        <td class="yellowTd" >{!dLabel['DL134']}</td>
+                                        <td class="redTd" >{!dLabel['DL135']}</td>
+                                        <td class="redTd" >{!dLabel['DL136']}</td>
+    
+                                    </tr>
+    
+                                </tbody>
+    
+                            </table>
+                        </div>
+                    </apex:pageBlockSection>
+    
+            </apex:pageBlock>
+        </apex:form>
+    
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

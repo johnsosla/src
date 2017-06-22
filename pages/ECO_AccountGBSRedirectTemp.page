@@ -1,0 +1,5 @@
+<apex:page standardController="account" showHeader="true" sidebar="true" >	
+	<script>	
+	    window.location = "/apex/ECO_GlobalBusinessServicesTemp";
+	</script>
+</apex:page>

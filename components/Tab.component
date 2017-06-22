@@ -1,0 +1,20 @@
+<!--
+ @author :Avidev9@gmail.com
+ @Blog : Blogforce9.blogspot.com
+ @created date : 5-May-2013
+-->
+<apex:component controller="Tab_Con">
+    <apex:attribute required="true" type="String" name="title" description="Header/title of the Accordion section"/>
+    <ul class="easyTab9">
+        <li class="{!IF($CurrentPage.parameters.selTab == title,'ui-tabs-active','')}">
+            <a href="#tabs-{!randomSuffix}">
+                <apex:outputText value="{!title}" escape="false"/>
+            </a>
+        </li>
+    </ul>
+    <div id="tabs-{!randomSuffix}" class="easyTabBody9">
+        <p>
+            <apex:componentBody />
+        </p>
+    </div>
+</apex:component>

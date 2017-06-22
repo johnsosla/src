@@ -1,0 +1,10 @@
+<apex:page standardController="IncentiveProject__c" extensions="ECO_AGGRParentController" action="{!createAGGR}" sidebar="false" > 
+    <apex:form >
+        <apex:pageBlock >
+            <apex:pageMessages />
+            
+            <apex:commandButton action="{!back}" value="{!$Label.DTWECOAGGRBACK}" />
+        </apex:pageBlock> 
+    
+    </apex:form>
+</apex:page>

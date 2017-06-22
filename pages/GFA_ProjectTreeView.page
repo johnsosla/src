@@ -1,0 +1,73 @@
+<apex:page showHeader="true" sidebar="true" standardController="GFA_Project__c" extensions="GFA_ProjectTreeViewController" id="GFA_Page">
+<!-- <apex:stylesheet value="{!URLFOR($Resource.GFA, 'bootstrap/css/bootstrap.min.css')}"/> -->
+<apex:stylesheet value="{!URLFOR($Resource.GFA, 'bootstrap/css/bootstrap.css')}"/>
+<apex:stylesheet value="{!URLFOR($Resource.GFA, 'custom/css/GFA_app.css')}"/>
+<apex:stylesheet value="{!URLFOR($Resource.GFA, 'font-awesome/css/font-awesome.min.css')}"/>
+<apex:stylesheet value="{!URLFOR($Resource.GFA, 'custom/css/GFA_app2.css')}"/>
+
+<script src="{!URLFOR($Resource.GFA, 'jQuery/jquery-1.12.1.min.js')}" type="text/javascript" charset="utf-8"></script>
+<script src="{!URLFOR($Resource.GFA, 'bootstrap/js/bootstrap.min.js')}" type="text/javascript" charset="utf-8"></script>
+<script src="{!URLFOR($Resource.GFA, 'custom/js/GFA_app.js')}" type="text/javascript" charset="utf-8"></script>
+<div class="GFA">
+
+
+<div class="bPageTitle">
+    <div class="ptBody">
+        <div class="content">
+            <img src="{!URLFOR($Resource.GFA, 'icons/task.png')}" alt=">Project Tree View" title=">Project Tree View" class="GFA_pageTitleIcon"/>
+            <h1 class="pageType">Project Tree View<span class="titleSeparatingColon">:</span></h1>
+            <h2 class="pageDescription">{!project.ProjectName}</h2>
+            <div class="blank">&nbsp;</div>
+        </div>
+    </div>
+</div>
+
+<div class="pageContainer">
+    <apex:form id="form">
+    <apex:actionFunction name="setAll" action="{!setAll}" reRender="form" oncomplete="setupExpandAndCollapse();"/>
+    <apex:actionFunction name="setApplicable" action="{!setApplicable}" reRender="form" oncomplete="setupExpandAndCollapse();"/>
+        <div class="btn-group pull-right">
+            <button type="button" class="btn disabled menuButton-left AE_Blue">
+                <img src="{!URLFOR($Resource.GFA, 'icons/dark/tree-view-dark.png')}" alt="Tree View" title="Tree View" class="GFA_menuIcon"/>
+                Tree View
+            </button>
+            <a href="/apex/GFA_ProjectFramework?id={!Project.Id}&OnlyApplicable=true" class="btn menuButton">
+                <img src="{!URLFOR($Resource.GFA, 'icons/swim-lane.png')}" alt="Swim Lane" title="Swim Lane" class="GFA_menuIcon"/>
+                Swim Lane View
+            </a>
+            <a href="/apex/GFA_ProjectDetailView?id={!Project.Id}" class="btn menuButton-right">
+                <img src="{!URLFOR($Resource.GFA, 'icons/detail-view.png')}" alt="Detail View" title="Detail View" class="GFA_menuIcon"/>
+                Project Detail
+            </a>
+        </div>
+
+        <div class="clearfix"></div>
+
+        <div class="centerButtonsGroup">
+            <apex:actionStatus id="actionButtonsStatus">
+                <apex:facet name="stop">
+                    <apex:outputPanel id="btnPanel">
+                        <span class="btn-group">
+                            <a href="#" class="mainButton" onclick="setAll();">
+                                <span>All</span>
+                            </a>
+                            <a href="#" class="mainButton" onclick="setApplicable();">
+                                <span>Applicable Only</span>
+                            </a>
+                        </span>
+                        <apex:commandButton value="Edit" action="{!editProject}" rendered="{!canEditProject}" status="actionButtonsStatus" reRender="form" styleClass="mainButton AE_Blue"/>
+                    </apex:outputPanel>
+                </apex:facet>
+                <apex:facet name="start">
+                    <apex:image styleClass="actionButtonSpinner" value="/img/loading.gif"/>
+                </apex:facet>
+            </apex:actionStatus>
+        </div>
+
+        <c:GFA_ProjectTreeComponent Project="{!project}" editMode="false"/>
+
+    </apex:form>
+</div>
+
+</div>
+</apex:page>

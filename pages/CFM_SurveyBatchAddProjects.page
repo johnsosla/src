@@ -1,0 +1,242 @@
+<apex:page standardController="CFM_Survey_Batch__c" extensions="CFM_SurveyBatchAddProjectsController" showHeader="true" sidebar="true">
+
+<style>
+    .header-selectlist {
+        padding-bottom: 15px;
+        font-weight: bold;
+    }
+    .filterTable tr {
+        height: 30px;
+    }
+    .filterTable tr:first-child {
+        height: 20px;
+    }
+    .filterTable select.fieldSelect {
+        width: 100%;
+    }
+    .filterTable select.operatorSelect {
+        width: 85%;
+    }
+    .filterTable td {
+        padding-right: 5px;
+    }
+    .addRowSection {
+        margin-bottom: 10px;
+    }
+    .randomSelection {
+        margin-top: 10px;
+    }
+    .currentPage {
+        font-weight: bold;
+    }
+    .operatorColumn {
+        width: 150px;
+    }
+</style>
+
+<script type="text/javascript">
+
+    function confirmUpdateSavedSearch(evt) {
+        evt.preventDefault();
+
+        var confirmation = confirm("Do you want to update the saved search with the current values?");
+
+        if (confirmation) {
+            updateSavedSearch();
+        }
+    }
+
+    function promptUpdateSavedSearchName(evt) {
+        evt.preventDefault();
+
+        var savedSearchName = prompt("Please enter a new name for the search");
+
+        if (savedSearchName != null) {
+            if (savedSearchName) {
+                updateSavedSearchName(savedSearchName);
+            }
+            else {
+                alert("Please enter a name for the saved search");
+            }
+        }
+    }
+
+    function promptSavedSearchName(evt) {
+        evt.preventDefault();
+
+        var savedSearchName = prompt("Please enter a name for the saved search");
+
+        if (savedSearchName != null) {
+            if (savedSearchName) {
+                saveSearch(savedSearchName);
+            }
+            else {
+                alert("Please enter a name for the saved search");
+            }
+        }
+        
+    }
+</script>
+
+<apex:form id="mainForm" >
+    <apex:pageMessages />
+
+    <apex:actionFunction action="{!saveSearch}" name="saveSearch"  rerender="mainForm">
+        <apex:param name="searchName" assignTo="{!savedSearchName}" value="" />
+    </apex:actionFunction>
+
+    <apex:actionFunction action="{!updateSavedSearchName}" name="updateSavedSearchName"  rerender="mainForm">
+        <apex:param name="searchName" assignTo="{!savedSearchName}" value="" />
+    </apex:actionFunction>
+
+     <apex:actionFunction action="{!updateSavedSearch}" name="updateSavedSearch"  rerender="mainForm">
+    </apex:actionFunction>
+
+    <apex:sectionHeader title="Survey Batch" subtitle="Select Projects for Survey Batch"/>
+    <div class="header-selectlist">
+        <apex:outputText value="Select Saved Survey Search Criteria:"/>
+        <apex:selectList value="{!selectedCriteria}" size="1">
+            <apex:selectOptions value="{!criteriaList}"/>
+            <apex:actionSupport event="onchange" action="{!criteriaSelectChangedAction}"/>
+        </apex:selectList>
+        <br/><br/>
+        <apex:commandLink value="Delete Selected" action="{!deleteSavedSearch}" onclick="return confirm('Are you sure you want to delete this saved search?');" /> &nbsp; | &nbsp;
+        <apex:commandLink value="Rename Selected" onclick="promptUpdateSavedSearchName(event); return false;" />
+    </div>
+    <apex:pageBlock title="Step One - Specify Project Search Criteria">
+        <apex:pageBlockButtons location="bottom">
+            <apex:commandButton value="Search" action="{!searchAction}"/>
+            <apex:commandButton value="Update Selected Criteria" onclick="confirmUpdateSavedSearch(event);" />
+            <apex:commandButton value="Save As New Criteria" onclick="promptSavedSearchName(event);" />
+            <apex:commandButton value="Cancel" action="{!cancelAction}"/>
+        </apex:pageBlockButtons>
+
+        <apex:outputPanel id="filterLogic">
+            <table class="filterTable">
+                <tr>
+                    <apex:outputPanel layout="none" rendered="{!showFilterLogic}">
+                        <td>
+                        </td>
+                    </apex:outputPanel>
+                    <th>Field</th>
+                    <th class="operatorColumn">Operator</th>
+                    <th>Value</th>
+                </tr>
+                <apex:repeat value="{!logicRowList}" var="logicRow">
+                    <c:CFM_LogicRow LogicRow="{!logicRow}" ShowNumbers="{!showFilterLogic}" IsDefaultCriteriaRow="false"/>
+                </apex:repeat>
+            </table>
+
+            <apex:outputPanel layout="block" styleClass="addRowSection">
+                <apex:commandLink value="Add Row" action="{!addLogicRowAction}" reRender="filterLogic" />
+
+                <apex:outputPanel rendered="{!logicRowList.size > 5}">
+                    &nbsp; | &nbsp;
+                    <apex:commandLink value="Remove Row" action="{!removeLogicRowAction}" reRender="filterLogic" />
+                </apex:outputPanel>
+
+            </apex:outputPanel>
+
+            <div>
+                <apex:commandLink value="Add Filter Logic ..." action="{!addFilterAction}" rendered="{!!showFilterLogic}"/>
+                <apex:outputPanel layout="none" id="FilterLogicOP" rendered="{!showFilterLogic}">
+                    <apex:commandLink value="Clear Filter Logic" action="{!clearFilterAction}"/>
+                </apex:outputPanel>
+            </div>
+            <div>
+                <apex:outputPanel rendered="{!showFilterLogic}">
+                <b>Filter Logic:</b> <br/>
+                <apex:inputText value="{!filterLogic}" />
+                </apex:outputPanel>
+            </div>
+            <apex:outputPanel layout="block" id="randomSelection" styleClass="randomSelection">
+                <apex:actionRegion >
+
+                    <apex:inputCheckbox id="randomCheckbox" value="{!isRandom}" >
+                        <apex:actionSupport event="onclick" reRender="randomSelection"/>
+                    </apex:inputCheckbox>
+
+                    <label for="randomCheckbox">Random</label>&nbsp;&nbsp;
+
+                    <apex:outputPanel id="batchSizeOP" rendered="{!isRandom}">
+                        Batch Size:&nbsp;<apex:inputText value="{!batchSize}"/>
+                    </apex:outputPanel>
+
+                </apex:actionRegion>
+            </apex:outputPanel>
+
+        </apex:outputPanel>
+    </apex:pageBlock>
+    <apex:pageBlock title="Step Two - Add Projects to Survey Batch" rendered="{!showResults}">
+
+        <apex:pageBlockButtons >
+            <apex:commandButton value="Add All" action="{!addAllProjectsAction}" rendered="{!wasSearchRandom}"/>
+            <apex:commandButton value="Add Selected" action="{!addSelectedProjectsAction}" rendered="{!!wasSearchRandom}"/>
+        </apex:pageBlockButtons>
+
+        <apex:outputLabel value="{!searchSummaryText}"/>
+
+        <br/><br/>
+
+        <apex:outputPanel >
+            <apex:commandLink value="< Previous" action="{!previousPage}" />
+
+            <apex:repeat value="{!pageNumbers}" var="pageNumber">
+                &nbsp;
+                <apex:commandLink value="{!pageNumber}" action="{!switchToPage}" rendered="{!pageNumber != displayPage}">
+                    <apex:param name="pageIndex" value="{!pageNumber}" />
+                </apex:commandLink>
+                <apex:outputText value="{!pageNumber}" rendered="{!pageNumber == displayPage}" styleClass="currentPage" />
+
+            </apex:repeat>
+            &nbsp;
+            <apex:commandLink value="Next >" action="{!nextPage}" />
+        </apex:outputPanel>
+
+        <br/><br/>
+
+        <apex:pageBlockTable value="{!projectList}" var="pRow" id="projectTable">
+
+            <apex:column width="30" rendered="{!!wasSearchRandom}">
+                <apex:facet name="header">
+                    <apex:inputCheckbox value="{!checkAll}">
+                        <apex:actionSupport event="onchange" reRender="projectTable" action="{!checkAllAction}" />
+                    </apex:inputCheckbox>
+                </apex:facet>
+
+                <apex:inputCheckbox value="{!pRow.selected}" />
+            </apex:column>
+
+            <apex:column value="{!pRow.obj.Project_Name__c}" headerValue="Project Name"/>
+            <apex:column value="{!pRow.obj.Oracle_Project_Number__c}" headerValue="Project Number"/>
+            <apex:column value="{!pRow.obj.Oracle_Project_Manager_lookup__c}" headerValue="Project Manager"/>
+            <apex:column value="{!pRow.obj.OracleStatus__c}" headerValue="Project Status"/>
+            <apex:column value="{!pRow.obj.OraclePercentComplete__c}" headerValue="Percent Complete"/>
+            <apex:column value="{!pRow.obj.Owner__c}" headerValue="Account"/>
+            <apex:column value="{!pRow.obj.CFM_Survey_Contact__c}" headerValue="Survey Contact"/>
+            <apex:column value="{!pRow.obj.CFM_Survey_Contact__r.Email}" headerValue="Survey Contact Email"/>
+
+        </apex:pageBlockTable>
+
+        <br/>
+
+        <apex:outputPanel >
+            <apex:commandLink value="< Previous" action="{!previousPage}" />
+
+            <apex:repeat value="{!pageNumbers}" var="pageNumber">
+                &nbsp;
+                <apex:commandLink value="{!pageNumber}" action="{!switchToPage}" rendered="{!pageNumber != displayPage}">
+                    <apex:param name="pageIndex" value="{!pageNumber}" />
+                </apex:commandLink>
+                <apex:outputText value="{!pageNumber}" rendered="{!pageNumber == displayPage}" styleClass="currentPage" />
+
+            </apex:repeat>
+            &nbsp;
+            <apex:commandLink value="Next >" action="{!nextPage}" />
+        </apex:outputPanel>
+
+        <br/>
+
+    </apex:pageBlock>
+</apex:form>
+</apex:page>

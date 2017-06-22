@@ -1,0 +1,758 @@
+<apex:page showheader="true" sidebar="true" standardcontroller="BulkChange__c" extensions="ECO_BulkChangeController,nttdcore.DLabelParentController" id="thepage" >
+
+<apex:includeScript value="{!$Resource.ECO_jQuery_1_11_2_min_js}" />
+<apex:includeScript value="{!URLFOR($Resource.ECO_jQueryUI_1_11_2, 'jquery-ui.min.js')}" />
+<apex:stylesheet value="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/css/font-awesome.min.css')}" />
+
+
+    <style type="text/css" >
+        .theInputText { width: 900px; height: 73px; }
+    </style>
+
+    <script type="text/javascript" >
+
+    function closeAuthenticationModal(){
+        closeModal('modalDialogOracleLogin');
+        closeAuthenticationWindow();
+        return false;
+    }
+
+    function authenticate()
+    {
+        authenticateCredentials($x('[id$=username]').val(), $x('[id$=password]').val());
+    }
+
+    function cancelModal(modalname)
+    {
+        closeModal(modalname);
+        return false;
+    }
+
+    </script>
+    <script type="text/javascript" >
+        function noenter(ev)  {
+            if (window.event && window.event.keyCode == 13 || ev.which == 13) {
+                saveCriteria();
+                return false;
+             } else {
+                  return true;
+             }
+         }
+
+        function handleEnter(e){
+            if(e.keyCode === 13){
+                e.preventDefault();
+                authenticate();
+            }
+            return false;
+        }
+        
+        /*function verifyElement(id)
+        {
+           alert(''+id);
+           var type = document.getElementById(id).value;
+           alert(type);
+            checkElement(type);
+        }*/
+    </script>
+
+
+    <apex:form ><nttdcore:DLabel name="DL127" default="Closing..." labelParent="{!this}" />
+    <apex:pageMessages id="messages" />
+    <apex:outputPanel id="theform" >
+    <apex:outputfield value="{!BulkChange__c.Description__c}" rendered="false" />
+    <apex:outputfield value="{!BulkChange__c.Status__c}" rendered="false" />
+    <apex:outputfield value="{!BulkChange__c.ownerid}" rendered="false" />
+    <apex:outputfield value="{!BulkChange__c.Comment__c}" rendered="false" />
+    <apex:outputfield value="{!BulkChange__c.Geography__c}" rendered="false" />
+
+    <!--<apex:actionFunction action="{!saveCriteria}" name="saveCriteria"  rerender="thepage" />-->
+    <apex:actionFunction name="saveCriteria" action="{!saveCriteria}" />
+    <apex:actionFunction name="doSearchAF" action="{!saveCriteria}" />
+ 
+    <!--apex:actionFunction name="checkElement" action="{!makingfield}" reRender="newClassField"-->
+    <!--OLD: apex:actionFunction name="checkElement" action="{!setupNewClassValue}" reRender="newClassField">
+        <apex:param name="newClassInputFieldValue" value="" />
+    </apex:actionFunction-->
+
+
+    <nttdcore:DLabel name="DL1" default="Bulk Changes" labelParent="{!this}" /><apex:sectionHeader subtitle="{!dLabel['DL1']}" title="{!recordTypeName}" />
+
+        <!-- PROJECT TEAM BULK CHANGE -->
+
+        <nttdcore:DLabel name="DL2" default="Project Team Bulk Change" labelParent="{!this}" /><apex:pageBlock title="{!dLabel['DL2']}" mode="edit" rendered="{!recordTypeName == 'ProjectTeamChange'}" ><nttdcore:DLabel name="DL3" default="Bulk Change Details" labelParent="{!this}" /><nttdcore:DLabel name="DL4" default="Back" labelParent="{!this}" /><nttdcore:DLabel name="DL5" default="Save" labelParent="{!this}" /><nttdcore:DLabel name="DL6" default="Validate" labelParent="{!this}" /><nttdcore:DLabel name="DL7" default="Submit" labelParent="{!this}" /><nttdcore:DLabel name="DL8" default="Recall" labelParent="{!this}" /><nttdcore:DLabel name="DL9" default="Approve" labelParent="{!this}" /><nttdcore:DLabel name="DL10" default="Reject" labelParent="{!this}" /><nttdcore:DLabel name="DL11" default="Description:" labelParent="{!this}" /><nttdcore:DLabel name="DL12" default="Status:  " labelParent="{!this}" /><nttdcore:DLabel name="DL13" default="Geography:" labelParent="{!this}" /><nttdcore:DLabel name="DL14" default="Owner:  " labelParent="{!this}" /><nttdcore:DLabel name="DL15" default="Comments:  " labelParent="{!this}" /><nttdcore:DLabel name="DL16" default="Bulk Change Criteria" labelParent="{!this}" /><nttdcore:DLabel name="DL17" default="New Criteria" labelParent="{!this}" /><nttdcore:DLabel name="DL18" default="Action" labelParent="{!this}" /><nttdcore:DLabel name="DL19" default="Remove" labelParent="{!this}" /><nttdcore:DLabel name="DL20" default="Existing Team Member" labelParent="{!this}" /><nttdcore:DLabel name="DL21" default="New Team Members" labelParent="{!this}" /><nttdcore:DLabel name="DL22" default="For Organization" labelParent="{!this}" /><nttdcore:DLabel name="DL23" default="Please Select Org String " labelParent="{!this}" /><nttdcore:DLabel name="DL25" default="Project Number" labelParent="{!this}" /><nttdcore:DLabel name="DL26" default="For Roles" labelParent="{!this}" /><nttdcore:DLabel name="DL27" default="Effective Date" labelParent="{!this}" /><nttdcore:DLabel name="DL28" default="Save" labelParent="{!this}" /><nttdcore:DLabel name="DL29" default="Bulk Change Team Member Replacements" labelParent="{!this}" /><nttdcore:DLabel name="DL30" default="Save" labelParent="{!this}" /><nttdcore:DLabel name="DL31" default="Uncheck Exclusions" labelParent="{!this}" /><nttdcore:DLabel name="DL32" default="Report" labelParent="{!this}" /><nttdcore:DLabel name="DL33" default="New Team Member" labelParent="{!this}" /><nttdcore:DLabel name="DL34" default="Project Role" labelParent="{!this}" /><nttdcore:DLabel name="DL35" default="Effective Date" labelParent="{!this}" /><nttdcore:DLabel name="DL36" default="Validation" labelParent="{!this}" /><nttdcore:DLabel name="DL37" default="Status" labelParent="{!this}" /><nttdcore:DLabel name="DL38" default="Change" labelParent="{!this}" /><nttdcore:DLabel name="DL39" default="Message Status" labelParent="{!this}" /><nttdcore:DLabel name="DL40" default="Exclude" labelParent="{!this}" /><nttdcore:DLabel name="DL41" default="Previous" labelParent="{!this}" /><nttdcore:DLabel name="DL42" default="Next" labelParent="{!this}" />
+            
+            <apex:pageBlockSection title="{!dLabel['DL3']}" collapsible="false" columns="1" >
+
+                <apex:outputPanel >
+                    <apex:commandButton value="{!dLabel['DL4']}" action="{!URLFOR($Action.BulkChange__c.Tab,$ObjectType.BulkChange__c)}" immediate="true" />
+                    <apex:commandButton value="{!dLabel['DL5']}" action="{!saveBulkChange}" rendered="{!and(canEdit, isCreate)}" />
+                    <apex:commandButton value="{!dLabel['DL6']}" action="{!validateTeamMembers}" rendered="{!and(canEdit, isCreate)}" />
+                    <apex:commandButton value="{!dLabel['DL7']}" action="{!submitTeamMembers}" rendered="{!and(canEdit, isCreate)}" />
+                    <apex:commandButton value="{!dLabel['DL8']}" action="{!RecallBulkChange}" rendered="{!and(isSubmitted, isCreate)}" />
+                    <apex:commandButton value="{!dLabel['DL9']}" onclick="openModal('modalDialogOracleLogin');return false;" rendered="{!and(isSubmitted, isExecute)}" />
+                    <apex:commandButton value="{!dLabel['DL10']}" action="{!rejectBulkChange}" rendered="{!and(isSubmitted, isExecute)}" />
+                    <apex:commandButton value="Resend" onclick="openModal('modalDialogOracleLogin');return false;" rendered="{!and(isExecuted, isExecute)}" />
+                </apex:outputPanel>
+
+                <apex:panelGrid columns="2" cellspacing="10" >
+                    <apex:outputLabel value="{!dLabel['DL11']}" for="inputTextDescription" />
+                    <apex:outputPanel styleclass="requiredInput" layout="block" >
+                            <apex:outputPanel styleclass="requiredBlock" layout="block" rendered="{!canEdit}" />
+                            <apex:inputTextArea styleclass="theInputText" value="{!bulkChange.Description__c}" required="true" id="inputTextDescription" rendered="{!canEdit}" />
+                            <apex:outputfield value="{!bulkChange.Description__c}" rendered="{!not(canEdit)}" />
+                    </apex:outputPanel>
+
+                    <apex:outputLabel value="{!dLabel['DL12']}" />
+                    <apex:outputfield value="{!bulkChange.Status__c}" />
+                    
+                    <apex:outputLabel value="{!dLabel['DL13']}" for="inputGeo" />
+                    <apex:outputPanel styleclass="requiredInput" layout="block" >
+                            <apex:outputPanel styleclass="requiredBlock" layout="block" rendered="{!canEdit}" />
+                            <apex:inputField value="{!bulkChange.Geography__c}" required="true" id="inputGeo" rendered="{!canEdit}" />
+                            <apex:outputfield value="{!bulkChange.Geography__c}" rendered="{!not(canEdit)}" />
+                    </apex:outputPanel>
+
+                    <apex:outputLabel value="{!dLabel['DL14']}" />
+                    <apex:outputfield value="{!bulkChange.ownerid}" />
+
+                    <apex:outputLabel value="{!dLabel['DL15']}" />
+                    <apex:inputTextarea value="{!bulkChange.Comment__c}" cols="132" rows="5" styleclass="theInputText" rendered="{!canEdit}" />
+                    <apex:outputfield value="{!bulkChange.Comment__c}" rendered="{!not(canEdit)}" />
+                </apex:panelGrid>
+
+            </apex:pageBlockSection>
+
+            <apex:pageBlockSection title="{!dLabel['DL16']}" collapsible="false" columns="1" >
+                <div id="newCriteria" >
+                <apex:outputPanel >
+                    <apex:commandButton value="{!dLabel['DL17']}" action="{!newCriteria}" rendered="{!and(canEdit, isCreate)}" disabled="{!newButtonDisabled}" />
+                </apex:outputPanel>
+
+                <apex:pageBlockTable value="{!bulkChangeCriterias}" var="wrapper" id="criteria" >
+                    <apex:column headervalue="{!dLabel['DL18']}" >
+                        <apex:commandLink action="{!RemoveCriteria}" value="{!dLabel['DL19']}" rendered="{!and(canEdit, isCreate, not(wrapper.isNew))}" >
+                            <apex:param assignto="{!selectedCriteria}" name="criteriaId" value="{!wrapper.criteria.Id}" />
+                        </apex:commandLink>
+                    </apex:column>
+
+                    <apex:column headervalue="{!dLabel['DL20']}" >
+                        <apex:outputPanel styleclass="requiredInput" layout="block" rendered="{!wrapper.isNew}" >
+                        <apex:outputPanel styleclass="requiredBlock" layout="block" rendered="{!wrapper.isNew}" />
+                            <apex:inputField value="{!wrapper.criteria.ExistingTeamMember__c}" rendered="{!wrapper.isNew}" onkeypress="return noenter(event);" />
+                        </apex:outputPanel>
+
+                        <apex:outputField value="{!wrapper.criteria.ExistingTeamMember__c}" rendered="{!NOT(wrapper.isNew)}" />
+                    </apex:column>
+                    <apex:column headervalue="{!dLabel['DL21']}" >
+                        <apex:inputField value="{!wrapper.criteria.NewTeamMember__c}" rendered="{!wrapper.isNew}" onkeypress="return noenter(event);" />
+                        <apex:outputField value="{!wrapper.criteria.NewTeamMember__c}" rendered="{!NOT(wrapper.isNew)}" />
+                    </apex:column>
+                    <apex:column headervalue="{!dLabel['DL22']}" >
+                        <apex:outputfield value="{!wrapper.criteria.SearchOrganizationString__c}" rendered="{!wrapper.criteria.SearchOrganizationString__c !=null}" />
+                        <apex:outputText value="{!dLabel['DL23']}" rendered="{!AND(wrapper.isNew, wrapper.criteria.SearchOrganizationString__c =null, wrapper.criteria.SearchRegion__c=null, wrapper.criteria.SearchBusinessLine__c=null)}" />
+                        <apex:outputText value="Region: {!wrapper.criteria.SearchRegion__c} and Business Line: {!wrapper.criteria.SearchBusinessLine__c} " rendered="{!AND( wrapper.criteria.SearchOrganizationString__c=null, or(wrapper.criteria.SearchRegion__c!=null, wrapper.criteria.SearchBusinessLine__c != null))}" />
+                        <apex:commandLink rendered="{!wrapper.isNew}" style="text-decoration:none" onclick="openModal('modalDialogOrgSearch');return false;" >
+                            <img src="/s.gif" class="lookupIcon" onmouseout="this.className='lookupIcon';" alt="Asset Lookup (New Window)" onmouseover="this.className='lookupIconOn';" />
+                        </apex:commandLink>
+                    </apex:column>
+                    <apex:column headervalue="{!dLabel['DL25']}" >
+                        <apex:inputField value="{!wrapper.criteria.ProjectNumber__c}" rendered="{!wrapper.isNew}" onkeypress="return noenter(event);" />
+                        <apex:outputField value="{!wrapper.criteria.ProjectNumber__c}" rendered="{!NOT(wrapper.isNew)}" />
+                    </apex:column>
+                    <apex:column headervalue="{!dLabel['DL26']}" >
+                        <apex:inputField value="{!wrapper.criteria.ProjectRole__c}" rendered="{!wrapper.isNew}" onkeypress="return noenter(event);" />
+                        <apex:outputField value="{!wrapper.criteria.ProjectRole__c}" rendered="{!NOT(wrapper.isNew)}" />
+                    </apex:column>
+                    <apex:column headervalue="{!dLabel['DL27']}" >
+                        <apex:outputPanel styleclass="requiredInput" layout="block" rendered="{!wrapper.isNew}" >
+                        <apex:outputPanel styleclass="requiredBlock" layout="block" rendered="{!wrapper.isNew}" />
+                            <apex:inputField value="{!wrapper.criteria.EffectiveDate__c}" rendered="{!wrapper.isNew}" onkeypress="return noenter(event);" />
+                        </apex:outputPanel>
+
+                        <apex:outputField value="{!wrapper.criteria.EffectiveDate__c}" rendered="{!NOT(wrapper.isNew)}" />
+                    </apex:column>
+                    <apex:column >
+                        <apex:commandButton value="{!dLabel['DL28']}" rendered="{!wrapper.isNew}" action="{!saveCriteria}" />
+                    </apex:column>
+                </apex:pageBlockTable>
+                </div>
+            </apex:pageBlockSection>
+
+            <apex:pageBlockSection title="{!dLabel['DL29']}" collapsible="false" columns="1" id="replacements" >
+                <apex:outputPanel >
+                    <apex:commandButton value="{!dLabel['DL30']}" action="{!saveReplacements}" rendered="{!and(canEdit, isCreate)}" />
+                    <apex:commandButton value="{!dLabel['DL31']}" action="{!RemoveExclusions}" rendered="{!and(canEdit, isCreate)}" />
+                    <apex:commandButton onclick="window.open('{!reportURL}');" value="{!dLabel['DL32']}" rendered="{!bulkchange.id != null}" />
+
+                </apex:outputPanel>
+                <apex:pageBlockTable value="{!bulkChangeReplacements}" var="replacement" >
+                    <apex:column value="{!replacement.Project__c}" />
+                    <apex:column value="{!replacement.Project__r.ProjectNumber__c}" />
+                    <apex:column value="{!replacement.project__r.CarryingOutOrganization__r.Region__c}" />
+                    <apex:column value="{!replacement.project__r.CarryingOutOrganization__r.BusinessLineName__c}" />
+                    <apex:column value="{!replacement.project__r.CarryingOutOrganization__c}" />
+                    <apex:column value="{!replacement.ExistingTeamMember__c}" />
+                    <apex:column headervalue="{!dLabel['DL33']}" >
+                        <apex:inputField value="{!replacement.NewTeamMember__c}" rendered="{!and(canEdit, isCreate)}" />
+                        <apex:outputField value="{!replacement.NewTeamMember__c}" rendered="{!not(and(canEdit, isCreate))}" />
+                    </apex:column>
+                    <apex:column headervalue="{!dLabel['DL34']}" >
+                        <apex:outputField value="{!replacement.ProjectRole__c}" />
+                    </apex:column>
+                    <apex:column headervalue="{!dLabel['DL35']}" >
+                        <apex:inputField value="{!replacement.EffectiveDate__c}" rendered="{!and(canEdit, isCreate)}" />
+                        <apex:outputField value="{!replacement.EffectiveDate__c}" rendered="{!not(and(canEdit, isCreate))}" />
+                    </apex:column>
+                    <apex:column style="text-align: center;" headervalue="{!dLabel['DL36']}" >
+                        <!--<apex:outputField value="{!replacement.ErrorMessage__c}"/>-->
+
+                        <apex:image url="{!URLFOR($Resource.grayDash)}" height="20px" width="20px" rendered="{!replacement.ErrorMessage__c == null}" />
+                        <apex:image url="{!URLFOR($Resource.greenStar)}" height="20px" width="20px" rendered="{!replacement.ErrorMessage__c == 'Success'}" />
+                        <apex:image url="{!URLFOR($Resource.redTriangle)}" height="20px" width="20px" title="{!replacement.ErrorMessage__c}" rendered="{!and(replacement.ErrorMessage__c != null, replacement.ErrorMessage__c != 'Success')}" />
+                    </apex:column>
+                    <apex:column headervalue="{!dLabel['DL37']}" >
+                        <apex:outputField value="{!replacement.Status__c}" />
+                    </apex:column>
+                    <apex:column headervalue="{!dLabel['DL38']}" >
+                        <apex:outputField value="{!replacement.Change__c}" />
+                    </apex:column>
+                    <apex:column style="text-align: center;" headervalue="{!dLabel['DL39']}" >
+
+                        <apex:outputField value="{!replacement.MessageStatus__c}" rendered="{!not(or(replacement.MessageStatus__c == 'Success', replacement.MessageStatus__c == 'Error'))}" />
+
+                        <apex:image url="{!URLFOR($Resource.greenStar)}" height="20px" width="20px" title="{!replacement.IntegrationMessageQueue__r.SuccessMessage__c}" rendered="{!replacement.MessageStatus__c == 'Success'}" />
+                        <apex:image url="{!URLFOR($Resource.redTriangle)}" height="20px" width="20px" title="{!replacement.IntegrationMessageQueue__r.ErrorMessage__c}" rendered="{!replacement.MessageStatus__c == 'Error'}" />
+                    </apex:column>
+                    <apex:column headervalue="{!dLabel['DL40']}" >
+                        <apex:inputField value="{!replacement.Exclude__c}" rendered="{!and(canEdit, isCreate)}" />
+                        <apex:outputField value="{!replacement.Exclude__c}" rendered="{!not(and(canEdit, isCreate))}" />
+                    </apex:column>
+                </apex:pageBlockTable>
+                <div align="center" style="display:block;" >
+                    <br/>
+                    <apex:outputPanel >
+                        <nttdcore:DLabel name="DL115" default="    Page:  {{1}}  of  {{2}}" labelParent="{!this}" p1="{!pageNumber}" p2="{!totalPages}" />
+                        <apex:commandButton value="{!dLabel['DL41']}" action="{!previous}" disabled="{!NOT(hasPrevious)}" rerender="replacements" status="asyncStatus" id="cmd1" />
+                        <apex:commandButton value="{!dLabel['DL42']}" action="{!next}" disabled="{!NOT(hasNext)}" rerender="replacements" status="asyncStatus" id="cmd2" />
+                        <apex:outputText value="{!dLabel['DL115']}" rendered="{! IF(totalPages != null && totalPages > 1, true, false)}" />
+                    </apex:outputPanel>
+                </div>
+
+            </apex:pageBlockSection>
+
+        </apex:pageBlock>
+
+
+        <!-- ORGANIZATION BULK CHANGE -->
+
+        <nttdcore:DLabel name="DL43" default="Organization Bulk Change" labelParent="{!this}" /><apex:pageBlock title="{!dLabel['DL43']}" mode="edit" rendered="{!recordTypeName == 'OrganizationChange'}" ><nttdcore:DLabel name="DL44" default="Bulk Change Details" labelParent="{!this}" /><nttdcore:DLabel name="DL45" default="Back" labelParent="{!this}" /><nttdcore:DLabel name="DL46" default="Save" labelParent="{!this}" /><nttdcore:DLabel name="DL47" default="Validate" labelParent="{!this}" /><nttdcore:DLabel name="DL48" default="Submit" labelParent="{!this}" /><nttdcore:DLabel name="DL49" default="Recall" labelParent="{!this}" /><nttdcore:DLabel name="DL50" default="Approve" labelParent="{!this}" /><nttdcore:DLabel name="DL51" default="Reject" labelParent="{!this}" /><nttdcore:DLabel name="DL52" default="Description:" labelParent="{!this}" /><nttdcore:DLabel name="DL53" default="Status:  " labelParent="{!this}" /><nttdcore:DLabel name="DL54" default="Geography:" labelParent="{!this}" /><nttdcore:DLabel name="DL55" default="Owner:  " labelParent="{!this}" /><nttdcore:DLabel name="DL56" default="Comments:  " labelParent="{!this}" /><nttdcore:DLabel name="DL57" default="Bulk Change Criteria" labelParent="{!this}" /><nttdcore:DLabel name="DL58" default="New Criteria" labelParent="{!this}" /><nttdcore:DLabel name="DL59" default="Action" labelParent="{!this}" /><nttdcore:DLabel name="DL60" default="Remove" labelParent="{!this}" /><nttdcore:DLabel name="DL61" default="Project Number" labelParent="{!this}" /><nttdcore:DLabel name="DL62" default="Existing Organization" labelParent="{!this}" /><nttdcore:DLabel name="DL63" default="New Organization" labelParent="{!this}" /><nttdcore:DLabel name="DL64" default="Save" labelParent="{!this}" /><nttdcore:DLabel name="DL65" default="Bulk Change Organization Replacements" labelParent="{!this}" /><nttdcore:DLabel name="DL66" default="Save" labelParent="{!this}" /><nttdcore:DLabel name="DL67" default="Uncheck Exclusions" labelParent="{!this}" /><nttdcore:DLabel name="DL68" default="Report" labelParent="{!this}" /><nttdcore:DLabel name="DL69" default="New Organization" labelParent="{!this}" /><nttdcore:DLabel name="DL70" default="Validation" labelParent="{!this}" /><nttdcore:DLabel name="DL71" default="Status" labelParent="{!this}" /><nttdcore:DLabel name="DL72" default="Change" labelParent="{!this}" /><nttdcore:DLabel name="DL73" default="Message Status" labelParent="{!this}" /><nttdcore:DLabel name="DL74" default="Exclude" labelParent="{!this}" /><nttdcore:DLabel name="DL75" default="Previous" labelParent="{!this}" /><nttdcore:DLabel name="DL76" default="Next" labelParent="{!this}" />
+
+            <apex:pageBlockSection title="{!dLabel['DL44']}" collapsible="false" columns="1" >
+
+                <apex:outputPanel >
+                    <apex:commandButton value="{!dLabel['DL45']}" action="{!URLFOR($Action.BulkChange__c.Tab,$ObjectType.BulkChange__c)}" immediate="true" />
+                    <apex:commandButton value="{!dLabel['DL46']}" action="{!saveBulkChange}" rendered="{!and(canEdit, isCreate)}" />
+                    <apex:commandButton value="{!dLabel['DL47']}" action="{!validateOrg}" rendered="{!and(canEdit, isCreate)}" />
+                    <apex:commandButton value="{!dLabel['DL48']}" action="{!submitOrganizations}" rendered="{!and(canEdit, isCreate)}" />
+                    <apex:commandButton value="{!dLabel['DL49']}" action="{!RecallBulkChange}" rendered="{!and(isSubmitted, isCreate)}" />
+                    <apex:commandButton value="{!dLabel['DL50']}" onclick="openModal('modalDialogOracleLogin');return false;" rendered="{!and(isSubmitted, isExecute)}" />
+                    <apex:commandButton value="{!dLabel['DL51']}" action="{!rejectBulkChange}" rendered="{!and(isSubmitted, isExecute)}" />
+                    <apex:commandButton value="Resend" onclick="openModal('modalDialogOracleLogin');return false;" rendered="{!and(isExecuted, isExecute)}" />
+                </apex:outputPanel>
+
+                <apex:panelGrid columns="2" cellspacing="10" >
+                    <apex:outputLabel value="{!dLabel['DL52']}" for="inputTextDescription" />
+                    <apex:outputPanel styleclass="requiredInput" layout="block" >
+                            <apex:outputPanel styleclass="requiredBlock" layout="block" rendered="{!canEdit}" />
+                            <apex:inputTextArea styleclass="theInputText" value="{!bulkChange.Description__c}" required="true" id="inputTextDescription" rendered="{!canEdit}" />
+                            <apex:outputfield value="{!bulkChange.Description__c}" rendered="{!not(canEdit)}" />
+                    </apex:outputPanel>
+
+                    <apex:outputLabel value="{!dLabel['DL53']}" />
+                    <apex:outputfield value="{!bulkChange.Status__c}" />
+                    
+                    <apex:outputLabel value="{!dLabel['DL54']}" for="inputGeo" />
+                    <apex:outputPanel styleclass="requiredInput" layout="block" >
+                            <apex:outputPanel styleclass="requiredBlock" layout="block" rendered="{!canEdit}" />
+                            <apex:inputField value="{!bulkChange.Geography__c}" required="true" id="inputGeo" rendered="{!canEdit}" />
+                            <apex:outputfield value="{!bulkChange.Geography__c}" rendered="{!not(canEdit)}" />
+                    </apex:outputPanel>
+
+                    <apex:outputLabel value="{!dLabel['DL55']}" />
+                    <apex:outputfield value="{!bulkChange.ownerid}" />
+
+                    <apex:outputLabel value="{!dLabel['DL56']}" />
+                    <apex:inputTextarea value="{!bulkChange.Comment__c}" cols="132" rows="5" styleclass="theInputText" rendered="{!canEdit}" />
+                    <apex:outputfield value="{!bulkChange.Comment__c}" rendered="{!not(canEdit)}" />
+                </apex:panelGrid>
+
+            </apex:pageBlockSection>        
+
+            <apex:pageBlockSection title="{!dLabel['DL57']}" collapsible="false" columns="1" >
+                <div id="newCriteria" >
+                <apex:outputPanel >
+                    <apex:commandButton value="{!dLabel['DL58']}" action="{!newCriteria}" rendered="{!and(canEdit, isCreate)}" disabled="{!newButtonDisabled}" />
+                </apex:outputPanel>
+
+                <apex:pageBlockTable value="{!bulkChangeCriterias}" var="wrapper" id="criteria" >
+                    <apex:column headervalue="{!dLabel['DL59']}" >
+                        <apex:commandLink action="{!RemoveCriteria}" value="{!dLabel['DL60']}" rendered="{!and(canEdit, isCreate, not(wrapper.isNew))}" >
+                            <apex:param assignto="{!selectedCriteria}" name="criteriaId" value="{!wrapper.criteria.Id}" />
+                        </apex:commandLink>
+                    </apex:column>
+                    <apex:column headervalue="{!dLabel['DL61']}" >
+                        <apex:inputField value="{!wrapper.criteria.ProjectNumber__c}" rendered="{!wrapper.isNew}" onkeypress="return noenter(event);" />
+                        <apex:outputField value="{!wrapper.criteria.ProjectNumber__c}" rendered="{!NOT(wrapper.isNew)}" />
+                    </apex:column>
+
+                    <apex:column headervalue="{!dLabel['DL62']}" >
+                        <apex:inputField value="{!wrapper.criteria.ExistingOrganizationString__c}" rendered="{!wrapper.isNew}" onkeypress="return noenter(event);" />
+                        <apex:outputField value="{!wrapper.criteria.ExistingOrganizationString__c}" rendered="{!NOT(wrapper.isNew)}" />
+                    </apex:column>
+                    <apex:column headervalue="{!dLabel['DL63']}" >
+                        <apex:inputField value="{!wrapper.criteria.NewOrganizationString__c}" rendered="{!wrapper.isNew}" onkeypress="return noenter(event);" />
+                        <apex:outputField value="{!wrapper.criteria.NewOrganizationString__c}" rendered="{!NOT(wrapper.isNew)}" />
+                    </apex:column>
+                    <apex:column >
+                        <apex:commandButton value="{!dLabel['DL64']}" rendered="{!wrapper.isNew}" action="{!saveCriteria}" />
+                    </apex:column>
+                </apex:pageBlockTable>
+                </div>
+            </apex:pageBlockSection>
+
+            <apex:pageBlockSection title="{!dLabel['DL65']}" collapsible="false" columns="1" id="replacements" >
+
+                <apex:outputPanel >
+                    <apex:commandButton value="{!dLabel['DL66']}" action="{!saveReplacements}" rendered="{!and(canEdit, isCreate)}" />
+                    <apex:commandButton value="{!dLabel['DL67']}" action="{!RemoveExclusions}" rendered="{!and(canEdit, isCreate)}" />
+                    <apex:commandButton onclick="window.open('{!reportURL}');" value="{!dLabel['DL68']}" rendered="{!bulkchange.id != null}" />
+
+                </apex:outputPanel>            
+                <apex:pageBlockTable value="{!bulkChangeReplacements}" var="replacement" >
+                    <apex:column value="{!replacement.Project__c}" />
+                    <apex:column value="{!replacement.Project__r.ProjectNumber__c}" />
+                    <apex:column value="{!replacement.project__r.CarryingOutOrganization__r.Region__c}" />
+                    <apex:column value="{!replacement.project__r.CarryingOutOrganization__r.BusinessLineName__c}" />
+                    <apex:column value="{!replacement.ProjectStage__c}" />
+                    <apex:column value="{!replacement.project__r.CarryingOutOrganization__c}" />
+                    <apex:column headervalue="{!dLabel['DL69']}" >
+                        <apex:inputField value="{!replacement.NewOrganizationString__c}" />
+                    </apex:column>
+                    <apex:column style="text-align: center;" headervalue="{!dLabel['DL70']}" >
+                        <!--<apex:outputField value="{!replacement.ErrorMessage__c}"/>-->
+
+                        <apex:image url="{!URLFOR($Resource.grayDash)}" height="20px" width="20px" rendered="{!replacement.ErrorMessage__c == null}" />
+                        <apex:image url="{!URLFOR($Resource.greenStar)}" height="20px" width="20px" rendered="{!replacement.ErrorMessage__c == 'Success'}" />
+                        <apex:image url="{!URLFOR($Resource.redTriangle)}" height="20px" width="20px" title="{!replacement.ErrorMessage__c}" rendered="{!and(replacement.ErrorMessage__c != null, replacement.ErrorMessage__c != 'Success')}" />
+                    </apex:column>
+                    <apex:column headervalue="{!dLabel['DL71']}" >
+                        <apex:outputField value="{!replacement.Status__c}" />
+                    </apex:column>
+                    <apex:column headervalue="{!dLabel['DL72']}" >
+                        <apex:outputField value="{!replacement.Change__c}" />
+                    </apex:column>
+                    <apex:column style="text-align: center;" headervalue="{!dLabel['DL73']}" >
+
+                        <apex:outputField value="{!replacement.MessageStatus__c}" rendered="{!not(or(replacement.MessageStatus__c == 'Success', replacement.MessageStatus__c == 'Error'))}" />
+
+                        <apex:image url="{!URLFOR($Resource.greenStar)}" height="20px" width="20px" title="{!replacement.IntegrationMessageQueue__r.SuccessMessage__c}" rendered="{!replacement.MessageStatus__c == 'Success'}" />
+                        <apex:image url="{!URLFOR($Resource.redTriangle)}" height="20px" width="20px" title="{!replacement.IntegrationMessageQueue__r.ErrorMessage__c}" rendered="{!replacement.MessageStatus__c == 'Error'}" />
+                    </apex:column>
+                    <apex:column headervalue="{!dLabel['DL74']}" >
+                        <apex:inputField value="{!replacement.Exclude__c}" />
+                    </apex:column>
+                </apex:pageBlockTable>
+                <div align="center" style="display:block;" >
+                    <br/>
+                    <apex:outputPanel >
+                        <nttdcore:DLabel name="DL115" default="    Page:  {{1}}  of  {{2}}" labelParent="{!this}" p1="{!pageNumber}" p2="{!totalPages}" />
+                        <apex:commandButton value="{!dLabel['DL75']}" action="{!previous}" disabled="{!NOT(hasPrevious)}" rerender="replacements" status="asyncStatus" id="cmd1" />
+                        <apex:commandButton value="{!dLabel['DL76']}" action="{!next}" disabled="{!NOT(hasNext)}" rerender="replacements" status="asyncStatus" id="cmd2" />
+                        <apex:outputText value="{!dLabel['DL115']}" rendered="{! IF(totalPages != null && totalPages > 1, true, false)}" />
+                    </apex:outputPanel>
+                </div>
+            </apex:pageBlockSection>
+
+        </apex:pageBlock>
+
+
+        <!-- CLASSIFICATION BULK CHANGE -->
+
+        <nttdcore:DLabel name="DL77" default="Classification Bulk Change" labelParent="{!this}" /><apex:pageBlock title="{!dLabel['DL77']}" mode="edit" rendered="{!recordTypeName == 'ClassificationChange'}" ><nttdcore:DLabel name="DL78" default="Bulk Change Details" labelParent="{!this}" /><nttdcore:DLabel name="DL79" default="Back" labelParent="{!this}" /><nttdcore:DLabel name="DL80" default="Save" labelParent="{!this}" /><nttdcore:DLabel name="DL81" default="Validate" labelParent="{!this}" /><nttdcore:DLabel name="DL82" default="Submit" labelParent="{!this}" /><nttdcore:DLabel name="DL83" default="Recall" labelParent="{!this}" /><nttdcore:DLabel name="DL84" default="Approve" labelParent="{!this}" /><nttdcore:DLabel name="DL85" default="Reject" labelParent="{!this}" /><nttdcore:DLabel name="DL86" default="Description:" labelParent="{!this}" /><nttdcore:DLabel name="DL87" default="Status:  " labelParent="{!this}" /><nttdcore:DLabel name="DL88" default="Geography:" labelParent="{!this}" /><nttdcore:DLabel name="DL89" default="Owner:  " labelParent="{!this}" /><nttdcore:DLabel name="DL90" default="Comments:  " labelParent="{!this}" /><nttdcore:DLabel name="DL91" default="Bulk Change Criteria" labelParent="{!this}" /><nttdcore:DLabel name="DL92" default="New Criteria" labelParent="{!this}" /><nttdcore:DLabel name="DL93" default="Action" labelParent="{!this}" /><nttdcore:DLabel name="DL94" default="Remove" labelParent="{!this}" /><nttdcore:DLabel name="DL95" default="Classification" labelParent="{!this}" /><nttdcore:DLabel name="DL96" default="Existing Classification Value" labelParent="{!this}" /><nttdcore:DLabel name="DL97" default="New Classification Value" labelParent="{!this}" /><nttdcore:DLabel name="DL98" default="For Organization" labelParent="{!this}" /><nttdcore:DLabel name="DL99" default="Please Select Org String " labelParent="{!this}" /><nttdcore:DLabel name="DL101" default="Project Number" labelParent="{!this}" /><nttdcore:DLabel name="DL102" default="Save" labelParent="{!this}" /><nttdcore:DLabel name="DL103" default="Bulk Change Classification Replacements" labelParent="{!this}" /><nttdcore:DLabel name="DL104" default="Save" labelParent="{!this}" /><nttdcore:DLabel name="DL105" default="Uncheck Exclusions" labelParent="{!this}" /><nttdcore:DLabel name="DL106" default="Report" labelParent="{!this}" /><nttdcore:DLabel name="DL107" default="New Classification Value" labelParent="{!this}" /><nttdcore:DLabel name="DL108" default="Validation" labelParent="{!this}" /><nttdcore:DLabel name="DL109" default="Status" labelParent="{!this}" /><nttdcore:DLabel name="DL110" default="Change" labelParent="{!this}" /><nttdcore:DLabel name="DL111" default="Message Status" labelParent="{!this}" /><nttdcore:DLabel name="DL112" default="Exclude" labelParent="{!this}" /><nttdcore:DLabel name="DL113" default="Previous" labelParent="{!this}" /><nttdcore:DLabel name="DL114" default="Next" labelParent="{!this}" />
+
+            <apex:pageBlockSection title="{!dLabel['DL78']}" collapsible="false" columns="1" >
+
+                <apex:outputPanel >
+                    <apex:commandButton value="{!dLabel['DL79']}" action="{!URLFOR($Action.BulkChange__c.Tab,$ObjectType.BulkChange__c)}" immediate="true" />
+                    <apex:commandButton value="{!dLabel['DL80']}" action="{!saveBulkChange}" rendered="{!and(canEdit, isCreate)}" />
+                    <apex:commandButton value="{!dLabel['DL81']}" action="{!validateClassifications}" rendered="{!and(canEdit, isCreate)}" />
+                    <apex:commandButton value="{!dLabel['DL82']}" action="{!submitClassifications}" rendered="{!and(canEdit, isCreate)}" />
+                    <apex:commandButton value="{!dLabel['DL83']}" action="{!RecallBulkChange}" rendered="{!and(isSubmitted, isCreate)}" />
+                    <apex:commandButton value="{!dLabel['DL84']}" onclick="openModal('modalDialogOracleLogin');return false;" rendered="{!and(isSubmitted, isExecute)}" />
+                    <apex:commandButton value="{!dLabel['DL85']}" action="{!rejectBulkChange}" rendered="{!and(isSubmitted, isExecute)}" />
+                    <apex:commandButton value="Resend" onclick="openModal('modalDialogOracleLogin');return false;" rendered="{!and(isExecuted, isExecute)}" />
+                </apex:outputPanel>
+
+                <apex:panelGrid columns="2" cellspacing="10" >
+                    <apex:outputLabel value="{!dLabel['DL86']}" for="inputTextDescription" />
+                    <apex:outputPanel styleclass="requiredInput" layout="block" >
+                            <apex:outputPanel styleclass="requiredBlock" layout="block" rendered="{!canEdit}" />
+                            <apex:inputTextArea styleclass="theInputText" value="{!bulkChange.Description__c}" required="true" id="inputTextDescription" rendered="{!canEdit}" />
+                            <apex:outputfield value="{!bulkChange.Description__c}" rendered="{!not(canEdit)}" />
+                    </apex:outputPanel>
+
+                    <apex:outputLabel value="{!dLabel['DL87']}" />
+                    <apex:outputfield value="{!bulkChange.Status__c}" />
+                    
+                    <apex:outputLabel value="{!dLabel['DL88']}" for="inputGeo" />
+                    <apex:outputPanel styleclass="requiredInput" layout="block" >
+                            <apex:outputPanel styleclass="requiredBlock" layout="block" rendered="{!canEdit}" />
+                            <apex:inputField value="{!bulkChange.Geography__c}" required="true" id="inputGeo" rendered="{!canEdit}" />
+                            <apex:outputfield value="{!bulkChange.Geography__c}" rendered="{!not(canEdit)}" />
+                    </apex:outputPanel>
+          
+                    <apex:outputLabel value="{!dLabel['DL89']}" />
+                    <apex:outputfield value="{!bulkChange.ownerid}" />
+
+                    <apex:outputLabel value="{!dLabel['DL90']}" />
+                    <apex:inputTextarea value="{!bulkChange.Comment__c}" cols="132" rows="5" styleclass="theInputText" rendered="{!canEdit}" />
+                    <apex:outputfield value="{!bulkChange.Comment__c}" rendered="{!not(canEdit)}" />
+                </apex:panelGrid>
+            </apex:pageBlockSection>
+
+            <apex:pageBlockSection title="{!dLabel['DL91']}" collapsible="false" columns="1" >
+                <div id="newCriteria" >
+                <apex:outputPanel >
+                    <apex:commandButton value="{!dLabel['DL92']}" action="{!newCriteria}" rendered="{!and(canEdit, isCreate)}" disabled="{!newButtonDisabled}" />
+                </apex:outputPanel>
+                <apex:pageBlockTable value="{!bulkChangeCriterias}" var="wrapper" id="criteria" >
+                    <apex:column headervalue="{!dLabel['DL93']}" >
+                        <apex:commandLink action="{!RemoveCriteria}" value="{!dLabel['DL94']}" rendered="{!and(canEdit, isCreate, not(wrapper.isNew))}" >
+                            <apex:param assignto="{!selectedCriteria}" name="criteriaId" value="{!wrapper.criteria.Id}" />
+                        </apex:commandLink>
+                    </apex:column>
+
+                    <apex:column headervalue="{!dLabel['DL95']}" >
+                        <!--apex:selectList value="{!wrapper.criteria.Classification__c}" size="1" id="operandList" styleClass="operatorSelect" rendered="{!wrapper.isNew}" onchange="verifyElement('{!$Component.operandList}');"-->
+                        <apex:selectList value="{!wrapper.criteria.Classification__c}" size="1" id="operandList" styleclass="operatorSelect" rendered="{!wrapper.isNew}" >
+                            <apex:actionSupport event="onchange" action="{!selectedClassification}" rerender="criteria" >
+                            </apex:actionSupport>
+                            <apex:selectOptions value="{!classifications}" />
+                        </apex:selectList>
+                        <apex:outputField value="{!wrapper.criteria.Classification__c}" rendered="{!NOT(wrapper.isNew)}" />
+                    </apex:column>
+
+                    <apex:column headervalue="{!dLabel['DL96']}" >
+                        <apex:actionRegion >
+                            <apex:selectList value="{!wrapper.criteria.ExistingClassificationValue__c}" size="1" id="filterClassList" styleclass="operatorSelect" rendered="{!AND(wrapper.isNew, wrapper.criteria.Classification__c != '')}" >
+                                <apex:actionSupport event="onchange" action="{!selectedNewClassVal}" rerender="existingClass, filterClassList" >  
+                                    <apex:param assignto="{!classFilterSelected}" name="classFilterSelected" value="{!wrapper.criteria.ExistingClassificationValue__c}" />
+                                </apex:actionSupport>
+                                <apex:selectOptions value="{!optionsNewClassifications}" />
+                            </apex:selectList>
+                        </apex:actionRegion>
+                        <apex:outputField value="{!wrapper.criteria.ExistingClassificationValue__c}" rendered="{!NOT(wrapper.isNew)}" />
+                    </apex:column>
+
+                    <apex:column headervalue="{!dLabel['DL97']}" >
+                        <apex:actionRegion >
+                            <apex:selectList value="{!wrapper.criteria.NewClassificationValue__c}" size="1" id="newClassList" styleclass="operatorSelect" rendered="{!AND(wrapper.isNew, wrapper.criteria.Classification__c != '')}" >
+                                <apex:actionSupport event="onchange" action="{!selectedNewClassVal}" rerender="newClassList" >  
+                                    <apex:param assignto="{!newclassValSelected}" name="newclassValSelected" value="{!wrapper.criteria.NewClassificationValue__c}" />
+                                </apex:actionSupport>
+                                <apex:selectOptions value="{!optionsNewClassifications}" />
+                            </apex:selectList>
+                        </apex:actionRegion>
+                        <apex:outputField value="{!wrapper.criteria.NewClassificationValue__c}" rendered="{!NOT(wrapper.isNew)}" />
+                    </apex:column>
+
+                    <apex:column headervalue="{!dLabel['DL98']}" >
+                        <apex:outputfield value="{!wrapper.criteria.SearchOrganizationString__c}" rendered="{!wrapper.criteria.SearchOrganizationString__c !=null}" />
+                        <apex:outputText value="{!dLabel['DL99']}" rendered="{!AND(wrapper.isNew, wrapper.criteria.SearchOrganizationString__c =null, wrapper.criteria.SearchRegion__c=null, wrapper.criteria.SearchBusinessLine__c=null)}" />
+                        <apex:outputText value="Region: {!wrapper.criteria.SearchRegion__c} and Business Line: {!wrapper.criteria.SearchBusinessLine__c} " rendered="{!AND( wrapper.criteria.SearchOrganizationString__c=null, or(wrapper.criteria.SearchRegion__c!=null, wrapper.criteria.SearchBusinessLine__c != null))}" />
+                        <apex:commandLink rendered="{!wrapper.isNew}" style="text-decoration:none" onclick="openModal('modalDialogOrgSearch');return false;" >
+                            <img src="/s.gif" class="lookupIcon" onmouseout="this.className='lookupIcon';" alt="Asset Lookup (New Window)" onmouseover="this.className='lookupIconOn';" />
+                        </apex:commandLink>
+                    </apex:column>
+
+                    <apex:column headervalue="{!dLabel['DL101']}" >
+                        <apex:inputField value="{!wrapper.criteria.ProjectNumber__c}" rendered="{!wrapper.isNew}" onkeypress="return noenter(event);" />
+                        <apex:outputField value="{!wrapper.criteria.ProjectNumber__c}" rendered="{!NOT(wrapper.isNew)}" />
+                    </apex:column>
+
+
+
+
+                    <apex:column >
+                        <apex:commandButton value="{!dLabel['DL102']}" rendered="{!wrapper.isNew}" action="{!saveCriteria}" />
+                    </apex:column>
+
+                </apex:pageBlockTable>
+
+                </div>
+            </apex:pageBlockSection>
+
+            <apex:pageBlockSection title="{!dLabel['DL103']}" collapsible="false" columns="1" id="replacements" >
+                <apex:outputPanel >
+                    <apex:commandButton value="{!dLabel['DL104']}" action="{!saveReplacements}" rendered="{!and(canEdit, isCreate)}" />
+                    <apex:commandButton value="{!dLabel['DL105']}" action="{!RemoveExclusions}" rendered="{!and(canEdit, isCreate)}" />
+                    <apex:commandButton onclick="window.open('{!reportURL}');" value="{!dLabel['DL106']}" rendered="{!bulkchange.id != null}" />
+                </apex:outputPanel>
+                <apex:pageBlockTable value="{!bulkChangeReplacements}" var="replacement" >
+                    <apex:column value="{!replacement.Project__c}" />
+                    <apex:column value="{!replacement.Project__r.ProjectNumber__c}" />
+                    <apex:column value="{!replacement.project__r.CarryingOutOrganization__r.Region__c}" />
+                    <apex:column value="{!replacement.project__r.CarryingOutOrganization__r.BusinessLineName__c}" />
+                    <apex:column value="{!replacement.ProjectStage__c}" />
+                    <apex:column value="{!replacement.project__r.CarryingOutOrganization__c}" />
+                    <apex:column value="{!replacement.Classification__c}" />
+                    
+                    <apex:column value="{!replacement.ExistingClassificationValue__c}" />
+                    <!--apex:column headervalue="New Classification Value">
+                        <apex:inputField value="{!replacement.NewClassificationValue__c}" />
+                    </apex:column-->
+                    <apex:column headervalue="{!dLabel['DL107']}" >
+                        <apex:actionRegion >
+                            <apex:selectList value="{!replacement.NewClassificationValue__c}" size="1" id="newClassPicked" styleclass="operatorSelect" >
+                                <!--apex:actionSupport event="onchange" action="{!selectedNewClassVal}"
+                                    reRender="newClassPicked">  
+                                    <apex:param assignTo="{!newclassValSelected}" name="newclassValSelected" value="{!replacement.NewClassificationValue__c}" />
+                                </apex:actionSupport-->
+                                <apex:selectOptions value="{!mapClassificationToOptions[replacement.Classification__c]}" />
+
+
+                            </apex:selectList>
+                        </apex:actionRegion>
+                    </apex:column>
+                    
+                    <apex:column style="text-align: center;" headervalue="{!dLabel['DL108']}" >
+                         <apex:image url="{!URLFOR($Resource.grayDash)}" height="20px" width="20px" rendered="{!replacement.ErrorMessage__c == null}" />
+                        <apex:image url="{!URLFOR($Resource.greenStar)}" height="20px" width="20px" rendered="{!replacement.ErrorMessage__c == 'Success'}" />
+                        <apex:image url="{!URLFOR($Resource.redTriangle)}" height="20px" width="20px" title="{!replacement.ErrorMessage__c}" rendered="{!and(replacement.ErrorMessage__c != null, replacement.ErrorMessage__c != 'Success')}" />
+                    </apex:column>
+                    <apex:column headervalue="{!dLabel['DL109']}" >
+                        <apex:outputField value="{!replacement.Status__c}" />
+                    </apex:column>
+                    <apex:column headervalue="{!dLabel['DL110']}" >
+                        <apex:outputField value="{!replacement.Change__c}" />
+                    </apex:column>
+                    <apex:column style="text-align: center;" headervalue="{!dLabel['DL111']}" >
+
+                        <apex:outputField value="{!replacement.MessageStatus__c}" rendered="{!not(or(replacement.MessageStatus__c == 'Success', replacement.MessageStatus__c == 'Error'))}" />
+
+                        <apex:image url="{!URLFOR($Resource.greenStar)}" height="20px" width="20px" title="{!replacement.IntegrationMessageQueue__r.SuccessMessage__c}" rendered="{!replacement.MessageStatus__c == 'Success'}" />
+                        <apex:image url="{!URLFOR($Resource.redTriangle)}" height="20px" width="20px" title="{!replacement.IntegrationMessageQueue__r.ErrorMessage__c}" rendered="{!replacement.MessageStatus__c == 'Error'}" />
+                    </apex:column>
+
+                    <apex:column headervalue="{!dLabel['DL112']}" >
+                        <apex:inputField value="{!replacement.Exclude__c}" />
+                    </apex:column>
+                </apex:pageBlockTable>
+                <div align="center" style="display:block;" >
+                    <br/>
+                    <apex:outputPanel >
+                        <nttdcore:DLabel name="DL115" default="    Page:  {{1}}  of  {{2}}" labelParent="{!this}" p1="{!pageNumber}" p2="{!totalPages}" />
+                        <apex:commandButton value="{!dLabel['DL113']}" action="{!previous}" disabled="{!NOT(hasPrevious)}" rerender="replacements" status="asyncStatus" id="cmd1" />
+                        <apex:commandButton value="{!dLabel['DL114']}" action="{!next}" disabled="{!NOT(hasNext)}" rerender="replacements" status="asyncStatus" id="cmd2" />
+                        <apex:outputText value="{!dLabel['DL115']}" rendered="{! IF(totalPages != null && totalPages > 1, true, false)}" />
+                    </apex:outputPanel>
+                </div>
+
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+
+
+        </apex:outputPanel>
+
+        <c:ECO_ModalDialog width="350" padding="0px 0px 0px 0px" name="modalDialogOracleLogin" >
+            <nttdcore:DLabel name="DL116" default="Oracle Authentication" labelParent="{!this}" /><apex:pageBlock title="{!dLabel['DL116']}" ><nttdcore:DLabel name="DL126" default="Authenticating..." labelParent="{!this}" />
+            <div>
+                <apex:outputText ><nttdcore:DLabel name="DL117" default="Please enter your Oracle credentials below to renew the token" labelParent="{!this}" />{!dLabel['DL117']}</apex:outputText>
+            </div>
+            <br/><br/>
+            <div align="center" >
+            <nttdcore:DLabel name="DL118" default="Oracle Username:" labelParent="{!this}" /><apex:outputText style="font-weight:bold" value="{!dLabel['DL118']}" />
+            <nttdcore:DLabel name="DL119" default="Oracle Username:" labelParent="{!this}" /><apex:inputText label="{!dLabel['DL119']}" value="{!OracleUserName}" id="username" onkeypress="handleEnter(event)" />
+            <!--<apex:inputText label="Oracle Username:" value="{!OracleUserName}" id="usernameRO" rendered="{!NOT(project.IsSystemAdmin__c)}" html-readonly="true"/>--><br/>
+
+            <nttdcore:DLabel name="DL120" default="Oracle Password:" labelParent="{!this}" /><apex:outputText style="font-weight:bold" value="{!dLabel['DL120']}" />
+            <nttdcore:DLabel name="DL121" default="Oracle Password" labelParent="{!this}" /><apex:inputSecret label="{!dLabel['DL121']}" value="{!OraclePassword}" id="password" onkeypress="handleEnter(event)" /><br/><br/>
+            </div>
+
+            <apex:outputPanel id="btn1" >
+                <apex:outputPanel rendered="{!authenticationResult != 'SUCCESS'}" >
+                    <div align="center" >
+                        <apex:outputPanel layout="inline" styleclass="btn" onclick="authenticate()" ><nttdcore:DLabel name="DL122" default="Login" labelParent="{!this}" />{!dLabel['DL122']}</apex:outputPanel>
+                        <apex:outputPanel layout="inline" styleclass="btn" onclick="cancelModal('modalDialogOracleLogin')" ><nttdcore:DLabel name="DL123" default="Cancel" labelParent="{!this}" />{!dLabel['DL123']}</apex:outputPanel>
+                    </div>
+                </apex:outputPanel>
+            </apex:outputPanel>
+
+            <apex:outputPanel id="btn2" >
+                <apex:outputPanel rendered="{!authenticationResult == 'SUCCESS'}" >
+                    <div align="center" >
+                        <apex:outputPanel layout="inline" styleclass="btn" onclick="closeAuthenticationModal()" ><nttdcore:DLabel name="DL124" default="Start Execution" labelParent="{!this}" />{!dLabel['DL124']}</apex:outputPanel>
+                    </div>
+                </apex:outputPanel>
+            </apex:outputPanel>
+
+            <apex:outputPanel id="result" >
+                <apex:outputPanel rendered="{!authenticationResult != null}" ><br/>
+                    <b><nttdcore:DLabel name="DL125" default="Result:" labelParent="{!this}" />{!dLabel['DL125']} </b><apex:outputText value="{!authenticationResult}" id="authenticationResult" />
+                </apex:outputPanel>
+            </apex:outputPanel>
+
+            <apex:actionStatus id="queryStatus" >
+                <apex:facet name="start" >
+                    <p style="padding-bottom:20px;text-align:center;" class="searchText" ><img style="position:relative;top:24px;" src="/img/loading32.gif" /> {!dLabel['DL126']}</p>
+                </apex:facet>
+            </apex:actionStatus>
+            </apex:pageBlock>
+        </c:ECO_ModalDialog>
+
+        <apex:actionFunction name="authenticateCredentials" action="{!authenticateCredentials}" rerender="result, btn1, btn2" status="queryStatus" immediate="true" >
+            <apex:param name="username" value="" />
+            <apex:param name="password" value="" />
+        </apex:actionFunction>
+
+
+        <apex:actionStatus id="closeAuthentication" >
+            <apex:facet name="start" >
+                <p style="padding-bottom:20px;text-align:center;" class="searchText" ><img style="position:relative;top:24px;" src="/img/loading32.gif" /> {!dLabel['DL127']}</p>
+            </apex:facet>
+        </apex:actionStatus>
+
+        <apex:actionFunction name="closeAuthenticationWindow" action="{!closeAuthenticationWindow}" status="closeAuthentication" immediate="true" />
+
+        <apex:actionFunction name="acceptOrgsearch" action="{!handleAccept}" />
+
+        <c:ECO_ModalDialog width="1300" padding="0px 0px 0px 0px" name="modalDialogOrgSearch" >
+            <nttdcore:DLabel name="DL128" default="Organization String Search" labelParent="{!this}" /><apex:pageBlock title="{!dLabel['DL128']}" >
+            <apex:actionRegion >
+            <apex:pageMessages id="messagesOrgSearch" />
+            <br/><br/>
+            <div align="center" >
+
+                <table>
+                    <tr>
+                        <td>
+                            <nttdcore:DLabel name="DL129" default="Region:" labelParent="{!this}" /><apex:outputText style="font-weight:bold" value="{!dLabel['DL129']}" />
+                        </td>
+                        <td><nttdcore:DLabel name="DL130" default="Select" labelParent="{!this}" />
+                            <apex:selectList size="1" value="{!newBulkChangeCriteria.SearchRegion__c}" id="seachRegion" >
+                                <apex:selectOption itemvalue="" itemlabel="{!dLabel['DL130']}" />
+                                <apex:selectOptions value="{!optionsRegions}" ></apex:selectOptions>
+                                <apex:actionSupport event="onchange" action="{!searchOrgString}" rerender="searchSection" status="searchStatus" />
+                            </apex:selectList>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <nttdcore:DLabel name="DL131" default="Business Line:" labelParent="{!this}" /><apex:outputText style="font-weight:bold" value="{!dLabel['DL131']}" />
+                        </td>
+                        <td><nttdcore:DLabel name="DL132" default="Select" labelParent="{!this}" />
+                            <apex:selectList size="1" value="{!newBulkChangeCriteria.SearchBusinessLine__c}" id="seachBusiness" >
+                                <apex:selectOption itemvalue="" itemlabel="{!dLabel['DL132']}" />
+                                <apex:selectOptions value="{!optionsBusinessLines}" ></apex:selectOptions>
+                                <apex:actionSupport event="onchange" action="{!searchOrgString}" rerender="searchSection" status="searchStatus" />
+                            </apex:selectList>
+                        </td>
+                    </tr>
+                </table>
+
+                <br/><br/>
+
+                <apex:outputpanel id="searchSection" ><nttdcore:DLabel name="DL133" default="Searching..." labelParent="{!this}" /><nttdcore:DLabel name="DL134" default="Org String" labelParent="{!this}" /><nttdcore:DLabel name="DL135" default="Geography" labelParent="{!this}" /><nttdcore:DLabel name="DL136" default="Region" labelParent="{!this}" /><nttdcore:DLabel name="DL137" default="District" labelParent="{!this}" /><nttdcore:DLabel name="DL138" default="Location" labelParent="{!this}" /><nttdcore:DLabel name="DL139" default="Business Line" labelParent="{!this}" /><nttdcore:DLabel name="DL140" default="Department" labelParent="{!this}" /><nttdcore:DLabel name="DL141" default="Select" labelParent="{!this}" />
+                    <apex:actionStatus id="searchStatus" >
+                        <apex:facet name="start" >
+                            <p style="padding-bottom:20px;" class="searchText" ><img style="position:relative;top:12px;" src="/img/loading32.gif" /> {!dLabel['DL133']}</p>
+                        </apex:facet>
+                        <apex:facet name="stop" >
+                            <apex:outputpanel >
+                                <div class="list" style="overflow:scroll;height:200px;" >
+                                    <table class="tablesorter" cellpadding="0" cellspacing="0" >
+                                        <thead>
+                                            <tr>
+                                                <th>
+
+                                                </th>
+                                                <th>
+                                                    {!dLabel['DL134']}
+                                                </th>
+                                                <th>
+                                                    {!dLabel['DL135']}
+                                                </th>
+                                                <th>
+                                                    {!dLabel['DL136']}
+                                                </th>
+                                                <th>
+                                                    {!dLabel['DL137']}
+                                                </th>
+                                                <th>
+                                                    {!dLabel['DL138']}
+                                                </th>
+                                                <th>
+                                                    {!dLabel['DL139']}
+                                                </th>
+                                                <th>
+                                                    {!dLabel['DL140']}
+                                                </th>
+                                            </tr>
+                                        </thead>
+
+                                        <tbody>
+                                            <apex:repeat value="{!listOrgStrings}" var="os" >
+                                                <tr>
+                                                    <td rowspan="1" >
+                                                        <apex:commandLink value="{!dLabel['DL141']}" action="{!selectOrgString}" >
+                                                            <apex:param assignto="{!selectOrgId}" name="selectOrgId" value="{!os.Id}" />
+                                                        </apex:commandLink>
+                                                    </td>
+                                                    <td rowspan="1" width="250px" >
+                                                        <apex:outputField value="{!os.OrganizationName__c}" />
+                                                    </td>
+                                                    <td rowspan="1" >
+                                                        <apex:outputField value="{!os.GeographyName__c}" />
+                                                    </td>
+                                                    <td rowspan="1" >
+                                                        <apex:outputField value="{!os.Region__c}" />
+                                                    </td>
+                                                    <td rowspan="1" >
+                                                        <apex:outputField value="{!os.District__c}" />
+                                                    </td>
+                                                    <td rowspan="1" >
+                                                        <apex:outputField value="{!os.LocationName__c}" />
+                                                    </td>
+                                                    <td rowspan="1" >
+                                                        <apex:outputField value="{!os.BusinessLineName__c}" />
+                                                    </td>
+                                                    <td rowspan="1" width="400px" >
+                                                        <apex:outputField value="{!os.Department__c}" />
+                                                    </td>
+                                                </tr>
+                                            </apex:repeat>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            
+                        </apex:outputpanel></apex:facet>
+                    </apex:actionStatus>
+                
+                <br/><br/>
+
+                <apex:outputPanel layout="inline" styleclass="btn" onclick="acceptOrgsearch()" ><nttdcore:DLabel name="DL142" default="Accept" labelParent="{!this}" />{!dLabel['DL142']}</apex:outputPanel>
+                <apex:outputPanel layout="inline" styleclass="btn" onclick="cancelModal('modalDialogOrgSearch')" ><nttdcore:DLabel name="DL143" default="Cancel" labelParent="{!this}" />{!dLabel['DL143']}</apex:outputPanel>
+
+
+
+            </apex:outputpanel></div>
+
+            </apex:actionRegion>
+            </apex:pageBlock>
+        </c:ECO_ModalDialog>
+
+
+
+    </apex:form>
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

@@ -1,0 +1,12 @@
+<apex:component >
+	<apex:attribute name="project" description="The Project Related to the Page" type="pse__Proj__c" required="true" />
+	<apex:attribute name="title" description="The Title to the page" type="String" required="true" />
+	<apex:attribute name="subtitle" description="The Subtitle to the page" type="String" required="false" />
+
+	<div style="position:relative; border-bottom:5px; border-top:5px; padding-bottom:5px">
+		<!--<apex:sectionHeader title="{!title}" subtitle="{!subtitle}" rendered="{!ISNULL(project.OracleProjectId__c)}" />-->
+		<!--<apex:sectionHeader title="{!title}" subtitle="{!subtitle} ({!project.OracleProjectId__c})" rendered="{!NOT(ISNULL(project.OracleProjectId__c))}" />-->
+		<apex:sectionHeader title="{!title}" subtitle="{!subtitle}" rendered="{!ISNULL(project.OracleProjectnumber__c)}" />
+		<apex:sectionHeader title="{!title}" subtitle="{!subtitle} ({!project.OracleProjectnumber__c})" rendered="{!NOT(ISNULL(project.OracleProjectnumber__c))}" />
+	</div>
+</apex:component>

@@ -1,0 +1,95 @@
+<Apex:page StandardController="Project__c" extensions="Project254Extension">
+ <apex:includeScript value="{!URLFOR($Resource.ulPicklist, '/jquery-1.7.2.min.js')}"  />
+<apex:includeScript value="{!URLFOR($Resource.ulPicklist, '/ulPickList.js')}"  />
+<input id="hiddenElement" type="hidden" />
+
+<script type="text/javascript">
+  window.onload = setFocus
+  function setFocus() {
+    document.getElementById("hiddenElement").focus();
+  }
+</script>
+
+<style>
+ul.container-list {
+    width: 400px;
+    min-heigth: 300px;
+    border: 1px solid gray;
+    overflow-x: auto;
+    overflow-y: scroll;
+    display: block;
+    list-style : none;
+    color : black;
+    padding : 0px;
+    background-color : white;
+    margin-right: 15px;
+    margin-top: 0px;
+    margin-left: 0px;
+}
+
+ul.container-list li {
+    padding : 2px;
+    margin : 0px;
+    cursor : pointer;
+    border-bottom : 1px #EEE solid;
+    font-size: 0.9em;
+}
+</style>
+
+<apex:form >
+<apex:pageMessages />
+<apex:outputField rendered="false" value="{!Project__c.Code_254__c}"/>
+<br/><apex:outputField rendered="false" value="{!Project__c.Code_254_Text__c}"/>
+
+<apex:pageBlock title="254 Codes" mode="maindetail">
+
+<apex:pageBlockButtons >
+    <apex:commandButton action="{!saveCode}" value="Update"/>
+</apex:pageBlockButtons>
+<apex:pageBlockSection columns="1">            
+            
+     <apex:pageBlockSectionItem >
+         
+            <apex:outputLabel value="Select Code" />                   
+            <apex:outputPanel layout="block">  
+                                         
+                <apex:selectList id="codeList" value="{!jquerySelected}" multiselect="true" size="10" style="display:none;">
+                    <apex:selectOptions value="{!availableValues}"/>
+                </apex:selectList>
+                
+                <input type="text" id="searchTextBox"/>
+                <apex:panelGrid columns="2">
+                    <apex:outputpanel >Available&nbsp;<i>(Click Item to Add)</i></apex:outputpanel>
+                    <apex:outputpanel >Chosen &nbsp;<i>(Click Item to Remove)</i></apex:outputpanel>
+
+                    <apex:outputPanel id="availableCodes" />
+                    <apex:outputPanel id="selectedCodes" />
+                </apex:panelGrid>
+            </apex:outputPanel> 
+              
+        </apex:pageBlockSectionItem>  
+        <apex:selectList value="{!Project__c.Primary_254_Code__c}" multiselect="false" size="1" label="Select Primary Code">
+            <apex:selectOptions value="{!selectedValues}"/>
+        </apex:selectList>
+
+        </apex:pageBlockSection>
+            
+</apex:pageBlock>
+</apex:form>
+ <script type="text/javascript">
+   $j = jQuery.noConflict();
+   $j(document).ready(
+       function() {
+            $j('select[id$=codeList]').twinBoxMultiSelectList({
+                    availableList : 'span[id$=availableCodes]',
+                    selectedList : 'span[id$=selectedCodes]',
+                    searchBox : '#searchTextBox',
+                    styles: {
+                        width: '400px'
+                    }
+                });
+   });
+
+
+</script>
+</apex:page>

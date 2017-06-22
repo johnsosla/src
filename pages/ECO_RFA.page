@@ -1,0 +1,217 @@
+<apex:page standardcontroller="Form__c" extensions="ECO_RFAController,nttdcore.DLabelParentController" showheader="true" sidebar="true" action="{!init}" doctype="html-5.0" >
+
+
+    <style>
+        /* CUSTOM HELP / GUIDANCE TEXT BOX */
+        .customHelpText{
+            padding: 7px;
+            border: 1px solid #85B3CE;
+            min-height: 30px;
+            display: block;
+            width: auto;
+            margin: 0 0 5px 0;
+            background-repeat: no-repeat;
+            border-radius: 4px;
+            background-color: #A2D3F1;
+            
+        }
+        .customHelpBody{
+            display:inline-block;
+            color:#;
+            max-width:95%;
+        }
+
+        /* CUSTOM HELP / GUIDANCE TEXT BOX 
+        .customHelpText{
+            padding:20px 25px;
+            border:1px solid #85B3CE;
+            min-height:30px;
+            display:block;
+            width:auto;
+            margin:0;
+            background-color:#E3F0F8;
+            background-image: url('../img/icon/forecasts24.png');
+            background-position:1% 50%;
+            background-repeat:no-repeat;
+            border-radius:4px;
+            margin-bottom:15px;
+        }
+        .customHelpBody{
+            display:inline-block;
+            color:#;
+            max-width:95%;
+            margin-left:28px;
+        }*/
+        .bPageBlock .detailList .list table td{
+        	border-bottom: 0px !important;
+        }
+        .sfdc_richtext{
+        	border-bottom: 0px !important;
+        }
+		.selectListClass{
+			width: 300px;
+		}
+    </style>
+
+    <nttdcore:DLabel name="DL42" default="DOA Approval Request" labelParent="{!this}" /><nttdcore:DLabel name="DL43" default="Request For Approval Form" labelParent="{!this}" /><apex:sectionheader title="{!dLabel['DL42']}" subtitle="{!dLabel['DL43']}" />
+
+    <c:ECO_CollapsibleSection sectiontitle="General Guidance Information" uniqueid="cs1" ><nttdcore:DLabel name="DL44" default="To be completed for 1) non-project related DOA matters or 2) project matters that do not require approval by the Enterprise or Group Risk Committee.  Follow all steps prior to submitting your request for approval." labelParent="{!this}" /> 
+        {!dLabel['DL44']}
+            </c:ECO_CollapsibleSection>
+
+    <apex:form >
+        <apex:pagemessages id="messages" />     
+        <apex:pageblock id="pgBlock" ><nttdcore:DLabel name="DL50" default="Step 1: Business Group" labelParent="{!this}" /><nttdcore:DLabel name="DL51" default="Step 2: Owning Organization" labelParent="{!this}" /><nttdcore:DLabel name="DL52" default="Step 3: DOA Matters" labelParent="{!this}" /><nttdcore:DLabel name="DL53" default="Project Name/Subject" labelParent="{!this}" /><nttdcore:DLabel name="DL54" default="Opportunity #" labelParent="{!this}" /><nttdcore:DLabel name="DL55" default="Ecosystem #" labelParent="{!this}" /><nttdcore:DLabel name="DL56" default="Oracle #" labelParent="{!this}" /><nttdcore:DLabel name="DL57" default="Sub-DOA" labelParent="{!this}" /><nttdcore:DLabel name="DL58" default="Business Lines Available To:" labelParent="{!this}" /><nttdcore:DLabel name="DL59" default="Geographies Available To:" labelParent="{!this}" /><nttdcore:DLabel name="DL60" default="Questionnaire Template:" labelParent="{!this}" /><nttdcore:DLabel name="DL61" default="Search" labelParent="{!this}" /><nttdcore:DLabel name="DL62" default="No Results Were Found." labelParent="{!this}" /><nttdcore:DLabel name="DL63" default="Action" labelParent="{!this}" /><nttdcore:DLabel name="DL64" default="Select" labelParent="{!this}" /><nttdcore:DLabel name="DL65" default="Select" labelParent="{!this}" /><nttdcore:DLabel name="DL66" default="DCS Sub-DOA" labelParent="{!this}" /><nttdcore:DLabel name="DL67" default="&lt;&lt;" labelParent="{!this}" /><nttdcore:DLabel name="DL68" default="&lt;" labelParent="{!this}" /><nttdcore:DLabel name="DL69" default="&gt;" labelParent="{!this}" /><nttdcore:DLabel name="DL70" default="&gt;&gt;" labelParent="{!this}" /><nttdcore:DLabel name="DL71" default="Step 4: Reason for Request" labelParent="{!this}" /><nttdcore:DLabel name="DL72" default="Provide concise Risk Assessment/Exposure Mitigation/Justification, which clearly references appropriate additional attachments." labelParent="{!this}" /><nttdcore:DLabel name="DL73" default="Explain in a few sentences:" labelParent="{!this}" /><nttdcore:DLabel name="DL74" default="1.&nbsp;     Nature of the request (e.g., we require approval to submit a bid bond at 10% of our contract value and, if successful, to replace it by a payment and performance bond at 100% of our contract value)" labelParent="{!this}" /><nttdcore:DLabel name="DL75" default="2.&nbsp;     Strategic rationale for the request (e.g., this is a must win project for a repeat client that will position us for additional larger pursuits)" labelParent="{!this}" /><nttdcore:DLabel name="DL76" default="3.&nbsp;    Key risks and proposed mitigation strategy for the request (e.g., there is no process risk; the team is very experienced and has recently delivered successfully a very similar project; the schedule is tight but achievable and we have appropriate excusable delay events; the supply chain is well known except for X and Y; we will be flowing down risk A and B an included a 60-day buffer on the schedule proposed by subcontractor Y)." labelParent="{!this}" /><nttdcore:DLabel name="DL77" default="For DCS users, in lieu of completing this section, fill out a Request for Project Approval (RFPA) form for the project and attach to the bottom of this RFA.  Click the &quot;RFPA (DCS only)&quot; button at the top of the screen to access the template." labelParent="{!this}" /><nttdcore:DLabel name="DL78" default="Step 5: Project Review Category Variance" labelParent="{!this}" />
+
+            <apex:pageblockbuttons >
+                <nttdcore:DLabel name="DL45" default="Save" labelParent="{!this}" /><apex:commandbutton action="{!saveForm}" value="{!dLabel['DL45']}" />
+                <!--<apex:commandButton value="Download Form Template" onclick="window.open('{!URLFOR($Resource.DOARFA)}')" />-->
+                <nttdcore:DLabel name="DL46" default="Cancel" labelParent="{!this}" /><apex:commandbutton action="{!returnToDOA}" value="{!dLabel['DL46']}" rendered="{!oForm.Enable_Cancel__c}" immediate="true" />
+                <nttdcore:DLabel name="DL47" default="Back to DOA Request" labelParent="{!this}" /><apex:commandbutton action="{!goToDOA}" value="{!dLabel['DL47']}" rendered="{!IF(fromVisualforce = null, true, false)}" immediate="true" />
+				<nttdcore:DLabel name="DL48" default="Back to DOA Request" labelParent="{!this}" /><apex:commandbutton action="/apex/ECO_DOAApprovals?Id={!oForm.DOAApprovalRequest__c}" value="{!dLabel['DL48']}" rendered="{!IF(fromVisualforce != null, true, false)}" />
+                <nttdcore:DLabel name="DL49" default="RFPA (DCS Only)" labelParent="{!this}" /><apex:commandbutton onclick="window.open('https://myecosystem.aecom.com/dept/risk/Pages/2_Approval_Matrix_and%20Process2_Risk_Committee_Review.aspx');" value="{!dLabel['DL49']}" immediate="true" />
+                
+            </apex:pageblockbuttons>
+
+
+            <apex:pageblocksection title="{!dLabel['DL50']}" collapsible="false" >
+                <apex:inputfield value="{!oForm.Business_Group__c}" required="true" />
+            </apex:pageblocksection>
+			<apex:pageblocksection title="{!dLabel['DL51']}" collapsible="false" >
+                <apex:inputfield value="{!oForm.OwningOrganization__c}" required="true" />
+            </apex:pageblocksection>
+            <apex:pageblocksection title="{!dLabel['DL52']}" collapsible="false" columns="2" id="DOAMatterFields" >
+                	<apex:outputfield value="{!proj.Name}" label="{!dLabel['DL53']}" rendered="{!if(isNonProjectRelated, false, true)}" />
+                    <apex:outputfield value="{!proj.OpportunityID__c}" label="{!dLabel['DL54']}" rendered="{!if(isNonProjectRelated, false, true)}" />
+                	<apex:outputfield value="{!proj.pse__Project_ID__c}" label="{!dLabel['DL55']}" rendered="{!if(isNonProjectRelated, false, true)}" />
+                    <apex:outputfield value="{!proj.OracleProjectnumber__c}" label="{!dLabel['DL56']}" rendered="{!if(isNonProjectRelated, false, true)}" />
+                	<apex:inputfield value="{!oForm.ProjectNameSubject__c}" rendered="{!if(isNonProjectRelated, true, false)}" />
+                	<apex:inputfield value="{!oForm.OpportunityNumber__c}" rendered="{!if(isNonProjectRelated, true, false)}" />
+                	<apex:inputfield value="{!oForm.OracleProjectNumber__c}" rendered="{!if(isNonProjectRelated, true, false)}" />
+                <!--<apex:pageMessage severity="INFO" summary="No Project Related Matters Found" rendered="{!if(DOARegisters.size > 0, false, true)}"/>-->
+            </apex:pageblocksection>
+            <apex:pageblocksection collapsible="false" columns="1" id="DOAMatter" >
+                <apex:pageblocktable value="{!DOARegisters}" var="DOAReg" rendered="{!if(DOARegisters.size > 0, true, false)}" >
+                	<apex:column headervalue="{!dLabel['DL57']}" >
+                        <apex:outputfield value="{!DOAReg.DCSsubDOA__c}" />
+                    </apex:column>
+                    <apex:column headerValue="Risk Title">
+                        <apex:outputField value="{!DOAReg.RiskTitle__c}" 
+                            rendered="{!if(OR(userLanguage != 'fr',AND(userLanguage == 'fr', DOAReg.FrRiskTitle__c == null)), true, false)}" />
+                        <apex:outputField value="{!DOAReg.FrRiskTitle__c}" 
+                            rendered="{!NOT(if(OR(userLanguage != 'fr',AND(userLanguage == 'fr', DOAReg.FrRiskTitle__c == null)), true, false))}" />
+                    </apex:column>
+                    <apex:column headerValue="Question">
+                        <apex:outputField value="{!DOAReg.TemplateQuestion__r.Question_1__c}" 
+                            rendered="{!if(OR(userLanguage != 'fr',AND(userLanguage == 'fr', DOAReg.TemplateQuestion__r.FrQuestion_1__c == null)), true, false)}" />
+                        <apex:outputField value="{!DOAReg.TemplateQuestion__r.FrQuestion_1__c}" 
+                            rendered="{!NOT(if(OR(userLanguage != 'fr',AND(userLanguage == 'fr', DOAReg.TemplateQuestion__r.FrQuestion_1__c == null)), true, false))}" />
+                    </apex:column>
+                </apex:pageblocktable>    
+            </apex:pageblocksection>
+            <br/>
+            <apex:pageblocksection collapsible="false" columns="2" rendered="{!isNonProjectRelated}" id="NonProjectFields" >
+                    <apex:selectlist id="business" value="{!selectBusiness}" size="1" > 
+                        <apex:selectoptions value="{!BusinessLines}" > {!dLabel['DL58']} &nbsp;</apex:selectoptions>
+                    </apex:selectlist>
+                	<apex:selectlist id="geography" value="{!selectGeography}" size="1" >
+                    	<apex:selectoptions value="{!Geographies}" >{!dLabel['DL59']} &nbsp;</apex:selectoptions>
+                    </apex:selectlist>
+                    <apex:selectlist id="questionnaire" value="{!selectQuestionnaire}" size="1" > 
+                    	<apex:selectoptions value="{!Questionnaires}" > {!dLabel['DL60']} &nbsp;</apex:selectoptions>
+                    </apex:selectlist>
+                    <br/><br/>
+                    
+                <!--</apex:outputPanel>-->
+            </apex:pageblocksection>
+            <apex:pageblocksection rendered="{!isNonProjectRelated}" id="NonProjectButton" >
+                <div style="padding-left: 420px;" >
+                            <apex:commandbutton action="{!searchQuestionnaire}" value="{!dLabel['DL61']}" rerender="NonProject" />
+                </div>
+            </apex:pageblocksection>
+            <apex:pageblocksection collapsible="false" columns="1" rendered="{!isNonProjectRelated}" id="NonProject" >
+				<apex:pagemessage severity="INFO" rendered="{!IF(lstTemplateQuestions.size > 0, false, true)}" summary="{!dLabel['DL62']}" /> 
+                <apex:pageblocktable value="{!lstTemplateQuestions}" rendered="{!IF(lstTemplateQuestions.size > 0, true, false)}" var="Questions" >
+                    <apex:column width="100px" headervalue="{!dLabel['DL63']}" >
+                        <apex:actionregion >
+                        <apex:facet name="header" >{!dLabel['DL64']}</apex:facet>
+                        <apex:commandlink action="{!addQuestion}" value="{!dLabel['DL65']}" rerender="NonProject, DOAMatter" >
+                            <apex:param assignto="{!idQuestionID}" name="QuestionId" value="{!Questions.id}" />
+                        </apex:commandlink>&nbsp;&nbsp;
+                        </apex:actionregion>
+                    </apex:column>
+                    <apex:column >
+                        <apex:facet name="header" >{!dLabel['DL66']}</apex:facet>
+                        <apex:outputfield value="{!Questions.DCSSubDOA__c}" />
+                    </apex:column>
+                    <apex:column >
+                        <apex:facet name="header">Risk Title</apex:facet>
+                        <apex:outputField value="{!Questions.RiskTitle__c}" 
+                            rendered="{!if(OR(userLanguage != 'fr',AND(userLanguage == 'fr', Questions.FrRiskTitle__c == null)), true, false)}" />
+                        <apex:outputField value="{!Questions.FrRiskTitle__c}" 
+                            rendered="{!NOT(if(OR(userLanguage != 'fr',AND(userLanguage == 'fr', Questions.FrRiskTitle__c == null)), true, false))}" />
+                    </apex:column>
+                    <apex:column >
+                        <apex:facet name="header">Question</apex:facet>
+                        <apex:outputField value="{!Questions.Question_1__c}" 
+                            rendered="{!if(OR(userLanguage != 'fr',AND(userLanguage == 'fr', Questions.FrQuestion_1__c == null)), true, false)}" />
+                        <apex:outputField value="{!Questions.FrQuestion_1__c}" 
+                            rendered="{!NOT(if(OR(userLanguage != 'fr',AND(userLanguage == 'fr', Questions.FrQuestion_1__c == null)), true, false))}" />
+                    </apex:column>
+                </apex:pageblocktable>
+                <apex:outputpanel >
+                    <div style="padding-left: 400px;" >
+                    <apex:commandbutton value="{!dLabel['DL67']}" rerender="DOAMatter" action="{!FirstPage}" disabled="{!prev}" />
+                    <apex:commandbutton value="{!dLabel['DL68']}" rerender="DOAMatter" action="{!previous}" disabled="{!prev}" />
+                    <apex:commandbutton value="{!dLabel['DL69']}" rerender="DOAMatter" action="{!next}" disabled="{!nxt}" />
+                    <apex:commandbutton value="{!dLabel['DL70']}" rerender="DOAMatter" action="{!LastPage}" disabled="{!nxt}" />
+                	</div>
+                </apex:outputpanel>
+            </apex:pageblocksection>
+            
+            <apex:pageblocksection title="{!dLabel['DL71']}" collapsible="false" columns="1" >
+                <c:ECO_CollapsibleSection sectiontitle="General Guidance Information" uniqueid="cs2" > 
+                        {!dLabel['DL72']}
+                        <br/><br/>{!dLabel['DL73']}
+                        <br/><br/>{!dLabel['DL74']}
+                        <br/><br/>{!dLabel['DL75']}
+                        <br/><br/>{!dLabel['DL76']}
+                </c:ECO_CollapsibleSection> 
+                <c:ECO_CollapsibleSection sectiontitle="DCS User Specific Information" uniqueid="cs3" > 
+                    {!dLabel['DL77']}
+                </c:ECO_CollapsibleSection>
+
+                <apex:inputfield style="width: 75%;" label="" value="{!oForm.ReasonForRequest__c}" styleclass="placeholder" html-placeholder="For DCS users, in lieu of completing this section, fill out a Request for Project Approval (RFPA) form for the project and attach to the bottom o  this RFA.  Click the &quote;RFPA (DCS only)&quote; button at the top of the screen to access the template." />
+            </apex:pageblocksection>
+            <apex:pageblocksection title="{!dLabel['DL78']}" collapsible="false" columns="1" />
+            <div style="padding:0 12px;margin-top:7px" >
+                <c:ECO_CollapsibleSection sectiontitle="General Guidance Information" uniqueid="cs4" ><nttdcore:DLabel name="DL79" default="For Project Requests, unless otherwise noted, this project will be reviewed as a Project Review Category C-1. Please provide justification if this project should be reviewed as a different Review Category.&quot;" labelParent="{!this}" /> 
+                        {!dLabel['DL79']} 
+                </c:ECO_CollapsibleSection>
+                 <nttdcore:DLabel name="DL80" default="Proposed Review Category Change" labelParent="{!this}" /><apex:outputlabel value="{!dLabel['DL80']}" />&nbsp;&nbsp;
+                <apex:inputfield value="{!oForm.ProposedReviewCategoryChange__c}" />
+                <br/><br/>
+                <nttdcore:DLabel name="DL81" default="Justification for Review Category Change" labelParent="{!this}" /><apex:outputlabel value="{!dLabel['DL81']}" /><br/>
+                <apex:inputfield label="" style="width: 75.5%;" value="{!oForm.JustificationReviewCategoryChange__c}" />
+            </div>
+            
+        </apex:pageblock>
+
+    </apex:form>
+
+    <nttdcore:DLabel name="DL82" default="Attachments &amp; Notes" labelParent="{!this}" /><apex:relatedlist title="{!dLabel['DL82']}" subject="{!oForm}" list="CombinedAttachments" >
+    </apex:relatedlist>
+
+    <apex:includescript value="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js" />
+
+   <!--  <script type="text/javascript">
+    
+        j$ = jQuery.noConflict();
+        j$(function(){
+         //j$('#placeholder').each(function(index, elem){
+             //j$(elem).prop('placeholder',j$(elem).prop('html-placeholder'));
+             j$("#placeholder").text("test");
+         //});
+      });  
+    </script> -->
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

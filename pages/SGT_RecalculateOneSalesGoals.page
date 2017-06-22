@@ -1,0 +1,5 @@
+<apex:page showHeader="true" sidebar="true" standardController="SGT_Sales_Goal__c" extensions="SGT_AllSalesGoalRecalculationController" action="{!recalculateSpecificSalesGoal}">
+	<apex:pageMessages />
+
+	<apex:outputLink value="{!URLFOR($Action.SGT_Sales_Goal__c.View, SGT_Sales_Goal__c.Id)}">Return to View</apex:outputLink>
+</apex:page>

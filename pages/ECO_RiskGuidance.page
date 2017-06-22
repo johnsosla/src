@@ -1,0 +1,35 @@
+<apex:page showheader="false" sidebar="false" standardcontroller="Risk__c" id="thePage" extensions="nttdcore.DLabelParentController" >
+    <style>
+     /* CUSTOM HELP / GUIDANCE TEXT BOX */
+            .customHelpText{
+                padding: 7px;
+                border: 1px solid #85B3CE;
+                min-height: 30px;
+                display: block;
+                width: auto;
+                margin: 0 0 5px 0;
+                background-repeat: no-repeat;
+                border-radius: 4px;
+                background-color: #A2D3F1;
+                
+            }
+            .customHelpBody{
+                display:inline-block;
+                color:#;
+                max-width:95%;
+            }
+    </style>
+    <div class="customHelpText" >
+        <div class="customHelpBody" ><nttdcore:DLabel name="DL7" default="Consider the following approach when managing risk on a project:" labelParent="{!this}" />
+        {!dLabel['DL7']} 
+        <ul>
+            <li><nttdcore:DLabel name="DL8" default="Determine the nature of the risk that may or has occurred" labelParent="{!this}" />{!dLabel['DL8']}</li>
+            <li><nttdcore:DLabel name="DL9" default="Determine appropriate mitigation measures to manage the risk" labelParent="{!this}" />{!dLabel['DL9']}</li>       
+            <li><nttdcore:DLabel name="DL10" default="Determine the consequence and likelihood of the risk occurring both pre and post mitigation measures" labelParent="{!this}" />{!dLabel['DL10']}</li>
+            <li><nttdcore:DLabel name="DL11" default="Determine if financial contingencies are appropriate to manage the risk in the event that it does occur" labelParent="{!this}" />{!dLabel['DL11']}</li>               
+            <li><nttdcore:DLabel name="DL12" default="Ensure all stakeholders are aware of the risks that must be managed throughout the project" labelParent="{!this}" />{!dLabel['DL12']}</li>            
+        </ul>        
+        </div>   
+    </div>
+    
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

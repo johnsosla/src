@@ -1,0 +1,3 @@
+<apex:page standardController="Form__c" extensions="ECO_DOA_FormRedirectController" action="{!redirectForm}" showHeader="true" sidebar="true">
+	 <apex:outputField value="{!Form__c.DOAApprovalRequest__c}" rendered="false" />
+</apex:page>

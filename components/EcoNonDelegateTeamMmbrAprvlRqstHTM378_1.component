@@ -1,0 +1,49 @@
+<apex:component language="{!theLanguage}" controller="nttdcore.DLabelChildController" access="global" ><apex:attribute name="theLanguage" type="String" required="true" description="language" access="global" /><apex:attribute name="theRecipient" type="User" required="true" description="recipient" access="global" /><apex:attribute name="theRelatedTo" type="ProjectTeamMember__c" required="true" description="related to" access="global" />
+    <apex:outputpanel ><nttdcore:DLabel name="DL1" default="Dear {{1}}," labelParent="{!this}" componentContext="EcoNonDelegateTeamMmbrAprvlRqstHTM378_1" p1="{!theRelatedTo.Unfiltered_Delegate_Approver__r.Name}" /><nttdcore:DLabel name="DL2" default="A non delegated team member ({{1}}) has been added to the project team of {{2}} project for {{3}} role.  Please review and approve the below." labelParent="{!this}" componentContext="EcoNonDelegateTeamMmbrAprvlRqstHTM378_1" p1="{!theRelatedTo.Name}" p2="{!theRelatedTo.ProjectName__c}" p3="{!theRelatedTo.ProjectRoleName__c}" /><nttdcore:DLabel name="DL3" default="The project team approval request for {{1}}  has been recalled from approval." labelParent="{!this}" componentContext="EcoNonDelegateTeamMmbrAprvlRqstHTM378_1" p1="{!theRelatedTo.Name}" /><nttdcore:DLabel name="DL19" default="Please approve or reject this item via clicking on the link below or replying to this email with the words 'approve • approved • yes • reject • rejected • no'. Any additional comments to be recorded can be added in a second line of the email reply." labelParent="{!this}" componentContext="EcoNonDelegateTeamMmbrAprvlRqstHTM378_1" />  
+    {!dlRoot.dLabel['DL1']} <br/><br/>
+    {!dlRoot.dLabel['DL2']} 
+
+    <br/>
+    <br/>
+{!dlRoot.dLabel['DL3']} 
+
+<br/><br/>
+<b><nttdcore:DLabel name="DL4" default="Project Name:" labelParent="{!this}" componentContext="EcoNonDelegateTeamMmbrAprvlRqstHTM378_1" />{!dlRoot.dLabel['DL4']}</b> {!theRelatedTo.Project__r.Name}
+<br/>
+<b><nttdcore:DLabel name="DL5" default="Opportunity Name:" labelParent="{!this}" componentContext="EcoNonDelegateTeamMmbrAprvlRqstHTM378_1" />{!dlRoot.dLabel['DL5']}</b> {!theRelatedTo.Project__r.pse__Opportunity__r.Name} 
+<br/>
+<b><nttdcore:DLabel name="DL6" default="Project Manager:" labelParent="{!this}" componentContext="EcoNonDelegateTeamMmbrAprvlRqstHTM378_1" />{!dlRoot.dLabel['DL6']}</b> {!theRelatedTo.Project__r.pse__Project_Manager__r.Name} 
+<br/>
+<b><nttdcore:DLabel name="DL7" default="Net Services Revenue:" labelParent="{!this}" componentContext="EcoNonDelegateTeamMmbrAprvlRqstHTM378_1" />{!dlRoot.dLabel['DL7']}</b> {!theRelatedTo.Project__r.NetServicesRevenue__c} 
+<br/>
+<b><nttdcore:DLabel name="DL8" default="Weighted NSR:" labelParent="{!this}" componentContext="EcoNonDelegateTeamMmbrAprvlRqstHTM378_1" />{!dlRoot.dLabel['DL8']}</b> {!theRelatedTo.Project__r.WeightedNSR__c} 
+<br/>
+<b><nttdcore:DLabel name="DL9" default="Primary End Client:" labelParent="{!this}" componentContext="EcoNonDelegateTeamMmbrAprvlRqstHTM378_1" />{!dlRoot.dLabel['DL9']}</b> {!theRelatedTo.Primary_End_Client__c} 
+<br/>
+<b><nttdcore:DLabel name="DL10" default="Primary Billing Client:" labelParent="{!this}" componentContext="EcoNonDelegateTeamMmbrAprvlRqstHTM378_1" />{!dlRoot.dLabel['DL10']}</b> {!theRelatedTo.Primary_Billing_Client__c} 
+<br/>
+<b><nttdcore:DLabel name="DL11" default="Owner:" labelParent="{!this}" componentContext="EcoNonDelegateTeamMmbrAprvlRqstHTM378_1" />{!dlRoot.dLabel['DL11']}</b> {!theRelatedTo.Project__r.Owner.Name } 
+<br/>
+<b><nttdcore:DLabel name="DL12" default="Estimated AECOM Gross Fee:" labelParent="{!this}" componentContext="EcoNonDelegateTeamMmbrAprvlRqstHTM378_1" />{!dlRoot.dLabel['DL12']}</b> {!theRelatedTo.Project__r.EstimatedContractValue__c} 
+<br/>
+<b><nttdcore:DLabel name="DL13" default="Carrying Out Organization:" labelParent="{!this}" componentContext="EcoNonDelegateTeamMmbrAprvlRqstHTM378_1" />{!dlRoot.dLabel['DL13']}</b> {!theRelatedTo.Project__r.CarryingOutOrganizationFormula__c} 
+<br/>
+<b><nttdcore:DLabel name="DL14" default="Percentage Margin:" labelParent="{!this}" componentContext="EcoNonDelegateTeamMmbrAprvlRqstHTM378_1" />{!dlRoot.dLabel['DL14']}</b> {!theRelatedTo.Project__r.PercentageMargin__c} 
+<br/>
+<b><nttdcore:DLabel name="DL15" default="Total Margin:" labelParent="{!this}" componentContext="EcoNonDelegateTeamMmbrAprvlRqstHTM378_1" />{!dlRoot.dLabel['DL15']}</b> {!theRelatedTo.Project__r.TotalMargin__c} 
+<br/>
+<b><nttdcore:DLabel name="DL16" default="Total Bid Budget:" labelParent="{!this}" componentContext="EcoNonDelegateTeamMmbrAprvlRqstHTM378_1" />{!dlRoot.dLabel['DL16']}</b> {!theRelatedTo.Project__r.TotalBidBudget__c} 
+<br/>
+<b><nttdcore:DLabel name="DL17" default="Estimated Start Date:" labelParent="{!this}" componentContext="EcoNonDelegateTeamMmbrAprvlRqstHTM378_1" />{!dlRoot.dLabel['DL17']}</b>  <apex:outputtext value="{0,date,EEE MMM dd yyyy}" >
+                                       <apex:param value="{!theRelatedTo.Project__r.EstimatedStartDate__c}" />
+                          </apex:outputtext>
+<br/>
+<br/>
+<c:ECO_ApprovalRequestURL relatedtoid="{!theRelatedTo.Id}" />
+<br/>
+ <a href="{!LEFT($Api.Partner_Server_URL_290,FIND('services',$Api.Partner_Server_URL_290)-1)}{!theRelatedTo.Id}" ><nttdcore:DLabel name="DL18" default="Project Team Member Link" labelParent="{!this}" componentContext="EcoNonDelegateTeamMmbrAprvlRqstHTM378_1" /> {!dlRoot.dLabel['DL18']} </a>
+<br/><br/>
+{!dlRoot.dLabel['DL19']}
+    
+    </apex:outputpanel>
+ <nttdcore:DLabelInit language="{!theLanguage}" labelParentInit="{!this}" /></apex:component>

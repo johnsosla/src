@@ -1,0 +1,10 @@
+<apex:component controller="nttdcore.DLabelChildController" >
+<div class="panel panel-default dashbox" >
+	<div class="panel-heading" ><nttdcore:DLabel name="DL1" default="My Alerts" labelParent="{!this}" componentContext="ECO_PMD_MyAlerts" />
+	{!dlRoot.dLabel['DL1']}
+	</div>
+	
+	<div class="panel-body" >
+	</div>
+</div>
+</apex:component>

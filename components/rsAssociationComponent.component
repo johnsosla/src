@@ -1,0 +1,314 @@
+<apex:component controller="rsAssociationController" allowDML="true">
+
+    <apex:attribute name="rsProfile" assignTo="{!profile}" description="" type="rsProfile" required="true"/>
+
+    <apex:attribute name="reRender" description="" type="String" required="false"/>
+
+    <script type="text/javascript">
+        inputFields = ['[id$=memSince]', '[id$=heldFrom]', '[id$=heldTo]'];
+        var j$ = jQuery.noConflict();
+        j$(document).ready(function() {
+            if( '{!IsSF1}' == 'true' ) {
+                j$('[id$=assoAttachLink]').removeAttr('onclick href').parent().addClass('disabled');
+            }
+            helpTextSetup();
+            setAssociationRequiredFields();
+            setUpAffParts();
+            setDatePickers();
+        });
+
+        function setAssociationRequiredFields() {
+            if ( $j('[id$=position]').val() ) {
+                requiredFields = ['[id$=assocName]', '[id$=heldFrom]'];
+            } else {
+                requiredFields = ['[id$=assocName]'];
+            }
+        }
+        function setUpAffParts() {
+            j$('a[id$=moveAffPartUp]').each(function() {
+                if(j$(this).hasClass('0')) {
+                    j$(this).removeAttr('onclick href').parent().addClass('disabled');
+                    j$(this).click(function(e) {
+                        e.preventDefault();
+                    });
+                }
+            });
+            j$('a[id$=moveAffPartDown]').each(function() {
+                var arr = j$(this).attr('class').split(" ");
+                if((arr.length == 1 && arr[0] == '0')) {
+                    j$(this).removeAttr('onclick href').parent().addClass('disabled');
+                    j$(this).click(function(e) {
+                        e.preventDefault();
+                    });
+                }
+                else if (arr[0] == arr[1] || (arr[0] == '0' && arr[1].length == 0)) {
+                    j$(this).removeAttr('onclick href').parent().addClass('disabled');
+                    j$(this).click(function(e) {
+                        e.preventDefault();
+                    });
+                }
+            });
+        }
+    </script>
+
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h3 class="panel-title has-spinner pull-left" id="affHeader">{!$Label.Professional_Affiliation}&nbsp;<img height="15" width="15" class="spinner" src="{!URLFOR($Resource.rs_bundle, '/images/loading.gif')}" alt="loading" title="loading"/></h3>
+
+            <apex:commandLink value="" styleClass="{!IF(canEdit, '','disabled')} has-spinner pull-right " reRender="{!reRender}" action="{!newPart}" onclick="if(inProgress) return false; showSectionSpinner('affHeader'); inProgress = true;" oncomplete="resetProgress(); setupFields();focusField('assocName');" rendered="{!IsListMode && canEdit}">
+                 <span title="{!$Label.Add}" class="glyphicon glyphicon-plus"></span>
+            </apex:commandLink>
+            <div class="clearfix"/>
+        </div>
+
+        <div class="panel-body">
+
+            <apex:outputPanel rendered="{!IsEditMode}">
+            <apex:actionRegion >
+                <table id="editTable" class="table">
+                    <tbody>
+                        <tr>
+                            <td style="border-top:none;">
+                                <apex:outputLabel for="assocName" value="{!$ObjectType['rs_Profile_Part__c'].fields['Association_Name__c'].Label}" styleClass="helpButton">
+                                    <img src="/s.gif" class="helpOrb" title="{!$ObjectType['rs_Profile_Part__c'].fields['Association_Name__c'].inlineHelpText}"/>
+                                </apex:outputLabel>
+                            </td>
+                            <td style="border-top:none;">
+                                <div class="rsRequired">
+                                    <div class="rsRequiredBlock"/>
+                                    <apex:inputText id="assocName" value="{!CurrentPart.AssociationName}" maxlength="255"/>
+                                    <span class="rsError"><br/>{!$ObjectType['rs_Profile_Part__c'].fields['Association_Name__c'].Label} {!$Label.Is_Required}</span>
+                                </div>
+                            </td>
+                            <td style="border-top:none;">
+                                <apex:outputLabel for="memSince" value="{!$ObjectType['rs_Profile_Part__c'].fields['Member_Since__c'].Label}" styleClass="helpButton">
+                                    <img src="/s.gif" class="helpOrb" title="{!$ObjectType['rs_Profile_Part__c'].fields['Member_Since__c'].inlineHelpText}"/>
+                                    </apex:outputLabel>
+                            </td>
+                            <td style="width:250px; border-top:none;">
+                                <apex:inputText id="memSince" styleClass="date" value="{!CurrentPart.MemberSince}"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <apex:outputLabel for="position" value="{!$ObjectType['rs_Profile_Part__c'].fields['Position__c'].Label}" styleClass="helpButton">
+                                    <img src="/s.gif" class="helpOrb" title="{!$ObjectType['rs_Profile_Part__c'].fields['Position__c'].inlineHelpText}"/>
+                                </apex:outputLabel>
+                            </td>
+                            <td>
+                                <apex:inputText id="position" value="{!CurrentPart.Position}" maxlength="255"/>
+                            </td>
+
+                            <td>&nbsp;</td>
+                            <td>&nbsp;</td>
+
+
+                        </tr>
+                        <tr>
+                            <td>
+                                <apex:outputLabel for="heldFrom" value="{!$ObjectType['rs_Profile_Part__c'].fields['Position_Held_From__c'].Label}" styleClass="helpButton">
+                                    <img src="/s.gif" class="helpOrb" title="{!$ObjectType['rs_Profile_Part__c'].fields['Position_Held_From__c'].inlineHelpText}"/>
+                                </apex:outputLabel>
+                            </td>
+                            <td>
+                                <apex:inputText id="heldFrom" styleClass="date" value="{!CurrentPart.HeldFrom}"/>
+                                <span class="rsError"><br/>{!$ObjectType['rs_Profile_Part__c'].fields['Position_Held_From__c'].Label} {!$Label.Is_Required}</span>
+                            </td>
+                            <td>
+                                <apex:outputLabel for="heldTo" value="{!$ObjectType['rs_Profile_Part__c'].fields['Position_Held_To__c'].Label}" styleClass="helpButton">
+                                    <img src="/s.gif" class="helpOrb" title="{!$ObjectType['rs_Profile_Part__c'].fields['Position_Held_To__c'].inlineHelpText}"/>
+                                </apex:outputLabel>
+                            </td>
+                            <td colspan="3">
+                                <apex:inputText id="heldTo" styleClass="date" value="{!CurrentPart.HeldTo}"/>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <br />
+                <div class="text-center">
+                    <apex:commandLink action="{!savePart}" value="{!$Label.Save}" styleClass="btn brandStyledBtn" reRender="{!reRender}" onclick="if(inProgress) return false; setAssociationRequiredFields(); if(!checkRequiredFields()) return false; showSectionSpinner('affHeader'); inProgress = true;" oncomplete="resetProgress();">
+                         <span class="glyphicon glyphicon-ok-circle"></span>
+                    </apex:commandLink>
+                    &nbsp;
+                    <apex:commandLink action="{!saveAndApprove}" value="{!$Label.Save_And_Approve}" styleClass="btn brandStyledBtn" reRender="{!reRender}" onclick="if(inProgress) return false; setAssociationRequiredFields(); if(!checkRequiredFields()) return false; showSectionSpinner('affHeader'); inProgress = true;" oncomplete="resetProgress();" rendered="{!isApprovable && CurrentPart.IsPendingOrInReview}">
+                         <apex:param value="{!CurrentPart.Id}" name="partId"/>
+                         <span class="glyphicon glyphicon-ok-circle"></span>
+                    </apex:commandLink>
+                    &nbsp;
+                    <apex:commandLink action="{!cancelPart}" value="{!$Label.Cancel}" styleClass="btn btn--neutral" reRender="{!reRender}" onclick="if(inProgress) return false; showSectionSpinner('affHeader'); inProgress = true; clearInputFields();" oncomplete="resetProgress();">
+                         <span class="glyphicon glyphicon-remove-circle"></span>
+                    </apex:commandLink>
+                </div>
+            </apex:actionRegion>
+
+            </apex:outputPanel>
+
+            <apex:outputPanel rendered="{!IsViewMode}">
+                <div class="col-md-4 text-center">
+                    <apex:commandLink action="{!cancelPart}" immediate="true" value="{!$Label.Cancel}" styleClass="btn btn--neutral" reRender="{!reRender}" onclick="if(inProgress) return false; showSectionSpinner('affHeader'); inProgress = true;" oncomplete="resetProgress();">
+                         <span class="glyphicon glyphicon-remove-circle"></span>
+                    </apex:commandLink>
+                </div>
+                <br/>
+                <table class="table">
+                    <tbody>
+                        <tr>
+                            <td><apex:outputLabel value="{!$ObjectType['rs_Profile_Part__c'].fields['Association_Name__c'].Label}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['rs_Profile_Part__c'].fields['Association_Name__c'].inlineHelpText}"/></apex:outputLabel></td>
+                            <td>
+                                <apex:outputText value="{!CurrentPart.AssociationName}"/>
+                            </td>
+                            <td>
+                                <apex:outputLabel value="{!$ObjectType['rs_Profile_Part__c'].fields['Member_Since__c'].Label}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['rs_Profile_Part__c'].fields['Member_Since__c'].inlineHelpText}"/></apex:outputLabel>
+                            </td>
+                            <td>
+                                <apex:outputText value="{!CurrentPart.MemberSince}"/>
+                            </td>
+                        </tr>
+                        <tr colspan="4">
+                            <td><apex:outputLabel value="{!$ObjectType['rs_Profile_Part__c'].fields['Position__c'].Label}" styleClass="helpButton"><img src="/s.gif" class="helpOrb" title="{!$ObjectType['rs_Profile_Part__c'].fields['Position__c'].inlineHelpText}"/></apex:outputLabel></td>
+                            <td><apex:outputText value="{!CurrentPart.Position}"/></td>
+                            <td colspan="2"> </td>
+                        </tr>
+
+                        <tr>
+                            <td>
+                                <apex:outputLabel for="heldFromOut" value="{!$ObjectType['rs_Profile_Part__c'].fields['Position_Held_From__c'].Label}" styleClass="helpButton">
+                                    <img src="/s.gif" class="helpOrb" title="{!$ObjectType['rs_Profile_Part__c'].fields['Position_Held_From__c'].inlineHelpText}"/>
+                                </apex:outputLabel>
+                            </td>
+                            <td>
+                                <apex:outputText id="heldFromOut" value="{!CurrentPart.HeldFrom}"/>
+                                <span class="rsError"><br/>{!$ObjectType['rs_Profile_Part__c'].fields['Position_Held_From__c'].Label} {!$Label.Is_Required}</span>
+                            </td>
+                            <td>
+                                <apex:outputLabel for="outheldTo" value="{!$ObjectType['rs_Profile_Part__c'].fields['Position_Held_To__c'].Label}" styleClass="helpButton">
+                                    <img src="/s.gif" class="helpOrb" title="{!$ObjectType['rs_Profile_Part__c'].fields['Position_Held_To__c'].inlineHelpText}"/>
+                                </apex:outputLabel>
+                            </td>
+                            <td colspan="3">
+                                <apex:outputText id="outheldTo" value="{!CurrentPart.HeldTo}"/>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </apex:outputPanel>
+
+
+
+
+            <apex:outputPanel rendered="{!IsListMode}" id="assocPanel">
+
+            <table id="regTable" class="table">
+                <thead>
+                    <tr>
+                        <th>{!$Label.Action}</th>
+                        <th>
+                            <apex:commandLink action="{!sortParts}" reRender="assocPanel" onclick="if (inProgress) return false; inProgress = true;" oncomplete="resetProgress();sortOrderArrow(this.id);setUpAffParts();" value="{!$ObjectType['rs_Profile_Part__c'].fields['Association_Name__c'].Label}">
+                                <apex:param name="sortField" value="Association_Name__c"/>
+                                <span class="toggleClassDown glyphicon glyphicon-chevron-down"></span>
+                                <span class="toggleClassUp glyphicon glyphicon-chevron-up"></span>
+                            </apex:commandLink>
+                        </th>
+                        <th>
+                            <apex:commandLink action="{!sortParts}" reRender="assocPanel" onclick="if (inProgress) return false; inProgress = true;" oncomplete="resetProgress();sortOrderArrow(this.id);setUpAffParts();" value="{!$ObjectType['rs_Profile_Part__c'].fields['Member_Since__c'].Label}">
+                                <apex:param name="sortField" value="Member_Since__c"/>
+                                <span class="toggleClassDown glyphicon glyphicon-chevron-down"></span>
+                                <span class="toggleClassUp glyphicon glyphicon-chevron-up"></span>
+                            </apex:commandLink>
+                        </th>
+                        <th>
+                            <apex:commandLink action="{!sortParts}" reRender="assocPanel" onclick="if (inProgress) return false; inProgress = true;" oncomplete="resetProgress();sortOrderArrow(this.id);setUpAffParts();" value="{!$ObjectType['rs_Profile_Part__c'].fields['Position__c'].Label}">
+                                <apex:param name="sortField" value="Position__c"/>
+                                <span class="toggleClassDown glyphicon glyphicon-chevron-down"></span>
+                                <span class="toggleClassUp glyphicon glyphicon-chevron-up"></span>
+                            </apex:commandLink>
+                        </th>
+                        <th class="text-center">{!$Label.Attachment}</th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                    <apex:repeat value="{!ViewParts}" var="part">
+                        <tr style="background-color:{!IF(part.ProfilePart.IsPendingOrInReview, 'LightYellow', 'white')};">
+                            <td>
+                                <div class="dropdown">
+                                    <button class="wrench btn-default btn-sm dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown">
+                                        <span class="glyphicon glyphicon-wrench"></span>
+                                    </button>
+                                    <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">
+                                        <li role="presentation">
+                                            <apex:commandLink tabindex="-1" html-data-role="menuitem" action="{!viewPart}" value="{!$Label.View}" reRender="{!reRender}" onclick="if(inProgress) return false; showSectionSpinner('affHeader'); inProgress = true;" oncomplete="resetProgress();">
+                                                <apex:param value="{!part.ProfilePart.Id}" name="partId"/>
+                                            </apex:commandLink>
+                                        </li>
+                                        <apex:outputPanel rendered="{!canEdit}" layout="none">
+                                            <li role="presentation">
+                                                <apex:commandLink tabindex="-1" html-data-role="menuitem" action="{!editPart}" value="{!$Label.Edit}" reRender="{!reRender}" onclick="if(inProgress) return false; showSectionSpinner('affHeader'); inProgress = true;" oncomplete="resetProgress(); setDatePickers();setupFields();">
+                                                    <apex:param value="{!part.ProfilePart.Id}" name="partId"/>
+                                                </apex:commandLink>
+                                            </li>
+                                              <li role="presentation" class="divider"></li>
+                                            <li>
+                                                <apex:commandLink tabindex="-1" html-data-role="menuitem" action="{!movePartUp}" value="{!$Label.Move_Part_Up}" styleClass="{!part.ProfilePart.PartSequence}" reRender="{!reRender}" oncomplete="resetProgress();" onclick="if(inProgress) return false; showSectionSpinner('affHeader'); inProgress = true;" id="moveAffPartUp">
+                                                    <apex:param value="{!part.ProfilePart.Id}" name="partId"/>
+                                                </apex:commandLink>
+                                            </li>
+                                            <li>
+                                                <apex:commandLink tabindex="-1" html-data-role="menuitem" action="{!movePartDown}" value="{!$Label.Move_Part_Down}" styleClass="{!Parts.size - 1} {!part.ProfilePart.PartSequence}" reRender="{!reRender}" oncomplete="resetProgress();" onclick="if(inProgress) return false; showSectionSpinner('affHeader'); inProgress = true;" id="moveAffPartDown">
+                                                    <apex:param value="{!part.ProfilePart.Id}" name="partId"/>
+                                                </apex:commandLink>
+                                            </li>
+                                            <li role="presentation" class="divider"></li>
+                                            <li role="presentation">
+                                                <apex:commandLink tabindex="-1" html-data-role="menuitem" value="{!$Label.Add_Attachment}" onclick="if(inProgress) return false; showSectionSpinner('affHeader'); inProgress = true; window.top.location.href='/apex/rsAttachment?partId={!part.ProfilePart.Id}&retUrl=/_ui/core/userprofile/UserProfilePage&ownerId={!profile.Id}&tab=Skills_and_Qualifications&tab.Skills_and_Qualifications.subtab=2';" oncomplete="resetProgress();" id="assoAttachLink">
+                                                    <apex:param value="{!part.ProfilePart.Id}" name="partId"/>
+                                                </apex:commandLink>
+                                            </li>
+                                            <li role="presentation">
+                                                <apex:commandLink action="{!deleteAttachment}" reRender="{!reRender}" rendered="{!part.DeleteRender}" value="{!$Label.Remove_Attachment}" onclick="if(inProgress) return false; if(!confirmDeleteAttachment()) return false; showSectionSpinner('affHeader');">
+                                                    <apex:param name="attachmentId" value="{!part.ProfilePart.AttachmentId}"/>
+                                                    <apex:param name="partId" value="{!part.ProfilePart.Id}"/>
+                                                </apex:commandLink>
+                                            </li>
+                                            <li role="presentation" class="divider"></li>
+                                            <li role="presentation">
+                                                <apex:commandLink tabindex="-1" html-data-role="menuitem" action="{!deletePart}" value="{!$Label.Delete}" reRender="{!reRender}" onclick="if(inProgress) return false; if(!confirmDeletePart()) return false; inProgress = true; showSectionSpinner('affHeader');" oncomplete="resetProgress();setUpAffParts();">
+                                                    <apex:param value="{!part.ProfilePart.Id}" name="partId"/>
+                                                </apex:commandLink>
+                                            </li>
+                                        </apex:outputPanel>
+                                        <apex:outputPanel layout="none" rendered="{!isApprovable && part.ProfilePart.IsPendingOrInReview}">
+                                            <li role="presentation" class="divider"></li>
+                                            <li role="presentation">
+                                                <apex:commandLink tabindex="-1" html-data-role="menuitem" action="{!approvePart}" value="{!$Label.Approve_Item}" reRender="{!reRender}" onclick="if(inProgress) return false; showSectionSpinner('affHeader'); inProgress = true;" oncomplete="resetProgress();">
+                                                    <apex:param value="{!part.ProfilePart.Id}" name="partId"/>
+                                                </apex:commandLink>
+                                            </li>
+                                        </apex:outputPanel>
+                                    </ul>
+                                </div>
+                            </td>
+                            <td><apex:outputText value="{!part.ProfilePart.AssociationName}"/></td>
+                            <td><apex:outputText value="{!part.ProfilePart.MemberSince}"/></td>
+                            <td><apex:outputText value="{!part.ProfilePart.Position}"/></td>
+                            <td>
+                                <div class="text-center">
+                                    <apex:outputLink value="/servlet/servlet.FileDownload?file={!part.ProfilePart.AttachmentId}" target="_blank">{!part.ProfilePart.AttachmentName}</apex:outputLink>
+                                </div>
+                            </td>
+                        </tr>
+                    </apex:repeat>
+                </tbody>
+            </table>
+
+            <c:rsPaginationComponent nextPage="{!getNextPage}" previousPage="{!getPreviousPage}" firstPage="{!getFirstPage}" lastPage="{!getLastPage}" viewIndex="{!ViewIndex}" viewLimit="{!ViewLimit}" totalParts="{!TotalParts}" pageNumber="{!PageNum}" numberOfPages="{!NumberOfPages}" rendered="{!TotalParts > ResultLimit}" reRender="{!reRender}"/>
+
+            </apex:outputPanel>
+
+
+            <c:rsAutoComplete field="Association_Name__c" fieldId="assocName" sObject="rs_Profile_Part__c"/>
+        </div>
+    </div>
+
+</apex:component>

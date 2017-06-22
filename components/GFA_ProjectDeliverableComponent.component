@@ -1,0 +1,46 @@
+<apex:component >
+    <apex:attribute name="projectDeliverable" description="Project Deliverable that will be worked on" type="GFA_ProjectDeliverable" required="true"/>
+    <apex:attribute name="editMode" description="Are we editing the Project Deliverable?"  type="Boolean" default="false" required="false"/>
+    <apex:attribute name="subtaskName" description="Get Subtask Name while creating new project deliverable"  type="String" default="false" required="false"/>
+    <apex:outputPanel id="projectDeliverableComponent">
+        <div class="panel-body">
+             <table class="table fixedTable">
+                <tbody>
+                    <tr>
+                        <td>
+                            <label>Project Deliverable Name:</label>
+                        </td>
+                        <td>
+                            <apex:outputText value="{!projectDeliverable.Name}" rendered="{!!editMode}"/>
+                            <apex:inputText value="{!projectDeliverable.Name}" rendered="{!editMode}"/>
+                        </td>
+                        <td>
+                            <label>Hidden Deliverable (PM View Only):</label>
+                        </td>
+                        <td>
+                            <apex:outputField value="{!projectDeliverable.obj.Hidden_Deliverable__c}" rendered="{!!editMode}"/>
+                            <apex:inputField value="{!projectDeliverable.obj.Hidden_Deliverable__c}" rendered="{!editMode}"/>
+                        </td>
+                    </tr>
+                    <tr>
+
+                        <td>
+                            <label>Project Subtask: </label>
+                        </td>
+                        <td>
+                            <apex:outputLink value="/apex/GFA_ProjectSubtaskDetailView?id={!projectDeliverable.ProjectSubtaskId}" rendered="{!!editMode}" >{!projectDeliverable.ProjectSubtaskName}</apex:outputLink>
+                            <apex:outputLink value="/apex/GFA_ProjectSubtaskDetailView?id={!projectDeliverable.ProjectSubtaskId}" rendered="{!editMode}" >{!subtaskName}</apex:outputLink>
+                        </td>
+                        <td>
+                            <label>URL:</label>
+                        </td>
+                        <td>
+                            <apex:outputLink value="{!projectDeliverable.Link}" rendered="{!!editMode}" target="_blank">{!projectDeliverable.Link}</apex:outputLink>
+                            <apex:inputText value="{!projectDeliverable.Link}" rendered="{!editMode}"/>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </apex:outputPanel>
+</apex:component>

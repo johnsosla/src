@@ -1,0 +1,612 @@
+<apex:component controller="ECO_PMD_PL_Controller">
+ <apex:attribute name="projectId" description="Project Number" type="String" required="true" />
+
+ 	 <style id="ecopmd.css">
+		/* 
+		  Allow angular.js to be loaded in body, hiding cloaked elements until 
+		  templates compile.  The !important is important given that there may be 
+		  other selectors that are more specific or come later and might alter display.  
+		 */
+        .pmd-table-pl {width:100%; font-size: 12px;}
+        .pmd-table-pl th {text-align:center;background-color:#CCCCCC;}
+	    .pmd-table-pl thead th {text-align:center;background-color:#CCCCCC; min-width: 55px;word-wrap: break-word; white-space: normal !important; padding: 0px 7px;}
+	    .pmd-table-pl tbody th {text-align:right;background-color:#FFFFFF; border-top: thin double #000000;  }
+	    .pmd-table-pl tbody td {text-align:right}
+	    .pmd-table-pl-firstcol {text-align:left !important; border-top: none !important; width:175px;}
+	    .pmd-table-pl-kpihead {text-align:left !important; font-weight: bold; color: #1797c0; line-height: 30px; vertical-align: bottom; border-top: none !important; margin-left: -20px;}
+	    .pmd-table-pl-kpifirstrow {border-top: thin double #000000;}
+	    .pmd-table-pl-date {font-size:smaller;}
+        .bdrR { border-right: 1px solid white; }
+        .bdrB { border-bottom: 1px solid white; padding: 5px;}	   
+        .vfHelpText a { position:relative; margin-left: -20px; float: left; }
+        .vfHelpText a span { display: none; }
+        .vfHelpText a:hover span 
+        {
+        	display: block;
+			position:absolute;
+			top:1.25em;
+			padding:2px 2px;
+			margin-left: 20px;
+			z-index:100;
+			border:1px solid orange;
+			background-color:#FEFDB9;
+			color:black;
+			min-width: 350px;
+			/*font-weight: normal !important;			*/
+         }
+         /*.light{text-align:left !important; border-top: none !important; width: 25px !important; color: #cfcfcf; text-decoration: italic;}*/
+         .light{float: right; color: #cfcfcf; font-style: italic;}
+    </style>
+
+    <div ng-controller="dashPLController" class="panel panel-default dashbox ng-cloak">
+    	<div class="panel-heading">
+	  		 <a ng-href="{{snapshotURL}}">{!$Label.ECO_PMD_PL_PANELNAME}</a> - <span ng-bind="SFDCDATA.current.SnapshotDate__c | date:'longDate'"></span><span ng-Show="SFDCDATA.nodata"><b>{!$Label.ECO_PMD_NO_DATA}</b></span>
+		</div>
+		<div class="text-center" ng-hide="isLoaded">
+        		<span class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span>
+    	</div>
+		
+		<div class="panel-body" ng-show="isLoaded">
+			<table class="pmd-table-pl">
+				<thead>
+					<tr>						
+						<td></td>
+						<th colspan="3" class="bdrR bdrB">{!$Label.ECO_PMD_PL_PERIODS_ACTUALS}</th>
+						<th colspan="4" class="bdrR bdrB">{!$Label.ECO_PMD_PL_FORECAST}</th>
+						<th colspan="2" class="bdrB">{!$Label.ECO_PMD_PL_APPROVED}</th>
+					</tr>
+					<tr>
+						<td><span ng-bind="SFDCDATA.current.CurrencyIsoCode"></span> (k)</td>
+						<th>{!$Label.ECO_PMD_PL_MTD}</th>
+						<th>{!$Label.ECO_PMD_PL_YTD}</th>
+						<th class="bdrR">{!$Label.ECO_PMD_PL_ITD}</th>
+						<th>{!$Label.ECO_PMD_PL_ETC}</th>
+						<th>{!$Label.ECO_PMD_PL_CURR_EAC}</th>
+						<!-- <th>{!$Label.ECO_PMD_PL_PENDING}</th>
+						<th>{!$Label.ECO_PMD_PL_DRAFT}</th> -->
+						<th>{!$Label.ECO_PMD_PL_PREVIOUS_EAC}</th>
+						<th class="bdrR">{!$Label.ECO_PMD_PL_FORECAST_DELTA}</th>
+						<th>{!$Label.ECO_PMD_PL_CURRENT_BUDGET}</th>
+						<th>{!$Label.ECO_PMD_PL_ORIGINAL_BUDGET}</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<th class='pmd-table-pl-firstcol'>{!$Label.ECO_PMD_PL_GROSS_REV}</th>
+						<th ng-class="{'negative':SFDCDATA.current.GrossRevenueMonthToDate__c < 0}" ng-bind="SFDCDATA.current.GrossRevenueMonthToDate__c/1000 | number:1"></th>
+						<th ng-class="{'negative':SFDCDATA.current.GrossRevenueYearToDate__c < 0}" ng-bind="SFDCDATA.current.GrossRevenueYearToDate__c/1000 | number:1"></th>
+						<th ng-class="{'negative':SFDCDATA.current.GrossRevenueITD__c < 0}" ng-bind="SFDCDATA.current.GrossRevenueITD__c/1000 | number:1"></th>
+						<th ng-class="{'negative':SFDCDATA.current.GrossRevenueETC__c < 0}" ng-bind="SFDCDATA.current.GrossRevenueETC__c/1000 | number:1"></th>
+						<th ng-class="{'negative':SFDCDATA.current.GrossRevenueForecast__c < 0}" ng-bind="SFDCDATA.current.GrossRevenueForecast__c/1000 | number:1"></th>
+						<!-- <th ng-class="{'negative':(SFDCDATA.current.GrossRevenueForecast__c + SFDCDATA.current.GrossRevenueUnapproved__c) < 0}" ng-bind="(SFDCDATA.current.GrossRevenueForecast__c + SFDCDATA.current.GrossRevenueUnapproved__c)/1000 | number:1"></th>
+						<th ng-class="{'negative':SFDCDATA.current.GrossRevenueDraft__c < 0}" ng-bind="SFDCDATA.current.GrossRevenueDraft__c/1000 | number:1"></th> -->					
+						<th ng-class="{'negative':SFDCDATA.current.GrossRevenueForecastPrevME__c < 0}" ng-bind="SFDCDATA.current.GrossRevenueForecastPrevME__c/1000 | number:1"></th>
+						<th ng-class="{'negative':SFDCDATA.current.GrossRevenueForecastDelta__c  < 0}" ng-bind="SFDCDATA.current.GrossRevenueForecastDelta__c /1000 | number:1"></th>
+						<th ng-class="{'negative':SFDCDATA.current.GrossRevenueBudget__c < 0}" ng-bind="SFDCDATA.current.GrossRevenueBudget__c/1000 | number:1"></th>
+						<th ng-class="{'negative':SFDCDATA.current.GrossRevenueBudgetOriginal__c < 0}" ng-bind="SFDCDATA.current.GrossRevenueBudgetOriginal__c/1000 | number:1"></th>
+					</tr>
+					<tr>
+						<td class='pmd-table-pl-firstcol'>{!$Label.ECO_PMD_PL_ODC_SUBS}</td>
+						<td ng-class="{'negative':SFDCDATA.current.CostsODCSUBSMonthtoDate__c < 0}" ng-bind="SFDCDATA.current.CostsODCSUBSMonthtoDate__c/1000 | number:1"></td>
+						<td ng-class="{'negative':SFDCDATA.current.CostsODCSUBSYearToDate__c < 0}" ng-bind="SFDCDATA.current.CostsODCSUBSYearToDate__c/1000 | number:1"></td>
+						<td ng-class="{'negative':SFDCDATA.current.CostsODCSUBSITD__c < 0}" ng-bind="SFDCDATA.current.CostsODCSUBSITD__c/1000 | number:1"></td>
+						<td ng-class="{'negative':SFDCDATA.current.CostsODCSUBSETC__c < 0}" ng-bind="SFDCDATA.current.CostsODCSUBSETC__c/1000 | number:1"></td>
+						<td ng-class="{'negative':SFDCDATA.current.CostsODCSUBSForecast__c < 0}" ng-bind="SFDCDATA.current.CostsODCSUBSForecast__c/1000 | number:1"></td>
+						<!-- <td ng-class="{'negative':(SFDCDATA.current.CostsODCSUBSForecast__c + SFDCDATA.current.CostsODCSUBSUnapproved__c) < 0}" ng-bind="(SFDCDATA.current.CostsODCSUBSForecast__c + SFDCDATA.current.CostsODCSUBSUnapproved__c)/1000 | number:1"></td>
+						<td ng-class="{'negative':SFDCDATA.current.CostsODCSUBSDraft__c < 0}" ng-bind="SFDCDATA.current.CostsODCSUBSDraft__c/1000 | number:1"></td> -->
+						<td ng-class="{'negative':SFDCDATA.current.CostsODCSUBSForecastPrevME__c < 0}" ng-bind="SFDCDATA.current.CostsODCSUBSForecastPrevME__c/1000 | number:1"></td>
+						<td ng-class="{'negative':SFDCDATA.current.CostsODCSUBSForecastDelta__c  < 0}" ng-bind="SFDCDATA.current.CostsODCSUBSForecastDelta__c /1000 | number:1"></td>
+						<td ng-class="{'negative':SFDCDATA.current.CostsODCSUBSBudget__c < 0}" ng-bind="SFDCDATA.current.CostsODCSUBSBudget__c/1000 | number:1"></td>
+						<td ng-class="{'negative':SFDCDATA.current.CostsODCSUBSBudgetOriginal__c < 0}" ng-bind="SFDCDATA.current.CostsODCSUBSBudgetOriginal__c/1000 | number:1"></td>
+					</tr>
+					<tr>
+						<td class='pmd-table-pl-firstcol'>{!$Label.ECO_PMD_PL_ODC_EXP}</td>
+						<td ng-class="{'negative':SFDCDATA.current.CostsODCEXPSMonthtoDate__c < 0}" ng-bind="SFDCDATA.current.CostsODCEXPSMonthtoDate__c/1000 | number:1"></td>
+						<td ng-class="{'negative':SFDCDATA.current.CostsODCEXPSYearToDate__c < 0}" ng-bind="SFDCDATA.current.CostsODCEXPSYearToDate__c/1000 | number:1"></td>
+						<td ng-class="{'negative':SFDCDATA.current.CostsODCEXPSITD__c < 0}" ng-bind="SFDCDATA.current.CostsODCEXPSITD__c/1000 | number:1"></td>
+						<td ng-class="{'negative':SFDCDATA.current.CostsODCEXPSETC__c < 0}" ng-bind="SFDCDATA.current.CostsODCEXPSETC__c/1000 | number:1"></td>
+						<td ng-class="{'negative':SFDCDATA.current.CostsODCEXPSForecast__c < 0}" ng-bind="SFDCDATA.current.CostsODCEXPSForecast__c/1000 | number:1"></td>
+						<!-- <td ng-class="{'negative':(SFDCDATA.current.CostsODCEXPSForecast__c + SFDCDATA.current.CostsODCEXPSUnapproved__c) < 0}" ng-bind="(SFDCDATA.current.CostsODCEXPSForecast__c + SFDCDATA.current.CostsODCEXPSUnapproved__c)/1000 | number:1"></td>
+						<td ng-class="{'negative':SFDCDATA.current.CostsODCEXPSDraft__c < 0}" ng-bind="SFDCDATA.current.CostsODCEXPSDraft__c/1000 | number:1"></td> -->
+						<td ng-class="{'negative':SFDCDATA.current.CostsODCEXPSForecastPrevME__c < 0}" ng-bind="SFDCDATA.current.CostsODCEXPSForecastPrevME__c/1000 | number:1"></td>
+						<td ng-class="{'negative':SFDCDATA.current.CostsODCEXPSForecastDelta__c  < 0}" ng-bind="SFDCDATA.current.CostsODCEXPSForecastDelta__c /1000 | number:1"></td>
+						<td ng-class="{'negative':SFDCDATA.current.CostsODCEXPSBudget__c < 0}" ng-bind="SFDCDATA.current.CostsODCEXPSBudget__c/1000 | number:1"></td>	
+						<td ng-class="{'negative':SFDCDATA.current.CostsODCEXPSBudgetOriginal__c < 0}" ng-bind="SFDCDATA.current.CostsODCEXPSBudgetOriginal__c/1000 | number:1"></td>
+					</tr>
+					<tr>
+						<td class='pmd-table-pl-firstcol'>{!$Label.ECO_PMD_PL_ODC_CONTINGENCY}</td>
+						<td ></td>
+						<td ></td>
+						<td ></td>
+						<td ></td>
+						<td ng-class="{'negative':SFDCDATA.current.ContingencyForecast__c < 0}" ng-bind="SFDCDATA.current.ContingencyForecast__c/1000 | number:1"></td>
+						<!-- <td ng-class="{'negative':SFDCDATA.current.ContingencyDraft__c < 0}" ng-bind="SFDCDATA.current.ContingencyDraft__c/1000 | number:1"></td>
+						<td ng-class="{'negative':SFDCDATA.current.ContingencyForecastPrevME__c < 0}" ng-bind="SFDCDATA.current.ContingencyForecastPrevME__c/1000 | number:1"></td> -->
+						<td ng-class="{'negative':(SFDCDATA.current.ContingencyForecastPrevME__c + SFDCDATA.current.ContingencyUnapproved__c) < 0}" ng-bind="(SFDCDATA.current.ContingencyForecastPrevME__c + SFDCDATA.current.ContingencyUnapproved__c)/1000 | number:1"></td>
+						<td ng-class="{'negative':SFDCDATA.current.ContingencyForecastDelta__c  < 0}" ng-bind="SFDCDATA.current.ContingencyForecastDelta__c/1000 | number:1"></td>
+						<td ng-class="{'negative':SFDCDATA.current.ContingencyBudget__c < 0}" ng-bind="SFDCDATA.current.ContingencyBudget__c/1000 | number:1"></td>
+						<td ng-class="{'negative':SFDCDATA.current.ContingencyBudgetOriginal__c < 0}" ng-bind="SFDCDATA.current.ContingencyBudgetOriginal__c/1000 | number:1"></td>
+					</tr>
+					<tr>
+						<th class='pmd-table-pl-firstcol'>
+							<span class="vfHelpText">
+						        <apex:outputLink value="javascript:return false;">
+						            <img src="/s.gif" alt="" class="helpOrb" />
+						            <span id="ECO_PMD_PL_NSR_HELP">
+						            	<script>
+						            		$('#ECO_PMD_PL_NSR_HELP').html("{!$Label.ECO_PMD_PL_NSR_HELP}");
+						            	</script>	
+						            </span>
+						        </apex:outputLink>
+						    </span>
+						 {!$Label.ECO_PMD_PL_NSR}</th>
+						<th ng-class="{'negative':SFDCDATA.current.NetServiceMonthToDate__c < 0}" ng-bind="SFDCDATA.current.NetServiceMonthToDate__c/1000 | number:1"></th>
+						<th ng-class="{'negative':SFDCDATA.current.NetServiceYearToDate__c < 0}" ng-bind="SFDCDATA.current.NetServiceYearToDate__c/1000 | number:1"></th>
+						<th ng-class="{'negative':SFDCDATA.current.NetServiceITD__c < 0}" ng-bind="SFDCDATA.current.NetServiceITD__c/1000 | number:1"></th>
+						<th ng-class="{'negative':SFDCDATA.current.NetServiceETC__c < 0}" ng-bind="SFDCDATA.current.NetServiceETC__c/1000 | number:1"></th>
+						<th ng-class="{'negative':SFDCDATA.current.NetServiceForecast__c < 0}" ng-bind="SFDCDATA.current.NetServiceForecast__c/1000 | number:1"></th>
+						<!-- <th ng-class="{'negative':(SFDCDATA.current.NetServiceForecast__c + SFDCDATA.current.NetServiceUnapproved__c) < 0}" ng-bind="(SFDCDATA.current.NetServiceForecast__c + SFDCDATA.current.NetServiceUnapproved__c)/1000 | number:1"></th>						
+						<th ng-class="{'negative':SFDCDATA.current.NetServiceDraft__c < 0}" ng-bind="SFDCDATA.current.NetServiceDraft__c/1000 | number:1"></th> -->
+						<th ng-class="{'negative':SFDCDATA.current.NetServiceForecastPrevME__c < 0}" ng-bind="SFDCDATA.current.NetServiceForecastPrevME__c/1000 | number:1"></th>
+						<th ng-class="{'negative':SFDCDATA.current.NetServiceForecastDelta__c  < 0}" ng-bind="SFDCDATA.current.NetServiceForecastDelta__c /1000 | number:1"></th>
+						<th ng-class="{'negative':SFDCDATA.current.NetServiceBudget__c < 0}" ng-bind="SFDCDATA.current.NetServiceBudget__c/1000 | number:1"></th>
+						<th ng-class="{'negative':SFDCDATA.current.NetServiceBudgetOriginal__c < 0}" ng-bind="SFDCDATA.current.NetServiceBudgetOriginal__c/1000 | number:1"></th>
+					</tr>
+					
+					<tr>
+						<td class='pmd-table-pl-firstcol'>
+							<span class="vfHelpText">
+						        <apex:outputLink value="javascript:return false;">
+						            <img src="/s.gif" alt="" class="helpOrb" />
+						            <span id="ECO_PMD_PL_LABOUR_HELP">
+						            	<script>
+						            		$('#ECO_PMD_PL_LABOUR_HELP').html("{!$Label.ECO_PMD_PL_LABOUR_HELP}");
+						            	</script>	
+						            </span>
+						        </apex:outputLink>
+						    </span>
+						 {!$Label.ECO_PMD_PL_LABOUR}</td>
+						<td ng-class="{'negative':SFDCDATA.current.LaborMonthToDate__c < 0}" ng-bind="SFDCDATA.current.LaborMonthToDate__c/1000 | number:1"></td>
+						<td ng-class="{'negative':SFDCDATA.current.LaborYearToDate__c < 0}" ng-bind="SFDCDATA.current.LaborYearToDate__c/1000 | number:1"></td>
+						<td ng-class="{'negative':SFDCDATA.current.LaborITD__c < 0}" ng-bind="SFDCDATA.current.LaborITD__c/1000 | number:1"></td>
+						<td ng-class="{'negative':SFDCDATA.current.LaborETC__c < 0}" ng-bind="SFDCDATA.current.LaborETC__c/1000 | number:1"></td>
+						<!-- <td ng-class="{'negative':SFDCDATA.current.LaborForecast__c < 0}" ng-bind="SFDCDATA.current.LaborForecast__c/1000 | number:1"></td>
+						<td ng-class="{'negative':(SFDCDATA.current.LaborForecast__c + SFDCDATA.current.LaborUnapproved__c) < 0}" ng-bind="(SFDCDATA.current.LaborForecast__c + SFDCDATA.current.LaborUnapproved__c)/1000 | number:1"></td>
+						<td ng-class="{'negative':SFDCDATA.current.LaborDraft__c < 0}" ng-bind="SFDCDATA.current.LaborDraft__c/1000 | number:1"></td> -->
+						<td ng-class="{'negative':SFDCDATA.current.LaborForecastPrevME__c < 0}" ng-bind="SFDCDATA.current.LaborForecastPrevME__c/1000 | number:1"></td>
+						<td ng-class="{'negative':SFDCDATA.current.LaborForecastDelta__c  < 0}" ng-bind="SFDCDATA.current.LaborForecastDelta__c /1000 | number:1"></td>
+						<td ng-class="{'negative':SFDCDATA.current.LaborBudget__c < 0}" ng-bind="SFDCDATA.current.LaborBudget__c/1000 | number:1"></td>
+						<td ng-class="{'negative':SFDCDATA.current.LaborBudgetOriginal__c < 0}" ng-bind="SFDCDATA.current.LaborBudgetOriginal__c/1000 | number:1"></td>
+					</tr>
+					<tr>
+						<td class='pmd-table-pl-firstcol'>
+							<span class="vfHelpText">
+						        <apex:outputLink value="javascript:return false;">
+						            <img src="/s.gif" alt="" class="helpOrb" />
+						            <span id="ECO_PMD_PL_FRINGE_HELP">
+						            	<script>
+						            		$('#ECO_PMD_PL_FRINGE_HELP').html("{!$Label.ECO_PMD_PL_FRINGE_HELP}");
+						            	</script>	
+						            </span>
+						        </apex:outputLink>
+						    </span>
+						    {!$Label.ECO_PMD_PL_FRINGE}</td>
+						<td ng-class="{'negative':SFDCDATA.current.FringeMonthToDate__c < 0}" ng-bind="SFDCDATA.current.FringeMonthToDate__c/1000 | number:1"></td>
+						<td ng-class="{'negative':SFDCDATA.current.FringeYearToDate__c < 0}" ng-bind="SFDCDATA.current.FringeYearToDate__c/1000 | number:1"></td>
+						<td ng-class="{'negative':SFDCDATA.current.FringeITD__c < 0}" ng-bind="SFDCDATA.current.FringeITD__c/1000 | number:1"></td>
+						<td ng-class="{'negative':SFDCDATA.current.FringeETC__c < 0}" ng-bind="SFDCDATA.current.FringeETC__c/1000 | number:1"></td>
+						<td ng-class="{'negative':SFDCDATA.current.FringeForecast__c < 0}" ng-bind="SFDCDATA.current.FringeForecast__c/1000 | number:1"></td>
+						<!-- <td ng-class="{'negative':(SFDCDATA.current.FringeForecast__c + SFDCDATA.current.FringeUnapproved__c) < 0}" ng-bind="(SFDCDATA.current.FringeForecast__c + SFDCDATA.current.FringeUnapproved__c)/1000 | number:1"></td>
+						<td ng-class="{'negative':SFDCDATA.current.FringeDraft__c < 0}" ng-bind="SFDCDATA.current.FringeDraft__c/1000 | number:1"></td> -->
+						<td ng-class="{'negative':SFDCDATA.current.FringeForecastPrevME__c < 0}" ng-bind="SFDCDATA.current.FringeForecastPrevME__c/1000 | number:1"></td>
+						<td ng-class="{'negative':SFDCDATA.current.FringeForecastDelta__c  < 0}" ng-bind="SFDCDATA.current.FringeForecastDelta__c /1000 | number:1"></td>
+						<td ng-class="{'negative':SFDCDATA.current.FringeBudget__c < 0}" ng-bind="SFDCDATA.current.FringeBudget__c/1000 | number:1"></td>
+						<td ng-class="{'negative':SFDCDATA.current.FringeBudgetOriginal__c < 0}" ng-bind="SFDCDATA.current.FringeBudgetOriginal__c/1000 | number:1"></td>
+					</tr>
+					<tr>
+						<th class='pmd-table-pl-firstcol'>
+							<span class="vfHelpText">
+						        <apex:outputLink value="javascript:return false;">
+						            <img src="/s.gif" alt="" class="helpOrb" />
+						            <span id="ECO_PMD_PL_GROSS_MARGIN_HELP">
+						            	<script>
+						            		$('#ECO_PMD_PL_GROSS_MARGIN_HELP').html("{!$Label.ECO_PMD_PL_GROSS_MARGIN_HELP}");
+						            	</script>	
+						            </span>
+						        </apex:outputLink>
+						    </span>
+						    {!$Label.ECO_PMD_PL_GROSS_MARGIN}</th>
+						<th ng-class="{'negative':SFDCDATA.current.GrossMarginMonthToDate__c < 0}" ng-bind="SFDCDATA.current.GrossMarginMonthToDate__c/1000 | number:1"></th>
+						<th ng-class="{'negative':SFDCDATA.current.GrossMarginYearToDate__c < 0}" ng-bind="SFDCDATA.current.GrossMarginYearToDate__c/1000 | number:1"></th>
+						<th ng-class="{'negative':SFDCDATA.current.GrossMarginITD__c < 0}" ng-bind="SFDCDATA.current.GrossMarginITD__c/1000 | number:1"></th>
+						<th ng-class="{'negative':SFDCDATA.current.GrossMarginETC__c < 0}" ng-bind="SFDCDATA.current.GrossMarginETC__c/1000 | number:1"></th>
+						<th ng-class="{'negative':SFDCDATA.current.GrossMarginForecast__c < 0}" ng-bind="SFDCDATA.current.GrossMarginForecast__c/1000 | number:1"></th>
+						<!-- <th ng-class="{'negative':(SFDCDATA.current.GrossMarginForecast__c + SFDCDATA.current.GrossMarginUnapproved__c) < 0}" ng-bind="(SFDCDATA.current.GrossMarginForecast__c + SFDCDATA.current.GrossMarginUnapproved__c)/1000 | number:1"></th>
+						<th ng-class="{'negative':SFDCDATA.current.GrossMarginDraft__c < 0}" ng-bind="SFDCDATA.current.GrossMarginDraft__c/1000 | number:1"></th> -->
+						<th ng-class="{'negative':SFDCDATA.current.GrossMarginForecastPrevME__c < 0}" ng-bind="SFDCDATA.current.GrossMarginForecastPrevME__c/1000 | number:1"></th>
+						<th ng-class="{'negative':SFDCDATA.current.GrossMarginForecastDelta__c  < 0}" ng-bind="SFDCDATA.current.GrossMarginForecastDelta__c /1000 | number:1"></th>
+						<th ng-class="{'negative':SFDCDATA.current.GrossMarginBudget__c < 0}" ng-bind="SFDCDATA.current.GrossMarginBudget__c/1000 | number:1"></th>
+						<th ng-class="{'negative':SFDCDATA.current.GrossMarginBudgetOriginal__c < 0}" ng-bind="SFDCDATA.current.GrossMarginBudgetOriginal__c/1000 | number:1"></th>
+					</tr>
+					<tr>
+						<td class='pmd-table-pl-firstcol'>
+							<span class="vfHelpText">
+						        <apex:outputLink value="javascript:return false;">
+						            <img src="/s.gif" alt="" class="helpOrb" />
+						            <span id="ECO_PMD_PL_OVERHEAD_HELP">
+						            	<script>
+						            		$('#ECO_PMD_PL_OVERHEAD_HELP').html("{!$Label.ECO_PMD_PL_OVERHEAD_HELP}");
+						            	</script>	
+						            </span>
+						        </apex:outputLink>
+						    </span>
+						    {!$Label.ECO_PMD_PL_OVERHEAD}</td>
+						<td ng-class="{'negative':SFDCDATA.current.OverheadMonthToDate__c < 0}" ng-bind="SFDCDATA.current.OverheadMonthToDate__c/1000 | number:1"></td>
+						<td ng-class="{'negative':SFDCDATA.current.OverheadYearToDate__c < 0}" ng-bind="SFDCDATA.current.OverheadYearToDate__c/1000 | number:1"></td>
+						<td ng-class="{'negative':SFDCDATA.current.OverheadITD__c < 0}" ng-bind="SFDCDATA.current.OverheadITD__c/1000 | number:1"></td>
+						<td ng-class="{'negative':SFDCDATA.current.OverheadETC__c < 0}" ng-bind="SFDCDATA.current.OverheadETC__c/1000 | number:1"></td>
+						<td ng-class="{'negative':SFDCDATA.current.OverheadForecast__c < 0}" ng-bind="SFDCDATA.current.OverheadForecast__c/1000 | number:1"></td>
+						<!-- <td ng-class="{'negative':(SFDCDATA.current.OverheadForecast__c + SFDCDATA.current.OverheadUnapproved__c) < 0}" ng-bind="(SFDCDATA.current.OverheadForecast__c + SFDCDATA.current.OverheadUnapproved__c)/1000 | number:1"></td>
+						<td ng-class="{'negative':SFDCDATA.current.OverheadDraft__c < 0}" ng-bind="SFDCDATA.current.OverheadDraft__c/1000 | number:1"></td> -->
+						<td ng-class="{'negative':SFDCDATA.current.OverheadForecastPrevME__c < 0}" ng-bind="SFDCDATA.current.OverheadForecastPrevME__c/1000 | number:1"></td>
+						<td ng-class="{'negative':SFDCDATA.current.OverheadForecastDelta__c  < 0}" ng-bind="SFDCDATA.current.OverheadForecastDelta__c /1000 | number:1"></td>
+						<td ng-class="{'negative':SFDCDATA.current.OverheadBudget__c < 0}" ng-bind="SFDCDATA.current.OverheadBudget__c/1000 | number:1"></td>
+						<td ng-class="{'negative':SFDCDATA.current.OverheadBudgetOriginal__c < 0}" ng-bind="SFDCDATA.current.OverheadBudgetOriginal__c/1000 | number:1"></td>
+					</tr>
+					<tr>
+						<th class='pmd-table-pl-firstcol'>
+							<span class="vfHelpText">
+						        <apex:outputLink value="javascript:return false;">
+						            <img src="/s.gif" alt="" class="helpOrb" />
+						            <span id="ECO_PMD_PL_NET_MARGIN_HELP">
+						            	<script>
+						            		$('#ECO_PMD_PL_NET_MARGIN_HELP').html("{!$Label.ECO_PMD_PL_NET_MARGIN_HELP}");
+						            	</script>	
+						            </span>
+						        </apex:outputLink>
+						    </span>
+						    {!$Label.ECO_PMD_PL_NET_MARGIN}</th>
+						<th ng-class="{'negative':SFDCDATA.current.NetMarginMonthToDate__c < 0}" ng-bind="SFDCDATA.current.NetMarginMonthToDate__c/1000 | number:1"></th>
+						<th ng-class="{'negative':SFDCDATA.current.NetMarginYearToDate__c < 0}" ng-bind="SFDCDATA.current.NetMarginYearToDate__c/1000 | number:1"></th>
+						<th ng-class="{'negative':SFDCDATA.current.NetMarginITD__c < 0}" ng-bind="SFDCDATA.current.NetMarginITD__c/1000 | number:1"></th>
+						<th ng-class="{'negative':SFDCDATA.current.NetMarginETC__c < 0}" ng-bind="SFDCDATA.current.NetMarginETC__c/1000 | number:1"></th>
+						<th ng-class="{'negative':SFDCDATA.current.NetMarginForecast__c < 0}" ng-bind="SFDCDATA.current.NetMarginForecast__c/1000 | number:1"></th>
+						<!-- <th ng-class="{'negative':(SFDCDATA.current.NetMarginForecast__c + SFDCDATA.current.NetMarginUnapproved__c) < 0}" ng-bind="(SFDCDATA.current.NetMarginForecast__c + SFDCDATA.current.NetMarginUnapproved__c)/1000| number:1"></th>
+						<th ng-class="{'negative':SFDCDATA.current.NetMarginDraft__c < 0}" ng-bind="SFDCDATA.current.NetMarginDraft__c/1000 | number:1"></th> -->
+						<th ng-class="{'negative':SFDCDATA.current.NetMarginForecastPrevME__c < 0}" ng-bind="SFDCDATA.current.NetMarginForecastPrevME__c/1000 | number:1"></th>
+						<th ng-class="{'negative':SFDCDATA.current.NetMarginForecastDelta__c  < 0}" ng-bind="SFDCDATA.current.NetMarginForecastDelta__c /1000 | number:1"></th>
+						<th ng-class="{'negative':SFDCDATA.current.NetMarginBudget__c < 0}" ng-bind="SFDCDATA.current.NetMarginBudget__c/1000 | number:1"></th>
+						<th ng-class="{'negative':SFDCDATA.current.NetMarginBudgetOriginal__c < 0}" ng-bind="SFDCDATA.current.NetMarginBudgetOriginal__c/1000 | number:1"></th>
+					</tr>
+					<tr>
+						<td class='pmd-table-pl-firstcol'>
+							<span class="vfHelpText">
+						        <apex:outputLink value="javascript:return false;">
+						            <img src="/s.gif" alt="" class="helpOrb" />
+						            <span id="ECO_PMD_PL_TOTAL_COST_HELP">
+						            	<script>
+						            		$('#ECO_PMD_PL_TOTAL_COST_HELP').html("{!$Label.ECO_PMD_PL_TOTAL_COST_HELP}");
+						            	</script>
+						            </span>
+						        </apex:outputLink>
+						    </span>
+						    {!$Label.ECO_PMD_PL_TOTAL_COST}</td>
+						<td ng-class="{'negative':SFDCDATA.current.CostMonthToDate__c < 0}" ng-bind="SFDCDATA.current.CostMonthToDate__c/1000 | number:1"></td>
+						<td ng-class="{'negative':SFDCDATA.current.CostYearToDate__c < 0}" ng-bind="SFDCDATA.current.CostYearToDate__c/1000 | number:1"></td>
+						<td ng-class="{'negative':SFDCDATA.current.CostITD__c < 0}" ng-bind="SFDCDATA.current.CostITD__c/1000 | number:1"></td>
+						<td ng-class="{'negative':SFDCDATA.current.CostETC__c < 0}" ng-bind="SFDCDATA.current.CostETC__c/1000 | number:1"></td>
+						<td ng-class="{'negative':SFDCDATA.current.CostForecast__c < 0}" ng-bind="SFDCDATA.current.CostForecast__c/1000 | number:1"></td>
+						<!-- <td ng-class="{'negative':(SFDCDATA.current.CostForecast__c + SFDCDATA.current.CostUnapproved__c) < 0}" ng-bind="(SFDCDATA.current.CostForecast__c + SFDCDATA.current.CostUnapproved__c)/1000 | number:1"></td>
+						<td ng-class="{'negative':SFDCDATA.current.CostDraft__c < 0}" ng-bind="SFDCDATA.current.CostDraft__c/1000 | number:1"></td> -->
+						<td ng-class="{'negative':SFDCDATA.current.CostForecastPrevME__c < 0}" ng-bind="SFDCDATA.current.CostForecastPrevME__c/1000 | number:1"></td>
+						<td ng-class="{'negative':SFDCDATA.current.CostForecastDelta__c  < 0}" ng-bind="SFDCDATA.current.CostForecastDelta__c /1000 | number:1"></td>
+						<td ng-class="{'negative':SFDCDATA.current.CostBudget__c < 0}" ng-bind="SFDCDATA.current.CostBudget__c/1000 | number:1"></td>
+						<td ng-class="{'negative':SFDCDATA.current.CostOrigBudget__c < 0}" ng-bind="SFDCDATA.current.CostOrigBudget__c/1000 | number:1"></td>
+					</tr>
+					<tr>
+						<td class='pmd-table-pl-firstcol'>Cost Plan</td>
+						<td ng-class="{'negative':SFDCDATA.current.CostMonthToDateApproved__c < 0}" ng-bind="SFDCDATA.current.CostMonthToDateApproved__c/1000 | number:1"></td>
+						<td ng-class="{'negative':SFDCDATA.current.CostYearToDateApproved__c < 0}" ng-bind="SFDCDATA.current.CostYearToDateApproved__c/1000 | number:1"></td>
+						<td ng-class="{'negative':SFDCDATA.current.CostITDApproved__c < 0}" ng-bind="SFDCDATA.current.CostITDApproved__c/1000 | number:1"></td>
+						<td></td>
+						<td></td>
+						<!-- <td></td>
+						<td></td> -->
+						<td></td>
+						<td></td>
+						<td></td>
+						<td></td>
+					</tr> 
+					<tr>
+						<th class='pmd-table-pl-kpihead' colspan="1">{!$Label.ECO_PMD_PL_KPI}</th>
+						<th class='pmd-table-pl-kpifirstrow' colspan="9"></th>
+					</tr>
+					<tr>
+						<td class='pmd-table-pl-firstcol'>{!$Label.ECO_PMD_PL_GMNSR}<span class="light">%</span></td>
+						<td ng-class="{'negative':SFDCDATA.current.GMNSRMonthToDate__c < 0}" ng-bind="SFDCDATA.current.GMNSRMonthToDate__c | percentage:1"></td>
+						<td ng-class="{'negative':SFDCDATA.current.GMNSRYearToDate__c < 0}" ng-bind="SFDCDATA.current.GMNSRYearToDate__c | percentage:1"></td>
+						<td ng-class="{'negative':SFDCDATA.current.GMNSRITD__c < 0}" ng-bind="SFDCDATA.current.GMNSRITD__c | percentage:1"></td>
+						<td ng-class="{'negative':SFDCDATA.current.GMNSRETC__c < 0}" ng-bind="SFDCDATA.current.GMNSRETC__c | percentage:1"></td>
+						<td ng-class="{'negative':SFDCDATA.current.GMNSRForecast__c < 0}" ng-bind="SFDCDATA.current.GMNSRForecast__c | percentage:1"></td>
+						<!-- <td ng-class="{'negative':(SFDCDATA.current.GMNSRForecast__c + SFDCDATA.current.GMNSRUnapproved__c) < 0}" ng-bind="(SFDCDATA.current.GMNSRForecast__c + SFDCDATA.current.GMNSRUnapproved__c) | percentage:1"></td>
+						<td ng-class="{'negative':SFDCDATA.current.GMNSRDraft__c < 0}" ng-bind="SFDCDATA.current.GMNSRDraft__c | percentage:1"></td> -->
+						<td ng-class="{'negative':SFDCDATA.current.GMNSRForecastPrevME__c < 0}" ng-bind="SFDCDATA.current.GMNSRForecastPrevME__c | percentage:1"></td>
+						<td ng-class="{'negative':SFDCDATA.current.GMNSRForecastDelta__c  < 0}" ng-bind="SFDCDATA.current.GMNSRForecastDelta__c  | percentage:1"></td>
+						<td ng-class="{'negative':SFDCDATA.current.GMNSRBudget__c < 0}" ng-bind="SFDCDATA.current.GMNSRBudget__c | percentage:1"></td>
+						<td ng-class="{'negative':SFDCDATA.current.GMNSRBudgetOriginal__c < 0}" ng-bind="SFDCDATA.current.GMNSRBudgetOriginal__c | percentage:1"></td>
+					</tr>
+					<tr>
+						<td class='pmd-table-pl-firstcol'>{!$Label.ECO_PMD_PL_NM_GR}<span class="light">%</span></td>
+						<td ng-class="{'negative':SFDCDATA.current.NMGRMonthToDate__c < 0}" ng-bind="SFDCDATA.current.NMGRMonthToDate__c | percentage:1"></td>
+						<td ng-class="{'negative':SFDCDATA.current.NMGRYearToDate__c < 0}" ng-bind="SFDCDATA.current.NMGRYearToDate__c | percentage:1"></td>
+						<td ng-class="{'negative':SFDCDATA.current.NMGRITD__c < 0}" ng-bind="SFDCDATA.current.NMGRITD__c | percentage:1"></td>
+						<td ng-class="{'negative':SFDCDATA.current.NMGRETC__c < 0}" ng-bind="SFDCDATA.current.NMGRETC__c | percentage:1"></td>
+						<td ng-class="{'negative':SFDCDATA.current.NMGRForecast__c < 0}" ng-bind="SFDCDATA.current.NMGRForecast__c | percentage:1"></td>
+						<!-- <td ng-class="{'negative':(SFDCDATA.current.NMGRForecast__c + SFDCDATA.current.NMGRUnapproved__c) < 0}" ng-bind="(SFDCDATA.current.NMGRForecast__c + SFDCDATA.current.NMGRUnapproved__c) | percentage:1"></td>
+						<td ng-class="{'negative':SFDCDATA.current.NMGRDraft__c < 0}" ng-bind="SFDCDATA.current.NMGRDraft__c | percentage:1"></td> -->
+						<td ng-class="{'negative':SFDCDATA.current.NMGRForecastPrevME__c < 0}" ng-bind="SFDCDATA.current.NMGRForecastPrevME__c | percentage:1"></td>
+						<td ng-class="{'negative':SFDCDATA.current.NMGRForecastDelta__c  < 0}" ng-bind="SFDCDATA.current.NMGRForecastDelta__c  | percentage:1"></td>
+						<td ng-class="{'negative':SFDCDATA.current.NMGRBudget__c < 0}" ng-bind="SFDCDATA.current.NMGRBudget__c | percentage:1"></td>
+						<td ng-class="{'negative':SFDCDATA.current.NMGRBudgetOriginal__c < 0}" ng-bind="SFDCDATA.current.NMGRBudgetOriginal__c | percentage:1"></td>
+					</tr>
+					<tr>
+						<td class='pmd-table-pl-firstcol'>{!$Label.ECO_PMD_PL_NM_NSR}<span class="light">%</span></td>
+						<td ng-class="{'negative':SFDCDATA.current.NMNSRMonthToDate__c < 0}" ng-bind="SFDCDATA.current.NMNSRMonthToDate__c | percentage:1"></td>
+						<td ng-class="{'negative':SFDCDATA.current.NMNSRYearToDate__c < 0}" ng-bind="SFDCDATA.current.NMNSRYearToDate__c | percentage:1"></td>
+						<td ng-class="{'negative':SFDCDATA.current.NMNSRITD__c < 0}" ng-bind="SFDCDATA.current.NMNSRITD__c | percentage:1"></td>
+						<td ng-class="{'negative':SFDCDATA.current.NMNSRETC__c < 0}" ng-bind="SFDCDATA.current.NMNSRETC__c | percentage:1"></td>
+						<td ng-class="{'negative':SFDCDATA.current.NMNSRForecast__c < 0}" ng-bind="SFDCDATA.current.NMNSRForecast__c | percentage:1"></td>
+						<!-- <td ng-class="{'negative':(SFDCDATA.current.NMNSRForecast__c + SFDCDATA.current.NMNSRUnapproved__c) < 0}" ng-bind="(SFDCDATA.current.NMNSRForecast__c + SFDCDATA.current.NMNSRUnapproved__c) | percentage:1"></td>
+						<td ng-class="{'negative':SFDCDATA.current.NMNSRDraft__c < 0}" ng-bind="SFDCDATA.current.NMNSRDraft__c | percentage:1"></td> -->
+						<td ng-class="{'negative':SFDCDATA.current.NMNSRForecastPrevME__c < 0}" ng-bind="SFDCDATA.current.NMNSRForecastPrevME__c | percentage:1"></td>
+						<td ng-class="{'negative':SFDCDATA.current.NMNSRForecastDelta__c  < 0}" ng-bind="SFDCDATA.current.NMNSRForecastDelta__c  | percentage:1"></td>
+						<td ng-class="{'negative':SFDCDATA.current.NMNSRBudget__c < 0}" ng-bind="SFDCDATA.current.NMNSRBudget__c | percentage:1"></td>
+						<td ng-class="{'negative':SFDCDATA.current.NMNSRBudgetOriginal__c < 0}" ng-bind="SFDCDATA.current.NMNSRBudgetOriginal__c | percentage:1"></td>
+					</tr>
+					<tr>
+						<td class='pmd-table-pl-firstcol'>{!$Label.ECO_PMD_PL_HOURS}<span class="light">HRS</span></td>
+						<td ng-class="{'negative':SFDCDATA.current.HoursMonthToDate__c < 0}" ng-bind="SFDCDATA.current.HoursMonthToDate__c | number:0"></td>
+						<td ng-class="{'negative':SFDCDATA.current.HoursYearToDate__c < 0}" ng-bind="SFDCDATA.current.HoursYearToDate__c | number:0"></td>
+						<td ng-class="{'negative':SFDCDATA.current.HoursITD__c < 0}" ng-bind="SFDCDATA.current.HoursITD__c | number:0"></td>
+						<td ng-class="{'negative':SFDCDATA.current.HoursETC__c < 0}" ng-bind="SFDCDATA.current.HoursETC__c | number:0"></td>
+						<td ng-class="{'negative':SFDCDATA.current.HoursForecast__c < 0}" ng-bind="SFDCDATA.current.HoursForecast__c | number:0"></td>
+						<!-- <td ng-class="{'negative':(SFDCDATA.current.HoursForecast__c + SFDCDATA.current.HoursUnapproved__c) < 0}" ng-bind="(SFDCDATA.current.HoursForecast__c + SFDCDATA.current.HoursUnapproved__c) | number:0"></td>
+						<td ng-class="{'negative':SFDCDATA.current.HoursDraft__c < 0}" ng-bind="SFDCDATA.current.HoursDraft__c | number:0"></td> -->
+						<td ng-class="{'negative':SFDCDATA.current.HoursForecastPrevME__c < 0}" ng-bind="SFDCDATA.current.HoursForecastPrevME__c | number:0"></td>
+						<td ng-class="{'negative':SFDCDATA.current.HoursForecastDelta__c  < 0}" ng-bind="SFDCDATA.current.HoursForecastDelta__c  | number:0"></td>
+						<td ng-class="{'negative':SFDCDATA.current.HoursBudget__c < 0}" ng-bind="SFDCDATA.current.HoursBudget__c | number:0"></td>
+						<td ng-class="{'negative':SFDCDATA.current.HoursBudgetOriginal__c < 0}" ng-bind="SFDCDATA.current.HoursBudgetOriginal__c | number:0"></td>
+					</tr>
+					<tr>
+						<td class='pmd-table-pl-firstcol'>{!$Label.ECO_PMD_PL_LABOUR_RATE}<span class="light" ng-bind="SFDCDATA.current.CurrencyIsoCode"></span></td>
+						<td ng-class="{'negative':SFDCDATA.current.AvgLaborHourMonthToDate__c < 0}" ng-bind="SFDCDATA.current.AvgLaborHourMonthToDate__c | number:2"></td>
+						<td ng-class="{'negative':SFDCDATA.current.AvgLaborHourYearToDate__c < 0}" ng-bind="SFDCDATA.current.AvgLaborHourYearToDate__c | number:2"></td>
+						<td ng-class="{'negative':SFDCDATA.current.AvgLaborHourITD__c < 0}" ng-bind="SFDCDATA.current.AvgLaborHourITD__c | number:2"></td>
+						<td ng-class="{'negative':SFDCDATA.current.AvgLaborHourETC__c < 0}" ng-bind="SFDCDATA.current.AvgLaborHourETC__c | number:2"></td>
+						<td ng-class="{'negative':SFDCDATA.current.AvgLaborHourForecast__c < 0}" ng-bind="SFDCDATA.current.AvgLaborHourForecast__c | number:2"></td>
+						<!-- <td ng-class="{'negative':(SFDCDATA.current.AvgLaborHourForecast__c + SFDCDATA.current.AvgLaborHourUnapproved__c) < 0}" ng-bind="(SFDCDATA.current.AvgLaborHourForecast__c + SFDCDATA.current.AvgLaborHourUnapproved__c) | number:2"></td>
+						<td ng-class="{'negative':SFDCDATA.current.AvgLaborHourDraft__c < 0}" ng-bind="SFDCDATA.current.AvgLaborHourDraft__c | number:2"></td> -->
+						<td ng-class="{'negative':SFDCDATA.current.AvgLaborHourForecastPrevME__c < 0}" ng-bind="SFDCDATA.current.AvgLaborHourForecastPrevME__c | number:2"></td>
+						<td ng-class="{'negative':SFDCDATA.current.AvgLaborHourForecastDelta__c  < 0}" ng-bind="SFDCDATA.current.AvgLaborHourForecastDelta__c  | number:2"></td>
+						<td ng-class="{'negative':SFDCDATA.current.AvgLaborHourBudget__c < 0}" ng-bind="SFDCDATA.current.AvgLaborHourBudget__c | number:2"></td>
+						<td ng-class="{'negative':SFDCDATA.current.AvgLaborHourBudgetOriginal__c < 0}" ng-bind="SFDCDATA.current.AvgLaborHourBudgetOriginal__c | number:2"></td>
+					</tr>
+					<tr>
+						<td class='pmd-table-pl-firstcol'>
+							<span class="vfHelpText">
+								<apex:outputLink value="javascript:return false;">
+						            <img src="/s.gif" alt="" class="helpOrb" />
+						            <span id="ECO_PMD_PL_DLM_HELP">
+						            	<script>
+						            		$('#ECO_PMD_PL_DLM_HELP').html("{!$Label.ECO_PMD_PL_DLM_HELP}");
+						            	</script>
+						            </span>
+					        	</apex:outputLink>
+				        	</span>
+				        	{!$Label.ECO_PMD_PL_DLM}</td>
+						<td ng-class="{'negative':SFDCDATA.current.LaborMultiplierMonthToDate__c < 0}" ng-bind="SFDCDATA.current.LaborMultiplierMonthToDate__c | number:2"></td>
+						<td ng-class="{'negative':SFDCDATA.current.LaborMultiplierYearToDate__c < 0}" ng-bind="SFDCDATA.current.LaborMultiplierYearToDate__c | number:2"></td>
+						<td ng-class="{'negative':SFDCDATA.current.LaborMultiplierITD__c < 0}" ng-bind="SFDCDATA.current.LaborMultiplierITD__c | number:2"></td>
+						<td ng-class="{'negative':SFDCDATA.current.LaborMultiplierETC__c < 0}" ng-bind="SFDCDATA.current.LaborMultiplierETC__c | number:2"></td>
+						<td ng-class="{'negative':SFDCDATA.current.LaborMultiplierForecast__c < 0}" ng-bind="SFDCDATA.current.LaborMultiplierForecast__c | number:2"></td>
+						<!-- <td ng-class="{'negative':(SFDCDATA.current.LaborMultiplierForecast__c + SFDCDATA.current.LaborMultiplierUnapproved__c) < 0}" ng-bind="(SFDCDATA.current.LaborMultiplierForecast__c + SFDCDATA.current.LaborMultiplierUnapproved__c) | number:2"></td>
+						<td ng-class="{'negative':SFDCDATA.current.LaborMultiplierDraft__c < 0}" ng-bind="SFDCDATA.current.LaborMultiplierDraft__c | number:2"></td> -->
+						<td ng-class="{'negative':SFDCDATA.current.LaborMultiplierForecastPrevME__c < 0}" ng-bind="SFDCDATA.current.LaborMultiplierForecastPrevME__c | number:2"></td>
+						<td ng-class="{'negative':SFDCDATA.current.LaborMultiplierForecastDelta__c  < 0}" ng-bind="SFDCDATA.current.LaborMultiplierForecastDelta__c  | number:2"></td>
+						<td ng-class="{'negative':SFDCDATA.current.LaborMultiplierBudget__c < 0}" ng-bind="SFDCDATA.current.LaborMultiplierBudget__c | number:2"></td>
+						<td ng-class="{'negative':SFDCDATA.current.LaborMultiplierBudgetOriginal__c < 0}" ng-bind="SFDCDATA.current.LaborMultiplierBudgetOriginal__c | number:2"></td>
+					</tr>
+					<tr>
+						<td class='pmd-table-pl-firstcol'>
+							<span class="vfHelpText">
+								<apex:outputLink value="javascript:return false;">
+						            <img src="/s.gif" alt="" class="helpOrb" />
+						            <span id="ECO_PMD_PL_SCM_HELP">
+						            	<script>
+						            		$('#ECO_PMD_PL_SCM_HELP').html("{!$Label.ECO_PMD_PL_SCM_HELP}");
+						            	</script>
+						            </span>
+					        	</apex:outputLink>
+				        	</span>
+					        {!$Label.ECO_PMD_PL_SCM}</td>
+						<td ng-class="{'negative':SFDCDATA.current.SCMMonthToDate__c < 0}" ng-bind="SFDCDATA.current.SCMMonthToDate__c | number:2"></td>
+						<td ng-class="{'negative':SFDCDATA.current.SCMYearToDate__c < 0}" ng-bind="SFDCDATA.current.SCMYearToDate__c | number:2"></td>
+						<td ng-class="{'negative':SFDCDATA.current.SCMITD__c < 0}" ng-bind="SFDCDATA.current.SCMITD__c | number:2"></td>
+						<td ng-class="{'negative':SFDCDATA.current.SCMETC__c < 0}" ng-bind="SFDCDATA.current.SCMETC__c | number:2"></td>
+						<td ng-class="{'negative':SFDCDATA.current.SCMForecast__c < 0}" ng-bind="SFDCDATA.current.SCMForecast__c | number:2"></td>
+						<!-- <td ng-class="{'negative':(SFDCDATA.current.SCMForecast__c + SFDCDATA.current.SCMUnapproved__c) < 0}" ng-bind="(SFDCDATA.current.SCMForecast__c + SFDCDATA.current.SCMUnapproved__c) | number:2"></td>
+						<td ng-class="{'negative':SFDCDATA.current.SCMDraft__c < 0}" ng-bind="SFDCDATA.current.SCMDraft__c | number:2"></td> -->						
+						<td ng-class="{'negative':SFDCDATA.current.SCMForecastPrevME__c < 0}" ng-bind="SFDCDATA.current.SCMForecastPrevME__c | number:2"></td>
+						<td ng-class="{'negative':SFDCDATA.current.SCMForecastDelta__c  < 0}" ng-bind="SFDCDATA.current.SCMForecastDelta__c  | number:2"></td>
+						<td ng-class="{'negative':SFDCDATA.current.SCMBudget__c < 0}" ng-bind="SFDCDATA.current.SCMBudget__c | number:2"></td>
+						<td ng-class="{'negative':SFDCDATA.current.SCMBudgetOriginal__c < 0}" ng-bind="SFDCDATA.current.SCMBudgetOriginal__c | number:2"></td>
+					</tr>
+					<tr>
+						<td class='pmd-table-pl-firstcol'>
+							<!-- <span class="vfHelpText">
+								<apex:outputLink value="javascript:return false;">
+						            <img src="/s.gif" alt="" class="helpOrb" />
+						            <span id="ECO_PMD_PL_LOST_MARGIN_HELP">
+						            	<script>
+						            		$('#ECO_PMD_PL_LOST_MARGIN_HELP').html("{!$Label.ECO_PMD_PL_LOST_MARGIN_HELP}");
+						            	</script>
+						            </span>
+					        	</apex:outputLink>
+				        	</span> -->
+				        	{!$Label.ECO_PMD_PL_LOST_MARGIN}<span class="light" ng-bind="SFDCDATA.current.CurrencyIsoCode"></span></td>
+						<td ng-class="{'negative':SFDCDATA.current.LostMarginMonthToDate__c < 0}" ng-bind="SFDCDATA.current.LostMarginMonthToDate__c/1000 | number:2"></td>
+						<td ng-class="{'negative':SFDCDATA.current.LostMarginYearToDate__c < 0}" ng-bind="SFDCDATA.current.LostMarginYearToDate__c/1000 | number:2"></td>
+						<td ng-class="{'negative':SFDCDATA.current.LostMarginITD__c < 0}" ng-bind="SFDCDATA.current.LostMarginITD__c/1000 | number:2"></td>
+						<td ng-class="{'negative':SFDCDATA.current.LostMarginForecast__c < 0}" ng-bind="(SFDCDATA.current.LostMarginETC__c)/1000 | number:2"></td>
+						<td ng-class="{'negative':SFDCDATA.current.LostMarginForecast__c < 0}" ng-bind="SFDCDATA.current.LostMarginForecast__c/1000 | number:2"></td>
+						<!-- <td ng-class="{'negative':(SFDCDATA.current.LostMarginForecast__c + SFDCDATA.current.LostMarginUnapproved__c) < 0}" ng-bind="(SFDCDATA.current.LostMarginForecast__c + SFDCDATA.current.LostMarginUnapproved__c)/1000 | number:2"></td>
+						<td ng-class="{'negative':SFDCDATA.current.LostMarginDraft__c < 0}" ng-bind="SFDCDATA.current.LostMarginDraft__c/1000 | number:2"></td> -->
+						<td></td>
+						<td></td>
+						<td></td>
+						<td></td>
+					</tr>
+					<tr>
+						<td class='pmd-table-pl-firstcol'>{!$Label.ECO_PMD_PL_END_DATE}</td>
+						<td></td>
+						<td></td>
+						<td></td>
+						<td></td>
+						<td class="pmd-table-pl-date" ng-class="{'negative':SFDCDATA.current.ProjectEndDate__c < 0}" ng-bind="SFDCDATA.current.ProjectEndDate__c | date:'dd-MMM-yy'"></td>
+						<!-- <td></td>						
+						<td></td> -->
+						<td class="pmd-table-pl-date" ng-class="{'negative':SFDCDATA.current.ProjectEndDatePrevME__c < 0}" ng-bind="SFDCDATA.current.ProjectEndDatePrevME__c | date:'dd-MMM-yy'"></td>
+						<td></td>
+						<td class="pmd-table-pl-date" ng-class="{'negative':SFDCDATA.current.CurrentBudgetAsOfDate__c < 0}" ng-bind="SFDCDATA.current.CurrentBudgetAsOfDate__c | date:'dd-MMM-yy'"></td>
+						<td class="pmd-table-pl-date" ng-class="{'negative':SFDCDATA.current.OriginalBudgetAsOfDate__c < 0}" ng-bind="SFDCDATA.current.OriginalBudgetAsOfDate__c | date:'dd-MMM-yy'"></td>
+					</tr>
+				</tbody>	
+			</table>
+		 	
+		</div>
+		<c:ECO_PMD_PanelFooter panelId="KPI">
+			  <apex:outputText value="{!$Label.ECO_PMD_PL_MORE_INFO_BODY}" escape="false">
+			  </apex:outputText>
+		</c:ECO_PMD_PanelFooter>
+	</div>
+
+	<script id="dashpanel.js">
+      (function(){
+    
+        angular
+	        .module("ecopmd")
+	        .controller("dashPLController",dashPLController)
+	        .filter('percentage', ['$filter', function ($filter) {
+			  return function (input, decimals) {
+			  	if(input===undefined){
+			  		return '';
+			  	}
+			    return $filter('number')(input, decimals) + '%';
+			  };
+			}])
+	        .filter('shortNumber', function() {
+				return function( number ) {
+				if ( number ) {
+					abs = Math.abs( number );
+						if (abs >= Math.pow( 10, 3 )) {
+							// thousand
+							number = ( number / Math.pow( 10, 3 ) ).toFixed( 1 ) + "K";
+						}
+						return number;
+					}
+					// if ( abs >= Math.pow( 10, 12 ) ) {
+					// 	// trillion
+					// 	number = ( number / Math.pow( 10, 12 ) ).toFixed( 1 ) + "T";
+					// } else if ( abs < Math.pow( 10, 12 ) && abs >= Math.pow( 10, 9 ) ) {
+					// 	// billion
+					// 	number = ( number / Math.pow( 10, 9 ) ).toFixed( 1 ) + "B";
+					// 	} else if ( abs < Math.pow( 10, 9 ) && abs >= Math.pow( 10, 6 ) ) {
+					// 	// million
+					// 	number = ( number / Math.pow( 10, 6 ) ).toFixed( 1 ) + "M";
+					// } else if ( abs < Math.pow( 10, 6 ) && abs >= Math.pow( 10, 3 ) ) {
+					// 	// thousand
+					// 	number = ( number / Math.pow( 10, 3 ) ).toFixed( 1 ) + "K";
+					// }
+					// 	return number;
+					// }				
+				};
+			});
+        
+        function dashPLController($scope,$locale){
+          $scope.isLoaded = false;
+          $scope.exportedFunction = exportedFunction;
+          $scope.exportedVariable = [];
+            
+          loadData($scope);
+          $scope.isCollapsed = true;  
+         
+                                                                             
+          function internalFunction(param){
+            return param;
+          }
+      
+
+          function exportedFunction(){
+              this.SFDCDATA=[];
+              loadData(this); // this = $scope
+          }
+            
+          var ADJUST_DATE_FROM_GMT_MS = (new Date()).getTimezoneOffset() * 60000 ;
+          function adjustDateFromGMT(valueToAdjust) {
+          	if (typeof(valueToAdjust) != 'undefined')
+          		valueToAdjust += ADJUST_DATE_FROM_GMT_MS;
+          }
+
+          function loadData($scope){
+            $scope.exportedVariable.push(internalFunction("value"));
+            ECO_PMD_PL_Controller.ProjectSnapshot(
+              '{!projectId}',
+              function(result, event){
+              	// console.log(result);
+
+                if(event.status) {
+                  $scope.$apply(function(){
+                  	var tmp = result;
+                      $scope.SFDCDATA = result;
+                      if (!$scope.SFDCDATA.nodata){
+	                      // adjust from GMT in lieu of displaying just the date
+	                      // only SnapshotDate used in JS
+	                      adjustDateFromGMT($scope.SFDCDATA.current.SnapshotDate__c);
+	                      adjustDateFromGMT($scope.SFDCDATA.current.ProjectEndDate__c );
+	                      adjustDateFromGMT($scope.SFDCDATA.current.OriginalBudgetAsOfDate__c);
+	                      adjustDateFromGMT($scope.SFDCDATA.current.CurrentBudgetAsOfDate__c);
+	                      adjustDateFromGMT($scope.SFDCDATA.current.ProjectEndDatePrevME__c);
+	                      $scope.snapshotURL = "/" + $scope.SFDCDATA.current.Id;
+	                  }
+          			  $scope.isLoaded = true;
+                     // console.log('1');
+                  });
+                }
+              });
+          }   
+
+          /*function SFDCTransform(pl){
+          	pl.current.GrossMarginMonthToDate__c = 0;
+			pl.current.GrossMarginYearToDate__c = 0;
+			pl.current.GrossMarginITD__c = 0;
+			pl.current.GrossMarginForecast__c = 0;
+			pl.first.GrossMarginBudget__c = 0;
+			pl.current.GrossMarginBudget__c = 0;
+			pl.previous.GrossMarginForecast__c = 0;
+			pl.current.GrossMarginForecast__c = 0;
+			return pl;
+          } */
+
+        }
+
+        
+    
+      })();
+
+    var setHTML = function(a,b){
+		console.log(a);
+		console.log(b);
+		document.getElementById(a).innerHTML=b;
+	}
+  </script>
+</apex:component>

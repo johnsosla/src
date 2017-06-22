@@ -1,0 +1,17 @@
+<apex:page controller="Code330Pick">
+   <apex:form >
+                <apex:param name="firstParam" assignTo="{!CodeP}" value="" />
+      
+
+   <table><tbody>
+      <tr>
+        <th>330 Code</th>
+          <td>
+             <apex:selectList id="CodeP" styleclass="std" size="10" multiselect="true" value="{!CodeP}">
+                    <apex:selectOptions value="{!ProfileCodeSelectList}"/>
+             </apex:selectList>
+          </td>
+      </tr>
+        </tbody></table>
+   </apex:form>
+</apex:page>

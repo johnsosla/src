@@ -1,0 +1,11 @@
+<apex:component language="{!theLanguage}" controller="nttdcore.DLabelChildController" access="global" ><nttdcore:DLabel name="DL1" default="A Project Burden Multiplier Request for the subject project has been {{1}}.  Please click on the link below for more detail.
+
+
+Project Name:  {{2}}
+Project Number:  {{3}}
+Client:  {{4}}
+Project Manager: {{5}}
+
+{{6}}{{7}}" labelParent="{!this}" componentContext="EcoPrjBurdenMultiplierApprvdorReje699_3" p1="{!theRelatedTo.ApprovalStatus__c}" p2="{!theRelatedTo.Project__r.Name}" p3="{!theRelatedTo.Project__r.ProjectNumber__c}" p4="{!theRelatedTo.Project__r.pse__Account__r.Name}" p5="{!theRelatedTo.ProjectManager__r.Name}" p6="{!LEFT($Api.Partner_Server_URL_290,FIND('services',$Api.Partner_Server_URL_290)-1)}" p7="{!theRelatedTo.Id}" /><apex:attribute name="theLanguage" type="String" required="true" description="language" access="global" /><apex:attribute name="theRecipient" type="User" required="true" description="recipient" access="global" /><apex:attribute name="theRelatedTo" type="ProjectBurdenMultiplierRequest__c" required="true" description="related to" access="global" />
+{!dlRoot.dLabel['DL1']}
+<nttdcore:DLabelInit language="{!theLanguage}" labelParentInit="{!this}" /></apex:component>

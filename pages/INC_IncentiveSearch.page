@@ -1,0 +1,202 @@
+<apex:page showHeader="true" sidebar="true" controller="INC_IncentiveSearch_Controller">
+<style>
+/*#values th{
+    font-size: 10px;
+} 
+#values td{
+    font-size: 10px;
+}
+.fixed { table-layout:fixed; }
+.fixed td { overflow: hidden; }
+*/
+.hiddencolumn{
+    display:none;
+}
+.radiocolumn td{
+    border:none;
+}
+.searchresults{
+    font-size: 8px;
+    table-layout: fixed;
+    width: 100%;
+}
+.selectcol{
+    width: 25px;
+}
+
+#newuser {
+    width: 20%;
+    padding-left: 10px;
+}
+#values{
+    border:none;
+    border-collapse: collapse;
+}
+
+#values td {
+border-left: 1px solid #000;
+border-right: 1px solid #000;
+}
+
+#values td:first-child {
+border-left: none;
+}
+
+#values td:last-child {
+border-right: none;
+}
+
+#values tr {
+    border: 1px solid black;
+}
+#values th {
+    border: 1px solid black;
+}
+
+#projectnumber{
+    width:auto;
+} 
+.radiocolumn {
+    margin-top: -4px;
+    padding-top: 0;
+    width: 100%;
+}
+.largecolumn {
+    width: -moz-fit-content;
+}
+.mediumcolumn{
+    width:100px;
+}
+  .projmessage{
+    border: 1px solid red;
+    background-color: #FFFFCC;
+  }
+</style>
+<apex:form >
+    <apex:pageMessages />
+    
+    <apex:sectionHeader title="" subtitle="{!$Label.DTWINCISIPS}" />
+
+<p class="projmessage">{!$Label.DTWINCISAPMER}
+<br/><br/>
+
+{!$Label.DTWINCPTDNM} 
+<br/><br/>
+
+ {!$Label.DTWINCISNTPE}</p>
+
+    <apex:pageBlock title="{!$Label.DTWINCISSC}">
+        <apex:pageBlockSection title="" showheader="false" columns="1">
+            <apex:pageBlockTable value="{!searchCriteria}" var="row" id="theSearchTable">
+              
+               <apex:column headerValue="{!$Label.DTWINCISROW}">
+                    <apex:outputText value="{!row.Row}"/>
+               </apex:column>
+               
+               <apex:column headerValue="{!$Label.DTWINCISCriteria}">
+                   <apex:selectList value="{!row.criteria}" multiselect="false" size="1">
+                      <apex:selectOptions value="{!row.criteriaRowlist}"/>
+                      <apex:actionSupport event="onchange" reRender="theSearchTable"/>
+                   </apex:selectList>
+               </apex:column>
+                
+               <apex:column headerValue="{!$Label.DTWINCISValue}">
+                    <apex:inputText value="{!blankValue}" html-readonly="true" rendered="{!row.Criteria = ''}"/>
+                    <apex:inputText value="{!row.value}" rendered="{!AND(row.Criteria != '',row.Criteria != 'PM')}"/>
+                    <apex:inputField value="{!row.IncProj.ProjectManager__c}" rendered="{!Row.Criteria = 'PM'}" />
+               </apex:column>
+               <apex:column >
+               
+                   <apex:commandButton value="{!$Label.DTWINCISAddRow}" action="{!addrow}" reRender="theSearchTable"/>
+                    <apex:commandButton value="{!$Label.DTWINCISRemoveRow}" action="{!removerow}" reRender="theSearchTable">
+                      <apex:param name="removerow" value="{!row.row}" assignTo="{!removerow}"/>
+                    </apex:commandButton>
+               </apex:column>
+            </apex:pageBlockTable>
+        </apex:pageBlockSection>
+    </apex:pageBlock>
+    <apex:pageBlock >
+        <apex:pageBlockButtons location="top">
+         
+           <apex:commandButton value="{!$Label.DTWINCISSearch}" action="{!search}"/>
+           <apex:commandButton value="{!$Label.DTWINCISChangeOwner}" action="{!changeowner}" rendered="{!lresults.size > 0}" />
+        </apex:pageBlockButtons>
+        <apex:pageBlockSection showHeader="false" columns="1">
+          <div>
+          <apex:outputpanel rendered="{!lResults.size > 0}">
+            <table id="values" class="searchresults">
+                <tr>
+                     
+                    <th class="selectcol">{!$label.DTWINCISSelect}</th>
+                    
+                    <th id="projectnumber">{!$label.DTWINCISProjectNumber}</th>
+                     
+                    <th class="largecolumn">{!$label.DTWINCISProjectName}</th>
+                     
+                    <th class="largecolumn">{!$label.DTWINCISCustomerName}</th>
+                    
+                    <th class="mediumcolumn">{!$label.DTWINCISApproved}</th>
+                    
+                    <th class="mediumcolumn">{!$label.DTWINCISCurrentOwner}</th>
+                     
+                    <th class="mediumcolumn">{!$label.DTWINCISEnrollment }</th>
+                     
+                    <th id="newuser">{!$label.DTWINCISNew }</th>
+                     
+                    <th id="largecolumn">{!$label.DTWINCISMessages}</th>
+                </tr>
+                <apex:outputPanel >
+                <apex:repeat value="{!lResults}" var="result">
+                  <tr>
+                        <td class="selectcol">
+                          <apex:inputCheckbox label="" value="{!result.changeOwner}"/>
+                        </td>
+                        <apex:outputPanel rendered="{!NOT(result.HasAccess)}">
+                        <td>{!result.oIP.ProjectID__c}</td>
+                        </apex:outputPanel>
+                        <apex:outputPanel rendered="{!result.HasAccess}">
+                        <td><a href='/{!result.oIP.Id}'>{!result.oIP.ProjectID__c}</a></td>
+                        </apex:outputPanel>
+                        <td class="largecolumn">{!result.oIP.Name}</td>
+                        <td class="largecolumn">{!result.oIP.CustomerName__c}</td>
+                        <td class="mediumcolumn">
+                           <apex:outputField value="{!result.oIP.ApprovedNSRBudget__c}"/>
+                        </td>
+                        <td class="largecolumn"><apex:outputField value="{!result.oIP.OwnerID}"/></td>
+                        <td>{!result.oIP.EnrollmentStatus__c}</td>
+                        <td class="radiocolumn">
+                            <apex:selectRadio styleClass="radiocolumn" layout="pageDirection" value="{!result.newOwner}">
+                                <apex:selectOptions value="{!result.possibleOwners}"/>
+                            </apex:selectRadio>
+                        </td>
+                        <td>{!result.message}</td>
+                  </tr>
+                </apex:repeat>
+              </apex:outputpanel>
+            </table>
+            </apex:outputPanel>
+        </div>
+            <!--
+            <apex:pageBlockTable  rowClasses="radiocolumn" styleclass="searchresults" value="{!lResults}" var="result" rendered="{!lresults.size > 0}">
+                <apex:column headerValue="Select">
+                   <apex:inputCheckbox value="{!result.changeOwner}"/>
+                </apex:column>
+                <apex:column value="{!result.oIP.ProjectID__c}"/>
+                <apex:column value="{!result.oIP.Name}"/>
+                <apex:column value="{!result.oIP.CustomerName__c}"/>
+                <apex:column value="{!result.oIP.ApprovedNSRBudget__c}"/>
+                <apex:column value="{!result.oIP.OwnerID}"/>
+                <apex:column value="{!result.oIP.EnrollmentStatus__c}"/>
+                <apex:column headerValue="New Owner">
+                    <apex:selectRadio styleClass="radiocolumn" layout="pageDirection" value="{!result.newOwner}">
+                        <apex:selectOptions value="{!result.possibleOwners}"/>
+                </apex:selectRadio>
+                </apex:column>
+                <apex:column>
+                   <apex:outputtext value="{!result.message}"/>
+                </apex:column>
+            </apex:pageBlockTable> -->
+        </apex:pageBlockSection>
+    </apex:pageBlock>
+</apex:form>
+</apex:page>

@@ -1,0 +1,16 @@
+<apex:component >
+  <apex:attribute name="panelTitle" description="Panel Title" type="String" required="true" />
+  <apex:attribute name="panelContentHeight" description="Panel Height" type="String" required="true" />
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      {!panelTitle}
+    </div>
+    <div class="panel-body">
+      <div style="height:{!panelContentHeight}">
+        <apex:componentBody />
+      </div>
+    </div>
+    <div class="panel-footer">
+    </div>
+  </div>
+</apex:component>

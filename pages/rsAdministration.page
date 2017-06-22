@@ -1,0 +1,80 @@
+<apex:page controller="rsAdministrationController" showHeader="false" sidebar="false" docType="html-5.0">
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1,minimum-scale=1, maximum-scale=1, user-scalable=no"/>
+
+    <apex:stylesheet value="{!URLFOR($Resource.rs_libs, 'bootstrap/css/bootstrap.min.css')}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.rs_libs, 'qtip/jquery.qtip.min.css')}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.rs_bundle, 'css/profilescommon.css')}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.rs_bundle, 'css/buttonSection.css')}"/>
+
+    <script src="{!URLFOR($Resource.rs_libs, 'jquery/jquery.js')}" type="text/javascript" charset="utf-8"/>
+    <script src="{!URLFOR($Resource.rs_libs, 'jqueryui/jquery-ui.js')}" type="text/javascript" charset="utf-8"/>
+    <script>
+        var $j = jQuery.noConflict();
+
+        function onEnter(ev)  {
+            if (window.event && window.event.keyCode == 13 || ev.which == 13) {
+                return false;
+            } else {
+                return true;
+            }
+         }
+    </script>
+
+    <apex:form >
+        <div class="pageContainer">
+            <div id="assignContentManager">
+                <c:rsAssignContentManagerComponent rsProfile="{!Profile}" id="assignCM" reRender="assignCM"/>
+            </div>
+            <div id="updateTracking">
+                <c:rsUpdateTrackingComponent rsProfile="{!Profile}" id="updateTrackingComp" reRender="updateTrackingComp"/>
+            </div>
+            <div id="adminNotes">
+                <c:rsAdministrationNotesComponent rsProfile="{!Profile}" id="adminNotesComp" reRender="adminNotesComp"/>
+            </div>
+        </div>
+    </apex:form>
+
+    <script src="{!URLFOR($Resource.rs_libs, 'bootstrap/js/bootstrap.min.js')}" type="text/javascript" charset="utf-8"></script>
+    <script src="{!URLFOR($Resource.rs_libs, 'qtip/jquery.qtip.min.js')}" type="text/javascript" charset="utf-8"></script>
+    <script src="/canvas/sdk/js/publisher.js" type="text/javascript" charset="utf-8"/>
+    <script src="{!URLFOR($Resource.rs_bundle, 'js/profiles.js')}" type="text/javascript" charset="utf-8"></script>
+
+    <script type="text/javascript">
+        var $ = jQuery.noConflict();
+        var sortDir = ["",""];
+        function confirmDeletePart(){
+          return confirm("{!$Label.Confirm_Delete_Part}");
+        }
+        function sortOrderArrow(elemId) {
+            if(sortDir[0] == "") {
+                sortDir[0] = $('[id="'+elemId+'"]').text();
+            }
+            if(sortDir[0] == $('[id="'+elemId+'"]').text()) {
+                if(sortDir[1] == "up") {
+                    $('[id="'+elemId+'"]').children().each(function(){
+                        if($(this).hasClass('glyphicon-chevron-up')) {
+                            $(this).hide();
+                        } else {
+                            $(this).show();
+                        }
+                    });
+                    sortDir[1] = "down";
+                } else {
+                    $('[id="'+elemId+'"]').children().each(function(){
+                        if($(this).hasClass('glyphicon-chevron-down')) {
+                            $(this).hide();
+                        } else {
+                            $(this).show();
+                        }
+                    });
+                    sortDir[1] = "up";
+                }
+            } else {
+                $('[id="'+elemId+'"]').children('.glyphicon-chevron-up').first().show();
+                sortDir[0] = $('[id="'+elemId+'"]').text();
+                sortDir[1] = "up";
+            }
+        }
+    </script>
+</apex:page>

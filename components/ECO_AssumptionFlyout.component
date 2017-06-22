@@ -1,0 +1,268 @@
+<apex:component layout="none" controller="ECO_AssumptionFlyoutController" allowDML="true">
+	<apex:attribute name="ProjectId" description="Parent Project ID" type="ID" assignTo="{!sProjectId}"  required="true"/>
+	<apex:attribute name="PlanElement" description="Plan Element String" type="String" assignTo="{!sPlanElement}"  required="true"/>
+
+
+	<apex:stylesheet value="{!URLFOR($Resource.ECO_NiftyAssets, 'ECO_NiftyAssets/css/font-awesome.min.css')}" />
+
+	<apex:includeScript value="{!$Resource.ECO_jQuery_1_11_2_min_js}"/>
+	<apex:includeScript value="{!URLFOR($Resource.ECO_jQueryUI_1_11_2, 'jquery-ui.min.js')}" />
+
+	<script>
+	$k = jQuery.noConflict();
+
+		var oldWidth3;
+
+		var AssumptionFlyout = {
+			init : function(){
+				$k('body').on('click', AssumptionFlyout.hideContentFlyout);
+	       		
+	       		$k('#assumptionPane').on('click', function(event) { 
+  					event.stopPropagation();
+	       		});
+	       		
+	       		$k('#assumptionPane .tab').on('click', AssumptionFlyout.showContentFlyout);
+	       		
+	       		$k('#assumptionPane #closeAssumption').click(function(){
+	       			AssumptionFlyout.hideContentFlyout();
+	       		});
+			},
+
+			hideContentFlyout : function(){
+	       		//var width = $k('#assumptionPane').outerWidth() * -1 + 'px';
+	       		
+	       		$k('#assumptionPane').animate({
+		       		right : oldWidth3
+				  }, 550, 'easeInCubic');
+	        },
+	       
+	        showContentFlyout : function(event){
+	       		event.stopPropagation();
+	       		
+	       		if($k('#assumptionPane').css('right') == '0px'){
+	       			AssumptionFlyout.hideContentFlyout();
+	       		}else{
+	       			oldWidth3 = $k('#assumptionPane').css('right');
+	       			$k('#assumptionPane').animate({
+			       		right : 0
+					  }, 550, 'easeOutCubic');
+	       		}
+	        }
+	    }
+
+	    $k(document).ready(function (){
+	    	AssumptionFlyout.init();
+	    });
+    </script>
+
+    <style>
+    	/*
+				FLYOUT STYLES
+		*/
+
+		#assumptionPane.assumptionFlyout {
+			background-color:#f3f3f3;
+			position: fixed;
+			width: 725px;
+			right: -779px;
+			top: 80px;
+			height:550px;
+			padding: 10px 30px 20px 20px;
+			border-right: none;
+			-webkit-border-top-left-radius: 20px;
+			-webkit-border-bottom-left-radius: 20px;
+			-moz-border-radius-topleft: 20px;
+			-moz-border-radius-bottomleft: 20px;
+			border-top-left-radius: 20px;
+			border-bottom-left-radius: 20px;
+			
+			margin-left: 42px;
+			min-height: 400px;
+			box-shadow: 0 0 10px #787878;
+			border: 1px solid #DEDEDE;
+		}
+
+		#assumptionPane.assumptionFlyout .tab {
+			position: absolute;
+			border-right: none;
+			background-color: #f3f3f3;
+			
+			-webkit-border-top-left-radius: 10px;
+			-webkit-border-top-right-radius: 10px;
+			-moz-border-radius-topleft: 10px;
+			border-top-left-radius: 10px;
+			cursor: pointer;
+			padding:7px 8px;
+			box-shadow:0 -3px 4px #959595;
+
+			top:220px;
+			left: -57px;
+
+			-webkit-transform: rotate(-90deg); 
+			-moz-transform: rotate(-90deg);	
+			-ms-transform: rotate(-90deg);
+
+		}
+
+		#assumptionPane.assumptionFlyout .close {
+			color: #D6D6D6;
+			cursor: pointer;
+			display: block;
+			float: right;
+			font-family: 'Platform-Font', Helvetica, Arial, sans-serif;
+			padding-left: 25px;
+			padding-right: 20px;
+			text-align: right;
+			text-transform: uppercase;
+		}
+
+		#assumptionPane.assumptionFlyout .delete{
+			position: absolute;
+			top: 12px;
+			right: 7px;
+			padding: 6px 8px;
+		}
+
+		#assumptionPane.assumptionFlyout .delete:hover{
+			text-decoration:underline;
+		}
+
+		#assumptionPane.assumptionFlyout .header {
+			color: #333;
+			font-size: 25px;
+			padding-bottom: 15px;
+			padding-top: 10px;
+		}
+		
+		#assumptionPane.assumptionFlyout .body {
+			padding-right: 20px;
+		}
+
+		#assumptionPane.assumptionFlyout select{
+			margin:2px 0 5px 0;
+		}
+
+		/* tables */
+		#assumptionPane.assumptionFlyout table.tablesorter {
+			font-family:arial;
+			background-color: #CDCDCD;
+			margin:10px 0pt 15px;
+			font-size: 8pt;
+			width: 100%;
+			text-align: left;
+		}
+		#assumptionPane.assumptionFlyout table.tablesorter thead tr th, table.tablesorter tfoot tr th {
+			background-color: #aebdee;
+			border: 1px solid #FFF;
+			font-size: 8pt;
+			padding: 4px;
+		}
+		#assumptionPane.assumptionFlyout table.tablesorter thead tr .header {
+			background-image: url(bg.gif);
+			background-repeat: no-repeat;
+			background-position: center right;
+			cursor: pointer;
+		}
+		#assumptionPane.assumptionFlyout table.tablesorter tbody td {
+			color: #3D3D3D;
+			padding: 4px;
+			background-color: #FFF;
+			vertical-align: top;
+			height: 20px;
+		}
+		#assumptionPane.assumptionFlyout table.tablesorter tbody tr:nth-child(odd) td {
+			background-color:#F0F0F6;
+		}
+		#assumptionPane.assumptionFlyout table.tablesorter thead tr .headerSortUp {
+			background-image: url(asc.gif);
+		}
+		#assumptionPane.assumptionFlyout table.tablesorter thead tr .headerSortDown {
+			background-image: url(desc.gif);
+		}
+		#assumptionPane.assumptionFlyout table.tablesorter thead tr .headerSortDown, table.tablesorter thead tr .headerSortUp {
+		background-color: #8dbdd8;
+		}
+
+    </style>
+    
+	    <div id="assumptionPane" class="assumptionFlyout flyout">
+			<div class="close" id="closeAssumption">
+				<i class="fa fa-arrow-right" style="color:#333;"></i>
+			</div>
+			<div class="tab">
+				Assumptions
+			</div>
+			<div class="header">
+				Assumption Register
+			</div>
+			<apex:actionRegion >
+			<apex:outputPanel id="flyoutpanelAssumption">
+				<div>
+					<apex:pageBlock mode="mainDetail">
+						<apex:pageBlockSection columns="1" collapsible="false" title="{!$Label.Assumptions_Flyout_Assumption_List}"></apex:pageBlockSection>
+						<div style="text-align:right;margin-bottom:8px;float:right;white-space:nobreak;">Filter:&nbsp;
+							<apex:selectList size="1" value="{!sFilterCriteria}">
+								<apex:selectOptions value="{!lPlanElements}" />
+								<apex:actionSupport rerender="flyoutpanelAssumption" event="onchange" action="{!refresh}" />
+							</apex:selectList>
+						</div>
+						<apex:outputPanel rendered="{!IF(lAssumptions.size == 0, true, false)}">
+							<p>{!$Label.Assumptions_Flyout_Assumption_No_Assumptions}</p>
+						</apex:outputPanel>
+						<apex:outputPanel rendered="{!IF(lAssumptions.size == 0, false, true)}">
+							<div class="list" style="overflow:scroll;height:200px;">
+							<table class="tablesorter" cellpadding="0" cellspacing="0">
+								<thead>
+									<tr>
+										<th width="35px">
+
+										</th>
+										<th width="100px">
+											{!$ObjectType.Assumption__c.Fields.PlanElement__c.label}
+										</th>
+										<th>
+											{!$ObjectType.Assumption__c.Fields.Assumption__c.label}
+										</th>
+									</tr>
+								</thead>
+
+								<tbody>
+									<apex:repeat value="{!lAssumptions}" var="assumption">
+										<tr>
+											<td align="center">
+												<a href="/apex/ECO_AssumptionRegister?projectId={!sProjectId}">View</a>
+											</td>
+											<td>
+												<apex:outputField value="{!assumption.PlanElement__c}" />
+											</td>
+											<td>
+												<apex:outputField value="{!assumption.Assumption__c}" />
+											</td>
+										</tr>
+									</apex:repeat>
+								</tbody>
+							</table>
+							</div>
+						</apex:outputPanel>
+
+						<apex:pageBlockSection columns="1" collapsible="false" title="{!$Label.Assumptions_Flyout_Add_a_New_Assumption}Add a New Assumption">
+							<apex:pageBlockSectionItem >
+								<apex:outputLabel value="{!$ObjectType.Assumption__c.Fields.PlanElement__c.label}" />
+						    	<apex:inputField style="width:85%" value="{!oAssumption.PlanElement__c}"/>
+						    </apex:pageBlockSectionItem>
+						    <apex:pageBlockSectionItem >
+								<apex:outputLabel value="{!$ObjectType.Assumption__c.Fields.Assumption__c.label}" />
+						    	<apex:inputField style="width:85%" value="{!oAssumption.Assumption__c}"/>
+						    </apex:pageBlockSectionItem>
+							<apex:pageBlockSectionItem >
+								<apex:commandButton value="{!$Label.Assumptions_Flyout_Add_New_Assumption_Button}" action="{!saveAssumption}" rerender="flyoutpanelAssumption" />
+								<apex:commandButton value="{!$Label.Assumptions_Flyout_View_Assumption_Register_Button}" action="{!viewRegister}" />
+							</apex:pageBlockSectionItem>
+						</apex:pageBlockSection>
+					</apex:pageBlock>
+				</div>
+			</apex:outputPanel>
+			</apex:actionRegion>
+		</div>
+	
+</apex:component>

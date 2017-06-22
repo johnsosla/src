@@ -1,0 +1,43 @@
+<apex:page standardController="Qtr_Review__c" extensions="QuarterlyReviewExtension" title="Edit Quarterly Financial Results">
+    <apex:sectionHeader title="Account Plan Quarterly Review: {!Qtr_Review__c.AcctPlan__r.Account__r.Name}, {!Qtr_Review__c.Review_Period__c}" subtitle="Edit Quarterly Financial Results"/>
+    <apex:form >
+        <apex:pageMessages />
+    <apex:pageBlock mode="maindetail" title="Quarterly Review">
+        <apex:pageBlockButtons >
+            <apex:commandButton value="Save" action="{!saveFinancials}"/>
+            <apex:commandButton value="Cancel" action="{!cancel}" immediate="true"/>
+        </apex:pageBlockButtons>
+        <apex:pageBlockSection columns="1" collapsible="false" title="Information">
+            <apex:outputField value="{!Qtr_Review__c.AcctPlan__r.Account__r.Name}"/>
+            
+        </apex:pageBlockSection>
+        
+        <apex:pageBlockSection columns="1" collapsible="false" title="Quarterly Financials by Geography">
+            <apex:pageBlockTable value="{!quarterFinancials}" var="qtr">
+            <apex:column value="{!qtr.Geography__c}"/>
+            
+            <apex:column headerValue="{!$ObjectType.Quarterly_Financials__c.fields.YTD_Gross_Revenue__c.label} (Target)">
+                <apex:inputField value="{!qtr.YTD_Gross_Revenue__c}"/>
+                &nbsp;(<apex:outputField value="{!qtr.Financial_Target__r.Gross_Revenue_Goal__c}"/>)
+            </apex:column>
+                
+            <apex:column headerValue="{!$ObjectType.Quarterly_Financials__c.fields.YTD_Net_Revenue__c.label} (Target)">
+                <apex:inputField value="{!qtr.YTD_Net_Revenue__c}"/>
+                &nbsp;(<apex:outputField value="{!qtr.Financial_Target__r.Net_Revenue_Goal__c}"/>)
+            </apex:column>
+                
+            <apex:column headerValue="{!$ObjectType.Quarterly_Financials__c.fields.YTD_Bookings__c.label} (Target)">
+                <apex:inputField value="{!qtr.YTD_Bookings__c}"/>
+                &nbsp;(<apex:outputField value="{!qtr.Financial_Target__r.Bookings_Target__c}"/>)
+            </apex:column>
+                
+            <apex:column headerValue="{!$ObjectType.Quarterly_Financials__c.fields.YTD_GM__c.label} (Target)">
+                <apex:inputField value="{!qtr.YTD_GM__c}"/>
+                 &nbsp;(<apex:outputField value="{!qtr.Financial_Target__r.GM_Target__c}"/>)
+            </apex:column>
+        </apex:pageBlockTable>
+        </apex:pageBlockSection>
+        
+    </apex:pageBlock>
+    </apex:form>
+</apex:page>

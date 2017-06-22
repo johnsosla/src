@@ -1,0 +1,760 @@
+<apex:page standardcontroller="pse__Proj__c" tabstyle="pse__Proj__c" extensions="ECO_SafetyHealthEnvironmentController,nttdcore.DLabelParentController" action="{!init}" >
+
+    <style>
+    
+        .attachNewFile{
+            visibility: hidden;
+        }
+        
+        .ouputPanelSep{
+            border-bottom:1px solid #dbdbdb;
+        }
+        
+        .customHelpText{
+            padding:7px;
+            border:1px solid #85B3CE;
+            min-height:30px;
+            display:block;
+            width:auto;
+            margin:0;
+        //  background-color:#C6E4EE;
+            background-color:#A2D3F1;
+            background-repeat:no-repeat;
+            border-radius:4px;
+        }
+        
+        .customHelpBody{
+            display:block;
+            color:#;
+            max-width:95%;
+        }
+        
+        .infoTable {
+            background: #f5f5f5;
+            border-collapse: separate;
+            font-size: 12px;
+            line-height: 24px;
+            text-align: left;
+            margin:5px 14px 0 14px;
+        }   
+        .infoTable table{
+            width:100%;
+        }
+        .infoTable th {
+            background-color: #a6afa2 !important;
+            color: #fff;
+            font-weight: bold;
+            padding: 3px 9px;
+            position: relative;
+            border:none !important;
+        }
+        .infoTable th:first-child{
+            border-right:1px solid #fff !important;
+        }
+
+        .infoTable th:after {
+            content: '';
+            display: block;
+            height: 25%;
+            left: 0;
+            margin: 1px 0 0 0;
+            position: absolute;
+            top: 25%;
+            width: 100%;
+        }
+        .infoTable td {
+            border-right: 1px solid #fff;
+            border-left: 1px solid #e8e8e8;
+            border-top: 1px solid #fff;
+            border-bottom: 1px solid #e8e8e8;
+            padding: 3px 9px;
+            position: relative;
+            transition: all 300ms;
+            min-width: 90px;
+        }   
+        
+        .teamMemberGrid{
+            border:none;
+        }   
+        
+        .teamMemberGrid tr{
+            border:none;
+        }       
+        
+        .teamMemberGrid td{
+            border:none;
+        }   
+        
+        .table {
+            font-family: 'Arial';
+            margin: 1px auto;
+            border-collapse: collapse;
+            border: 1px solid #eee;
+            /* box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.1), 0px 10px 20px rgba(0, 0, 0, 0.05), 0px 20px 20px rgba(0, 0, 0, 0.05), 0px 30px 20px rgba(0, 0, 0, 0.05); */
+            heigth: 20px;
+            table-layout: fixed;
+        }
+        .table tr{
+            border-bottom: 1px solid #f2f3f3;
+        }
+
+        .table tr:hover {
+          background: #e8f4f8;
+        }
+        
+        .table tr:hover td {
+            background: #e8f4f8;
+        }
+        
+        .table th, .table td {
+          border: 0px solid #eee;
+          padding: 3px 3px 3px 3px;
+          border-collapse: collapse;
+        }
+        
+        .table td {
+          background: #fff;
+        }
+        
+        .table .tdleft{
+            padding-left: 1px;
+            padding-right: 1px;
+        }
+        
+        .table .tdfooter{
+            align: right;
+        }
+        
+        
+        .table th {
+        
+          background:  #f2f3f3;
+          font-size: .9em;
+          font-weight: bold;  
+          border: 1px solid #D3D3D3;
+        }
+        
+        .table th.last {
+          border-right: none;
+        }
+
+        .bPageBlock .message{
+            padding: 7px;
+            border: 1px solid #85B3CE;
+            min-height: 30px;
+            display: block;
+            width: auto;
+            margin: 0 0 5px 0;
+            background-repeat: no-repeat;
+            border-radius: 4px;
+            background-color: #A2D3F1;
+
+        }       
+
+        ul, ol {
+            margin-top: -10px;
+            list-style: disc outside none;
+        }
+
+
+    </style>
+    
+    <script>
+    function setFocusOnLoad() {}    
+    
+    function fileChosen(attachButton,documentField,overrideField)
+    {   
+        var fileName = documentField.value;
+        var pathleng = fileName.lastIndexOf("\\"); //n
+        var indexOfExtn = fileName.lastIndexOf("."); //m
+        var lengthOfName = indexOfExtn - pathleng -1;
+        if(lengthOfName>80){
+            alert('The file name exceeds the maximum length of 80 characters');
+            
+            documentField.value = '';
+            document.getElementById(attachButton).style.visibility= 'hidden';
+            document.getElementById(overrideField).style.visibility= 'hidden';
+        }
+        else{
+            if(documentField.value != '')
+            {
+                document.getElementById(attachButton).style.visibility = 'visible';         
+                document.getElementById(overrideField).value = '';
+                document.getElementById(overrideField).style.visibility = 'visible';
+                            
+            }
+            else
+            {
+                document.getElementById(attachButton).style.visibility= 'hidden';
+                document.getElementById(overrideField).style.visibility= 'hidden';          
+            }       
+        }
+    }   
+    
+    function createAttachment(id, name)
+    {
+        attachInduction(id,name);
+    }
+    
+    function createProjectTeamMember(id)
+    {
+        createTeamMember(id);
+    }
+        
+    </script>
+    <apex:form >
+    <apex:inputhidden value="{!pse__Proj__c.Name}" />
+    <apex:inputhidden value="{!pse__Proj__c.SafetyHealthEnvRegulations__c}" />
+    <apex:outputfield value="{!pse__Proj__c.CurrencyIsoCode}" rendered="false" />
+    <apex:inputhidden value="{!inductionId}" id="inductionId" />
+    <nttdcore:DLabel name="DL121" default="Safety, Health &amp; Environment " labelParent="{!this}" /><apex:sectionheader title="{!dLabel['DL121']}" subtitle="{!pse__Proj__c.Name}" />
+      
+    <c:ECO_CollapsibleSection uniqueid="1" sectiontitle="General Guidance Information" ><nttdcore:DLabel name="DL122" default="Assessment of potential Safety, Health &amp; Environment risks is required on all projects, regardless of size or type of activities being performed (e.g., office vs field).  It is AECOM policy and best practice to plan, execute and monitor projects in such a manner to prevent work-related injuries or illnesses, prevent damage to property and/or equipment from our activities, and prevent adverse impacts to the environment from our ongoing projects or operations." labelParent="{!this}" /><nttdcore:DLabel name="DL123" default="Complete this section to identify any project-related safety, health or environmental risks and to determine the appropriate approach for planning and mitigation.  Upload relevant project specific SH&amp;E documents, such as standalone Health and Safety Plans, Environmental Management Plans, training or induction certificates, Journey Management Plans, or task risk analyses (e.g., JSA, SWMS, THA, etc)." labelParent="{!this}" /><nttdcore:DLabel name="DL124" default="This section is NOT intended to report, document, track or monitor safety incidents. Any safety, health and/or environmental incidents should be immediately reported using AECOMs enterprise-wide safety reporting tool IndustrySafe.  Additionally, site specific health and safety plans, job safety analysis, and task hazard analysis should be generated utilizing current corporate and client guidelines." labelParent="{!this}" />  
+             {!dLabel['DL122']}  
+            <br/><br/>
+            {!dLabel['DL123']}  
+            <br/><br/>
+            {!dLabel['DL124']} 
+    </c:ECO_CollapsibleSection>
+
+    <br/>
+    <apex:pagemessages />  
+    <nttdcore:DLabel name="DL125" default="Safety, Health &amp; Environment" labelParent="{!this}" /><apex:pageblock title="{!dLabel['DL125']}" mode="edit" ><nttdcore:DLabel name="DL129" default="Safety &amp; Health" labelParent="{!this}" /><nttdcore:DLabel name="DL130" default="Does the project consist of work outside of an office environment (e.g., field/construction work)?" labelParent="{!this}" /><nttdcore:DLabel name="DL131" default="Will members of the project team undertake work at project or client sites or offices?" labelParent="{!this}" /><nttdcore:DLabel name="DL132" default="Project team members who will be working at the client or project offices may be required to undergo a safety induction(s) (i.e., site-specific training).  Click the &ldquo;New Induction&rdquo; button to create a register of all required inductions for the project.  Once each induction record has been created and added to the register, add the required project team member(s) and relevant document(s) by clicking &ldquo;Add&rdquo; within each record line.   Relevant documents may include application forms, induction location information or completed induction certificates." labelParent="{!this}" /><nttdcore:DLabel name="DL133" default="Action" labelParent="{!this}" /><nttdcore:DLabel name="DL134" default="Remove" labelParent="{!this}" /><nttdcore:DLabel name="DL135" default="Name of Induction" labelParent="{!this}" /><nttdcore:DLabel name="DL136" default="Enter the name or title of the induction or training course required." labelParent="{!this}" /><nttdcore:DLabel name="DL137" default="Required By" labelParent="{!this}" /><nttdcore:DLabel name="DL138" default="Enter the date completion of the course is due." labelParent="{!this}" /><nttdcore:DLabel name="DL139" default="Project Team Members" labelParent="{!this}" /><nttdcore:DLabel name="DL140" default="Add the names of the project team required to complete the course." labelParent="{!this}" /><nttdcore:DLabel name="DL141" default="Add" labelParent="{!this}" /><nttdcore:DLabel name="DL142" default="Add Project Team Members" labelParent="{!this}" /><nttdcore:DLabel name="DL143" default="Location of Induction" labelParent="{!this}" /><nttdcore:DLabel name="DL144" default="Enter the location of the course (e.g., instructor&rsquo;s address, client&rsquo;s site, internet address, in-house)." labelParent="{!this}" /><nttdcore:DLabel name="DL145" default="Frequency" labelParent="{!this}" /><nttdcore:DLabel name="DL146" default="Enter how often the course must be completed or is valid (e.g., one time, annual, bi-annual)." labelParent="{!this}" /><nttdcore:DLabel name="DL147" default="Fee" labelParent="{!this}" /><nttdcore:DLabel name="DL148" default="Enter the course fee to inform the project budget, if allowable, or to inform approval of the anticipated overhead expense." labelParent="{!this}" /><nttdcore:DLabel name="DL149" default="Notes" labelParent="{!this}" /><nttdcore:DLabel name="DL150" default="Provide any relevant notes that would help further define the required course (e.g., instructor contact information, course schedule, course details)" labelParent="{!this}" /><nttdcore:DLabel name="DL151" default="Attachments" labelParent="{!this}" /><nttdcore:DLabel name="DL152" default="Attach relevant documents related to the specific course (e.g., course information, course applications, completed training certificate)." labelParent="{!this}" /><nttdcore:DLabel name="DL153" default="Add" labelParent="{!this}" /><nttdcore:DLabel name="DL154" default="Add Attachments" labelParent="{!this}" /><nttdcore:DLabel name="DL155" default="New Induction" labelParent="{!this}" /><nttdcore:DLabel name="DL156" default="Processing..." labelParent="{!this}" /><nttdcore:DLabel name="DL157" default="No records to display" labelParent="{!this}" /><nttdcore:DLabel name="DL158" default="Does the project involve site inspections and/or field tasks?" labelParent="{!this}" /><nttdcore:DLabel name="DL159" default="All field activities require a Task Risk Analysis to be undertaken. Complete the required analysis per your geography safety standard (e.g., Job Safety Analysis, Safe Work Method Statement, Task Hazard Analysis) and upload the completed documents for access and reference by the project team unless a project-specific health and safety plan is prepared for the project." labelParent="{!this}" /><nttdcore:DLabel name="DL160" default="Attach" labelParent="{!this}" /><nttdcore:DLabel name="DL161" default="Action" labelParent="{!this}" /><nttdcore:DLabel name="DL162" default="Remove" labelParent="{!this}" /><nttdcore:DLabel name="DL163" default="Remove" labelParent="{!this}" /><nttdcore:DLabel name="DL164" default="File Name" labelParent="{!this}" /><nttdcore:DLabel name="DL165" default="Are there client specific safety and health requirements for this project?" labelParent="{!this}" /><nttdcore:DLabel name="DL166" default="Identify below any additional safety requirements which may apply to the project." labelParent="{!this}" /><nttdcore:DLabel name="DL167" default="Is a detailed standalone project-specific health and safety plan required?" labelParent="{!this}" /><nttdcore:DLabel name="DL168" default="Work directly with your regional SH{{1}}E manager to compile the detailed safety plan and upload the signed and approved document." labelParent="{!this}" p1="{!'&'}" /><nttdcore:DLabel name="DL169" default="Action" labelParent="{!this}" /><nttdcore:DLabel name="DL170" default="Remove" labelParent="{!this}" /><nttdcore:DLabel name="DL171" default="Remove" labelParent="{!this}" /><nttdcore:DLabel name="DL172" default="File Name" labelParent="{!this}" /><nttdcore:DLabel name="DL173" default="Attach" labelParent="{!this}" /><nttdcore:DLabel name="DL174" default="Does the project require domestic travel to a remote or austere location, or international travel?" labelParent="{!this}" /><nttdcore:DLabel name="DL175" default="A Travel Security Identification Document (TSID) is required for international travel.  Go to the Locations and Resilience section for direction based on the project location." labelParent="{!this}" /><nttdcore:DLabel name="DL176" default="Contact your local SH&amp;E Manager to determine if a Journey Management Plan is required for travel to remote or austere locations." labelParent="{!this}" /><nttdcore:DLabel name="DL177" default="Locations and Resilience" labelParent="{!this}" /><nttdcore:DLabel name="DL178" default="Environment" labelParent="{!this}" /><nttdcore:DLabel name="DL179" default="Where your region is certified to ISO 14001, Environmental Management, a Project Environmental Review must be completed.  Where your region is not certified, it is recommended that a Project Environmental Review is completed demonstrating AECOM&rsquo;s commitment to work in an environmentally responsible manner." labelParent="{!this}" /><nttdcore:DLabel name="DL180" default="In completing the Environmental Review within the Project Plan it is not intended that all of the &lsquo;normal&rsquo; environmental impacts should be listed and commented on, but rather that any &lsquo;unusual or particularly significant&rsquo; activities or requirements should be highlighted by exception and assessed." labelParent="{!this}" /><nttdcore:DLabel name="DL181" default="To complete the Environmental Review:" labelParent="{!this}" /><nttdcore:DLabel name="DL182" default="Subjectively rank the significance of each impact as high medium or low" labelParent="{!this}" /><nttdcore:DLabel name="DL183" default="Note whether AECOM can either control or influence each identified potential impact" labelParent="{!this}" /><nttdcore:DLabel name="DL184" default="For impacts that have been identified as being of high or medium significant and where AECOM can control or influence them, set out our proposed actions to manage these issues; and" labelParent="{!this}" /><nttdcore:DLabel name="DL185" default="At each project review, update this assessment and note action taken (if applicable)" labelParent="{!this}" /><nttdcore:DLabel name="DL186" default="If there are no environmental impacts, please note &ldquo;none&rdquo; to highlight that a review has been undertaken" labelParent="{!this}" /><nttdcore:DLabel name="DL187" default="List of Project Activities and Impacts" labelParent="{!this}" /><nttdcore:DLabel name="DL188" default="Action" labelParent="{!this}" /><nttdcore:DLabel name="DL189" default="Remove" labelParent="{!this}" /><nttdcore:DLabel name="DL190" default="Activity" labelParent="{!this}" /><nttdcore:DLabel name="DL191" default="Impact on the Environment" labelParent="{!this}" /><nttdcore:DLabel name="DL192" default="Significance" labelParent="{!this}" /><nttdcore:DLabel name="DL193" default="Control" labelParent="{!this}" /><nttdcore:DLabel name="DL194" default="Proposed Action" labelParent="{!this}" /><nttdcore:DLabel name="DL195" default="Action Taken" labelParent="{!this}" /><nttdcore:DLabel name="DL196" default="New Activity" labelParent="{!this}" /><nttdcore:DLabel name="DL197" default="Additional Guidance" labelParent="{!this}" /><nttdcore:DLabel name="DL198" default="The Project Environmental Review is compliant by:" labelParent="{!this}" /><nttdcore:DLabel name="DL199" default="Identifying and assessing the environmental impacts relating to our projects and the services we provide;" labelParent="{!this}" /><nttdcore:DLabel name="DL200" default="Using this assessment to assist in controlling significant environmental issues i.e. to adopt a proactive approach, and;" labelParent="{!this}" /><nttdcore:DLabel name="DL201" default="Ensuring that we work within the framework of legislation and good practice guidelines." labelParent="{!this}" /><nttdcore:DLabel name="DL202" default="The requirement to undertake environmental reviews is limited to our ability to influence or control the Environmental Impacts (either positive or negative) of a Project.  In turn our ability to influence or control is determined by our brief.
+            The principles of Environmental Review are generic across the business, although the particular issues are likely to differ between Business Lines.  The following table identifies a range of typical environmental impacts related to construction projects.  It is not intended to be exhaustive." labelParent="{!this}" /><nttdcore:DLabel name="DL203" default="Emissions to Air" labelParent="{!this}" /><nttdcore:DLabel name="DL204" default="Releases to Water" labelParent="{!this}" /><nttdcore:DLabel name="DL205" default="Carbon dioxide emissions from energy use during building lifetime (global impact)" labelParent="{!this}" /><nttdcore:DLabel name="DL206" default="Green house gas depletion from refrigerants and insulants" labelParent="{!this}" /><nttdcore:DLabel name="DL207" default="NOx emissions from burners (global - leading to acid rain)" labelParent="{!this}" /><nttdcore:DLabel name="DL208" default="Indoor environment (local)" labelParent="{!this}" /><nttdcore:DLabel name="DL209" default="Release of hazardous materials to air (global and local)" labelParent="{!this}" /><nttdcore:DLabel name="DL210" default="During Construction &ndash; Dust, noise, light, VOC&rsquo;s , Ash/Particulates, Litter, Steam, Methane" labelParent="{!this}" /><nttdcore:DLabel name="DL211" default="Contamination of ground water (global and local)" labelParent="{!this}" /><nttdcore:DLabel name="DL212" default="Contamination of surface water (global and local)" labelParent="{!this}" /><nttdcore:DLabel name="DL213" default="Storm water" labelParent="{!this}" /><nttdcore:DLabel name="DL214" default="Silt" labelParent="{!this}" /><nttdcore:DLabel name="DL215" default="Oil/Fuel Spillage" labelParent="{!this}" /><nttdcore:DLabel name="DL216" default="Chemicals" labelParent="{!this}" /><nttdcore:DLabel name="DL217" default="Hot Water (to natural rivers, ponds or other sensitive water courses)" labelParent="{!this}" /><nttdcore:DLabel name="DL218" default="Process Effluent" labelParent="{!this}" /><nttdcore:DLabel name="DL219" default="Fire Dowsing" labelParent="{!this}" /><nttdcore:DLabel name="DL220" default="Waste leaching" labelParent="{!this}" /><nttdcore:DLabel name="DL221" default="Sewage" labelParent="{!this}" /><nttdcore:DLabel name="DL222" default="Detergents" labelParent="{!this}" /><nttdcore:DLabel name="DL223" default="Materials and Waste Management" labelParent="{!this}" /><nttdcore:DLabel name="DL224" default="Local Environment and Community Issues" labelParent="{!this}" /><nttdcore:DLabel name="DL225" default="Materials extraction, manufacture, use and transportation" labelParent="{!this}" /><nttdcore:DLabel name="DL226" default="Waste disposal - land use, transport etc (global and local)" labelParent="{!this}" /><nttdcore:DLabel name="DL227" default="Possible waste by-products (wood, concrete, brick/aggregates, plastic, metal," labelParent="{!this}" /><nttdcore:DLabel name="DL228" default="paper, batteries, electrical items, clinical, asbestos, copper, garden waste, fluorescent lights)" labelParent="{!this}" /><nttdcore:DLabel name="DL229" default="Managing / cleaning up contamination" labelParent="{!this}" /><nttdcore:DLabel name="DL230" default="Embodied energy, material selection, the use of recycled materials" labelParent="{!this}" /><nttdcore:DLabel name="DL231" default="Nuisance to neighbours (local impact)" labelParent="{!this}" /><nttdcore:DLabel name="DL232" default="Noise" labelParent="{!this}" /><nttdcore:DLabel name="DL233" default="Vibration" labelParent="{!this}" /><nttdcore:DLabel name="DL234" default="Dust" labelParent="{!this}" /><nttdcore:DLabel name="DL235" default="Light" labelParent="{!this}" /><nttdcore:DLabel name="DL236" default="Transport" labelParent="{!this}" /><nttdcore:DLabel name="DL237" default="Effect on local ecology (global and local)" labelParent="{!this}" /><nttdcore:DLabel name="DL238" default="Mud/litter on the road" labelParent="{!this}" /><nttdcore:DLabel name="DL239" default="Litter" labelParent="{!this}" /><nttdcore:DLabel name="DL240" default="Consequences of Population growth, positive (improvements in population, employment)" labelParent="{!this}" />
+    <apex:actionfunction name="attachInduction" action="{!createInductionAttachment}" >     
+        <apex:param id="uid" name="inductionId" value="" />
+        <apex:param id="uname" name="inductionName" value="" />     
+    </apex:actionfunction>
+    <apex:actionfunction name="createTeamMember" action="{!newInductionTeamMember}" >     
+        <apex:param id="inductionId" name="inductionId" value="" />
+    </apex:actionfunction>  
+        <br/>
+
+        <br/>
+        <apex:pageblockbuttons location="top" >
+            <nttdcore:DLabel name="DL126" default="Save" labelParent="{!this}" /><apex:commandbutton value="{!dLabel['DL126']}" action="{!save}" />
+            <nttdcore:DLabel name="DL127" default="Return to Project" labelParent="{!this}" /><apex:commandbutton value="{!dLabel['DL127']}" action="{!cancel}" />
+            <apex:commandlink target="_blank" action="https://myecosystem.aecom.com/dept/she/Pages/Corporate%20SHandE%20Home.aspx?SectionId=46" style="text-decoration:none;" ><nttdcore:DLabel name="DL128" default="Ecosystem SH&amp;E" labelParent="{!this}" /><apex:commandbutton value="{!dLabel['DL128']}" /></apex:commandlink>
+            
+        </apex:pageblockbuttons>
+        <apex:pageblocksection title="{!dLabel['DL129']}" columns="1" id="safetyAndHealth" >
+            <apex:outputpanel id="safetyAndHealth1" >
+            <apex:outputpanel >
+            
+            <table><tr>                         
+            <td width="800px" ><apex:outputtext style="font-weight: bold;" ><b><br/>{!dLabel['DL130']}</b></apex:outputtext></td>
+            <td><apex:actionregion ><apex:selectradio layout="lineDirection" value="{!pse__Proj__c.SafetyHealthOutsideOfficeEnvironment__c}" >
+                <apex:selectoptions value="{!YesNoOptions}" />
+                <apex:actionsupport event="onchange" rerender="safetyAndHealth1" />
+            </apex:selectradio></apex:actionregion></td>
+            </tr></table>
+ 
+            </apex:outputpanel>
+            
+            <apex:outputpanel style="display:{!if(pse__Proj__c.SafetyHealthOutsideOfficeEnvironment__c =='Yes','inline-block', 'none')};" >
+            <!--<div style="display:{!if(pse__Proj__c.SafetyHealthOutsideOfficeEnvironment__c =='Yes',"inline","none")};" >-->
+                
+                <!--!pse__Proj__c.SafetyHealthOutsideOfficeEnvironment__c =='Yes'--->
+            <apex:outputpanel id="undertakeWork" >   
+            <apex:actionregion >
+                <table><tr>
+                    <td width="800px" >
+                        <apex:outputtext style="font-weight: bold;" ><b><br/>{!dLabel['DL131']}</b></apex:outputtext>
+                    </td>
+                    <td><apex:selectradio layout="lineDirection" value="{!pse__Proj__c.SafetyHealthUndertakeWork__c}" >
+                        <apex:selectoptions value="{!YesNoOptions}" />
+                        <apex:actionsupport event="onchange" rerender="undertakeWork" />
+                    </apex:selectradio></td>                    
+                </tr></table>
+                <div style="display:{!if(pse__Proj__c.SafetyHealthUndertakeWork__c =='Yes',"inline","none")};" >
+                
+                    <!-- pse__Proj__c.SafetyHealthUndertakeWork__c == 'Yes' -->
+                <div class="ouputPanelSep" >
+                    <c:ECO_CollapsibleSection sectiontitle="General Guidance Information" uniqueid="2" >  
+                        {!dLabel['DL132']}
+                    </c:ECO_CollapsibleSection>
+
+                    <br/>
+
+                    
+        <!--            <apex:outputLabel style="font-weight:bold;">Inductions Register</apex:outputLabel><br/> -->
+                    <apex:outputpanel >
+                        
+                        <apex:variable var="rowNumInd" value="{!0}" />
+
+                        <apex:pageblocktable value="{!inductionRegistrations}" var="induction" rendered="{!inductionRegistrations.size > 0}" >
+
+                            <apex:column headervalue="{!dLabel['DL133']}" >
+                                <apex:variable var="rowNumInd" value="{!rowNumInd + 1}" />
+                                <apex:commandlink value="{!dLabel['DL134']}" action="{!RemoveInduciton}" rerender="undertakeWork" >
+                                    <apex:param name="rowNumInd" value="{!rowNumInd}" assignto="{!rowNumberInduction}" />
+                                </apex:commandlink>
+
+                            </apex:column>    
+
+                            <apex:column >
+                                <apex:facet name="header" >
+                                    <apex:outputpanel >
+                                        <apex:outputtext value="{!dLabel['DL135']}" />&nbsp;
+                                        <apex:image value="/s.gif" styleclass="helpIcon" title="{!dLabel['DL136']}" />
+                                    </apex:outputpanel>
+                                </apex:facet>
+                                <apex:commandlink style="color:#015ba7;" action="{!URLFOR($Action.Induction__c.View, induction.Id, ['saveURL'='/apex/ECO_SafetyHealthEnvironment?Id='+pse__Proj__c.Id, 'retURL'='/apex/ECO_SafetyHealthEnvironment?Id='+pse__Proj__c.Id])}" ><apex:outputtext value="{!induction.Name}" /></apex:commandlink>
+                            </apex:column>
+                            <apex:column value="{!induction.RequiredBy__c}" >
+                                <apex:facet name="header" >
+                                    <apex:outputpanel >
+                                        <apex:outputtext value="{!dLabel['DL137']}" />&nbsp;
+                                        <apex:image value="/s.gif" styleclass="helpIcon" title="{!dLabel['DL138']}" />
+                                    </apex:outputpanel>
+                                </apex:facet>   
+
+                            </apex:column>
+                            <apex:column >
+
+                                <apex:facet name="header" >
+                                    <apex:outputpanel >
+                                        <apex:outputtext value="{!dLabel['DL139']}" />&nbsp;
+                                        <apex:image value="/s.gif" styleclass="helpIcon" title="{!dLabel['DL140']}" />
+                                    </apex:outputpanel>
+                                </apex:facet>
+                                <table class="teamMemberGrid" width="100%" >
+                                <tr>
+
+
+                                <td style="border:none" >
+                                <table class="teamMemberGrid" >
+                                    <apex:repeat value="{!inductedProjectTeamMembersMap[induction.Id]}" var="inductionTeamMember" >
+                                    <tr><td style="border:none" ><apex:outputtext value="{!inductionTeamMember.TeamMember__c}" /></td></tr>
+                                    </apex:repeat>
+                                </table>
+                                </td>
+                                <td style="border:none; text-align: right;" >
+                                    <!--<apex:commandLink value="Add" action="{!newInductionTeamMember}" rerender="inductionId" title="Add Project Team Members">
+                                            <apex:param name="inductionId" value="{!induction.Id}" assignTo="{!inductionId}"/>
+                                    </apex:commandLink>&nbsp;&nbsp;-->
+                                    <apex:commandlink value="{!dLabel['DL141']}" action="/apex/ECO_AddInductedProjTeamMember?inductionId={!induction.Id}&projectId={!pse__Proj__c.Id}" rerender="inductionId" title="{!dLabel['DL142']}" >
+                                    </apex:commandlink>
+                                </td>
+
+                                </tr>
+                                </table>
+                            </apex:column>
+                     
+                            <apex:column value="{!induction.LocationofInduction__c}" >
+                                <apex:facet name="header" >
+                                    <apex:outputpanel >
+                                        <apex:outputtext value="{!dLabel['DL143']}" />&nbsp;
+                                        <apex:image value="/s.gif" styleclass="helpIcon" title="{!dLabel['DL144']}" />
+                                    </apex:outputpanel>
+                                </apex:facet>                                
+
+                            </apex:column>
+                            <apex:column value="{!induction.Frequency__c}" >
+                                <apex:facet name="header" >
+                                    <apex:outputpanel >
+                                        <apex:outputtext value="{!dLabel['DL145']}" />&nbsp;
+                                        <apex:image value="/s.gif" styleclass="helpIcon" title="{!dLabel['DL146']}" />
+                                    </apex:outputpanel>
+                                </apex:facet>                                      
+
+                            </apex:column>
+                            <apex:column >
+                                <apex:facet name="header" >
+                                    <apex:outputpanel >
+                                        <apex:outputtext value="{!dLabel['DL147']}" />&nbsp;
+                                        <apex:image value="/s.gif" styleclass="helpIcon" title="{!dLabel['DL148']}" />
+                                    </apex:outputpanel>
+                                </apex:facet>    
+                                <apex:outputtext value="{0, number, ###,###,##0.00}" >
+                                    <apex:param value="{!induction.Fee__c}" />
+                                </apex:outputtext>  
+                            </apex:column>               
+                            <apex:column value="{!induction.Notes__c}" >
+                                <apex:facet name="header" >
+                                    <apex:outputpanel >
+                                        <apex:outputtext value="{!dLabel['DL149']}" />&nbsp;
+                                        <apex:image value="/s.gif" styleclass="helpIcon" title="{!dLabel['DL150']}" />
+                                    </apex:outputpanel>
+                                </apex:facet>                                    
+
+                            </apex:column>
+                            <apex:column >
+                                <apex:facet name="header" >
+                                    <apex:outputpanel >
+                                        <apex:outputtext value="{!dLabel['DL151']}" />&nbsp;
+                                        <apex:image value="/s.gif" styleclass="helpIcon" title="{!dLabel['DL152']}" />
+                                    </apex:outputpanel>
+                                </apex:facet>      
+
+                                <table class="teamMemberGrid" width="100%" >
+                                <tr>
+
+                                <td style="border:none" >
+                                <table class="teamMemberGrid" >
+                                    <apex:repeat value="{!inductionAttachmentsMap[induction.Id]}" var="attachment" >
+                                    <tr><td style="border:none" ><apex:outputlink value="{!URLFOR($Action.Attachment.Download, attachment.Id)}" target="_blank" ><apex:outputtext value="{!attachment.Name}" /></apex:outputlink></td></tr>
+                                    </apex:repeat>
+                                </table>
+                                </td>
+                                <td style="border:none; text-align: right;" >
+                                    <apex:commandlink value="{!dLabel['DL153']}" action="{!createInductionAttachment}" rerender="id2" title="{!dLabel['DL154']}" >
+                                        <apex:param name="inductionId" value="{!induction.Id}" assignto="{!inductionId2}" />
+                                        <apex:param name="inductionName" value="{!induction.Name}" assignto="{!inductionName2}" />                                  
+                                    </apex:commandlink>
+                                </td>
+
+                                </tr>
+                                </table>
+
+                            </apex:column>          
+                        </apex:pageblocktable>
+                        <p>
+                            <apex:actionstatus id="mySaveStatus1" >
+                            <apex:facet name="stop" >
+                            <apex:commandbutton action="{!newInduction}" status="mySaveStatus1" value="{!dLabel['DL155']}" disabled="false" rerender="mySaveStatus" />
+                            </apex:facet>
+                            <apex:facet name="start" >
+                            <apex:commandbutton action="{!newInduction}" status="mySaveStatus1" value="{!dLabel['DL156']}" disabled="true" /> </apex:facet>
+                            </apex:actionstatus>
+                            <!--<apex:commandButton value="New Induction" action="{!newInduction}"/>-->
+                        </p>
+                    </apex:outputpanel> 
+                <apex:outputpanel rendered="{!inductionRegistrations.size == 0}" >
+                    <apex:outputtext value="{!dLabel['DL157']}" />
+                </apex:outputpanel><br/><br/>                                       
+                </div>
+                </div>
+                </apex:actionregion>                
+            </apex:outputpanel>
+            
+            <apex:outputpanel id="siteInspections" >
+            <div style="display:{!if(pse__Proj__c.SafetyHealthOutsideOfficeEnvironment__c =='Yes','inline-block','none')};" >
+            
+            <table><tr>
+            <td width="800px" ><apex:outputtext ><b><br/>{!dLabel['DL158']}</b></apex:outputtext></td>
+            <td><apex:actionregion ><apex:selectradio layout="lineDirection" value="{!pse__Proj__c.SafetyHealthSiteInspections__c}" >
+                <apex:selectoptions value="{!YesNoOptions}" />
+                <apex:actionsupport event="onchange" rerender="theFieldsPanel" />
+            </apex:selectradio></apex:actionregion></td>
+            </tr></table>
+                    
+                <br/>
+             <div>
+                
+            <apex:outputpanel id="theFieldsPanel" style="display:{!if(pse__Proj__c.SafetyHealthSiteInspections__c =='Yes','inline-block','none')};" > 
+                <c:ECO_CollapsibleSection sectiontitle="General Guidance Information" uniqueid="3" >  
+                     {!dLabel['DL159']}
+                </c:ECO_CollapsibleSection>
+                <br/>
+                       <!--fileName="{!newsafetyHealthInspectionAttachment.Name}"-->   
+                      <apex:inputfile id="safetyHealthInspectionAttachment" value="{!newsafetyHealthInspectionAttachment.Body}" contenttype="{!newsafetyHealthInspectionAttachment.ContentType}" filename="{!newsafetyHealthInspectionAttachment.Name}" onchange="fileChosen('{!$Component.cmdSafetyHealthInspectionAttachment}', this, '{!$Component.overrideSafetyHealthInspectionName}'); return false;" />
+                
+                <apex:inputtext id="overrideSafetyHealthInspectionName" value="{!overrideSafetyHealthInspectionName}" maxlength="80" html-placeholder="Override File Name" styleclass="attachNewFile" />
+                <apex:commandbutton id="cmdsafetyHealthInspectionAttachment" value="{!dLabel['DL160']}" action="{!saveSafetyHealthInspectionAttachmentAndProject}" styleclass="attachNewFile" /><br/>
+
+            <br/>
+            <div class="ouputPanelSep" >
+
+                <div class="fileList" >
+                    <apex:pageblocktable value="{!SafetyHealthInspectionFiles}" var="attachedSafetyInspectionFile" style="width: 825px;" rendered="{!pse__Proj__c.SafetyHealthInspectionAttachments__c != null}" >
+                        <apex:column headervalue="{!dLabel['DL161']}" >
+                            <apex:commandlink style="text-decoration: none;" value="{!dLabel['DL162']}" action="{!removeattachment}" title="{!dLabel['DL163']}" >
+                              <apex:param name="attachID" value="{!attachedSafetyInspectionFile.Id}" assignto="{!sTargetAttachment}" />
+                           </apex:commandlink>
+                       </apex:column>
+                        <apex:column headervalue="{!dLabel['DL164']}" >
+                            <apex:outputlink value="{!URLFOR($Action.Attachment.Download, attachedSafetyInspectionFile.Id)}" target="_blank" >
+                                <apex:outputtext value="{!attachedSafetyInspectionFile.Name}" />
+                            </apex:outputlink>
+                        </apex:column>
+                        <apex:column value="{!attachedSafetyInspectionFile.ContentType}" /> 
+                        <apex:column value="{!attachedSafetyInspectionFile.LastModifiedDate}" />    
+                        <apex:column value="{!attachedSafetyInspectionFile.LastModifiedById}" />
+                    </apex:pageblocktable></div>
+                
+                <br/>
+            </div>
+                          
+            </apex:outputpanel> 
+                 </div>   
+                
+            </div>
+            </apex:outputpanel>
+            
+            <apex:outputpanel id="healthRequirements" >      
+            <apex:actionregion >    
+                <table><tr>
+                    <td width="800px" ><apex:outputtext ><b><br/>{!dLabel['DL165']}</b></apex:outputtext></td>
+                    <td><apex:selectradio layout="lineDirection" value="{!pse__Proj__c.SafetyHealthSpecificRequirements__c}" >
+                        <apex:selectoptions value="{!YesNoOptions}" />
+                        <apex:actionsupport event="onchange" rerender="healthRequirements" />
+                    </apex:selectradio></td>
+                </tr></table>
+                <apex:outputpanel rendered="{!pse__Proj__c.SafetyHealthSpecificRequirements__c == 'Yes'}" >
+                    <div class="ouputPanelSep" >
+                        <c:ECO_CollapsibleSection sectiontitle="General Guidance Information" uniqueid="4" >  
+                            {!dLabel['DL166']}
+                        </c:ECO_CollapsibleSection> 
+                    <apex:inputfield style="width: 800px;" value="{!pse__Proj__c.SafetyHealthRequirementDescription__c}" html-placeholder="Reach out to Client Account Manager or Client Safety Lead for client specific safety and health requirements." /><br/><br/>
+                    </div>
+                </apex:outputpanel> 
+            </apex:actionregion>                
+            </apex:outputpanel>
+            
+            <apex:outputpanel id="healthPlan" >  
+            <table>
+                <tr><td width="800px" >                          
+                    <apex:outputtext ><b><br/>{!dLabel['DL167']}</b></apex:outputtext>
+                </td>
+                    <td><apex:actionregion >
+                    <apex:selectradio layout="lineDirection" value="{!pse__Proj__c.SafetyHealthSafetyPlan__c}" >
+                        <apex:selectoptions value="{!YesNoOptions}" />
+                        <apex:actionsupport event="onchange" rerender="healthPlan" />
+                    </apex:selectradio></apex:actionregion></td>
+                </tr>
+            </table>
+                
+            <apex:outputpanel rendered="{!pse__Proj__c.SafetyHealthSafetyPlan__c =='Yes'}" >
+                <div class="ouputPanelSep" >
+                <c:ECO_CollapsibleSection sectiontitle="General Guidance Information" uniqueid="5" >  
+                    {!dLabel['DL168']}
+                </c:ECO_CollapsibleSection>
+                <div class="fileList" >
+                    <apex:pageblocktable value="{!SafetyHealthPlanFiles}" var="attachedSafetyPlanFile" style="width: 825px;" rendered="{!pse__Proj__c.SafetyHealthPlanAttachments__c != null}" >
+                        <apex:column headervalue="{!dLabel['DL169']}" >
+                            <apex:commandlink style="text-decoration: none;" value="{!dLabel['DL170']}" action="{!removeattachmentplan}" title="{!dLabel['DL171']}" >
+                              <apex:param name="attachID" value="{!attachedSafetyPlanFile.Id}" assignto="{!sTargetAttachment}" />
+                           </apex:commandlink>
+                       </apex:column>
+                        <apex:column headervalue="{!dLabel['DL172']}" >
+                            <apex:outputlink value="{!URLFOR($Action.Attachment.Download, attachedSafetyPlanFile.Id)}" target="_blank" >
+                                <apex:outputtext value="{!attachedSafetyPlanFile.Name}" />
+                            </apex:outputlink>
+                        </apex:column>
+                        <apex:column value="{!attachedSafetyPlanFile.ContentType}" />   
+                        <apex:column value="{!attachedSafetyPlanFile.LastModifiedDate}" />  
+                        <apex:column value="{!attachedSafetyPlanFile.LastModifiedById}" />
+                    </apex:pageblocktable></div>
+                    <apex:inputfile id="safetyHealthPlanAttachment" value="{!newSafetyHealthPlanAttachment.Body}" contenttype="{!newSafetyHealthPlanAttachment.ContentType}" filename="{!newSafetyHealthPlanAttachment.Name}" onchange="fileChosen('{!$Component.cmdSafetyHealthPlanAttachment}', this, '{!$Component.overrideSafetyHealthPlanName}'); return false;" />
+                    <apex:inputtext id="overrideSafetyHealthPlanName" value="{!overrideSafetyHealthPlanName}" maxlength="80" html-placeholder="Override File Name" styleclass="attachNewFile" />
+                    <apex:commandbutton id="cmdSafetyHealthPlanAttachment" value="{!dLabel['DL173']}" action="{!saveSafetyHealthPlanAttachmentAndProject}" styleclass="attachNewFile" /><br/>
+                <br/></div>
+            </apex:outputpanel>
+        
+            </apex:outputpanel>
+            
+            <apex:outputpanel id="travelRequired" >
+            <apex:outputpanel > 
+            <table><tr><td width="800px" >
+            <apex:outputtext ><b><br/>{!dLabel['DL174']}</b></apex:outputtext> 
+            </td>
+            <td><apex:actionregion ><apex:selectradio layout="lineDirection" value="{!pse__Proj__c.SafetyHealthTravelRequired__c}" >
+                    <apex:selectoptions value="{!YesNoOptions}" />
+                    <apex:actionsupport event="onchange" rerender="travelRequired" />
+                </apex:selectradio></apex:actionregion></td>
+            </tr>
+            </table>                                                                        
+            </apex:outputpanel> <br/>
+            <apex:outputpanel rendered="{!pse__Proj__c.SafetyHealthTravelRequired__c =='Yes'}" >
+                <c:ECO_CollapsibleSection sectiontitle="General Guidance Information" uniqueid="6" >  
+                    {!dLabel['DL175']} <br/>
+                    {!dLabel['DL176']}
+                </c:ECO_CollapsibleSection>
+                <br/>
+                <apex:commandbutton id="cmdLocationsAndResilience" value="{!dLabel['DL177']}" action="{!gotoLocationsAndResilience}" /><br/>
+                </apex:outputpanel>
+            </apex:outputpanel>
+                
+            <!--</div>-->
+            </apex:outputpanel>
+                
+        </apex:outputpanel>                                                     
+        </apex:pageblocksection>
+        
+        <apex:pageblocksection title="{!dLabel['DL178']}" columns="1" id="environmentImpact" >
+            <c:ECO_CollapsibleSection uniqueid="7" sectiontitle="General Guidance Information" >  
+                {!dLabel['DL179']} <br/><br/>
+                {!dLabel['DL180']}
+            </c:ECO_CollapsibleSection>
+            {!dLabel['DL181']}<br/><br/>
+            <ul>
+            <li>{!dLabel['DL182']}</li>
+            <li>{!dLabel['DL183']}</li>
+            <li>{!dLabel['DL184']}</li>
+            <li>{!dLabel['DL185']}</li>
+            <li>{!dLabel['DL186']}</li>
+            </ul>
+
+
+    <apex:outputpanel id="projectact" >
+        <apex:outputlabel style="font-weight: bold" value="{!dLabel['DL187']}" />
+            <!--
+            <table class="table">
+                <tr>
+                    <th></th>
+                    <th>Activity</th>
+                    <th>Impact on the Environment</th>
+                    <th>Significance</th>
+                    <th>Control</th>
+                    <th>Proposed Action</th>
+                    <th>Action Taken</th>           
+                </tr>
+                <tr>
+                    <td><apex:commandLink value="New Impact"/></td>
+                    <td colspan="6">Dig Hole with Backhoe</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td></td>               
+                    <td>Emissions from Backhoe</td>
+                    <td>Medium</td>
+                    <td>Neither</td>
+                    <td>Use a shovel instead</td>
+                    <td>None</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td></td>
+                    <td>Sut in the Stream</td>
+                    <td>Low</td>
+                    <td>Influence</td>
+                    <td>Put filter bariers in place</td>
+                    <td>Installed filter in stream around dig site</td>
+                </tr>
+            </table>
+            -->
+            <apex:actionregion >
+            <apex:variable var="rowNum" value="{!0}" />
+            <apex:pageblocktable value="{!ProjActivities}" var="PA" >
+                <apex:column headervalue="{!dLabel['DL188']}" >
+                     <apex:variable var="rowNum" value="{!rowNum + 1}" />
+                     <apex:commandlink value="{!dLabel['DL189']}" action="{!RemoveProjectActivities}" rerender="projectact" >
+                        <apex:param name="rowIndex" value="{!rowNum}" assignto="{!rowNumber}" />
+                     </apex:commandlink>
+                     
+                </apex:column>
+                <apex:column headervalue="{!dLabel['DL190']}" >
+                    
+                    <apex:commandlink style="color:#015ba7;" action="{!URLFOR($Action.ProjectActivities__c.View, PA.Id, ['saveURL'='/apex/ECO_SafetyHealthEnvironment?Id='+pse__Proj__c.Id, 'retURL'='/apex/ECO_SafetyHealthEnvironment?Id='+pse__Proj__c.Id])}" ><apex:outputfield value="{!PA.Name}" /></apex:commandlink>
+                </apex:column>            
+                <apex:column headervalue="{!dLabel['DL191']}" >
+                    <apex:outputfield value="{!PA.ImpactonEnv__c}" />
+                </apex:column>
+                <apex:column headervalue="{!dLabel['DL192']}" >
+                    <apex:outputfield value="{!PA.Significance__c}" />
+                </apex:column>
+                <apex:column headervalue="{!dLabel['DL193']}" >
+                    <apex:outputfield value="{!PA.Control__c}" />
+                </apex:column>
+                <apex:column headervalue="{!dLabel['DL194']}" >
+                    <apex:outputfield value="{!PA.ProposedAction__c}" />
+                </apex:column>
+                <apex:column headervalue="{!dLabel['DL195']}" >
+                    <apex:outputfield value="{!PA.ActionTaken__c}" />                   
+                </apex:column>
+            </apex:pageblocktable>
+
+            <p>
+            <apex:commandbutton value="{!dLabel['DL196']}" action="{!newProjectActivities}" rerender="projectact" />
+            </p>
+
+            <br/><br/>
+            </apex:actionregion>
+    </apex:outputpanel>                              
+
+            <b>{!dLabel['DL197']} </b><br/><br/>
+            {!dLabel['DL198']}<br/><br/>
+            <ol type="a" >
+            <li>{!dLabel['DL199']}</li>
+            <li>{!dLabel['DL200']}</li>
+            <li>{!dLabel['DL201']}</li>
+            </ol>
+            {!dLabel['DL202']}
+
+            <br/><br/>
+
+            <div>
+                <table class="infoTable" border="1" cellpadding="0" cellspacing="0" >
+                    <tr>
+                        <th>{!dLabel['DL203']}</th>
+                        <th>{!dLabel['DL204']}</th>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>
+                            <ul>
+                                <li>{!dLabel['DL205']}</li>
+                                <li>{!dLabel['DL206']}</li>
+                                <li>{!dLabel['DL207']}</li>
+                                <li>{!dLabel['DL208']}</li>
+                                <li>{!dLabel['DL209']}</li>
+                                <li>{!dLabel['DL210']}</li>
+                            </ul>
+                            </p>
+                        </td>
+                        <td>
+                            <p>
+                            <ul>
+                                <li>{!dLabel['DL211']}</li>
+                                <li>{!dLabel['DL212']}</li>
+                                <li>{!dLabel['DL213']}</li>
+                                <li>{!dLabel['DL214']}</li>
+                                <li>{!dLabel['DL215']}</li>
+                                <li>{!dLabel['DL216']}</li>
+                                <li>{!dLabel['DL217']}</li>
+                                <li>{!dLabel['DL218']}</li>
+                                <li>{!dLabel['DL219']}</li>
+                                <li>{!dLabel['DL220']}</li>
+                                <li>{!dLabel['DL221']}</li>
+                                <li>{!dLabel['DL222']}</li>
+                            </ul>
+                            </p>
+                        </td>
+                    </tr>   
+                    <tr>
+                        <th>{!dLabel['DL223']}</th>
+                        <th>{!dLabel['DL224']}</th>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>
+                            <ul>
+                                <li>{!dLabel['DL225']}</li>
+                                <li>{!dLabel['DL226']}</li>
+                                <li>{!dLabel['DL227']} <br/> {!dLabel['DL228']}</li>
+                                <li>{!dLabel['DL229']}</li>
+                                <li>{!dLabel['DL230']}</li>                     
+                            </ul>
+                            </p>
+                        </td>
+                        <td>
+                            <p>
+                            <ul>
+                                <li>{!dLabel['DL231']}</li>
+                                <li>{!dLabel['DL232']}</li>
+                                <li>{!dLabel['DL233']}</li>
+                                <li>{!dLabel['DL234']}</li>
+                                <li>{!dLabel['DL235']}</li>
+                                <li>{!dLabel['DL236']}</li>
+                                <li>{!dLabel['DL237']}</li>
+                                <li>{!dLabel['DL238']}</li>
+                                <li>{!dLabel['DL239']}</li>
+                                <li>{!dLabel['DL240']}</li>                 
+                            </ul>
+                            </p>
+                        </td>
+                    </tr>                                                                                                                                                                                                                                                                                                                                                 
+                </table>
+            </div>
+            </apex:pageblocksection>
+
+    </apex:pageblock>
+    <c:ECO_RiskFlyout projectid="{!pse__Proj__c.Id}" planelement="SH&E" />
+    <c:ECO_AssumptionFlyout projectid="{!pse__Proj__c.Id}" planelement="SH&E" />
+    <c:ECO_ProjectTeamFlyout projectid="{!pse__Proj__c.Id}" />
+<!--    <c:ECO_MSABillRateFlyout ProjectId="{!pse__Proj__c.Id}" rendered="{!pse__Proj__c.Id != null}" />  --> 
+    
+    </apex:form>
+
+<nttdcore:DLabelInit labelParentInit="{!this}" /></apex:page>

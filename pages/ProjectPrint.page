@@ -1,0 +1,13 @@
+<apex:page standardController="Project__c" extensions="ProjectMergeExtension" showheader="false" standardstylesheets="false" Sidebar="false" cache="true" contentType="application/msword#ProjectMerge.doc">
+    <style>
+        .msoNormal {
+            font-family: Arial;
+            font-size: 9pt;
+        }
+    
+    </style>
+    
+    <body style="font-family: Arial; font-size: 9pt;">
+        <c:ProjectMerge prj="{!singleProject}" />  
+    </body>
+</apex:page>
